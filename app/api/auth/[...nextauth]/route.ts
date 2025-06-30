@@ -3,12 +3,13 @@ import NextAuth, {
   type SessionStrategy,
   type Session,
   type User,
+  NextAuthOptions,
 } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { LoginController } from "src/controllers/users/login.controller";
 import { InputParseError } from "src/entities/errors/common";
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -67,5 +68,4 @@ export const authOptions = {
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };
