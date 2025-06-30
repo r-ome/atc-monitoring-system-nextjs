@@ -1,4 +1,4 @@
-import { BranchInsertSchema, BranchSchema } from "src/entities/models/Branch";
+import { BranchInsertSchema } from "src/entities/models/Branch";
 import { BranchRepository } from "src/infrastructure/repositories/branch.repository";
 import { getBranchByNameUseCase } from "./get-branch-by-name.use-case";
 import { InputParseError } from "src/entities/errors/common";

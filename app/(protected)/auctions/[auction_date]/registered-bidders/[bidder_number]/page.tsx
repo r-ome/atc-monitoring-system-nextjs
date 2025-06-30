@@ -11,7 +11,7 @@ import {
 import { cn } from "@/app/lib/utils";
 import { BidderItemsTable } from "./components/BidderItemsTable";
 
-export default async function ({
+export default async function Page({
   params,
 }: Readonly<{ params: { bidder_number: string; auction_date: string } }>) {
   const { bidder_number, auction_date } = await params;

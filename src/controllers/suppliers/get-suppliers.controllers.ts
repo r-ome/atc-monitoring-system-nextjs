@@ -6,8 +6,16 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 
 const presenter = (suppliers: Omit<SupplierSchema, "containers">[]) => {
   const date_format = "MMM dd, yyyy";
-  return suppliers.map((supplier: any) => ({
-    ...supplier,
+  return suppliers.map((supplier) => ({
+    supplier_id: supplier.supplier_id,
+    supplier_code: supplier.supplier_code,
+    name: supplier.name,
+    shipper: supplier.shipper || "",
+    email: supplier.email || "",
+    japanese_name: supplier.japanese_name || "",
+    contact_number: supplier.contact_number || "",
+    commission: supplier.commission || "",
+    sales_remittance_account: supplier.sales_remittance_account || "",
     created_at: format(supplier.created_at, date_format),
     updated_at: format(supplier.updated_at, date_format),
     deleted_at: supplier.deleted_at

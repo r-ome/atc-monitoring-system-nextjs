@@ -2,15 +2,9 @@
 
 import React from "react";
 import { format, startOfToday } from "date-fns";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PlusCircleIcon,
-  SearchIcon,
-} from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
-import { Separator } from "@/app/components/ui/separator";
 
 interface FullScreenCalendarHeaderProps {
   startOfMonth: Date;

@@ -6,7 +6,6 @@ import { BranchSchema } from "src/entities/models/Branch";
 import { format } from "date-fns";
 import { getBranchByNameUseCase } from "src/application/use-cases/branches/get-branch-by-name.use-case";
 import { err, ok } from "src/entities/models/Response";
-import { notFound } from "next/navigation";
 
 const presenter = (branch: BranchSchema) => {
   const date_format = "MMM dd, yyyy";

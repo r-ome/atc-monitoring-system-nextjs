@@ -1,8 +1,4 @@
-import {
-  BranchSchema,
-  type BranchInsertSchema as BranchInsertSchemaType,
-  BranchInsertSchema,
-} from "src/entities/models/Branch";
+import { BranchSchema, BranchInsertSchema } from "src/entities/models/Branch";
 import { createBranchUseCase } from "src/application/use-cases/branches/create-branch.use-case";
 import {
   DatabaseOperationError,

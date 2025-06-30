@@ -8,7 +8,7 @@ import { ContainerProfile } from "./components/ContainerProfile";
 import { ContainerInventoriesTable } from "./components/inventories/ContainerInventoriesTable";
 import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
 
-export default async function ({
+export default async function Page({
   params,
 }: Readonly<{ params: { barcode: string } }>) {
   const { barcode } = await params;

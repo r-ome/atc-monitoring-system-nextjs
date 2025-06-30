@@ -1,7 +1,17 @@
 import * as xlsx from "xlsx-js-style";
 import { format } from "date-fns";
 
-const MillenniumBill = (sheetDetails: any, workbook: xlsx.WorkBook) => {
+type SheetDetails = {
+  barcode: string;
+  supplier: { name: string };
+  arrival_date: string;
+  bill_of_lading_number: string;
+};
+
+const MillenniumBill = (
+  sheetDetails: SheetDetails,
+  workbook: xlsx.WorkBook
+) => {
   const sheet = xlsx.utils.aoa_to_sheet([
     ...Array.from({ length: 50 }, () => [...Array(8).fill(null)]),
   ]);

@@ -1,9 +1,5 @@
 import * as React from "react";
-
 import { cn } from "@/app/lib/utils";
-
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 function Input({
   className,
@@ -12,7 +8,7 @@ function Input({
   type,
   onChange,
   ...props
-}: React.ComponentProps<"input"> & {
+}: React.InputHTMLAttributes<HTMLInputElement> & {
   error?: Record<string, string[] | null>;
 }) {
   const errorMessage = error?.[name as string]?.[0];

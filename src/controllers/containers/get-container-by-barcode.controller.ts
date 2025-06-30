@@ -1,8 +1,5 @@
 import { getContainerByBarcodeUseCase } from "src/application/use-cases/containers/get-container-by-barcode.use-case";
-import {
-  BaseContainerSchema,
-  ContainerSchema,
-} from "src/entities/models/Container";
+import { ContainerSchema } from "src/entities/models/Container";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { format } from "date-fns";
 import { ok, err } from "src/entities/models/Response";

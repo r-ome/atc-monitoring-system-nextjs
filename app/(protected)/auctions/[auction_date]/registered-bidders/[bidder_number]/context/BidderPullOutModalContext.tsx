@@ -7,7 +7,7 @@ type BidderPullOutModalContextType = {
   selectedItems: RegisteredBidder["auction_inventories"];
   setSelectedItems: (a: RegisteredBidder["auction_inventories"]) => void;
   registeredBidder: RegisteredBidder | undefined;
-  setRegisteredBidder: (b: any) => void;
+  setRegisteredBidder: (b: RegisteredBidder) => void;
   serviceChargeAmount: number;
   registrationFeeAmount: number;
   totalItemPrice: number;

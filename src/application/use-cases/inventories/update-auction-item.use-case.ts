@@ -9,7 +9,7 @@ export const updateAuctionItemUseCase = async (
 ) => {
   const containers = await getContainersUseCase();
   const has_inventory_barcode = data.barcode.split("-").length === 3;
-  let item_container_barcode = has_inventory_barcode
+  const item_container_barcode = has_inventory_barcode
     ? data.barcode.split("-").slice(0, -1).join("-")
     : data.barcode;
 

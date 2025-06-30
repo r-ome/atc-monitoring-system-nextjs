@@ -1,5 +1,3 @@
-import { containers } from "@prisma/client";
-import { ContainerSchema } from "src/entities/models/Container";
 import {
   SupplierInsertSchema,
   SupplierSchema,

@@ -34,6 +34,6 @@ export const getExpensesByDate = async (date: string) => {
 };
 
 export const addExpense = async (formData: FormData) => {
-  let input = Object.fromEntries(formData.entries());
+  const input = Object.fromEntries(formData.entries());
   return await AddExpenseController(input);
 };

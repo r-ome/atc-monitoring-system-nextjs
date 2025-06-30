@@ -12,7 +12,6 @@ import {
 import { ManifestInsertSchema } from "src/entities/models/Manifest";
 import { Override } from "src/entities/models/Response";
 import { AUCTION_ITEM_STATUS } from "src/entities/models/Auction";
-import { AuctionDateRange } from "src/entities/models/Auction";
 import { isRange } from "@/app/lib/utils";
 
 export const AuctionRepository: IAuctionRepository = {
@@ -59,7 +58,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  getAuction: async (auction_date: Date | AuctionDateRange) => {
+  getAuction: async (auction_date) => {
     try {
       let start: Date;
       let end: Date;
@@ -73,7 +72,6 @@ export const AuctionRepository: IAuctionRepository = {
         start = new Date(auction_date.start);
         end = new Date(auction_date.end);
       } else {
-        console.log({ isRange: isRange(auction_date), auction_date });
         throw new DatabaseOperationError("Invalid auction_date input");
       }
 
@@ -106,7 +104,7 @@ export const AuctionRepository: IAuctionRepository = {
         where: { bidder_id: data.bidder_id },
       });
 
-      const created = await prisma.auctions_bidders.create({
+      return await prisma.auctions_bidders.create({
         data: {
           auction_id: data.auction_id,
           bidder_id: data.bidder_id,
@@ -127,12 +125,6 @@ export const AuctionRepository: IAuctionRepository = {
           },
         },
       });
-
-      if (!created) {
-        throw new DatabaseOperationError("Error registering bidder");
-      }
-
-      return created;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         console.error(error);
@@ -171,7 +163,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  uploadManifest: async (auction_id: string, data: ManifestInsertSchema[]) => {
+  uploadManifest: async (auction_id, data) => {
     try {
       const valid_rows_in_sheet = data.filter(
         (item) => item.isValid && !item.forReassign
@@ -357,7 +349,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  getManifestRecords: async (auction_id: string) => {
+  getManifestRecords: async (auction_id) => {
     try {
       return await prisma.manifest_records.findMany({
         where: { auction_id },
@@ -372,7 +364,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  getRegisteredBidders: async (auction_id: string) => {
+  getRegisteredBidders: async (auction_id) => {
     try {
       return await prisma.auctions_bidders.findMany({
         where: { auction_id },
@@ -401,7 +393,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  getRegisteredBidder: async (bidder_number: string, auction_id: string) => {
+  getRegisteredBidder: async (bidder_number, auction_id) => {
     try {
       return await prisma.auctions_bidders.findFirst({
         where: { bidder: { bidder_number }, auction_id },

@@ -1,6 +1,13 @@
 import * as xlsx from "xlsx-js-style";
 
-const ATCBill = (sheetDetails: any, workbook: xlsx.WorkBook) => {
+type SheetDetails = {
+  barcode: string;
+  supplier: { name: string };
+  arrival_date: string;
+  bill_of_lading_number: string;
+};
+
+const ATCBill = (sheetDetails: SheetDetails, workbook: xlsx.WorkBook) => {
   const sheet = xlsx.utils.aoa_to_sheet([
     ...Array.from({ length: 50 }, () => [...Array(8).fill(null)]),
   ]);

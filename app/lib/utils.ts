@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { AuctionDateRange } from "src/entities/models/Auction";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -18,7 +19,7 @@ export const formatNumberToCurrency = (num: string | number): string => {
   }).format(Number(num));
 };
 
-export const isRange = (value: any): value is Range => {
+export const isRange = (value: Date | AuctionDateRange) => {
   return (
     value &&
     typeof value === "object" &&

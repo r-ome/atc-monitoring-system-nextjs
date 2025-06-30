@@ -1,9 +1,6 @@
 import { IUserRepository } from "src/application/repositories/users.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
-import {
-  DatabaseOperationError,
-  NotFoundError,
-} from "src/entities/errors/common";
+import { DatabaseOperationError } from "src/entities/errors/common";
 import {
   isPrismaError,
   isPrismaValidationError,

@@ -1,10 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import {
-  AUCTION_ITEM_STATUS,
-  AuctionsInventory,
-  AuctionsInventorySchema,
-} from "./Auction";
+import { AUCTION_ITEM_STATUS, AuctionsInventory } from "./Auction";
 
 export const INVENTORY_STATUS = [
   "SOLD",
@@ -14,7 +10,7 @@ export const INVENTORY_STATUS = [
 ] as const;
 
 export type INVENTORY_STATUS = "SOLD" | "UNSOLD" | "BOUGHT_ITEM" | "VOID";
-export type BaseInventorySchema = Prisma.inventoriesGetPayload<{}>;
+export type BaseInventorySchema = Prisma.inventoriesGetPayload<object>;
 export type InventorySchema = Prisma.inventoriesGetPayload<{
   include: { histories: true; auctions_inventories: true; container: true };
 }>;

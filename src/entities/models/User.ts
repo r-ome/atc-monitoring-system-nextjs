@@ -16,7 +16,7 @@ export type USER_ROLES =
   | "CASHIER"
   | "ENCODER";
 
-export type UserSchema = Prisma.usersGetPayload<{}>;
+export type UserSchema = Prisma.usersGetPayload<object>;
 
 export type User = {
   user_id: string;

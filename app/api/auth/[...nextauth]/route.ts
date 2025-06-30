@@ -16,7 +16,7 @@ export const authOptions = {
         username: { label: "Username", type: "text", placeholder: "Username" },
         password: { label: "Password", type: "Password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials) {
           throw new InputParseError("Invalid Data!", {
             cause: "Credentials is required!",

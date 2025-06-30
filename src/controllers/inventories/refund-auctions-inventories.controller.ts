@@ -9,10 +9,6 @@ import {
 } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Response";
 
-function presenter(auction_inventory: any) {
-  return { ...auction_inventory };
-}
-
 export const RefundAuctionsInventoriesController = async (
   input: Partial<RefundAuctionInventoriesType>
 ) => {
@@ -44,7 +40,7 @@ export const RefundAuctionsInventoriesController = async (
 
     const res = await refundAuctionsInventoriesUseCase(data);
 
-    return ok(presenter(res));
+    return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {
       console.log(error.cause);

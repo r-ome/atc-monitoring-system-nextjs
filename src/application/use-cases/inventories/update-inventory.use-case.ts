@@ -1,4 +1,4 @@
-import { InputParseError, NotFoundError } from "src/entities/errors/common";
+import { InputParseError } from "src/entities/errors/common";
 import { InventoryInsertSchema } from "src/entities/models/Inventory";
 import { InventoryRepository } from "src/infrastructure/repositories/inventories.repository";
 import { getContainersUseCase } from "../containers/get-containers.use-case";
@@ -13,7 +13,7 @@ export const updateInventoryUseCase = async (
   await getInventoryUseCase(inventory_id);
 
   const hasInventoryBarcode = input.barcode.split("-").length === 3;
-  let item_container_barcode = hasInventoryBarcode
+  const item_container_barcode = hasInventoryBarcode
     ? input.barcode.split("-").slice(0, -1).join("-")
     : input.barcode;
 

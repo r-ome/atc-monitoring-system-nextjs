@@ -4,7 +4,7 @@ import { Button } from "@/app/components/ui/button";
 import { BiddersTable } from "./bidders-table";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
-export default async () => {
+export default async function Page() {
   const res = await getBidders();
 
   if (!res.ok) {
@@ -23,4 +23,4 @@ export default async () => {
       </div>
     </>
   );
-};
+}

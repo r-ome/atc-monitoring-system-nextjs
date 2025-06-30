@@ -17,9 +17,7 @@ import {
 import { toast } from "sonner";
 import { uploadBoughtItems } from "@/app/(protected)/inventories/actions";
 
-interface UploadBoughtItemsProps {}
-
-export const UploadBoughtItems: React.FC<UploadBoughtItemsProps> = () => {
+export const UploadBoughtItems: React.FC = () => {
   const router = useRouter();
   const [open, setOpenDialog] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);

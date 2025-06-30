@@ -37,7 +37,12 @@ export const AuctionItemActionButtons: React.FC<
   useEffect(() => {
     setAuctionInventory(auctionInventory);
     setAuctionBidderId(auctionBidderId);
-  }, [auctionInventory, auctionBidderId]);
+  }, [
+    auctionInventory,
+    auctionBidderId,
+    setAuctionInventory,
+    setAuctionBidderId,
+  ]);
 
   return (
     <DropdownMenu>

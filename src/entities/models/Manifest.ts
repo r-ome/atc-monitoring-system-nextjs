@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { Prisma } from "@prisma/client";
 
-export type ManifestSchema = Prisma.manifest_recordsGetPayload<{}>;
+export type ManifestSchema = Prisma.manifest_recordsGetPayload<object>;
 export type Manifest = {
   manifest_id: string;
   auction_id: string;

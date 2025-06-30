@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { Inventory, InventorySchema } from "./Inventory";
+import { Inventory } from "./Inventory";
 
 export type BaseContainerSchema = Prisma.containersGetPayload<{
   include: { branch: true; inventories: true; supplier: true };

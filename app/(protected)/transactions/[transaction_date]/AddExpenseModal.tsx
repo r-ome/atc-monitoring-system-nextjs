@@ -27,9 +27,7 @@ import { addExpense } from "@/app/(protected)/auctions/[auction_date]/payments/a
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-interface AddExpenseModalProps {}
-
-export const AddExpenseModal: React.FC<AddExpenseModalProps> = () => {
+export const AddExpenseModal: React.FC = () => {
   const router = useRouter();
   const { transaction_date } = useParams();
   const [isLoading, setIsLoading] = useState<boolean>(false);

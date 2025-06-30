@@ -8,7 +8,6 @@ import {
   type PullOutPaymentInsertSchema as PullOutPaymentInsertSchemaType,
 } from "src/entities/models/Payment";
 import { err, ok } from "src/entities/models/Response";
-import { z } from "zod";
 
 export const HandleBidderPullOutController = async (
   input: Partial<PullOutPaymentInsertSchemaType>

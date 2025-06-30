@@ -35,7 +35,7 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
   useEffect(() => {
     setRegisteredBidder(registeredBidder);
     setSelectedItems(selectedItems);
-  }, [selectedItems, registeredBidder]);
+  }, [selectedItems, registeredBidder, setRegisteredBidder, setSelectedItems]);
 
   // TO DO: RESET TABLE SELECTION
 

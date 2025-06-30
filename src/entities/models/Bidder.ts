@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { AuctionsInventory } from "./Auction";
+import { Prisma } from "@prisma/client";
+import { AuctionsInventory, AuctionsInventorySchema } from "./Auction";
 
 export const BIDDER_STATUS = ["BANNED", "ACTIVE", "INACTIVE"] as const;
 export type BIDDER_STATUS = "BANNED" | "ACTIVE" | "INACTIVE";
@@ -35,7 +35,7 @@ export type Bidder = {
     registration_fee: number;
     balance: number;
     created_at: string;
-    auctions_inventories: any[];
+    auctions_inventories: AuctionsInventorySchema[];
   }[];
 };
 

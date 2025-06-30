@@ -69,8 +69,7 @@ export const columns: ColumnDef<User>[] = [
     id: "actions",
     enableHiding: false,
     size: 50,
-    cell: ({ row }) => {
-      const bidder = row.original;
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild className="cursor-pointer">

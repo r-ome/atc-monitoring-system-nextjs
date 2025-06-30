@@ -54,7 +54,7 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
 
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
-    const auctions_inventories = selectedItems.map((item, i) => ({
+    const auctions_inventories = selectedItems.map((item) => ({
       auction_inventory_id: item.auction_inventory_id,
       inventory_id: item.inventory_id,
       prev_price: item.price,

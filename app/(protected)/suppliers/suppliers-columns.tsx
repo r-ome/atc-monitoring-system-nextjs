@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import { type Supplier } from "src/entities/models/Supplier";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import {
@@ -13,8 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/app/components/ui/dropdown-menu";
+import { SupplierRowType } from "./suppliers-table";
 
-export const columns: ColumnDef<Supplier>[] = [
+export const columns: ColumnDef<SupplierRowType>[] = [
   {
     accessorKey: "name",
     size: 300,

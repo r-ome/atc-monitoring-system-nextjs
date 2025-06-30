@@ -14,7 +14,7 @@ export const getAuctionItemDetails = async (auctionInventoryId: string) => {
 };
 
 export const voidItems = async (formData: FormData) => {
-  let data = Object.fromEntries(formData.entries());
+  const data = Object.fromEntries(formData.entries());
   data.auction_inventories =
     typeof data.auction_inventories === "string"
       ? JSON.parse(data.auction_inventories as string)
@@ -24,7 +24,7 @@ export const voidItems = async (formData: FormData) => {
 };
 
 export const updateAuctionInventory = async (formData: FormData) => {
-  let data = Object.fromEntries(formData.entries());
+  const data = Object.fromEntries(formData.entries());
   data.control = formatNumberPadding(data.control as string, 4);
   return await UpdateAuctionItemController(data);
 };
@@ -37,7 +37,7 @@ export const updateInventory = async (
   inventory_id: string,
   formData: FormData
 ) => {
-  let data = Object.fromEntries(formData.entries());
+  const data = Object.fromEntries(formData.entries());
   data.control = formatNumberPadding(data.control as string, 4);
   return await UpdateInventoryController(inventory_id, data);
 };

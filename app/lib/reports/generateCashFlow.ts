@@ -13,7 +13,7 @@ const generateCashFlow = ({
   expenses: Expense[];
   yesterdayBalance: number;
 }) => {
-  const rawData = payments.map((item, i) => ({
+  const rawData = payments.map((item) => ({
     date: format(new Date(item.created_at), "MMMM dd, yyyy"),
     bidder: `BIDDER ${item.bidder.bidder_number}`,
     purpose: item.receipt.purpose.replace(/_/g, " ").toUpperCase(), // e.g., "PULL OUT"
@@ -26,7 +26,7 @@ const generateCashFlow = ({
 
   // Normalize & group
   const grouped = rawData.map((item) => {
-    let action = item.purpose === "PULL OUT" ? "PULLOUT" : item.purpose;
+    const action = item.purpose === "PULL OUT" ? "PULLOUT" : item.purpose;
     return {
       action,
       bidder: item.bidder,

@@ -68,7 +68,7 @@ export const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
 
     useEffect(() => {
       setErrorMessage(error?.[props.name as string]?.[0]);
-    }, [error]);
+    }, [error, props.name]);
 
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -184,3 +184,5 @@ export const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
     );
   }
 );
+
+InputNumber.displayName = "InputNumber";

@@ -4,7 +4,6 @@ import {
   TableHeader,
   TableBody,
   TableRow,
-  TableFooter,
   TableCell,
 } from "@/app/components/ui/table";
 import { useBidderPullOutModalContext } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/context/BidderPullOutModalContext";

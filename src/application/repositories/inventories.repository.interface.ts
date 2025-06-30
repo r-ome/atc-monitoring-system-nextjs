@@ -27,7 +27,7 @@ export interface IInventoryRepository {
       "auction_bidder" | "inventory" | "receipt" | "histories"
     >[]
   >;
-  updateAuctionItem: (data: AuctionInventoryUpdateSchema) => Promise<any>;
+  updateAuctionItem: (data: AuctionInventoryUpdateSchema) => void;
   updateInventory: (
     inventory_id: string,
     data: InventoryInsertSchema

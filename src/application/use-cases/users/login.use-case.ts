@@ -1,4 +1,3 @@
-import { UserRepository } from "src/infrastructure/repositories/users.repository";
 import { getUserByUsernameUseCase } from "./get-user-by-username.use-case";
 import bcrypt from "bcrypt";
 import { InputParseError, NotFoundError } from "src/entities/errors/common";

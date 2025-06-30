@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import {
   Breadcrumb,
@@ -9,7 +9,6 @@ import {
   BreadcrumbSeparator,
 } from "@/app/components/ui/breadcrumb";
 import { usePathname } from "next/navigation";
-import { format } from "date-fns";
 
 export const AppBreadcrumb = () => {
   const pathname = usePathname();

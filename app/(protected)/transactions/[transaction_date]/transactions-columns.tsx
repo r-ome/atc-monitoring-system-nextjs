@@ -1,11 +1,29 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Payment } from "src/entities/models/Payment";
 import { format } from "date-fns";
+
+const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
+  const payment = row.original;
+  const router = useRouter();
+  return (
+    <div
+      className="flex justify-center cursor-pointer hover:underline"
+      onClick={() => {
+        const auction_date = format(payment.created_at, "yyyy-MM-dd");
+        router.push(
+          `/auctions/${auction_date}/payments/${payment.receipt.receipt_number}`
+        );
+      }}
+    >
+      {payment.receipt.receipt_number}
+    </div>
+  );
+};
 
 export const columns: ColumnDef<Payment>[] = [
   {
@@ -99,23 +117,7 @@ export const columns: ColumnDef<Payment>[] = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      const payment = row.original;
-      const router = useRouter();
-      return (
-        <div
-          className="flex justify-center cursor-pointer hover:underline"
-          onClick={() => {
-            const auction_date = format(payment.created_at, "yyyy-MM-dd");
-            router.push(
-              `/auctions/${auction_date}/payments/${payment.receipt.receipt_number}`
-            );
-          }}
-        >
-          {payment.receipt.receipt_number}
-        </div>
-      );
-    },
+    cell: ({ row }) => <ReceiptNumberCell row={row} />,
   },
   {
     id: "payment_type",

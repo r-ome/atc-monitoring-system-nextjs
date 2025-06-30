@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-export type BranchSchema = Prisma.branchesGetPayload<{}>;
+export type BranchSchema = Prisma.branchesGetPayload<object>;
 export type Branch = {
   branch_id: string;
   name: string;

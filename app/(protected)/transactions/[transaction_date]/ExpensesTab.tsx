@@ -45,7 +45,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
       CASH_ON_HAND_FOR_PETTY_CASH: cashOnHand,
       PETTY_CASH_BALANCE: pettyCashBalance,
     }));
-  }, [expenses]);
+  }, [expenses, yesterdayBalance]);
 
   return (
     <div className="flex flex-col gap-4">

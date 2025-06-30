@@ -61,7 +61,9 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
   const [auctionStartDate, setAuctionStartDate] = useState<Date | undefined>();
   const [auctionEndDate, setAuctionEndDate] = useState<Date | undefined>();
   const [weightInTons, setWeightInTons] = useState<number>(0);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [suppliers, setSuppliers] = useState<Omit<Supplier, "containers">[]>(
+    []
+  );
   const [selectedSupplier, setSelectedSupplier] = useState<Option | undefined>({
     label: container.supplier.name,
     value: container.supplier.supplier_id,

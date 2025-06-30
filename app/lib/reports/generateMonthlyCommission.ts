@@ -11,7 +11,7 @@ import * as xlsx from "xlsx-js-style";
 
 const generateMonthlyCommission = (
   // containers: ContainerCommission[],
-  containers: any[],
+  containers: { name: string; barcode: string; commission: string }[],
   workbook: xlsx.WorkBook
 ) => {
   const sheet = xlsx.utils.aoa_to_sheet(

@@ -34,7 +34,9 @@ export default function Page() {
     undefined
   );
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [suppliers, setSuppliers] = useState<Omit<Supplier, "containers">[]>(
+    []
+  );
   const [selectedSupplier, setSelectedSupplier] = useState<option | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<option | null>(null);
   const [weightInTons, setWeightInTons] = useState<number>(0);

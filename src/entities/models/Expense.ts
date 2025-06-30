@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 
 export type EXPENSE_PURPOSE = "ADD_PETTY_CASH" | "EXPENSE";
 
-export type ExpenseSchema = Prisma.expensesGetPayload<{}>;
+export type ExpenseSchema = Prisma.expensesGetPayload<object>;
 export type Expense = {
   expense_id: string;
   balance: number;

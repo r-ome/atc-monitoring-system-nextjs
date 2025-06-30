@@ -19,6 +19,7 @@ export type Monitoring = {
   price: number;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const generateReport = (data: any, reports: string[], filename: string) => {
   const workbook = xlsx.utils.book_new();
 

@@ -8,7 +8,10 @@ import {
   RegisterBidderInputSchema,
   RegisteredBidderSchema,
 } from "src/entities/models/Bidder";
-import { ManifestSchema } from "src/entities/models/Manifest";
+import {
+  ManifestInsertSchema,
+  ManifestSchema,
+} from "src/entities/models/Manifest";
 import { CancelItemsSchema } from "src/entities/models/Inventory";
 
 export interface IAuctionRepository {
@@ -16,7 +19,9 @@ export interface IAuctionRepository {
     auction_date: Date | AuctionDateRange
   ) => Promise<AuctionSchema | null>;
   startAuction: (auction_date: Date) => Promise<AuctionSchema>;
-  registerBidder: (data: RegisterBidderInputSchema) => Promise<any>;
+  registerBidder: (
+    data: RegisterBidderInputSchema
+  ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
   getRegisteredBidders: (
     auction_id: string
   ) => Promise<RegisteredBidderSchema[]>;
@@ -30,7 +35,7 @@ export interface IAuctionRepository {
   ) => Promise<AuctionsInventorySchema[]>;
   uploadManifest: (
     auction_id: string,
-    data: any
+    data: ManifestInsertSchema[]
   ) => Promise<
     Omit<
       AuctionsInventorySchema,
@@ -38,7 +43,7 @@ export interface IAuctionRepository {
     >[]
   >;
   getManifestRecords: (auction_id: string) => Promise<ManifestSchema[]>;
-  cancelItems: (data: CancelItemsSchema) => Promise<any>;
+  cancelItems: (data: CancelItemsSchema) => Promise<void>;
   getBiddersWithBalance: () => Promise<
     (Omit<RegisteredBidderSchema, "auctions_inventories"> & {
       auctions_inventories: Omit<

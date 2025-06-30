@@ -30,7 +30,7 @@ export function BidderItemsTable({
     return auctionInventories.filter((item) =>
       selectedRowsKeys.includes(item.auction_inventory_id)
     );
-  }, [selectedRows]);
+  }, [selectedRows, auctionInventories]);
 
   const globalFilterFn = (
     row: CoreRow<AuctionInventory>,

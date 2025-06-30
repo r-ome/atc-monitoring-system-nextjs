@@ -5,7 +5,7 @@ import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./branch-columns";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
-export default async () => {
+export default async function Page() {
   const res = await getBranches();
 
   if (!res.ok) {
@@ -24,4 +24,4 @@ export default async () => {
       </div>
     </>
   );
-};
+}

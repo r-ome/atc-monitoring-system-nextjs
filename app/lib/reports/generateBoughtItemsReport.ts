@@ -78,7 +78,7 @@ const generateBoughtItemsReport = (boughtItems: BoughtItems[]) => {
     });
   });
 
-  let sheets: { filename: string; sheet: xlsx.WorkSheet }[] = [
+  const sheets: { filename: string; sheet: xlsx.WorkSheet }[] = [
     { filename: "Bought Items", sheet },
   ];
 

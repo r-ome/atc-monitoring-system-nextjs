@@ -25,5 +25,5 @@ export interface IPaymentRepository {
       | "inventory_histories"
     >
   >;
-  refundAuctionInventories: (data: RefundAuctionInventories) => Promise<any>;
+  refundAuctionInventories: (data: RefundAuctionInventories) => Promise<void>;
 }

@@ -23,8 +23,7 @@ import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { Auction } from "src/entities/models/Auction";
 import { RegisteredBidder } from "src/entities/models/Bidder";
-import { toast } from "sonner";
-import { formatNumberPadding } from "@/app/lib/utils";
+// import { toast } from "sonner";
 
 interface RegisterBidderModalProps {
   auction: Auction;
@@ -58,32 +57,32 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
     return bidders.filter((bidder) => !registered.has(bidder.bidder_id));
   }, [bidders, registeredBidders]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsLoading(true);
-    if (!selectedBidder || !auction) return;
+  // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault();
+  //   setIsLoading(true);
+  //   if (!selectedBidder || !auction) return;
 
-    const formData = new FormData(event.currentTarget);
-    formData.append("auction_id", auction.auction_id);
-    formData.append("bidder_id", selectedBidder.value as string);
-    const balance = (selectedBidder.registration_fee as number) * -1;
-    formData.append("balance", balance.toString());
-    const res = await registerBidder(formData);
-    if (res) {
-      setIsLoading(false);
-      if (res.ok) {
-        toast.success("Successfully Registered Bidder");
-        router.refresh();
-        setOpen(false);
-      }
+  //   const formData = new FormData(event.currentTarget);
+  //   formData.append("auction_id", auction.auction_id);
+  //   formData.append("bidder_id", selectedBidder.value as string);
+  //   const balance = (selectedBidder.registration_fee as number) * -1;
+  //   formData.append("balance", balance.toString());
+  //   const res = await registerBidder(formData);
+  //   if (res) {
+  //     setIsLoading(false);
+  //     if (res.ok) {
+  //       toast.success("Successfully Registered Bidder");
+  //       router.refresh();
+  //       setOpen(false);
+  //     }
 
-      if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
-      }
-    }
-  };
+  //     if (!res.ok) {
+  //       const description =
+  //         typeof res.error?.cause === "string" ? res.error?.cause : null;
+  //       toast.error(res.error.message, { description });
+  //     }
+  //   }
+  // };
 
   const handleSubmitBidders = async (
     event: React.FormEvent<HTMLFormElement>

@@ -3,7 +3,7 @@ import { getSuppliers } from "./actions";
 import { Button } from "@/app/components/ui/button";
 import { SuppliersTable } from "./suppliers-table";
 
-export default async () => {
+export default async function Page() {
   const res = await getSuppliers();
 
   if (!res.ok) {
@@ -22,4 +22,4 @@ export default async () => {
       </div>
     </>
   );
-};
+}

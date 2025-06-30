@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useState, useContext, SetStateAction } from "react";
+import { createContext, useState, useContext } from "react";
 import { AuctionsInventory } from "src/entities/models/Auction";
 
 type AuctionItemContextType = {

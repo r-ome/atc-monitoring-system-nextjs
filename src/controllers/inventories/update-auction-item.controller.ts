@@ -10,10 +10,6 @@ import {
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Response";
 
-function presenter(auction_inventory: any) {
-  return auction_inventory;
-}
-
 export const UpdateAuctionItemController = async (
   input: Partial<AuctionInventoryUpdateSchemaType>
 ) => {
@@ -28,7 +24,7 @@ export const UpdateAuctionItemController = async (
     }
 
     const res = await updateAuctionItemUseCase(data);
-    return ok(presenter(res));
+    return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error?.cause });

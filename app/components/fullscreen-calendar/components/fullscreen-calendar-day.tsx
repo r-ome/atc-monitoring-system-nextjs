@@ -11,7 +11,7 @@ interface FullscreenCalendarDayProps {
   setSelectedDay: React.Dispatch<React.SetStateAction<Date>>;
   firstDayCurrentMonth: Date;
   dayIndex: number;
-  onDayClick: (a: any) => void;
+  onDayClick: (a: Date) => void;
 }
 
 const colStartClasses = [

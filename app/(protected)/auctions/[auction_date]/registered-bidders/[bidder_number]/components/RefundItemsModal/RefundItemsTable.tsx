@@ -40,7 +40,7 @@ export const RefundItemsTable: React.FC<RefundItemsTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody className="border">
-          {selectedItems.map((item, i) => (
+          {selectedItems.map((item) => (
             <TableRow key={item.auction_inventory_id}>
               <TableCell className="text-center w-[100px]">
                 {item.inventory.barcode}

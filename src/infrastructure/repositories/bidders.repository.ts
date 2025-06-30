@@ -1,10 +1,9 @@
 import { IBidderRepository } from "src/application/repositories/bidders.repository.interface";
-import { BidderInsertSchema, BidderSchema } from "src/entities/models/Bidder";
+import { BidderInsertSchema } from "src/entities/models/Bidder";
 import prisma from "@/app/lib/prisma/prisma";
 import {
   NotFoundError,
   DatabaseOperationError,
-  InputParseError,
 } from "src/entities/errors/common";
 import {
   isPrismaError,

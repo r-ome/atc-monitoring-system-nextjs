@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -19,7 +19,11 @@ import { Check, ChevronsUpDown } from "lucide-react";
 
 interface SelectWithSearch {
   placeholder: string;
-  options: { label: string; value: string; [key: string]: any }[];
+  options: {
+    label: string;
+    value: string;
+    [key: string]: string | number | boolean;
+  }[];
   setSelected: (option: Record<string, string | number | boolean>) => void;
   modal?: boolean;
   side?: "bottom" | "top" | "right" | "left";
@@ -73,7 +77,7 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
                   "cursor-pointer w-full",
                   option.disabled && "text-red-500 cursor-not-allowed"
                 )}
-                disabled={option.disabled}
+                disabled={option.disabled as boolean}
                 value={option.label}
                 key={i}
                 onSelect={() => {
