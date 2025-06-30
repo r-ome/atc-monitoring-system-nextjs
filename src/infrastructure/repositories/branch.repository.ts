@@ -1,7 +1,10 @@
 import { IBranchRepository } from "src/application/repositories/branches.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { isPrismaError, isPrismaValidationError } from "prisma/error-handler";
+import {
+  isPrismaError,
+  isPrismaValidationError,
+} from "@/app/lib/error-handler";
 
 export const BranchRepository: IBranchRepository = {
   getBranch: async (branch_id) => {

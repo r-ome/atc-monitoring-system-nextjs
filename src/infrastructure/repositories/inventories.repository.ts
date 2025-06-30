@@ -1,5 +1,8 @@
 import prisma from "@/app/lib/prisma/prisma";
-import { isPrismaError, isPrismaValidationError } from "prisma/error-handler";
+import {
+  isPrismaError,
+  isPrismaValidationError,
+} from "@/app/lib/error-handler";
 import { IInventoryRepository } from "src/application/repositories/inventories.repository.interface";
 import {
   DatabaseOperationError,

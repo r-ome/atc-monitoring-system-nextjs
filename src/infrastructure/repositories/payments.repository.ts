@@ -1,5 +1,8 @@
 import prisma from "@/app/lib/prisma/prisma";
-import { isPrismaError, isPrismaValidationError } from "prisma/error-handler";
+import {
+  isPrismaError,
+  isPrismaValidationError,
+} from "@/app/lib/error-handler";
 import { IPaymentRepository } from "src/application/repositories/payments.repository.interface";
 import {
   DatabaseOperationError,

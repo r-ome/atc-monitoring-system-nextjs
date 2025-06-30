@@ -4,7 +4,10 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { isPrismaError, isPrismaValidationError } from "prisma/error-handler";
+import {
+  isPrismaError,
+  isPrismaValidationError,
+} from "@/app/lib/error-handler";
 
 export const SupplierRepository: ISupplierRepository = {
   getSupplierBySupplierId: async (supplier_id) => {

@@ -6,7 +6,10 @@ import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { isPrismaError, isPrismaValidationError } from "prisma/error-handler";
+import {
+  isPrismaError,
+  isPrismaValidationError,
+} from "@/app/lib/error-handler";
 
 export const BidderRepository: IBidderRepository = {
   getBidder: async (bidder_id) => {
