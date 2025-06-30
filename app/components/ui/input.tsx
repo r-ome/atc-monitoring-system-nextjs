@@ -1,6 +1,10 @@
 import * as React from "react";
 import { cn } from "@/app/lib/utils";
 
+export interface InputProps extends React.ComponentProps<"input"> {
+  error?: Record<string, string[] | null>;
+}
+
 function Input({
   className,
   error,
@@ -8,9 +12,7 @@ function Input({
   type,
   onChange,
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & {
-  error?: Record<string, string[] | null>;
-}) {
+}: InputProps) {
   const errorMessage = error?.[name as string]?.[0];
 
   return (

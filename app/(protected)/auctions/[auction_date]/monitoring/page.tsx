@@ -8,7 +8,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { auction_date: string } }>) {
+}: Readonly<{ params: Promise<{ auction_date: string }> }>) {
   const { auction_date } = await params;
   const auction_res = await getAuction(auction_date);
   const session = await getServerSession(authOptions);

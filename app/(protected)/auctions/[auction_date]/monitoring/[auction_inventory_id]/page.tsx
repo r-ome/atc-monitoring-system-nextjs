@@ -5,7 +5,7 @@ import { AuctionInventoryWrapper } from "./components/AuctionInventoryWrapper";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { auction_inventory_id: string } }>) {
+}: Readonly<{ params: Promise<{ auction_inventory_id: string }> }>) {
   const { auction_inventory_id } = await params;
   const res = await getAuctionItemDetails(auction_inventory_id);
 

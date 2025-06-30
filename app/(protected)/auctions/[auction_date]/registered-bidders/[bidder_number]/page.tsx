@@ -13,7 +13,9 @@ import { BidderItemsTable } from "./components/BidderItemsTable";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { bidder_number: string; auction_date: string } }>) {
+}: Readonly<{
+  params: Promise<{ bidder_number: string; auction_date: string }>;
+}>) {
   const { bidder_number, auction_date } = await params;
   const res = await getRegisteredBidderByBidderNumber(
     bidder_number,

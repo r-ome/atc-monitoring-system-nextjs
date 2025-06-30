@@ -22,7 +22,7 @@ import { GenerateExpenseReport } from "./GenerateExpenseReport";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { transaction_date: string } }>) {
+}: Readonly<{ params: Promise<{ transaction_date: string }> }>) {
   const { transaction_date } = await params;
   const transactions_res = await getPaymentsByDate(transaction_date);
   const expenses_res = await getExpensesByDate(transaction_date);

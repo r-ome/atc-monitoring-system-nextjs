@@ -4,7 +4,7 @@ import { AuctionTransactionsTable } from "./AuctionTransactionsTable";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { auction_date: string } }>) {
+}: Readonly<{ params: Promise<{ auction_date: string }> }>) {
   const { auction_date } = await params;
   const auction_res = await getAuction(auction_date);
   if (!auction_res.ok) {

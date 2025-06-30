@@ -21,7 +21,7 @@ import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { bidder_number: string } }>) {
+}: Readonly<{ params: Promise<{ bidder_number: string }> }>) {
   const { bidder_number } = await params;
   const res = await getBidderByBidderNumber(bidder_number);
 

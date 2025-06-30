@@ -21,7 +21,9 @@ import { Badge } from "@/app/components/ui/badge";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { auction_date: string; receipt_number: string } }>) {
+}: Readonly<{
+  params: Promise<{ auction_date: string; receipt_number: string }>;
+}>) {
   const { auction_date, receipt_number } = await params;
   const auction_res = await getAuction(auction_date);
   if (!auction_res.ok) {

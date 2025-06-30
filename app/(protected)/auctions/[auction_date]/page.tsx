@@ -37,7 +37,7 @@ type AuctionItems = {
 
 export default async function Page({
   params,
-}: Readonly<{ params: { auction_date: string } }>) {
+}: Readonly<{ params: Promise<{ auction_date: string }> }>) {
   const session = await getServerSession(authOptions);
   const { auction_date } = await params;
   const res = await getAuction(auction_date);

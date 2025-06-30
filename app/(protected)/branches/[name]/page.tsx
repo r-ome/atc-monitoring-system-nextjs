@@ -5,7 +5,7 @@ import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { name: string } }>) {
+}: Readonly<{ params: Promise<{ name: string }> }>) {
   const { name } = await params;
   const res = await getBranchByName(name);
 

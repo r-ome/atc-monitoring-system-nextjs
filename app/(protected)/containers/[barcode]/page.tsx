@@ -10,7 +10,7 @@ import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { barcode: string } }>) {
+}: Readonly<{ params: Promise<{ barcode: string }> }>) {
   const { barcode } = await params;
   const container_res = await getContainerByBarcode(barcode);
 

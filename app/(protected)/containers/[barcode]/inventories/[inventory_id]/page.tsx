@@ -18,7 +18,7 @@ import { UpdateInventoryModal } from "./UpdateInventoryModal";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { inventory_id: string } }>) {
+}: Readonly<{ params: Promise<{ inventory_id: string }> }>) {
   const { inventory_id } = await params;
   const res = await getInventory(inventory_id);
   if (!res.ok) {

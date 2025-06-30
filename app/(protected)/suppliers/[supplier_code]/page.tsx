@@ -19,7 +19,7 @@ import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page({
   params,
-}: Readonly<{ params: { supplier_code: string } }>) {
+}: Readonly<{ params: Promise<{ supplier_code: string }> }>) {
   const { supplier_code } = await params;
   const res = await getSupplierBySupplierCode(supplier_code);
 
