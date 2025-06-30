@@ -1,0 +1,327 @@
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../app/generated/prisma" // commenting this out solves prisma generate error. weird. lol
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model auctions {
+  auction_id         String             @id @default(uuid())
+  created_at         DateTime           @default(now()) @db.Timestamp(0)
+  updated_at         DateTime           @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at         DateTime?          @db.DateTime(0)
+  registered_bidders auctions_bidders[]
+  manifest_records   manifest_records[]
+}
+
+model auctions_bidders {
+  auction_bidder_id    String                 @id @default(uuid())
+  auction_id           String
+  bidder_id            String
+  service_charge       Int                    @default(0)
+  already_consumed     Int                    @default(0) @db.TinyInt
+  registration_fee     Int                    @default(0)
+  balance              Int                    @default(0)
+  remarks              String?                @db.Text
+  created_at           DateTime               @default(now()) @db.Timestamp(0)
+  updated_at           DateTime               @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at           DateTime?              @db.DateTime(0)
+  auctions             auctions               @relation(fields: [auction_id], references: [auction_id], onDelete: Cascade, map: "fk_auctions_bidders_auctions")
+  bidder               bidders                @relation(fields: [bidder_id], references: [bidder_id], onDelete: Cascade, map: "fk_auctions_bidders_bidders")
+  auctions_inventories auctions_inventories[]
+  receipt_records      receipt_records[]
+
+  @@index([auction_id], map: "fk_auctions_bidders_auctions")
+  @@index([bidder_id], map: "fk_auctions_bidders_bidders")
+}
+
+model auctions_inventories {
+  auction_inventory_id String                   @id @default(uuid())
+  auction_bidder_id    String
+  inventory_id         String
+  receipt_id           String?
+  description          String
+  status               auction_inventory_status @default(UNPAID)
+  price                Int                      @default(0)
+  qty                  String
+  manifest_number      String
+  created_at           DateTime                 @default(now()) @db.Timestamp(0)
+  updated_at           DateTime                 @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at           DateTime?                @db.DateTime(0)
+  auction_bidder       auctions_bidders         @relation(fields: [auction_bidder_id], references: [auction_bidder_id], onDelete: Cascade, map: "fk_auctions_inventories_auctions_bidders")
+  inventory            inventories              @relation(fields: [inventory_id], references: [inventory_id], onDelete: Cascade, map: "fk_auctions_inventories_inventories")
+  receipt              receipt_records?         @relation(fields: [receipt_id], references: [receipt_id], onDelete: Cascade, map: "fk_auctions_inventories_receipt")
+  histories            inventory_histories[]
+
+  @@index([auction_bidder_id], map: "fk_auctions_inventories_auctions_bidders")
+  @@index([inventory_id], map: "fk_auctions_inventories_inventories")
+  @@index([receipt_id], map: "fk_auctions_inventories_receipt")
+}
+
+model bidder_requirements {
+  requirement_id String    @id @default(uuid())
+  bidder_id      String
+  name           String
+  url            String?
+  validity_date  DateTime? @db.DateTime(0)
+  created_at     DateTime  @default(now()) @db.Timestamp(0)
+  updated_at     DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at     DateTime? @db.DateTime(0)
+  bidders        bidders   @relation(fields: [bidder_id], references: [bidder_id], onDelete: Cascade, map: "fk_bidder_requirements_bidders")
+
+  @@index([bidder_id], map: "fk_bidder_requirements_bidders")
+}
+
+model bidders {
+  bidder_id        String                 @id @default(uuid())
+  bidder_number    String                 @unique
+  first_name       String
+  middle_name      String?
+  last_name        String
+  birthdate        DateTime?              @db.DateTime()
+  contact_number   String?
+  registration_fee Int                    @default(0)
+  service_charge   Int                    @default(0)
+  status           bidder_status
+  remarks          String?                @db.Text
+  registered_at    String                 @default("BIÑAN")
+  created_at       DateTime               @default(now()) @db.Timestamp(0)
+  updated_at       DateTime               @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at       DateTime?
+  auctions_joined  auctions_bidders[]
+  requirements     bidder_requirements[]
+  ban_histories    bidder_ban_histories[]
+}
+
+model bidder_ban_histories {
+  bidder_ban_history_id String    @id @default(uuid())
+  bidder_id             String
+  remarks               String    @db.Text
+  created_at            DateTime  @default(now()) @db.Timestamp(0)
+  updated_at            DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at            DateTime? @db.DateTime(0)
+  bidder                bidders   @relation(fields: [bidder_id], references: [bidder_id], onDelete: Cascade, map: "fk_bidder_ban_histories_bidders")
+
+  @@index([bidder_id], map: "fk_bidder_ban_histories_bidders")
+}
+
+model branches {
+  branch_id  String       @id @default(uuid())
+  name       String
+  created_at DateTime     @default(now()) @db.Timestamp(0)
+  updated_at DateTime     @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at DateTime?
+  containers containers[]
+}
+
+model containers {
+  container_id          String                     @id @default(uuid())
+  supplier_id           String
+  branch_id             String
+  barcode               String                     @unique
+  bill_of_lading_number String?                    @db.VarChar(255)
+  container_number      String?
+  eta_to_ph             DateTime?                  @db.DateTime(0)
+  departure_date        DateTime?                  @db.DateTime(0)
+  arrival_date          DateTime?                  @db.DateTime(0)
+  auction_start_date    DateTime?                  @db.DateTime(0)
+  auction_end_date      DateTime?                  @db.DateTime(0)
+  due_date              DateTime?                  @db.DateTime(0)
+  gross_weight          String?                    @db.VarChar(255)
+  auction_or_sell       containers_auction_or_sell @default(SELL)
+  status                containers_status          @default(UNPAID)
+  created_at            DateTime                   @default(now()) @db.Timestamp(0)
+  updated_at            DateTime                   @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at            DateTime?                  @db.DateTime(0)
+  branch                branches                   @relation(fields: [branch_id], references: [branch_id], onDelete: Cascade, map: "fk_containers_branches")
+  supplier              suppliers                  @relation(fields: [supplier_id], references: [supplier_id], onDelete: Cascade, map: "fk_containers_suppliers")
+  inventories           inventories[]
+
+  @@index([branch_id], map: "fk_containers_branches")
+  @@index([supplier_id], map: "fk_containers_suppliers")
+}
+
+model inventories {
+  inventory_id         String                 @id @default(uuid())
+  container_id         String
+  barcode              String
+  control              String?
+  description          String
+  status               inventories_status     @default(UNSOLD)
+  is_bought_item       Int?
+  url                  String?
+  created_at           DateTime               @default(now()) @db.Timestamp(0)
+  updated_at           DateTime               @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at           DateTime?              @db.DateTime(0)
+  container            containers             @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_inventories_container_id")
+  auctions_inventories auctions_inventories[]
+  histories            inventory_histories[]
+
+  @@index(fields: [container_id], map: "fk_inventories_container_id")
+}
+
+model inventory_histories {
+  inventory_history_id String                   @id @default(uuid())
+  auction_inventory_id String?
+  inventory_id         String
+  receipt_id           String?
+  auction_status       auction_inventory_status
+  inventory_status     inventories_status
+  remarks              String?                  @db.Text
+  created_at           DateTime                 @default(now()) @db.Timestamp(0)
+  updated_at           DateTime                 @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at           DateTime?                @db.DateTime(0)
+  receipt              receipt_records?         @relation(fields: [receipt_id], references: [receipt_id], onDelete: Cascade, map: "fk_inventory_histories_payments")
+  inventory            inventories              @relation(fields: [inventory_id], references: [inventory_id], onDelete: Cascade, map: "fk_inventory_histories_inventory")
+  auction_inventory    auctions_inventories?    @relation(fields: [auction_inventory_id], references: [auction_inventory_id], map: "fk_inventory_histories_auctions_inventories")
+
+  @@index([auction_inventory_id], map: "fk_inventory_histories_auctions_inventories")
+  @@index([inventory_id], map: "fk_inventory_histories_inventory")
+}
+
+model manifest_records {
+  manifest_id     String    @id @default(uuid())
+  auction_id      String
+  barcode         String?
+  control         String?
+  description     String?
+  price           String?
+  bidder_number   String?
+  qty             String?
+  manifest_number String?
+  remarks         String?   @db.Text
+  error_message   String?   @db.Text
+  created_at      DateTime  @default(now()) @db.Timestamp(0)
+  updated_at      DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.Timestamp(0)
+  auction         auctions  @relation(fields: [auction_id], references: [auction_id], map: "fk_manifest_records_auctions")
+
+  @@index([auction_id], map: "fk_manifest_records_auctions")
+}
+
+model receipt_records {
+  receipt_id           String                 @id @default(uuid())
+  receipt_number       String
+  auction_bidder_id    String
+  purpose              payments_purpose       @default(REGISTRATION)
+  created_at           DateTime               @default(now()) @db.Timestamp(0)
+  updated_at           DateTime               @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at           DateTime?              @db.DateTime(0)
+  auction_bidder       auctions_bidders       @relation(fields: [auction_bidder_id], references: [auction_bidder_id], onDelete: Cascade, map: "fk_receipt_records_auctions_bidders")
+  auctions_inventories auctions_inventories[]
+  payments             payments[]
+  inventory_histories  inventory_histories[]
+}
+
+model payments {
+  payment_id   String          @id @default(uuid())
+  receipt_id   String
+  amount_paid  Int             @default(0)
+  payment_type payments_type   @default(CASH)
+  remarks      String?         @db.Text
+  created_at   DateTime        @default(now()) @db.Timestamp(0)
+  updated_at   DateTime        @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at   DateTime?       @db.DateTime(0)
+  receipt      receipt_records @relation(fields: [receipt_id], references: [receipt_id])
+
+  @@index([receipt_id], map: "fk_payments_receipt")
+}
+
+model suppliers {
+  supplier_id              String       @id @default(uuid())
+  name                     String       @unique(map: "name")
+  supplier_code            String       @unique(map: "supplier_code")
+  japanese_name            String?      @db.VarChar(255)
+  commission               String?
+  sales_remittance_account String?
+  shipper                  String?      @db.VarChar(255)
+  email                    String?      @db.VarChar(255)
+  contact_number           String?
+  created_at               DateTime     @default(now()) @db.Timestamp(0)
+  updated_at               DateTime     @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at               DateTime?    @db.DateTime(0)
+  containers               containers[]
+}
+
+model users {
+  user_id    String     @id @default(uuid())
+  name       String
+  username   String
+  password   String
+  role       users_role
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  updated_at DateTime   @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at DateTime?  @db.DateTime(0)
+}
+
+model expenses {
+  expense_id String          @id @default(uuid())
+  balance    Int             @default(0)
+  amount     Int             @default(0)
+  purpose    expense_purpose
+  remarks    String?
+  created_at DateTime        @default(now()) @db.Timestamp(0)
+  updated_at DateTime        @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at DateTime?       @db.DateTime(0)
+}
+
+enum users_role {
+  SUPER_ADMIN
+  ADMIN
+  OWNER
+  CASHIER
+  ENCODER
+}
+
+enum payments_type {
+  CASH
+  BDO
+  BPI
+  GCASH
+}
+
+enum payments_purpose {
+  REGISTRATION
+  PULL_OUT
+  REFUNDED
+  LESS
+}
+
+enum inventories_status {
+  SOLD
+  UNSOLD
+  BOUGHT_ITEM
+  VOID
+}
+
+enum auction_inventory_status {
+  PAID
+  UNPAID
+  CANCELLED
+  REFUNDED
+  DISCREPANCY
+}
+
+enum containers_auction_or_sell {
+  AUCTION
+  SELL
+}
+
+enum containers_status {
+  PAID
+  UNPAID
+}
+
+enum bidder_status {
+  BANNED
+  ACTIVE
+  INACTIVE
+}
+
+enum expense_purpose {
+  ADD_PETTY_CASH
+  EXPENSE
+}
