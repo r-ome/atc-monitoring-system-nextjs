@@ -183,10 +183,6 @@ export const AuctionRepository: IAuctionRepository = {
         {}
       );
 
-      const start = Date.now();
-      await prisma.$queryRaw`SELECT 1`;
-      console.log("DB ping took", Date.now() - start, "ms");
-
       return await prisma.$transaction(
         async (tx) => {
           // insert manifest records
