@@ -183,162 +183,171 @@ export const AuctionRepository: IAuctionRepository = {
         {}
       );
 
-      return await prisma.$transaction(async (tx) => {
-        // insert manifest records
-        await tx.manifest_records.createMany({
-          data: data.map((item) => ({
-            auction_id,
-            barcode: item.BARCODE,
-            control: item.CONTROL,
-            description: item.DESCRIPTION,
-            price: item.PRICE.toString(),
-            bidder_number: item.BIDDER,
-            qty: item.QTY,
-            manifest_number: item.MANIFEST,
-            error_message: item.error,
-          })),
-        });
+      const start = Date.now();
+      await prisma.$queryRaw`SELECT 1`;
+      console.log("DB ping took", Date.now() - start, "ms");
 
-        // insert newly created_inventories
-        const for_creating_inventories = valid_rows_in_sheet.filter(
-          (item) => !item.inventory_id && item.container_id
-        );
+      return await prisma.$transaction(
+        async (tx) => {
+          // insert manifest records
+          await tx.manifest_records.createMany({
+            data: data.map((item) => ({
+              auction_id,
+              barcode: item.BARCODE,
+              control: item.CONTROL,
+              description: item.DESCRIPTION,
+              price: item.PRICE.toString(),
+              bidder_number: item.BIDDER,
+              qty: item.QTY,
+              manifest_number: item.MANIFEST,
+              error_message: item.error,
+            })),
+          });
 
-        await tx.inventories.createMany({
-          data: for_creating_inventories.map((item) => ({
-            container_id: item.container_id!,
-            control: item.CONTROL,
-            barcode: item.BARCODE,
-            description: item.DESCRIPTION,
-            status: "SOLD",
-          })),
-        });
-
-        const newly_created_inventories = await tx.inventories.findMany({
-          where: {
-            barcode: {
-              in: for_creating_inventories.map((item) => item.BARCODE),
-            },
-          },
-        });
-
-        const auction_inventories = [
-          ...valid_rows_in_sheet,
-          ...(for_reassigning.length
-            ? for_reassigning
-            : ([] as typeof for_reassigning)),
-        ].map((item) => {
-          const match = newly_created_inventories.find(
-            (inventory) => inventory.barcode === item.BARCODE
+          // insert newly created_inventories
+          const for_creating_inventories = valid_rows_in_sheet.filter(
+            (item) => !item.inventory_id && item.container_id
           );
 
-          if (!item.auction_bidder_id) {
-            throw new Error("Auction Bidder ID does not exist");
-          }
+          await tx.inventories.createMany({
+            data: for_creating_inventories.map((item) => ({
+              container_id: item.container_id!,
+              control: item.CONTROL,
+              barcode: item.BARCODE,
+              description: item.DESCRIPTION,
+              status: "SOLD",
+            })),
+          });
 
-          item.inventory_id = item.inventory_id ?? match?.inventory_id;
-          return item as Override<
-            ManifestInsertSchema,
-            {
-              auction_bidder_id: string;
-              inventory_id: string;
-              service_charge: number;
-            }
-          >;
-        });
-
-        const created_auctions_inventories = await Promise.all(
-          auction_inventories
-            .filter((item) => !item.forReassign)
-            .map((item) =>
-              tx.auctions_inventories.create({
-                data: {
-                  auction_bidder_id: item.auction_bidder_id,
-                  inventory_id: item.inventory_id,
-                  description: item.DESCRIPTION,
-                  status: "UNPAID",
-                  price: parseInt(item.PRICE, 10),
-                  qty: item.QTY,
-                  manifest_number: item.MANIFEST as string,
-                },
-              })
-            )
-        );
-
-        const auctions_inventories = await tx.auctions_inventories.findMany({
-          include: { histories: true },
-          where: {
-            auction_inventory_id: {
-              in: [...created_auctions_inventories, ...for_reassigning].map(
-                (item) => item.auction_inventory_id as string
-              ),
-            },
-          },
-        });
-
-        await tx.inventory_histories.createMany({
-          data: auctions_inventories.map((item) => ({
-            auction_inventory_id: item.auction_inventory_id,
-            inventory_id: item.inventory_id,
-            auction_status: "UNPAID",
-            inventory_status: "SOLD",
-            remarks: item.histories.length ? "REASSIGNED" : "ENCODED",
-          })),
-        });
-
-        // reassign item if item status is cancelled
-        if (Object.keys(items_for_reassigning).length) {
-          await tx.inventories.updateMany({
-            data: { status: "SOLD" },
+          const newly_created_inventories = await tx.inventories.findMany({
             where: {
-              inventory_id: {
-                in: for_reassigning.map((item) => item.inventory_id as string),
+              barcode: {
+                in: for_creating_inventories.map((item) => item.BARCODE),
               },
             },
           });
 
-          await Promise.all(
-            Object.entries(items_for_reassigning).map(
-              ([new_auction_bidder_id, auction_inventory_ids]) =>
-                tx.auctions_inventories.updateMany({
+          const auction_inventories = [
+            ...valid_rows_in_sheet,
+            ...(for_reassigning.length
+              ? for_reassigning
+              : ([] as typeof for_reassigning)),
+          ].map((item) => {
+            const match = newly_created_inventories.find(
+              (inventory) => inventory.barcode === item.BARCODE
+            );
+
+            if (!item.auction_bidder_id) {
+              throw new Error("Auction Bidder ID does not exist");
+            }
+
+            item.inventory_id = item.inventory_id ?? match?.inventory_id;
+            return item as Override<
+              ManifestInsertSchema,
+              {
+                auction_bidder_id: string;
+                inventory_id: string;
+                service_charge: number;
+              }
+            >;
+          });
+
+          const created_auctions_inventories = await Promise.all(
+            auction_inventories
+              .filter((item) => !item.forReassign)
+              .map((item) =>
+                tx.auctions_inventories.create({
                   data: {
-                    auction_bidder_id: new_auction_bidder_id,
+                    auction_bidder_id: item.auction_bidder_id,
+                    inventory_id: item.inventory_id,
+                    description: item.DESCRIPTION,
                     status: "UNPAID",
-                  },
-                  where: {
-                    auction_inventory_id: { in: auction_inventory_ids },
+                    price: parseInt(item.PRICE, 10),
+                    qty: item.QTY,
+                    manifest_number: item.MANIFEST as string,
                   },
                 })
+              )
+          );
+
+          const auctions_inventories = await tx.auctions_inventories.findMany({
+            include: { histories: true },
+            where: {
+              auction_inventory_id: {
+                in: [...created_auctions_inventories, ...for_reassigning].map(
+                  (item) => item.auction_inventory_id as string
+                ),
+              },
+            },
+          });
+
+          await tx.inventory_histories.createMany({
+            data: auctions_inventories.map((item) => ({
+              auction_inventory_id: item.auction_inventory_id,
+              inventory_id: item.inventory_id,
+              auction_status: "UNPAID",
+              inventory_status: "SOLD",
+              remarks: item.histories.length ? "REASSIGNED" : "ENCODED",
+            })),
+          });
+
+          // reassign item if item status is cancelled
+          if (Object.keys(items_for_reassigning).length) {
+            await tx.inventories.updateMany({
+              data: { status: "SOLD" },
+              where: {
+                inventory_id: {
+                  in: for_reassigning.map(
+                    (item) => item.inventory_id as string
+                  ),
+                },
+              },
+            });
+
+            await Promise.all(
+              Object.entries(items_for_reassigning).map(
+                ([new_auction_bidder_id, auction_inventory_ids]) =>
+                  tx.auctions_inventories.updateMany({
+                    data: {
+                      auction_bidder_id: new_auction_bidder_id,
+                      status: "UNPAID",
+                    },
+                    where: {
+                      auction_inventory_id: { in: auction_inventory_ids },
+                    },
+                  })
+              )
+            );
+          }
+
+          // update bidder balance
+          const update_balance = auction_inventories.reduce(
+            (acc: Record<string, number>, item) => {
+              const price = parseInt(item.PRICE, 10);
+              const service_charge_amount = (price * item.service_charge) / 100;
+              const total = price + service_charge_amount;
+
+              acc[item.auction_bidder_id] =
+                (acc[item.auction_bidder_id] || 0) + total;
+
+              return acc;
+            },
+            {}
+          );
+
+          await Promise.all(
+            Object.entries(update_balance).map(([auction_bidder_id, amount]) =>
+              tx.auctions_bidders.update({
+                where: { auction_bidder_id },
+                data: { balance: { increment: amount } },
+              })
             )
           );
-        }
 
-        // update bidder balance
-        const update_balance = auction_inventories.reduce(
-          (acc: Record<string, number>, item) => {
-            const price = parseInt(item.PRICE, 10);
-            const service_charge_amount = (price * item.service_charge) / 100;
-            const total = price + service_charge_amount;
-
-            acc[item.auction_bidder_id] =
-              (acc[item.auction_bidder_id] || 0) + total;
-
-            return acc;
-          },
-          {}
-        );
-
-        await Promise.all(
-          Object.entries(update_balance).map(([auction_bidder_id, amount]) =>
-            tx.auctions_bidders.update({
-              where: { auction_bidder_id },
-              data: { balance: { increment: amount } },
-            })
-          )
-        );
-
-        return auctions_inventories;
-      });
+          return auctions_inventories;
+        },
+        { maxWait: 10000, timeout: 30000 }
+      );
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error uploading manifest", {
