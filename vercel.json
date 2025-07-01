@@ -1,6 +1,6 @@
 {
   "functions": {
-    "app/api/**/route.ts": {
+    "api/**.ts": {
       "regions": ["hnd1"]
     }
   }
