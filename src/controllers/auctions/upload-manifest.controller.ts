@@ -71,6 +71,7 @@ export const UploadManifestController = async (
 
     return ok(res);
   } catch (error) {
+    console.error(error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }
