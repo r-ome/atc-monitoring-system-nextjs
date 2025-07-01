@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { UploadManifestModal } from "@/app/(protected)/auctions/[auction_date]/monitoring/components/UploadManifestModal";
 import { getAuction, getMonitoring } from "@/app/(protected)/auctions/actions";
 import { MonitoringTable } from "./MonitoringTable";
