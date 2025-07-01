@@ -4,7 +4,7 @@ import { MonitoringTable } from "./MonitoringTable";
 import { GenerateReportButton } from "./components/GenerateReport";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/auth";
 
 export default async function Page({
   params,

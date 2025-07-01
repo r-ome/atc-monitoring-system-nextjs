@@ -20,7 +20,7 @@ import { cn } from "@/app/lib/utils";
 import { StartAuctionButton } from "../components/StartAuctionButton";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 
 type AuctionItemSchema = Omit<

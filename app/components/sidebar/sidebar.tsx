@@ -19,7 +19,7 @@ import {
 } from "@/app/components/ui/sidebar";
 import { LogoutButton } from "./LogoutButton";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import { cn } from "@/app/lib/utils";
 
