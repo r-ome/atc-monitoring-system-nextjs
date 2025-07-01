@@ -1,7 +1,10 @@
 {
   "functions": {
-    "api/**.ts": {
-      "regions": ["hnd1"]
+    "app/api/**/*.ts": {
+      "regions": ["sin1"]
+    },
+    "pages/api/**/*.ts": {
+      "regions": ["sin1"]
     }
   }
 }
