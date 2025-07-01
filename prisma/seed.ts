@@ -1,10 +1,20 @@
-import { PrismaClient } from "@prisma/client";
+import { containers_auction_or_sell, PrismaClient } from "@prisma/client";
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
 async function rawSql() {
+  await prisma.users.create({
+    data: {
+      name: "SUPERADMIN",
+      username: "SUPERADMIN",
+      password: await bcrypt.hash("SUPERADMIN", 10),
+      role: "SUPER_ADMIN",
+    },
+  });
+  console.log({ result: "SUPERADMIN created!" });
+
   const bidder_rows = [
     [
       "5013",
@@ -6471,35 +6481,36 @@ async function rawSql() {
   const suppliers = await prisma.suppliers.findMany();
   const branch = await prisma.branches.findFirst({ where: { name: "BIÑAN" } });
 
-  const containers_result = await Promise.all(
-    containers.map((container) => {
+  if (!branch) {
+    throw new Error("Branch 'BIÑAN' not found");
+  }
+
+  const container_results = containers
+    .map((container) => {
       const has_supplier = suppliers.find(
         (item) => item.supplier_code === container.split("-")[0]
       );
-      if (has_supplier && branch) {
-        return prisma.containers.create({
-          data: {
-            supplier_id: has_supplier.supplier_id,
-            branch_id: branch?.branch_id,
-            barcode: container,
-            auction_or_sell: "AUCTION",
-          },
-        });
+      if (has_supplier) {
+        return {
+          supplier_id: has_supplier.supplier_id,
+          branch_id: branch.branch_id,
+          barcode: container,
+          auction_or_sell: "AUCTION" as const,
+        };
       }
-      return container;
+      return null;
     })
-  );
-  console.log({ result: `${containers_result.length} containers seeded` });
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
-  await prisma.users.create({
-    data: {
-      name: "SUPERADMIN",
-      username: "SUPERADMIN",
-      password: await bcrypt.hash("SUPERADMIN", 10),
-      role: "SUPER_ADMIN",
-    },
-  });
-  console.log({ result: "SUPERADMIN created!" });
+  if (container_results.length === 0) {
+    console.log("No containers to seed.");
+  } else {
+    await prisma.containers.createMany({
+      data: container_results,
+      skipDuplicates: true,
+    });
+    console.log({ result: `${container_results.length} containers seeded` });
+  }
 }
 
 async function main() {}
