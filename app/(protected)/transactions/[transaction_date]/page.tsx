@@ -19,6 +19,7 @@ import { InwardTransactionsTab } from "./InwardTransactionsTab";
 import { ExpensesTab } from "./ExpensesTab";
 import { AddExpenseModal } from "./AddExpenseModal";
 import { GenerateExpenseReport } from "./GenerateExpenseReport";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page({
   params,
@@ -28,7 +29,9 @@ export default async function Page({
   const expenses_res = await getExpensesByDate(transaction_date);
 
   if (!transactions_res.ok || !expenses_res.ok) {
-    return <div>Error Page</div>;
+    const err = [transactions_res, expenses_res].find((res) => !res.ok)?.error;
+    if (!err) return;
+    return <ErrorComponent error={err} />;
   }
 
   const transactions = transactions_res.value;

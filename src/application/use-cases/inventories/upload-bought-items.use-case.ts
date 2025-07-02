@@ -36,7 +36,8 @@ export const uploadBoughtItemsUseCase = async (
 
   const created_auctions_inventories = await uploadManifestUseCase(
     auction.auction_id,
-    manifest_records as ManifestSheetRecord[]
+    manifest_records as ManifestSheetRecord[],
+    true
   );
 
   const inventory_ids = created_auctions_inventories.map(

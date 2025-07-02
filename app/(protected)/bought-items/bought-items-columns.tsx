@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { BoughtItems } from "src/entities/models/Inventory";
+import { cn } from "@/app/lib/utils";
 
 export const columns: ColumnDef<BoughtItems>[] = [
   {
@@ -117,7 +118,14 @@ export const columns: ColumnDef<BoughtItems>[] = [
     cell: ({ row }) => {
       const boughtItem = row.original;
       return (
-        <div className="flex justify-center">
+        <div
+          className={cn(
+            "flex justify-center",
+            boughtItem.new_price < boughtItem.old_price
+              ? "text-red-500"
+              : "text-green-500"
+          )}
+        >
           {boughtItem.new_price.toLocaleString()}
         </div>
       );

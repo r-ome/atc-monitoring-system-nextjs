@@ -17,37 +17,41 @@ import { isRange } from "@/app/lib/utils";
 export const AuctionRepository: IAuctionRepository = {
   startAuction: async (auction_date) => {
     try {
-      const created = await prisma.auctions.create({
-        data: { created_at: auction_date },
-        include: {
-          registered_bidders: {
-            include: {
-              bidder: true,
-              auctions_inventories: {
-                include: { inventory: { include: { container: true } } },
+      return await prisma.$transaction(async (tx) => {
+        const atc_default_bidder = await tx.bidders.findFirst({
+          where: { bidder_number: "5013" },
+        });
+
+        if (!atc_default_bidder) {
+          throw new NotFoundError("ATC DEFAULT BIDDER NOT FOUND!");
+        }
+
+        const created = await tx.auctions.create({
+          data: {
+            created_at: auction_date,
+            registered_bidders: {
+              create: {
+                bidder_id: atc_default_bidder.bidder_id,
+                service_charge: 0,
+                registration_fee: 0,
+                balance: 0,
               },
             },
           },
-        },
+          include: {
+            registered_bidders: {
+              include: {
+                bidder: true,
+                auctions_inventories: {
+                  include: { inventory: { include: { container: true } } },
+                },
+              },
+            },
+          },
+        });
+
+        return created;
       });
-
-      const atc_default_bidder = await prisma.bidders.findFirst({
-        where: { bidder_number: "5013" },
-      });
-
-      if (!atc_default_bidder) {
-        throw new NotFoundError("ATC DEFAULT BIDDER NOT FOUND!");
-      }
-
-      await AuctionRepository.registerBidder({
-        auction_id: created.auction_id,
-        bidder_id: atc_default_bidder.bidder_id,
-        service_charge: 0,
-        registration_fee: 0,
-        balance: 0,
-      });
-
-      return created;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error creating Auction!", {
@@ -163,7 +167,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  uploadManifest: async (auction_id, data) => {
+  uploadManifest: async (auction_id, data, is_bought_items = false) => {
     try {
       const valid_rows_in_sheet = data.filter(
         (item) => item.isValid && !item.forReassign
@@ -211,7 +215,7 @@ export const AuctionRepository: IAuctionRepository = {
               control: item.CONTROL,
               barcode: item.BARCODE,
               description: item.DESCRIPTION,
-              status: "SOLD",
+              status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
             })),
           });
 
@@ -257,7 +261,7 @@ export const AuctionRepository: IAuctionRepository = {
                     auction_bidder_id: item.auction_bidder_id,
                     inventory_id: item.inventory_id,
                     description: item.DESCRIPTION,
-                    status: "UNPAID",
+                    status: is_bought_items ? "PAID" : "UNPAID",
                     price: parseInt(item.PRICE, 10),
                     qty: item.QTY,
                     manifest_number: item.MANIFEST as string,
@@ -485,11 +489,11 @@ export const AuctionRepository: IAuctionRepository = {
               receipt_number: `${bidder.bidder.bidder_number}-refund`,
               auction_bidder_id: data.auction_bidder_id,
               purpose: "REFUNDED",
+              remarks: data.reason,
               payments: {
                 create: {
                   amount_paid: paid_items_total_price,
                   payment_type: "CASH",
-                  remarks: data.reason,
                 },
               },
               inventory_histories: {

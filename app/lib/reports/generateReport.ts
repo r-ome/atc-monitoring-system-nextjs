@@ -19,8 +19,22 @@ export type Monitoring = {
   price: number;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const generateReport = (data: any, reports: string[], filename: string) => {
+type ReportTypes =
+  | "monitoring"
+  | "final_computation"
+  | "encode"
+  | "unsold"
+  | "bill"
+  | "bought_items"
+  | "cash_flow"
+  | "monthly_commission";
+
+const generateReport = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any,
+  reports: ReportTypes[],
+  filename: string
+) => {
   const workbook = xlsx.utils.book_new();
 
   if (reports.includes("monitoring")) {

@@ -70,7 +70,7 @@ export const UploadManifestController = async (
       data as ManifestSheetRecord[]
     );
 
-    return ok(res);
+    return ok(`${res.length} records uploaded!`);
   } catch (error) {
     logger("UploadManifestController", error);
     if (error instanceof InputParseError) {

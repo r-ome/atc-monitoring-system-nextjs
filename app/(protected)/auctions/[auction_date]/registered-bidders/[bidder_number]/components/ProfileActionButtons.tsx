@@ -15,6 +15,7 @@ import { PullOutModal } from "./PullOutModal/PullOutModal";
 import { useBidderPullOutModalContext } from "../context/BidderPullOutModalContext";
 import { CancelItemsModal } from "./CancelItemsModal/CancelItemsModal";
 import { RefundItemsModal } from "./RefundItemsModal/RefundItemsModal";
+import { ViewBillingModal } from "./ViewBillingModal";
 
 interface ProfileActionButtonsProps {
   selectedItems: RegisteredBidder["auction_inventories"];
@@ -27,6 +28,8 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
 }) => {
   const [openRefundModal, setOpenRefundModal] = useState<boolean>(false);
   const [openPullOutModal, setOpenPullOutModal] = useState<boolean>(false);
+  const [openViewBillingModal, setOpenViewBillingModal] =
+    useState<boolean>(false);
   const [openCancelItemsModal, setOpenCancelItemsModal] =
     useState<boolean>(false);
   const { setRegisteredBidder, setSelectedItems } =
@@ -70,7 +73,14 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
           >
             Refund Items
           </DropdownMenuItem>
-          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setOpenViewBillingModal(true)}
+            disabled={
+              !selectedItems.filter((item) => item.status === "UNPAID").length
+            }
+          >
+            View Receipt
+          </DropdownMenuItem>
           <DropdownMenuItem>Print Receipt</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -88,6 +98,11 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
       <RefundItemsModal
         open={openRefundModal}
         onOpenChange={setOpenRefundModal}
+      />
+
+      <ViewBillingModal
+        open={openViewBillingModal}
+        onOpenChange={setOpenViewBillingModal}
       />
     </>
   );

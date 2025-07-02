@@ -14,20 +14,25 @@ function presenter(
     receipt_number: receipt.receipt_number,
     auction_bidder_id: receipt.auction_bidder_id,
     purpose: receipt.purpose,
+    auction_date: format(receipt.auction_bidder.created_at, "MMMM dd, yyyy"),
     total_amount_paid: receipt.payments.reduce(
       (acc, item) => (acc += item.amount_paid),
       0
     ),
     created_at: format(receipt.created_at, date_format),
+    remarks: receipt.remarks,
     bidder: {
       bidder_id: receipt.auction_bidder.bidder.bidder_id,
       bidder_number: receipt.auction_bidder.bidder.bidder_number,
       full_name: `${receipt.auction_bidder.bidder.first_name} ${receipt.auction_bidder.bidder.last_name}`,
+      service_charge: receipt.auction_bidder.service_charge,
+      registration_fee: receipt.auction_bidder.registration_fee,
+      already_consumed: receipt.auction_bidder.already_consumed,
     },
     auctions_inventories: receipt.inventory_histories?.map((item) => ({
       auction_inventory_id: item.auction_inventory_id,
       barcode: item.auction_inventory?.inventory.barcode,
-      control: item.auction_inventory?.inventory.control,
+      control: item.auction_inventory?.inventory.control || "NC",
       description: item.auction_inventory?.description,
       qty: item.auction_inventory?.qty,
       price: item.auction_inventory?.price,

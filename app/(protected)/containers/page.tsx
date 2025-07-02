@@ -4,12 +4,13 @@ import Link from "next/link";
 import { Button } from "@/app/components/ui/button";
 import { getContainers } from "./actions";
 import { ContainersTable } from "./container-table";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page() {
   const res = await getContainers();
 
   if (!res.ok) {
-    return <div>Error Page</div>;
+    return <ErrorComponent error={res.error} />;
   }
 
   const containers = res.value;

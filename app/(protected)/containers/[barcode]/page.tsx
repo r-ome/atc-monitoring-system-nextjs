@@ -7,18 +7,23 @@ import {
 import { ContainerProfile } from "./components/ContainerProfile";
 import { ContainerInventoriesTable } from "./components/inventories/ContainerInventoriesTable";
 import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page({
   params,
 }: Readonly<{ params: Promise<{ barcode: string }> }>) {
   const { barcode } = await params;
-  const container_res = await getContainerByBarcode(barcode);
+  const res = await getContainerByBarcode(barcode);
 
-  if (!container_res.ok) {
-    return <div>Error Page</div>;
+  if (!res.ok) {
+    return (
+      <div>
+        <ErrorComponent error={res.error} />
+      </div>
+    );
   }
 
-  const container = container_res.value;
+  const container = res.value;
 
   return (
     <div className="h-full w-full p-4">

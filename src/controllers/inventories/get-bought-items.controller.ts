@@ -7,16 +7,21 @@ import { err, ok } from "src/entities/models/Response";
 function presenter(
   bought_items: Omit<InventorySchema, "histories" | "container">[]
 ) {
-  return bought_items.map((item) => ({
-    inventory_id: item.inventory_id,
-    barcode: item.barcode,
-    control: item.control || "NC",
-    description: item.auctions_inventories[0].description,
-    old_price: item.auctions_inventories[0].price,
-    qty: item.auctions_inventories[0].qty,
-    bidder_number: "ATC",
-    new_price: item.is_bought_item || 0,
-  }));
+  return bought_items.map((item) => {
+    return {
+      inventory_id: item.inventory_id,
+      barcode: item.barcode,
+      control: item.control || "NC",
+      description: item.auctions_inventories[0].description,
+      old_price: item.auctions_inventories[0].price,
+      qty: item.auctions_inventories[0].qty,
+      bidder_number: "ATC",
+      new_price:
+        item.auctions_inventories.length > 1
+          ? item.auctions_inventories?.[1].price
+          : 0,
+    };
+  });
 }
 
 export const GetBoughtItemsController = async () => {

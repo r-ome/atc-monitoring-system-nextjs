@@ -23,7 +23,7 @@ import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { Auction } from "src/entities/models/Auction";
 import { RegisteredBidder } from "src/entities/models/Bidder";
-// import { toast } from "sonner";
+import { toast } from "sonner";
 
 interface RegisterBidderModalProps {
   auction: Auction;
@@ -84,9 +84,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   //   }
   // };
 
-  const handleSubmitBidders = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
     // bidder_numbers
@@ -181,6 +179,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
       })
     );
 
+    toast.success("Done!");
     router.refresh();
     setOpen(false);
     setIsLoading(false);
@@ -192,7 +191,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
         <Button>Register Bidder</Button>
       </DialogTrigger>
       <DialogContent>
-        <form onSubmit={handleSubmitBidders} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <DialogHeader>
             <DialogTitle>Register Bidder</DialogTitle>
             <DialogDescription>

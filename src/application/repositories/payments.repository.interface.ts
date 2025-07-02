@@ -26,4 +26,9 @@ export interface IPaymentRepository {
     >
   >;
   refundAuctionInventories: (data: RefundAuctionInventories) => Promise<void>;
+  getBidderReceipts: (
+    auction_bidder_id: string
+  ) => Promise<
+    Omit<ReceiptRecordsSchema, "auctions_inventories" | "inventory_histories">[]
+  >;
 }

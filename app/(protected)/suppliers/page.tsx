@@ -2,12 +2,13 @@ import Link from "next/link";
 import { getSuppliers } from "./actions";
 import { Button } from "@/app/components/ui/button";
 import { SuppliersTable } from "./suppliers-table";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page() {
   const res = await getSuppliers();
 
   if (!res.ok) {
-    return <div>Error Page</div>;
+    return <ErrorComponent error={res.error} />;
   }
 
   const suppliers = res.value;

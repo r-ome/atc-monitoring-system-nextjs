@@ -36,7 +36,7 @@ export const PaymentRepository: IPaymentRepository = {
       throw error;
     }
   },
-  getAuctionTransactions: async (auction_id: string) => {
+  getAuctionTransactions: async (auction_id) => {
     try {
       return await prisma.receipt_records.findMany({
         where: { auction_bidder: { auction_id } },
@@ -178,6 +178,7 @@ export const PaymentRepository: IPaymentRepository = {
             receipt_number: `${auction_bidder.bidder.bidder_number}REF`,
             auction_bidder_id: data.auction_bidder_id,
             purpose: "REFUNDED",
+            remarks: data.reason,
             payments: {
               create: {
                 amount_paid: data.auction_inventories.reduce(
@@ -188,7 +189,6 @@ export const PaymentRepository: IPaymentRepository = {
                   0
                 ),
                 payment_type: "CASH",
-                remarks: data.reason,
               },
             },
           },
@@ -277,6 +277,24 @@ export const PaymentRepository: IPaymentRepository = {
         });
       }
 
+      throw error;
+    }
+  },
+  getBidderReceipts: async (auction_bidder_id) => {
+    try {
+      return await prisma.receipt_records.findMany({
+        where: { auction_bidder_id },
+        include: {
+          payments: true,
+          auction_bidder: { include: { bidder: true } },
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting bidder receipts", {
+          cause: error.message,
+        });
+      }
       throw error;
     }
   },

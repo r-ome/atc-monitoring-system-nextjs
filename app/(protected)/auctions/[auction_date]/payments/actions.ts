@@ -6,6 +6,7 @@ import { GetAuctionTransactionsController } from "src/controllers/payments/get-a
 import { GetPaymentsByDateController } from "src/controllers/payments/get-payments-by-date.controller";
 import { GetReceiptDetailsController } from "src/controllers/payments/get-receipt-details.controllers";
 import { AddExpenseController } from "src/controllers/expenses/add-expense.controller";
+import { GetBidderReceiptsController } from "src/controllers/payments/get-bidder-receipts.controller";
 
 export const getPaymentsByDate = async (date: string) => {
   const input = new Date(date);
@@ -36,4 +37,8 @@ export const getExpensesByDate = async (date: string) => {
 export const addExpense = async (formData: FormData) => {
   const input = Object.fromEntries(formData.entries());
   return await AddExpenseController(input);
+};
+
+export const getBidderReceipts = async (auction_bidder_id: string) => {
+  return await GetBidderReceiptsController(auction_bidder_id);
 };

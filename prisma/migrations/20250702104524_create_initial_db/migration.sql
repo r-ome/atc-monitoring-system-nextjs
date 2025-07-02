@@ -199,6 +199,7 @@ CREATE TABLE `receipt_records` (
     `receipt_number` VARCHAR(191) NOT NULL,
     `auction_bidder_id` VARCHAR(191) NOT NULL,
     `purpose` ENUM('REGISTRATION', 'PULL_OUT', 'REFUNDED', 'LESS') NOT NULL DEFAULT 'REGISTRATION',
+    `remarks` TEXT NULL,
     `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     `updated_at` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     `deleted_at` DATETIME(0) NULL,
@@ -212,7 +213,6 @@ CREATE TABLE `payments` (
     `receipt_id` VARCHAR(191) NOT NULL,
     `amount_paid` INTEGER NOT NULL DEFAULT 0,
     `payment_type` ENUM('CASH', 'BDO', 'BPI', 'GCASH') NOT NULL DEFAULT 'CASH',
-    `remarks` TEXT NULL,
     `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     `updated_at` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     `deleted_at` DATETIME(0) NULL,
@@ -268,51 +268,3 @@ CREATE TABLE `expenses` (
 
     PRIMARY KEY (`expense_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- AddForeignKey
-ALTER TABLE `auctions_bidders` ADD CONSTRAINT `fk_auctions_bidders_auctions` FOREIGN KEY (`auction_id`) REFERENCES `auctions`(`auction_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `auctions_bidders` ADD CONSTRAINT `fk_auctions_bidders_bidders` FOREIGN KEY (`bidder_id`) REFERENCES `bidders`(`bidder_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `auctions_inventories` ADD CONSTRAINT `fk_auctions_inventories_auctions_bidders` FOREIGN KEY (`auction_bidder_id`) REFERENCES `auctions_bidders`(`auction_bidder_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `auctions_inventories` ADD CONSTRAINT `fk_auctions_inventories_inventories` FOREIGN KEY (`inventory_id`) REFERENCES `inventories`(`inventory_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `auctions_inventories` ADD CONSTRAINT `fk_auctions_inventories_receipt` FOREIGN KEY (`receipt_id`) REFERENCES `receipt_records`(`receipt_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `bidder_requirements` ADD CONSTRAINT `fk_bidder_requirements_bidders` FOREIGN KEY (`bidder_id`) REFERENCES `bidders`(`bidder_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `bidder_ban_histories` ADD CONSTRAINT `fk_bidder_ban_histories_bidders` FOREIGN KEY (`bidder_id`) REFERENCES `bidders`(`bidder_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `containers` ADD CONSTRAINT `fk_containers_branches` FOREIGN KEY (`branch_id`) REFERENCES `branches`(`branch_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `containers` ADD CONSTRAINT `fk_containers_suppliers` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers`(`supplier_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `inventories` ADD CONSTRAINT `fk_inventories_container_id` FOREIGN KEY (`container_id`) REFERENCES `containers`(`container_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `inventory_histories` ADD CONSTRAINT `fk_inventory_histories_payments` FOREIGN KEY (`receipt_id`) REFERENCES `receipt_records`(`receipt_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `inventory_histories` ADD CONSTRAINT `fk_inventory_histories_inventory` FOREIGN KEY (`inventory_id`) REFERENCES `inventories`(`inventory_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `inventory_histories` ADD CONSTRAINT `fk_inventory_histories_auctions_inventories` FOREIGN KEY (`auction_inventory_id`) REFERENCES `auctions_inventories`(`auction_inventory_id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `manifest_records` ADD CONSTRAINT `fk_manifest_records_auctions` FOREIGN KEY (`auction_id`) REFERENCES `auctions`(`auction_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `receipt_records` ADD CONSTRAINT `fk_receipt_records_auctions_bidders` FOREIGN KEY (`auction_bidder_id`) REFERENCES `auctions_bidders`(`auction_bidder_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `payments` ADD CONSTRAINT `payments_receipt_id_fkey` FOREIGN KEY (`receipt_id`) REFERENCES `receipt_records`(`receipt_id`) ON DELETE RESTRICT ON UPDATE CASCADE;

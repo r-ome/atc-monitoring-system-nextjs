@@ -11,7 +11,6 @@ function presenter(payments: PaymentSchema[]) {
     receipt_id: payment.receipt_id,
     amount_paid: payment.amount_paid,
     payment_type: payment.payment_type,
-    remarks: payment.remarks || null,
     created_at: format(payment.created_at, "MMMM dd, yyyy hh:mm a"),
     receipt: {
       receipt_id: payment.receipt.receipt_id,

@@ -47,7 +47,7 @@ export default async function Page({
   if (!session) redirect("/login");
 
   if (!res.ok) {
-    if (res.error.message === "Auction not yet created")
+    if (res.error.message === "Auction not found!")
       return (
         <div className="h-40 flex items-center justify-center">
           <Card className="p-4 text-center w-2/6">

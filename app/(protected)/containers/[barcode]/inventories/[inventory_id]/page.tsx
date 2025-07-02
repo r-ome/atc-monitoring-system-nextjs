@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/app/components/ui/table";
 import { UpdateInventoryModal } from "./UpdateInventoryModal";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page({
   params,
@@ -22,7 +23,7 @@ export default async function Page({
   const { inventory_id } = await params;
   const res = await getInventory(inventory_id);
   if (!res.ok) {
-    return <div>Error Page</div>;
+    return <ErrorComponent error={res.error} />;
   }
 
   const inventory = res.value;

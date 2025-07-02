@@ -17,7 +17,7 @@ const generateBoughtItemsReport = (boughtItems: BoughtItems[]) => {
     item.control,
     item.description,
     item.old_price,
-    item.new_price,
+    item.new_price || 0,
   ]);
 
   const containers = [

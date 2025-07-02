@@ -35,7 +35,8 @@ export interface IAuctionRepository {
   ) => Promise<AuctionsInventorySchema[]>;
   uploadManifest: (
     auction_id: string,
-    data: ManifestInsertSchema[]
+    data: ManifestInsertSchema[],
+    is_bought_items: boolean
   ) => Promise<
     Omit<
       AuctionsInventorySchema,

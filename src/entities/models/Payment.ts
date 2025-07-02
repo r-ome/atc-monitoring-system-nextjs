@@ -24,7 +24,6 @@ export type Payment = {
   receipt_id: string;
   amount_paid: number;
   payment_type: PAYMENT_TYPE;
-  remarks?: string | null;
   created_at: string;
   receipt: {
     receipt_id: string;
@@ -55,6 +54,8 @@ export type ReceiptRecords = {
   auction_bidder_id: string;
   total_amount_paid: number;
   purpose: PAYMENT_PURPOSE;
+  auction_date: string;
+  remarks?: string | null;
   payments: {
     payment_id: string;
     payment_type: PAYMENT_TYPE;
@@ -65,7 +66,19 @@ export type ReceiptRecords = {
     bidder_id: string;
     bidder_number: string;
     full_name: string;
+    registration_fee: number;
+    service_charge: number;
+    already_consumed: number;
   };
+  auctions_inventories: {
+    auction_inventory_id: string | null;
+    barcode?: string;
+    control?: string;
+    description?: string;
+    qty?: string;
+    price?: number;
+    manifest_number?: string;
+  }[];
   created_at: string;
 };
 

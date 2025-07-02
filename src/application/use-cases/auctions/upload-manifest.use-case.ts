@@ -17,7 +17,8 @@ import { winston_logger } from "@/app/lib/logger";
 
 export const uploadManifestUseCase = async (
   auction_id: string,
-  data: ManifestSheetRecord[]
+  data: ManifestSheetRecord[],
+  is_bought_items: boolean = false
 ) => {
   const monitoring = await getMonitoringUseCase(auction_id, [
     "UNPAID",
@@ -43,5 +44,9 @@ export const uploadManifestUseCase = async (
 
   winston_logger.info(something6);
 
-  return await AuctionRepository.uploadManifest(auction_id, something6);
+  return await AuctionRepository.uploadManifest(
+    auction_id,
+    something6,
+    is_bought_items
+  );
 };

@@ -10,6 +10,7 @@ import {
 } from "@/app/components/ui/card";
 import { cn } from "@/app/lib/utils";
 import { BidderItemsTable } from "./components/BidderItemsTable";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page({
   params,
@@ -23,7 +24,7 @@ export default async function Page({
   );
 
   if (!res.ok) {
-    return <div>Error Page</div>;
+    return <ErrorComponent error={res.error} />;
   }
 
   const bidder = res.value;
