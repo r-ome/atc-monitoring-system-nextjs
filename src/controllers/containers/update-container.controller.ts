@@ -1,3 +1,4 @@
+import { logger } from "@/app/lib/logger";
 import { updateContainerUseCase } from "src/application/use-cases/containers/update-container.use-case";
 import {
   DatabaseOperationError,
@@ -45,6 +46,7 @@ export const UpdateContainerController = async (
     const container = await updateContainerUseCase(container_id, data);
     return ok(presenter(container));
   } catch (error) {
+    logger("UpdateContainerController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

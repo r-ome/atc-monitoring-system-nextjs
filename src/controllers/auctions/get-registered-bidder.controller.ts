@@ -6,6 +6,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 function presenter(registeredBidder: RegisteredBidderSchema) {
   const date_format = "MMMM dd, yyyy";
@@ -68,6 +69,7 @@ export async function GetRegisteredBidderController(
 
     return ok(presenter(registered_bidder));
   } catch (error) {
+    logger("GetRegisteredBidderController", error);
     if (error instanceof NotFoundError) {
       return err({ message: error.message, cause: error.cause });
     }

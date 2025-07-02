@@ -9,6 +9,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 export const UpdateAuctionItemController = async (
   input: Partial<AuctionInventoryUpdateSchemaType>
@@ -26,6 +27,7 @@ export const UpdateAuctionItemController = async (
     const res = await updateAuctionItemUseCase(data);
     return ok(res);
   } catch (error) {
+    logger("UpdateAuctionItemController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error?.cause });
     }

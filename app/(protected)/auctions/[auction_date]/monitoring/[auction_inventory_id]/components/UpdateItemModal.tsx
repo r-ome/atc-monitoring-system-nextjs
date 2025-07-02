@@ -112,6 +112,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
     const formData = new FormData(event.currentTarget);
     if (!auctionInventory || !auction) return;
     formData.append("auction_id", auction.auction_id);
@@ -276,7 +277,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>

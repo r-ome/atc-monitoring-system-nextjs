@@ -3,6 +3,7 @@ import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { format } from "date-fns";
 import { ok, err } from "src/entities/models/Response";
 import { DatabaseOperationError } from "src/entities/errors/common";
+import { logger } from "@/app/lib/logger";
 
 function presenter(registeredBidders: RegisteredBidderSchema[]) {
   const date_format = "hh:mm a";
@@ -35,6 +36,7 @@ export const GetRegisteredBiddersController = async (auction_id: string) => {
     const registered_bidders = await getRegisteredBiddersUseCase(auction_id);
     return ok(presenter(registered_bidders));
   } catch (error) {
+    logger("GetRegisteredBiddersController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

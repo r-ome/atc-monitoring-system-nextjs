@@ -1,11 +1,13 @@
 import {
   DatabaseOperationError,
   InputParseError,
+  NotFoundError,
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Response";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadBoughtItemsUseCase } from "src/application/use-cases/inventories/upload-bought-items.use-case";
 import { BoughtItemsSheetRecord } from "src/entities/models/Manifest";
+import { logger } from "@/app/lib/logger";
 
 export const UploadBoughtItemsController = async (file: File) => {
   try {
@@ -59,7 +61,12 @@ export const UploadBoughtItemsController = async (file: File) => {
     await uploadBoughtItemsUseCase(formattedData as BoughtItemsSheetRecord[]);
     return ok({ success: true });
   } catch (error) {
+    logger("UploadBoughtItemsController", error);
     if (error instanceof InputParseError) {
+      return err({ message: error.message, cause: error.cause });
+    }
+
+    if (error instanceof NotFoundError) {
       return err({ message: error.message, cause: error.cause });
     }
 

@@ -6,6 +6,7 @@ import { getBidderByBidderNumberUseCase } from "src/application/use-cases/bidder
 import { BidderSchema } from "src/entities/models/Bidder";
 import { format } from "date-fns";
 import { err, ok } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (bidder: BidderSchema) => {
   return {
@@ -36,13 +37,14 @@ const presenter = (bidder: BidderSchema) => {
   };
 };
 
-export const getBidderByBidderNumberController = async (
+export const GetBidderByBidderNumberController = async (
   bidderNumber: string
 ) => {
   try {
     const bidder = await getBidderByBidderNumberUseCase(bidderNumber);
     return ok(presenter(bidder));
   } catch (error) {
+    logger("GetBidderByBidderNumberController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

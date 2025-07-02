@@ -3,6 +3,7 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
 import { ok, err } from "src/entities/models/Response";
 import { format } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 function presenter(monitoring: AuctionsInventorySchema[]) {
   return monitoring.map((item) => ({
@@ -52,6 +53,7 @@ export async function GetMonitoringController(auction_id: string) {
     const monitoring = await getMonitoringUseCase(auction_id);
     return ok(presenter(monitoring));
   } catch (error) {
+    logger("GetMonitoringController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

@@ -3,6 +3,7 @@ import { ReceiptRecordsSchema } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Response";
 import { format } from "date-fns";
 import { DatabaseOperationError } from "src/entities/errors/common";
+import { logger } from "@/app/lib/logger";
 
 function presenter(
   receipt: Omit<ReceiptRecordsSchema, "auctions_inventories">
@@ -49,11 +50,9 @@ export const GetReceiptDetailsController = async (
     const receipt = await getReceiptDetailsUseCase(auction_id, receipt_number);
     return ok(presenter(receipt));
   } catch (error) {
+    logger("GetReceiptDetailsController", error);
     if (error instanceof DatabaseOperationError) {
-      return err({
-        message: "Server Error",
-        cause: error.message,
-      });
+      return err({ message: "Server Error", cause: error.message });
     }
 
     return err({

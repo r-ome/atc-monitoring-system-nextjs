@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/app/components/ui/button";
@@ -19,9 +20,12 @@ import { toast } from "sonner";
 
 export default function Page() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
 
     const formData = new FormData(event.currentTarget);
     const data = Object.fromEntries(formData.entries());
@@ -31,12 +35,14 @@ export default function Page() {
       username: data.username,
       password: data.password,
     });
-
-    if (res?.ok) {
-      router.push("/auctions");
-    } else {
-      if (res?.error === "CredentialsSignin") {
-        toast.error("The password you've entered is incorrect!");
+    if (res) {
+      setIsLoading(false);
+      if (res?.ok) {
+        router.push("/auctions");
+      } else {
+        if (res?.error === "CredentialsSignin") {
+          toast.error("The password you've entered is incorrect!");
+        }
       }
     }
   };
@@ -72,7 +78,8 @@ export default function Page() {
 
             <CardFooter>
               <div className="flex justify-center w-full">
-                <Button type="submit" className="w-2/6">
+                <Button type="submit" className="w-2/6"  disabled={isLoading}>
+                  {isLoading && <Loader2Icon className="animate-spin" />}
                   Login
                 </Button>
               </div>

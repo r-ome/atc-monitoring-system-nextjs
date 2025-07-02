@@ -6,6 +6,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 function presenter(auction: AuctionSchema) {
   const date_format = "MMM dd, yyyy";
@@ -70,8 +71,12 @@ function presenter(auction: AuctionSchema) {
 export const GetAuctionController = async (auction_date: Date) => {
   try {
     const auction = await getAuctionUseCase(auction_date);
+    if (!auction) {
+      throw new NotFoundError("Auction not found!");
+    }
     return ok(presenter(auction));
   } catch (error) {
+    logger("GetAuctionController", error);
     if (error instanceof NotFoundError) {
       return err({ message: error.message, cause: error.cause });
     }

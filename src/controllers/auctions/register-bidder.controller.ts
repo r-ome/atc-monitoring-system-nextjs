@@ -8,6 +8,7 @@ import {
 } from "src/entities/models/Bidder";
 import { registerBidderUseCase } from "src/application/use-cases/auctions/register-bidder.use-case";
 import { err, ok } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 export const RegisterBidderController = async (
   input: Partial<RegisterBidderInputSchema>
@@ -25,6 +26,7 @@ export const RegisterBidderController = async (
     const res = await registerBidderUseCase(data);
     return ok(res);
   } catch (error) {
+    logger("RegisterBidderController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

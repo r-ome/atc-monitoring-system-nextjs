@@ -1,3 +1,4 @@
+import { logger } from "@/app/lib/logger";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadManifestUseCase } from "src/application/use-cases/auctions/upload-manifest.use-case";
 import {
@@ -71,7 +72,7 @@ export const UploadManifestController = async (
 
     return ok(res);
   } catch (error) {
-    console.error(error);
+    logger("UploadManifestController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

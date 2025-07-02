@@ -6,6 +6,7 @@ import { getInventoryUseCase } from "src/application/use-cases/inventories/get-i
 import { err, ok } from "src/entities/models/Response";
 import { InventorySchema } from "src/entities/models/Inventory";
 import { format } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 function presenter(inventory: InventorySchema) {
   const date_format = "MMMM dd, yyyy";
@@ -53,6 +54,7 @@ export const GetInventoryController = async (inventory_id: string) => {
     const inventory = await getInventoryUseCase(inventory_id);
     return ok(presenter(inventory));
   } catch (error) {
+    logger("GetInventoryController", error);
     if (error instanceof NotFoundError) {
       return err({ message: error.message, cause: error.message });
     }

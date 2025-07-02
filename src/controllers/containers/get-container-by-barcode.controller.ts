@@ -3,6 +3,7 @@ import { ContainerSchema } from "src/entities/models/Container";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { format } from "date-fns";
 import { ok, err } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (container: ContainerSchema) => {
   const date_format = "MMM dd, yyyy";
@@ -97,6 +98,7 @@ export const GetContainerByBarcodeController = async (barcode: string) => {
     const container = await getContainerByBarcodeUseCase(barcode);
     return ok(presenter(container));
   } catch (error) {
+    logger("GetContainerByBarcodeController", error);
     if (error instanceof DatabaseOperationError) {
       return err({
         message: "Server Error!",

@@ -1,3 +1,4 @@
+import { logger } from "@/app/lib/logger";
 import { startAuctionUseCase } from "src/application/use-cases/auctions/start-auction.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { AuctionSchema } from "src/entities/models/Auction";
@@ -13,6 +14,7 @@ export const StartAuctionController = async (auction_date: string) => {
     const auction = await startAuctionUseCase(input);
     return ok(presenter(auction));
   } catch (error) {
+    logger("StartAuctionController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

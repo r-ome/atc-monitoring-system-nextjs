@@ -11,6 +11,7 @@ import {
 } from "src/entities/errors/common";
 import { format } from "date-fns";
 import { ok, err } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (
   container: Omit<ContainerSchema, "branch" | "inventories" | "supplier">
@@ -76,6 +77,7 @@ export const CreateContainerController = async (
     const container = await createContainerUseCase(data);
     return ok(presenter(container));
   } catch (error) {
+    logger("CreateContainerController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

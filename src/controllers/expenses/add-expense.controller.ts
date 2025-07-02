@@ -10,6 +10,7 @@ import {
 } from "src/entities/models/Expense";
 import { err, ok } from "src/entities/models/Response";
 import { format } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 function presenter(expense: ExpenseSchema) {
   return {
@@ -42,8 +43,8 @@ export const AddExpenseController = async (
 
     return ok(presenter(expense));
   } catch (error) {
+    logger("AddExpenseController", error);
     if (error instanceof InputParseError) {
-      console.log(error.cause);
       return err({
         message: error.message,
         cause: error.cause,

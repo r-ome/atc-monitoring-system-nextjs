@@ -17,7 +17,7 @@ export const uploadBoughtItemsUseCase = async (
   let auction = await getAuctionUseCase({ start, end });
 
   if (!auction) {
-    auction = await startAuctionUseCase(now);
+    auction = await startAuctionUseCase(start);
   }
 
   const atc_bidder = auction.registered_bidders.find(

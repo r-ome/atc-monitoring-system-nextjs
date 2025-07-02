@@ -3,6 +3,7 @@ import { getBiddersUseCase } from "src/application/use-cases/bidders/get-bidders
 import { format } from "date-fns";
 import { ok, err } from "src/entities/models/Response";
 import { DatabaseOperationError } from "src/entities/errors/common";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (
   bidders: Omit<BidderSchema, "auctions_joined" | "requirements">[]
@@ -19,11 +20,12 @@ const presenter = (
   }));
 };
 
-export const getBiddersController = async () => {
+export const GetBiddersController = async () => {
   try {
     const bidders = await getBiddersUseCase();
     return ok(presenter(bidders));
   } catch (error) {
+    logger("GetBiddersController", error);
     if (error instanceof DatabaseOperationError) {
       return err({
         message: "Server Error",

@@ -51,9 +51,9 @@ export const validateEmptyFields = (
   return data.map((item) => {
     const required = ["BARCODE", "BIDDER", "PRICE"] as const;
     const emptyFields = required.filter((field) => !item[field]);
-    item.CONTROL = formatNumberPadding(item.CONTROL, 4);
-    item.QTY = item.QTY.toString();
-    item.BIDDER = formatNumberPadding(item.BIDDER.toString(), 4);
+    item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
+    item.QTY = (item.QTY || "").toString();
+    item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
 
     if (!emptyFields.length) {
       return { ...item, isValid: true, error: "", forReassign: false };

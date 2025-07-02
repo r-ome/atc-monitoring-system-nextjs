@@ -10,6 +10,7 @@ import {
 } from "src/entities/models/Bidder";
 import { format } from "date-fns";
 import { err, ok } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (
   bidder: Omit<BidderSchema, "auctions_joined" | "requirements">
@@ -45,6 +46,7 @@ export const CreateBidderController = async (
     const bidder = await createBidderUseCase(data);
     return ok(presenter(bidder));
   } catch (error) {
+    logger("CreateBidderController", error);
     if (error instanceof DatabaseOperationError) {
       return err({
         message: "Server Error",

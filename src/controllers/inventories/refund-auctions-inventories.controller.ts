@@ -1,3 +1,4 @@
+import { logger } from "@/app/lib/logger";
 import { refundAuctionsInventoriesUseCase } from "src/application/use-cases/payments/refund-auctions-inventories.use-case";
 import {
   DatabaseOperationError,
@@ -42,19 +43,13 @@ export const RefundAuctionsInventoriesController = async (
 
     return ok(res);
   } catch (error) {
+    logger("RefundAuctionsInventoriesController", error);
     if (error instanceof InputParseError) {
-      console.log(error.cause);
-      return err({
-        message: error.message,
-        cause: error?.cause,
-      });
+      return err({ message: error.message, cause: error?.cause });
     }
 
     if (error instanceof DatabaseOperationError) {
-      return err({
-        message: "Server Error",
-        cause: error.message,
-      });
+      return err({ message: "Server Error", cause: error.message });
     }
 
     return err({

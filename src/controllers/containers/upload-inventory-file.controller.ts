@@ -1,3 +1,4 @@
+import { logger } from "@/app/lib/logger";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadInventoryFileUseCase } from "src/application/use-cases/containers/upload-inventory-file.use-case";
 import {
@@ -53,6 +54,7 @@ export const UploadInventoryFileController = async (
     await uploadInventoryFileUseCase(barcode, data as InventorySheetRecord[]);
     return ok({ success: true });
   } catch (error) {
+    logger("UploadInventoryFileController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

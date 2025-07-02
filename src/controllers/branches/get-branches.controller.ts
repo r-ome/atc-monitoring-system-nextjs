@@ -3,6 +3,7 @@ import { BranchSchema } from "src/entities/models/Branch";
 import { format } from "date-fns";
 import { ok, err } from "src/entities/models/Response";
 import { DatabaseOperationError } from "src/entities/errors/common";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (branches: BranchSchema[]) => {
   const date_format = "MMM dd, yyyy";
@@ -21,6 +22,7 @@ export const GetBranchesController = async () => {
     const branches = await getBranchesUseCase();
     return ok(presenter(branches));
   } catch (error) {
+    logger("GetBranchesController", error);
     if (error instanceof DatabaseOperationError) {
       return err({
         message: "Server Error",

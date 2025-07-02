@@ -11,6 +11,7 @@ import {
 } from "src/entities/models/Supplier";
 import { updateSupplierUseCase } from "src/application/use-cases/suppliers/update-supplier.use-case";
 import { format } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 function presenter(supplier: Omit<SupplierSchema, "containers">) {
   const date_format = "MMMM dd, yyyy";
@@ -49,6 +50,7 @@ export const UpdateSupplierController = async (
     const supplier = await updateSupplierUseCase(supplier_id, data);
     return ok(presenter(supplier));
   } catch (error) {
+    logger("UpdateSupplierController", error);
     if (error instanceof NotFoundError) {
       return err({ message: error.message, cause: error.cause });
     }

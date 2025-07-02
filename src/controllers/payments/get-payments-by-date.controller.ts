@@ -3,6 +3,7 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { PaymentSchema } from "src/entities/models/Payment";
 import { err, ok } from "src/entities/models/Response";
 import { format } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 function presenter(payments: PaymentSchema[]) {
   return payments.map((payment) => ({
@@ -30,15 +31,14 @@ export const GetPaymentsByDateController = async (date: Date) => {
     const payments = await getPaymentsByDateUseCase(date);
     return ok(presenter(payments));
   } catch (error) {
+    logger("GetPaymentsByDateController", error);
     if (error instanceof DatabaseOperationError) {
-      return err({
-        message: "Server Error",
-        cause: error.message,
-      });
+      return err({ message: "Server Error", cause: error.message });
     }
+
+    return err({
+      message: "An error occurred! Please contact your admin!",
+      cause: "Server Error",
+    });
   }
-  return err({
-    message: "An error occurred! Please contact your admin!",
-    cause: "Server Error",
-  });
 };

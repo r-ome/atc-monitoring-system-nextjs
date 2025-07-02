@@ -5,6 +5,7 @@ import {
 import { err, ok } from "src/entities/models/Response";
 import { RegisterUserInputSchema, UserSchema } from "src/entities/models/User";
 import { registerUserUseCase } from "src/application/use-cases/users/register-user.use-case";
+import { logger } from "@/app/lib/logger";
 
 function presenter(user: UserSchema) {
   return user;
@@ -26,6 +27,7 @@ export const RegisterUserController = async (
     const created = await registerUserUseCase(data);
     return ok(presenter(created));
   } catch (error) {
+    logger("RegisterUserController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

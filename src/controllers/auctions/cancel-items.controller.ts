@@ -6,6 +6,7 @@ import {
 import { err, ok } from "src/entities/models/Response";
 import { cancelItemsUseCase } from "src/application/use-cases/auctions/cancel-items.use-case";
 import { CancelItems, CancelItemsSchema } from "src/entities/models/Inventory";
+import { logger } from "@/app/lib/logger";
 
 export const CancelItemsController = async (
   input: Partial<CancelItemsSchema>
@@ -22,6 +23,7 @@ export const CancelItemsController = async (
     const res = await cancelItemsUseCase(data);
     return ok(res);
   } catch (error) {
+    logger("CancelItemsController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error?.cause });
     }

@@ -70,7 +70,6 @@ export const ExpensesRepository: IExpenseRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        console.log(error);
         throw new DatabaseOperationError("Error adding expense", {
           cause: error.message,
         });

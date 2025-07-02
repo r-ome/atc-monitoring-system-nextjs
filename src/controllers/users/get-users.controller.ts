@@ -3,6 +3,7 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Response";
 import { UserSchema } from "src/entities/models/User";
 import { format } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 function presenter(users: UserSchema[]) {
   return users
@@ -22,11 +23,9 @@ export const GetUsersController = async () => {
     const users = await getUsersUseCase();
     return ok(presenter(users));
   } catch (error) {
+    logger("GetUsersController", error);
     if (error instanceof DatabaseOperationError) {
-      return err({
-        message: "Server Error",
-        cause: error.message,
-      });
+      return err({ message: "Server Error", cause: error.message });
     }
 
     return err({

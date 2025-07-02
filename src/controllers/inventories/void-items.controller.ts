@@ -10,6 +10,7 @@ import {
   VoidItemsSchema,
 } from "src/entities/models/Auction";
 import { format } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (
   auctionInventories: Omit<
@@ -38,6 +39,7 @@ export const VoidItemsController = async (input: Partial<VoidItemsSchema>) => {
     const res = await voidItemsUseCase(data);
     return ok(presenter(res));
   } catch (error) {
+    logger("VoidItemsController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

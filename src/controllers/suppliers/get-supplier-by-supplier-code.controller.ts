@@ -6,6 +6,7 @@ import {
 import { err, ok } from "src/entities/models/Response";
 import { SupplierSchema } from "src/entities/models/Supplier";
 import { format } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 function presenter(supplier: SupplierSchema) {
   const date_format = "MMMM dd, yyyy";
@@ -42,13 +43,14 @@ function presenter(supplier: SupplierSchema) {
   };
 }
 
-export const getSupplierBySupplierCodeController = async (
+export const GetSupplierBySupplierCodeController = async (
   supplier_code: string
 ) => {
   try {
     const supplier = await getSupplierBySupplierCodeUseCase(supplier_code);
     return ok(presenter(supplier));
   } catch (error) {
+    logger("GetSupplierBySupplierCodeController", error);
     if (error instanceof NotFoundError) {
       return err({ message: error.message, cause: error.cause });
     }

@@ -13,6 +13,7 @@ import {
 import { getRegisteredBiddersUseCase } from "./get-registered-bidders.use-case";
 import { getContainersUseCase } from "../containers/get-containers.use-case";
 import { getAllInventoriesUseCase } from "../inventories/get-all-inventories.use-case";
+import { winston_logger } from "@/app/lib/logger";
 
 export const uploadManifestUseCase = async (
   auction_id: string,
@@ -39,6 +40,8 @@ export const uploadManifestUseCase = async (
   );
   const something5 = addContainerIdForNewInventories(something4, containers);
   const something6 = removeDuplicates(something5, monitoring);
+
+  winston_logger.info(something6);
 
   return await AuctionRepository.uploadManifest(auction_id, something6);
 };

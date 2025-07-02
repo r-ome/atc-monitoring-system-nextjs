@@ -6,6 +6,7 @@ import {
 } from "src/entities/errors/common";
 import { format } from "date-fns";
 import { err, ok } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (branch: BranchSchema) => {
   const date_format = "MMM dd, yyyy";
@@ -35,6 +36,7 @@ export const CreateBranchController = async (
     const branch = await createBranchUseCase(data);
     return ok(presenter(branch));
   } catch (error) {
+    logger("CreateBranchController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

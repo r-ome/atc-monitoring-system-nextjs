@@ -1,3 +1,4 @@
+import { logger } from "@/app/lib/logger";
 import { getBoughtItemsUseCase } from "src/application/use-cases/inventories/get-bought-items.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { InventorySchema } from "src/entities/models/Inventory";
@@ -23,6 +24,7 @@ export const GetBoughtItemsController = async () => {
     const bought_items = await getBoughtItemsUseCase();
     return ok(presenter(bought_items));
   } catch (error) {
+    logger("GetBoughtItemsController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

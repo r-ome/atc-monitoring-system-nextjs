@@ -10,6 +10,7 @@ import {
 } from "src/entities/models/Branch";
 import { updateBranchUseCase } from "src/application/use-cases/branches/update-branch.use-case";
 import { err, ok } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 function presenter(branch: BranchSchema) {
   return branch;
@@ -32,6 +33,7 @@ export const UpdateBranchController = async (
     const updated = await updateBranchUseCase(branch_id, data);
     return ok(presenter(updated));
   } catch (error) {
+    logger("UpdateBranchController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

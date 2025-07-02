@@ -3,6 +3,7 @@ import { SupplierSchema } from "src/entities/models/Supplier";
 import { format } from "date-fns";
 import { ok, err } from "src/entities/models/Response";
 import { DatabaseOperationError } from "src/entities/errors/common";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (suppliers: Omit<SupplierSchema, "containers">[]) => {
   const date_format = "MMM dd, yyyy";
@@ -29,6 +30,7 @@ export const GetSuppliersController = async () => {
     const supplier = await getSuppliersUseCase();
     return ok(presenter(supplier));
   } catch (error) {
+    logger("GetSuppliersController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

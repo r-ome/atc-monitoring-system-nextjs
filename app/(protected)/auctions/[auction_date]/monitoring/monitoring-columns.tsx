@@ -48,14 +48,16 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
     size: 100,
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          className="cursor-pointer"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Control #
-          <ArrowUpDown />
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Control #
+            <ArrowUpDown />
+          </Button>
+        </div>
       );
     },
     cell: ({ row }) => {

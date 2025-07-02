@@ -4,6 +4,7 @@ import { ContainerSchema } from "src/entities/models/Container";
 import { BaseInventorySchema } from "src/entities/models/Inventory";
 import { format } from "date-fns";
 import { ok, err } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (
   containers: (Omit<ContainerSchema, "inventories"> & {
@@ -78,6 +79,7 @@ export const GetContainersController = async () => {
     const containers = await getContainersUseCase();
     return ok(presenter(containers));
   } catch (error) {
+    logger("GetContainersController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

@@ -6,6 +6,7 @@ import { BranchSchema } from "src/entities/models/Branch";
 import { format } from "date-fns";
 import { getBranchByNameUseCase } from "src/application/use-cases/branches/get-branch-by-name.use-case";
 import { err, ok } from "src/entities/models/Response";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (branch: BranchSchema) => {
   const date_format = "MMM dd, yyyy";
@@ -32,6 +33,7 @@ export const GetBranchByNameController = async (name: string) => {
 
     return ok(presenter(branch));
   } catch (error) {
+    logger("GetBranchByNameController", error);
     if (error instanceof NotFoundError) {
       return err({ message: error.message, cause: error.cause });
     }

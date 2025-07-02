@@ -2,8 +2,8 @@
 
 import { CreateBidderController } from "src/controllers/bidders/create-bidders.controller";
 import { UpdateBidderController } from "src/controllers/bidders/update-bidder.controller";
-import { getBiddersController } from "src/controllers/bidders/get-bidders.controller";
-import { getBidderByBidderNumberController } from "src/controllers/bidders/get-bidder-by-bidder-number.controller";
+import { GetBiddersController } from "src/controllers/bidders/get-bidders.controller";
+import { GetBidderByBidderNumberController } from "src/controllers/bidders/get-bidder-by-bidder-number.controller";
 
 export const createBidder = async (formData: FormData) => {
   const data = Object.fromEntries(formData.entries());
@@ -11,11 +11,11 @@ export const createBidder = async (formData: FormData) => {
 };
 
 export const getBidderByBidderNumber = async (bidderNumber: string) => {
-  return await getBidderByBidderNumberController(bidderNumber);
+  return await GetBidderByBidderNumberController(bidderNumber);
 };
 
 export const getBidders = async () => {
-  return await getBiddersController();
+  return await GetBiddersController();
 };
 
 export const updateBidder = async (bidder_id: string, formData: FormData) => {

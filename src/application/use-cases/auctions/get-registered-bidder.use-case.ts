@@ -7,6 +7,10 @@ export async function getRegisteredBidderUseCase(
   auction_date: Date
 ) {
   const auction = await getAuctionUseCase(auction_date);
+  if (!auction) {
+    throw new NotFoundError("Auction not found!");
+  }
+
   const registered_bidder = await AuctionRepository.getRegisteredBidder(
     bidder_number,
     auction.auction_id

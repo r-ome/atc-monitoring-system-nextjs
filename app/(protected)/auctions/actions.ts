@@ -6,7 +6,7 @@ import { RegisterBidderController } from "src/controllers/auctions/register-bidd
 import { GetRegisteredBiddersController } from "src/controllers/auctions/get-registered-bidders.controller";
 import { GetMonitoringController } from "src/controllers/auctions/get-monitoring.controller";
 import { UploadManifestController } from "src/controllers/auctions/upload-manifest.controller";
-import { getManifestRecordsController } from "src/controllers/auctions/get-manifest-records.controller";
+import { GetManifestRecordsController } from "src/controllers/auctions/get-manifest-records.controller";
 import { GetRegisteredBidderController } from "src/controllers/auctions/get-registered-bidder.controller";
 import { HandleBidderPullOutController } from "src/controllers/payments/handle-bidder-pullout.controllers";
 import { CancelItemsController } from "src/controllers/auctions/cancel-items.controller";
@@ -42,7 +42,7 @@ export const uploadManifest = async (auctionId: string, formData: FormData) => {
 };
 
 export const getManifestRecords = async (auctionId: string) => {
-  return await getManifestRecordsController(auctionId);
+  return await GetManifestRecordsController(auctionId);
 };
 
 export const getRegisteredBidderByBidderNumber = async (

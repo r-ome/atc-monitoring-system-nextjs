@@ -1,3 +1,4 @@
+import { logger } from "@/app/lib/logger";
 import { format } from "date-fns";
 import { getManifestRecordsUseCase } from "src/application/use-cases/auctions/get-manifest-records.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
@@ -21,11 +22,12 @@ function presenter(manifest_records: ManifestSchema[]) {
   }));
 }
 
-export const getManifestRecordsController = async (auctionId: string) => {
+export const GetManifestRecordsController = async (auctionId: string) => {
   try {
     const manifest_records = await getManifestRecordsUseCase(auctionId);
     return ok(presenter(manifest_records));
   } catch (error) {
+    logger("GetManifestRecordsController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

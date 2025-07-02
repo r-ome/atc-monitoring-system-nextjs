@@ -9,6 +9,7 @@ import {
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Response";
 import { loginUseCase } from "src/application/use-cases/users/login.use-case";
+import { logger } from "@/app/lib/logger";
 
 function presenter(user: UserSchema) {
   return user;
@@ -30,15 +31,13 @@ export const LoginController = async (
     const user = await loginUseCase(data.username, data.password);
     return ok(presenter(user));
   } catch (error) {
-    if (error instanceof DatabaseOperationError) {
-      return err({ message: "Server Error", cause: error.message });
+    logger("LoginController", error);
+    if (error instanceof InputParseError) {
+      return err({ message: error.message, cause: error.cause });
     }
 
-    if (error instanceof InputParseError) {
-      return err({
-        message: error.message,
-        cause: error.cause,
-      });
+    if (error instanceof DatabaseOperationError) {
+      return err({ message: "Server Error", cause: error.message });
     }
 
     return err({

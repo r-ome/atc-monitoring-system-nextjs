@@ -11,6 +11,7 @@ import {
 import { err, ok } from "src/entities/models/Response";
 import { format } from "date-fns";
 import { updateBidderUseCase } from "src/application/use-cases/bidders/update-bidder.use-case";
+import { logger } from "@/app/lib/logger";
 
 function presenter(
   bidder: Omit<BidderSchema, "auctions_joined" | "requirements">
@@ -50,6 +51,7 @@ export const UpdateBidderController = async (
     const updated = await updateBidderUseCase(bidder_id, data);
     return ok(presenter(updated));
   } catch (error) {
+    logger("UpdateBidderController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
     }

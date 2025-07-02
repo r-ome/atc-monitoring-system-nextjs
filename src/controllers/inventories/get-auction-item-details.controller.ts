@@ -6,6 +6,7 @@ import {
 import { ok, err } from "src/entities/models/Response";
 import { format } from "date-fns";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
+import { logger } from "@/app/lib/logger";
 
 const presenter = (auction_inventory: AuctionsInventorySchema) => {
   const date_format = "MMMM dd, yyyy";
@@ -60,6 +61,7 @@ export const GetAuctionItemDetailsController = async (
     );
     return ok(presenter(auction_inventory));
   } catch (error) {
+    logger("GetAuctionItemDetailsController", error);
     if (error instanceof NotFoundError) {
       return err({ message: error.message, cause: error?.cause });
     }
