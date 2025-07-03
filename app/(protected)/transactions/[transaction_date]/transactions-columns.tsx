@@ -5,7 +5,6 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Payment } from "src/entities/models/Payment";
-import { formatDate } from "@/app/lib/utils";
 
 const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
   const payment = row.original;
@@ -14,12 +13,8 @@ const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
     <div
       className="flex justify-center cursor-pointer hover:underline"
       onClick={() => {
-        const auction_date = formatDate(
-          new Date(payment.created_at),
-          "yyyy-MM-dd"
-        );
         router.push(
-          `/auctions/${auction_date}/payments/${payment.receipt.receipt_number}`
+          `/auctions/${payment.auction_date}/payments/${payment.receipt.receipt_number}`
         );
       }}
     >
@@ -30,7 +25,7 @@ const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
 
 export const columns: ColumnDef<Payment>[] = [
   {
-    accessorKey: "purpose",
+    accessorKey: "receipt.purpose",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

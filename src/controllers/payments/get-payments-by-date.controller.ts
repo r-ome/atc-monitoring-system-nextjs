@@ -11,6 +11,10 @@ function presenter(payments: PaymentSchema[]) {
     receipt_id: payment.receipt_id,
     amount_paid: payment.amount_paid,
     payment_type: payment.payment_type,
+    auction_date: formatDate(
+      payment.receipt.auction_bidder.created_at,
+      "yyyy-MM-dd"
+    ),
     created_at: formatDate(payment.created_at, "MMMM dd, yyyy hh:mm a"),
     receipt: {
       receipt_id: payment.receipt.receipt_id,

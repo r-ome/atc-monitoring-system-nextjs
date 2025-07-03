@@ -25,6 +25,7 @@ export type Payment = {
   amount_paid: number;
   payment_type: PAYMENT_TYPE;
   created_at: string;
+  auction_date: string;
   receipt: {
     receipt_id: string;
     receipt_number: string;

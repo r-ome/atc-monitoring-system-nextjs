@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  // output   = "../app/generated/prisma" // commenting this out solves prisma generate error. weird. lol
 }
 
 datasource db {
@@ -82,7 +81,7 @@ model bidders {
   first_name       String
   middle_name      String?
   last_name        String
-  birthdate        DateTime?              @db.DateTime()
+  birthdate        DateTime?              @db.DateTime(0)
   contact_number   String?
   registration_fee Int                    @default(0)
   service_charge   Int                    @default(0)
@@ -161,7 +160,7 @@ model inventories {
   auctions_inventories auctions_inventories[]
   histories            inventory_histories[]
 
-  @@index(fields: [container_id], map: "fk_inventories_container_id")
+  @@index([container_id], map: "fk_inventories_container_id")
 }
 
 model inventory_histories {
