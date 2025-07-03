@@ -57,133 +57,148 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
     return bidders.filter((bidder) => !registered.has(bidder.bidder_id));
   }, [bidders, registeredBidders]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsLoading(true);
-    if (!selectedBidder || !auction) return;
-
-    const formData = new FormData(event.currentTarget);
-    formData.append("auction_id", auction.auction_id);
-    formData.append("bidder_id", selectedBidder.value as string);
-    const balance = (selectedBidder.registration_fee as number) * -1;
-    formData.append("balance", balance.toString());
-    const res = await registerBidder(formData);
-    if (res) {
-      setIsLoading(false);
-      if (res.ok) {
-        toast.success("Successfully Registered Bidder");
-        router.refresh();
-        setOpen(false);
-      }
-
-      if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
-      }
-    }
-  };
-
   // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   //   event.preventDefault();
   //   setIsLoading(true);
-  //   // bidder_numbers
-  //   const bidder_numbers = [
-  //     "0710",
-  //     "0219",
-  //     "0337",
-  //     "0115",
-  //     "0657",
-  //     "0784",
-  //     "0060",
-  //     "0848",
-  //     "0740",
-  //     "0761",
-  //     "0643",
-  //     "0003",
-  //     "0269",
-  //     "0189",
-  //     "0810",
-  //     "0738",
-  //     "0041",
-  //     "0338",
-  //     "0211",
-  //     "0028",
-  //     "0819",
-  //     "0724",
-  //     "0077",
-  //     "0824",
-  //     "0786",
-  //     "0171",
-  //     "0755",
-  //     "0847",
-  //     "0297",
-  //     "0772",
-  //     "0718",
-  //     "0633",
-  //     "0827",
-  //     "0845",
-  //     "0256",
-  //     "0518",
-  //     "0044",
-  //     "0043",
-  //     "0744",
-  //     "0842",
-  //     "0663",
-  //     "0533",
-  //     "0234",
-  //     "0529",
-  //     "0008",
-  //     "0802",
-  //     "0031",
-  //     "0642",
-  //     "0708",
-  //     "0540",
-  //     "0204",
-  //     "0594",
-  //     "0841",
-  //   ];
-  //   const bidder_with_details = bidder_numbers
-  //     .filter((item) =>
-  //       filteredBidders.find((bidder) => bidder.bidder_number === item)
-  //     )
-  //     .map((item) => {
-  //       const match = filteredBidders.find(
-  //         (bidder) => bidder.bidder_number === item
-  //       );
+  //   if (!selectedBidder || !auction) return;
 
-  //       return {
-  //         bidder_id: match?.bidder_id,
-  //         bidder_number: match?.bidder_number,
-  //         registration_fee: match?.registration_fee,
-  //         service_charge: match?.service_charge,
-  //       };
-  //     });
+  //   const formData = new FormData(event.currentTarget);
+  //   formData.append("auction_id", auction.auction_id);
+  //   formData.append("bidder_id", selectedBidder.value as string);
+  //   const balance = (selectedBidder.registration_fee as number) * -1;
+  //   formData.append("balance", balance.toString());
+  //   const res = await registerBidder(formData);
+  //   if (res) {
+  //     setIsLoading(false);
+  //     if (res.ok) {
+  //       toast.success("Successfully Registered Bidder");
+  //       router.refresh();
+  //       setOpen(false);
+  //     }
 
-  //   await Promise.all(
-  //     bidder_with_details.map((item) => {
-  //       const formData = new FormData();
-  //       formData.append("auction_id", auction.auction_id);
-  //       formData.append("bidder_id", item.bidder_id as string);
-  //       formData.append(
-  //         "registration_fee",
-  //         item.registration_fee?.toString() as string
-  //       );
-  //       formData.append(
-  //         "service_charge",
-  //         item.service_charge?.toString() as string
-  //       );
-  //       const balance = (item.registration_fee as number) * -1;
-  //       formData.append("balance", balance.toString());
-  //       return registerBidder(formData);
-  //     })
-  //   );
-
-  //   toast.success("Done!");
-  //   router.refresh();
-  //   setOpen(false);
-  //   setIsLoading(false);
+  //     if (!res.ok) {
+  //       const description =
+  //         typeof res.error?.cause === "string" ? res.error?.cause : null;
+  //       toast.error(res.error.message, { description });
+  //     }
+  //   }
   // };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    // bidder_numbers
+    const bidder_numbers = [
+      "0710",
+      "0219",
+      "0458",
+      "0881",
+      "0207",
+      "0872",
+      "0889",
+      "0033",
+      "0854",
+      "0857",
+      "0890",
+      "0532",
+      "0878",
+      "0840",
+      "0006",
+      "0873",
+      "0891",
+      "0337",
+      "0115",
+      "0657",
+      "0784",
+      "0060",
+      "0848",
+      "0740",
+      "0761",
+      "0643",
+      "0003",
+      "0269",
+      "0189",
+      "0810",
+      "0738",
+      "0041",
+      "0338",
+      "0211",
+      "0028",
+      "0819",
+      "0724",
+      "0077",
+      "0824",
+      "0786",
+      "0171",
+      "0755",
+      "0847",
+      "0297",
+      "0772",
+      "0718",
+      "0633",
+      "0827",
+      "0845",
+      "0256",
+      "0518",
+      "0044",
+      "0043",
+      "0744",
+      "0842",
+      "0663",
+      "0533",
+      "0234",
+      "0529",
+      "0008",
+      "0802",
+      "0031",
+      "0642",
+      "0708",
+      "0540",
+      "0204",
+      "0594",
+      "0841",
+    ];
+    const bidder_with_details = bidder_numbers
+      .filter((item) =>
+        filteredBidders.find((bidder) => bidder.bidder_number === item)
+      )
+      .map((item) => {
+        const match = filteredBidders.find(
+          (bidder) => bidder.bidder_number === item
+        );
+
+        return {
+          bidder_id: match?.bidder_id,
+          bidder_number: match?.bidder_number,
+          registration_fee: match?.registration_fee,
+          service_charge: match?.service_charge,
+        };
+      });
+
+    await Promise.all(
+      bidder_with_details.map((item) => {
+        const formData = new FormData();
+        formData.append("auction_id", auction.auction_id);
+        formData.append("bidder_id", item.bidder_id as string);
+        formData.append(
+          "registration_fee",
+          item.registration_fee?.toString() as string
+        );
+        formData.append(
+          "service_charge",
+          item.service_charge?.toString() as string
+        );
+        const balance = (item.registration_fee as number) * -1;
+        formData.append("balance", balance.toString());
+        return registerBidder(formData);
+      })
+    );
+
+    toast.success("Done!");
+    router.refresh();
+    setOpen(false);
+    setIsLoading(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

@@ -28,6 +28,7 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
+  const [errors, setErrors] = useState<Record<string, string[]>>();
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
@@ -51,6 +52,9 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
         const description =
           typeof res.error?.cause === "string" ? res.error?.cause : null;
         toast.error(res.error.message, { description });
+        if (res.error.message === "Invalid Data!") {
+          setErrors(res.error.cause as Record<string, string[]>);
+        }
       }
     }
   };
@@ -75,6 +79,7 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
               type="file"
               className="cursor-pointer"
               required
+              error={errors}
             />
             <DialogFooter>
               <DialogClose className="cursor-pointer">Cancel</DialogClose>

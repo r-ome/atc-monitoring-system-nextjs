@@ -42,7 +42,11 @@ export const uploadManifestUseCase = async (
   const something5 = addContainerIdForNewInventories(something4, containers);
   const something6 = removeDuplicates(something5, monitoring);
 
-  winston_logger.info(something6);
+  winston_logger.info(
+    something6.filter((item) =>
+      item.error.includes("Required Fields: BARCODE, BIDDER, PRICE")
+    )
+  );
 
   return await AuctionRepository.uploadManifest(
     auction_id,

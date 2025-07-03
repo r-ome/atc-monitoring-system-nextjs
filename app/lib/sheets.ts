@@ -11,6 +11,8 @@ import {
 import { ContainerSchema } from "src/entities/models/Container";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
+import { InputParseError } from "src/entities/errors/common";
+import { logger } from "./logger";
 
 export const VALID_FILE_TYPES = [
   "application/x-iwork-numbers-sffnumbers",
@@ -22,27 +24,57 @@ export const getSheetData = (
   file: ArrayBuffer,
   type: "manifest" | "inventory" = "inventory"
 ): { data: Record<string, string>[]; headers: string[] } => {
-  const workbook = xlsx.read(file, { type: "array" });
-  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  const data = xlsx.utils.sheet_to_json(worksheet, {
-    defval: "",
-    raw: true,
-  }) as Record<string, string>[];
+  try {
+    const workbook = xlsx.read(file, { type: "array" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    let data = xlsx.utils.sheet_to_json(worksheet, {
+      defval: "",
+      raw: true,
+    }) as Record<string, string>[];
 
-  let headers: string[] = [];
-  if (type === "manifest") {
-    /**
-     * TO DO: DO NOT FORGET TO UPDATE "type" parameter
-     */
-    headers = [];
-    headers = Object.values(data[1])
-      .filter((item) => item)
-      .map((item) => item.trim());
-  } else {
-    headers = data.length ? Object.keys(data[0]) : [];
+    let headers: string[] = [];
+    if (type === "manifest") {
+      headers = [];
+      headers = Object.values(data[1])
+        .filter((item) => item)
+        .map((item) => item.trim());
+      data = data
+        .slice(1)
+        .map<Record<string, string>>((item) =>
+          headers.reduce(
+            (acc, header, headerIndex) => ({
+              ...acc,
+              [header]: Object.values(item)[headerIndex],
+            }),
+            {}
+          )
+        )
+        .map((item1) => ({
+          BARCODE: item1.BARCODE,
+          CONTROL: item1["CONTROL #"],
+          DESCRIPTION: item1.DESCRIPTION,
+          BIDDER: item1["BIDDER #"],
+          PRICE: item1.PRICE,
+          QTY: item1.QTY,
+          MANIFEST: item1["MANIFEST NUMBER"],
+        }))
+        .filter((item) => {
+          return (
+            JSON.stringify(item) !==
+            `{"BARCODE":"","CONTROL":"","DESCRIPTION":"","BIDDER":"","PRICE":"","QTY":"","MANIFEST":""}`
+          );
+        });
+    } else {
+      headers = data.length ? Object.keys(data[0]) : [];
+    }
+
+    return { data, headers };
+  } catch (error) {
+    logger("getSheetData", error);
+    throw new InputParseError("Invalid Data!", {
+      cause: { file: ["Sheet uploaded has wrong format!"] },
+    });
   }
-
-  return { data, headers };
 };
 
 export const validateEmptyFields = (

@@ -27,7 +27,7 @@ export const UploadManifestController = async (
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const { data, headers } = getSheetData(arrayBuffer);
+    const { data, headers } = getSheetData(arrayBuffer, "manifest");
 
     if (!data.length) {
       throw new InputParseError("Invalid Data!", {
@@ -35,31 +35,19 @@ export const UploadManifestController = async (
       });
     }
 
-    /**
-     * TO DO: UPDATE TO THIS
-      const validManifestHeaders = JSON.stringify([
-        "BIDDER #",
-        "BIDDER NO.",
-        "BARCODE",
-        "CONTROL #",
-        "DESCRIPTION",
-        "QTY",
-        "PRICE"
-        "MANIFEST",
-      ]);
-     */
-
-    const validManifestHeaders = JSON.stringify([
+    const validManifestHeaders = [
       "BARCODE",
-      "CONTROL",
+      "CONTROL #",
       "DESCRIPTION",
-      "BIDDER",
+      "BIDDER #",
       "QTY",
       "PRICE",
-      "MANIFEST",
-    ]);
+      "MANIFEST NUMBER",
+    ]
+      .map((item) => headers.includes(item))
+      .some((item) => !item);
 
-    if (validManifestHeaders !== JSON.stringify(headers)) {
+    if (validManifestHeaders) {
       throw new InputParseError("Invalid Data!", {
         cause: { file: ["Headers didn't match expected manifest"] },
       });
