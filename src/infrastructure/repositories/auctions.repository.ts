@@ -89,6 +89,7 @@ export const AuctionRepository: IAuctionRepository = {
                 include: { inventory: { include: { container: true } } },
               },
             },
+            orderBy: { created_at: "desc" },
           },
         },
       });

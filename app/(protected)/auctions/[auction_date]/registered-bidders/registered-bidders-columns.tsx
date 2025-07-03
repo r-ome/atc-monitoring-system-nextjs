@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/app/components/ui/dropdown-menu";
-import { cn } from "@/app/lib/utils";
+import { cn, formatDate } from "@/app/lib/utils";
 
 export const columns: ColumnDef<RegisteredBidder>[] = [
   {

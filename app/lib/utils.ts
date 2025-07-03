@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { AuctionDateRange } from "src/entities/models/Auction";
 import { twMerge } from "tailwind-merge";
+import { formatInTimeZone } from "date-fns-tz";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,3 +30,7 @@ export const isRange = (value: Date | AuctionDateRange) => {
     value.end instanceof Date
   );
 };
+
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+export const formatDate = (date: Date, format: string = "MMMM dd, YYYY") =>
+  formatInTimeZone(date, timeZone, format);

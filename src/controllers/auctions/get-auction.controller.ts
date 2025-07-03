@@ -1,12 +1,12 @@
 import { getAuctionUseCase } from "src/application/use-cases/auctions/get-auction.use-case";
 import { AuctionSchema } from "src/entities/models/Auction";
-import { format } from "date-fns";
 import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
+import { formatDate } from "@/app/lib/utils";
 
 function presenter(auction: AuctionSchema) {
   const date_format = "MMM dd, yyyy";
@@ -18,13 +18,16 @@ function presenter(auction: AuctionSchema) {
   return {
     auction_id: auction.auction_id,
     auctions_inventories,
-    auction_date: format(auction.created_at, date_format),
-    updated_at: format(auction.updated_at, date_format),
+    auction_date: formatDate(auction.created_at, date_format),
+    updated_at: formatDate(auction.updated_at, date_format),
     registered_bidders: auction.registered_bidders.map((registered_bidder) => ({
       auction_bidder_id: registered_bidder.auction_bidder_id,
       auction_id: registered_bidder.auction_id,
-      auction_date: format(auction.created_at, date_format),
-      created_at: format(registered_bidder.created_at, "MMMM dd, yyyy hh:mm a"),
+      auction_date: formatDate(auction.created_at, date_format),
+      created_at: formatDate(
+        registered_bidder.created_at,
+        "MMMM dd, yyyy hh:mm a"
+      ),
       service_charge: registered_bidder.service_charge,
       registration_fee: registered_bidder.registration_fee,
       already_consumed: registered_bidder.already_consumed,
@@ -47,8 +50,8 @@ function presenter(auction: AuctionSchema) {
           price: item.price,
           qty: item.qty,
           manifest_number: item.manifest_number,
-          created_at: format(item.created_at, "MMMM dd, yyyy"),
-          updated_at: format(item.updated_at, "MMMM dd, yyyy"),
+          created_at: formatDate(item.created_at, "MMMM dd, yyyy"),
+          updated_at: formatDate(item.updated_at, "MMMM dd, yyyy"),
           inventory: {
             inventory_id: item.inventory_id,
             container_id: item.inventory.container_id,
