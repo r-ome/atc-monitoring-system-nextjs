@@ -21,11 +21,14 @@ export const AppBreadcrumb = () => {
           {segments.map((segment, index) => {
             const href = "/" + segments.slice(0, index + 1).join("/");
             const isLast = index === segments.length - 1;
+            const label = decodeURI(segment).toUpperCase();
 
             return (
               <React.Fragment key={href}>
                 <BreadcrumbItem className="hidden md:block">
-                  <Link href={href}>{decodeURI(segment).toUpperCase()}</Link>
+                  <Link href={href}>
+                    {label.slice(0, 10)} {label.length > 10 ? "..." : null}
+                  </Link>
                 </BreadcrumbItem>
                 {!isLast && <BreadcrumbSeparator className="hidden md:block" />}
               </React.Fragment>

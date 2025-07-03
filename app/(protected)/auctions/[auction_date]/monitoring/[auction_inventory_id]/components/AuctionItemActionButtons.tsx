@@ -64,7 +64,7 @@ export const AuctionItemActionButtons: React.FC<
         >
           Void Item
         </DropdownMenuItem>
-        <DropdownMenuItem>Reassign Item</DropdownMenuItem>
+        {/* <DropdownMenuItem>Reassign Item</DropdownMenuItem> */}
         <DropdownMenuItem
           onClick={() => setOpenRefundDialog(true)}
           disabled={!["PAID"].includes(auctionInventory.status)}
