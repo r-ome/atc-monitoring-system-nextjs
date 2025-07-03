@@ -9,7 +9,7 @@ import {
   type BidderInsertSchema as BidderInsertSchemaType,
 } from "src/entities/models/Bidder";
 import { err, ok } from "src/entities/models/Response";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { updateBidderUseCase } from "src/application/use-cases/bidders/update-bidder.use-case";
 import { logger } from "@/app/lib/logger";
 
@@ -25,7 +25,9 @@ function presenter(
     last_name: bidder.last_name,
     full_name: `${bidder.first_name} ${bidder.last_name}`,
     contact_number: bidder.contact_number,
-    birthdate: bidder.birthdate ? format(bidder.birthdate, date_format) : null,
+    birthdate: bidder.birthdate
+      ? formatDate(bidder.birthdate, date_format)
+      : null,
     registration_fee: bidder.registration_fee,
     service_charge: bidder.service_charge,
     registered_at: bidder.registered_at,

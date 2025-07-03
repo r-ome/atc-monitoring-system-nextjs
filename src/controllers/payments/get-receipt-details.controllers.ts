@@ -1,7 +1,7 @@
 import { getReceiptDetailsUseCase } from "src/application/use-cases/payments/get-receipt-details.use-case";
 import { ReceiptRecordsSchema } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Response";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 
@@ -14,12 +14,15 @@ function presenter(
     receipt_number: receipt.receipt_number,
     auction_bidder_id: receipt.auction_bidder_id,
     purpose: receipt.purpose,
-    auction_date: format(receipt.auction_bidder.created_at, "MMMM dd, yyyy"),
+    auction_date: formatDate(
+      receipt.auction_bidder.created_at,
+      "MMMM dd, yyyy"
+    ),
     total_amount_paid: receipt.payments.reduce(
       (acc, item) => (acc += item.amount_paid),
       0
     ),
-    created_at: format(receipt.created_at, date_format),
+    created_at: formatDate(receipt.created_at, date_format),
     remarks: receipt.remarks,
     bidder: {
       bidder_id: receipt.auction_bidder.bidder.bidder_id,
@@ -42,7 +45,7 @@ function presenter(
       payment_id: payment.payment_id,
       payment_type: payment.payment_type,
       amount_paid: payment.amount_paid,
-      created_at: format(payment.created_at, date_format),
+      created_at: formatDate(payment.created_at, date_format),
     })),
   };
 }

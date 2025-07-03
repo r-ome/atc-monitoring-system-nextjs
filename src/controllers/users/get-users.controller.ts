@@ -2,7 +2,7 @@ import { getUsersUseCase } from "src/application/use-cases/users/get-users.use-c
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Response";
 import { UserSchema } from "src/entities/models/User";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(users: UserSchema[]) {
@@ -13,8 +13,8 @@ function presenter(users: UserSchema[]) {
       name: user.name,
       username: user.username,
       role: user.role,
-      created_at: format(user.created_at, "MMMM dd, yyyy"),
-      updated_at: format(user.updated_at, "MMMM dd, yyyy"),
+      created_at: formatDate(user.created_at, "MMMM dd, yyyy"),
+      updated_at: formatDate(user.updated_at, "MMMM dd, yyyy"),
     }));
 }
 

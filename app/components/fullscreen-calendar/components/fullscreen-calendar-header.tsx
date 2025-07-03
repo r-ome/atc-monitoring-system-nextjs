@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { format, startOfToday } from "date-fns";
+import { startOfToday } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { formatDate } from "@/app/lib/utils";
 
 import { Button } from "@/app/components/ui/button";
 
@@ -29,19 +30,19 @@ export function FullScreenCalendarHeader({
         <div className="flex items-center gap-4">
           <div className="hidden w-20 flex-col items-center justify-center rounded-lg border bg-muted p-0.5 md:flex">
             <h1 className="p-1 text-xs uppercase text-muted-foreground">
-              {format(today, "MMM")}
+              {formatDate(today, "MMM")}
             </h1>
             <div className="flex w-full items-center justify-center rounded-lg border bg-background p-0.5 text-lg font-bold">
-              <span>{format(today, "d")}</span>
+              <span>{formatDate(today, "d")}</span>
             </div>
           </div>
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold text-foreground">
-              {format(startOfMonth, "MMMM, yyyy")}
+              {formatDate(startOfMonth, "MMMM, yyyy")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {format(startOfMonth, "MMM d, yyyy")} -{" "}
-              {format(endOfMonth, "MMM d, yyyy")}
+              {formatDate(startOfMonth, "MMM d, yyyy")} -{" "}
+              {formatDate(endOfMonth, "MMM d, yyyy")}
             </p>
           </div>
         </div>

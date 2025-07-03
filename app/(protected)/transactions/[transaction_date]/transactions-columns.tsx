@@ -5,7 +5,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Payment } from "src/entities/models/Payment";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 
 const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
   const payment = row.original;
@@ -14,7 +14,10 @@ const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
     <div
       className="flex justify-center cursor-pointer hover:underline"
       onClick={() => {
-        const auction_date = format(payment.created_at, "yyyy-MM-dd");
+        const auction_date = formatDate(
+          new Date(payment.created_at),
+          "yyyy-MM-dd"
+        );
         router.push(
           `/auctions/${auction_date}/payments/${payment.receipt.receipt_number}`
         );

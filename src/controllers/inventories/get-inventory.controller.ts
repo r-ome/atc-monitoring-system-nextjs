@@ -5,7 +5,7 @@ import {
 import { getInventoryUseCase } from "src/application/use-cases/inventories/get-inventory.use-case";
 import { err, ok } from "src/entities/models/Response";
 import { InventorySchema } from "src/entities/models/Inventory";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(inventory: InventorySchema) {
@@ -18,10 +18,10 @@ function presenter(inventory: InventorySchema) {
     status: inventory.status,
     is_bought_item: inventory.is_bought_item ?? 0,
     url: inventory.url,
-    created_at: format(inventory.created_at, date_format),
-    updated_at: format(inventory.updated_at, date_format),
+    created_at: formatDate(inventory.created_at, date_format),
+    updated_at: formatDate(inventory.updated_at, date_format),
     deleted_at: inventory.deleted_at
-      ? format(inventory.deleted_at, date_format)
+      ? formatDate(inventory.deleted_at, date_format)
       : null,
     container: {
       container_id: inventory.container_id,
@@ -35,7 +35,7 @@ function presenter(inventory: InventorySchema) {
       auction_status: history.auction_status,
       inventory_status: history.inventory_status,
       remarks: history.remarks,
-      created_at: format(history.created_at, date_format),
+      created_at: formatDate(history.created_at, date_format),
     })),
     auctions_inventories: inventory.auctions_inventories.map((item) => ({
       auction_inventory_id: item.auction_inventory_id,
@@ -45,7 +45,7 @@ function presenter(inventory: InventorySchema) {
       qty: item.qty,
       status: item.status,
       manifest_number: item.manifest_number,
-      created_at: format(item.created_at, date_format),
+      created_at: formatDate(item.created_at, date_format),
     })),
   };
 }

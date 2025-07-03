@@ -14,7 +14,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/app/components/ui/tabs";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { InwardTransactionsTab } from "./InwardTransactionsTab";
 import { ExpensesTab } from "./ExpensesTab";
 import { AddExpenseModal } from "./AddExpenseModal";
@@ -45,7 +45,8 @@ export default async function Page({
           <CardTitle>
             <div className="flex justify-between">
               <h1 className="uppercase text-xl">
-                {format(transaction_date, "MMMM dd, yyyy")} Cash Book
+                {formatDate(new Date(transaction_date), "MMMM dd, yyyy")} Cash
+                Book
               </h1>
 
               <div className="flex gap-4">

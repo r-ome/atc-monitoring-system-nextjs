@@ -25,7 +25,7 @@ import {
 import { Textarea } from "@/app/components/ui/textarea";
 import { addExpense } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 
 export const AddExpenseModal: React.FC = () => {
   const router = useRouter();
@@ -36,7 +36,7 @@ export const AddExpenseModal: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
-    const currentTime = format(new Date(), "HH:mm:ss");
+    const currentTime = formatDate(new Date(), "HH:mm:ss");
     const formData = new FormData(event.currentTarget);
     formData.append("created_at", `${transaction_date}T${currentTime}`);
     const res = await addExpense(formData);

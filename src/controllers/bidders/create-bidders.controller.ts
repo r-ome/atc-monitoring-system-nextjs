@@ -8,7 +8,7 @@ import {
   type BidderSchema,
   type BidderInsertSchema as BidderInsertSchemaType,
 } from "src/entities/models/Bidder";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
 
@@ -19,9 +19,11 @@ const presenter = (
   return {
     ...bidder,
     full_name: `${bidder.first_name} ${bidder.last_name}`,
-    birthdate: bidder.birthdate ? format(bidder.birthdate, date_format) : null,
-    created_at: format(bidder.created_at, date_format),
-    updated_at: format(bidder.updated_at, date_format),
+    birthdate: bidder.birthdate
+      ? formatDate(bidder.birthdate, date_format)
+      : null,
+    created_at: formatDate(bidder.created_at, date_format),
+    updated_at: formatDate(bidder.updated_at, date_format),
   };
 };
 

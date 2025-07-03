@@ -1,5 +1,5 @@
 import * as xlsx from "xlsx-js-style";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { Container } from "src/entities/models/Container";
 
 const generateFinalComputation = (
@@ -186,7 +186,7 @@ const generateFinalComputation = (
 
   sheet["A6"] = {
     v: container.arrival_date
-      ? format(new Date(container.arrival_date), "MM/dd/yy")
+      ? formatDate(new Date(container.arrival_date), "MM/dd/yy")
       : "",
     t: "s",
     s: {
@@ -218,7 +218,7 @@ const generateFinalComputation = (
 
   sheet["B6"] = {
     v: container.due_date
-      ? format(new Date(container.due_date), "MM/dd/yy")
+      ? formatDate(new Date(container.due_date), "MM/dd/yy")
       : "",
     t: "s",
     s: {

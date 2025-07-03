@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { getAuction } from "@/app/(protected)/auctions/actions";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
 import { AuctionNavigation } from "@/app/(protected)/auctions/components/AuctionNavigation";
@@ -111,7 +111,7 @@ export default async function Page({
   return (
     <div>
       <h1 className="text-4xl font-extrabold tracking-tight text-balance">
-        {format(auction_date, "EEEE, MMMM dd, yyyy")}
+        {formatDate(new Date(auction_date), "EEEE, MMMM dd, yyyy")}
       </h1>
 
       <AuctionNavigation />

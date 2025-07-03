@@ -1,6 +1,6 @@
 import { getRegisteredBidderUseCase } from "src/application/use-cases/auctions/get-registered-bidder.use-case";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import {
   DatabaseOperationError,
   NotFoundError,
@@ -12,9 +12,9 @@ function presenter(registeredBidder: RegisteredBidderSchema) {
   const date_format = "MMMM dd, yyyy";
   return {
     auction_id: registeredBidder.auction_id,
-    auction_date: format(registeredBidder.created_at, date_format),
+    auction_date: formatDate(registeredBidder.created_at, date_format),
     auction_bidder_id: registeredBidder.auction_bidder_id,
-    created_at: format(registeredBidder.created_at, "hh:mm a"),
+    created_at: formatDate(registeredBidder.created_at, "hh:mm a"),
     already_consumed: registeredBidder.already_consumed,
     balance: registeredBidder.balance,
     bidder: {
@@ -37,8 +37,8 @@ function presenter(registeredBidder: RegisteredBidderSchema) {
         price: auction_inventory.price,
         qty: auction_inventory.qty,
         manifest_number: auction_inventory.manifest_number,
-        created_at: format(auction_inventory.created_at, "MMMM dd, yyyy"),
-        updated_at: format(auction_inventory.updated_at, "MMMM dd, yyyy"),
+        created_at: formatDate(auction_inventory.created_at, "MMMM dd, yyyy"),
+        updated_at: formatDate(auction_inventory.updated_at, "MMMM dd, yyyy"),
         inventory: {
           inventory_id: auction_inventory.inventory_id,
           container_id: auction_inventory.inventory.container_id,

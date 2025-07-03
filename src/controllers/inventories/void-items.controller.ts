@@ -9,7 +9,7 @@ import {
   AuctionsInventorySchema,
   VoidItemsSchema,
 } from "src/entities/models/Auction";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 const presenter = (
@@ -21,8 +21,8 @@ const presenter = (
   const date_format = "MMMM dd, yyyy";
   return auctionInventories.map((auction_inventory) => ({
     ...auction_inventory,
-    created_at: format(auction_inventory.created_at, date_format),
-    updated_at: format(auction_inventory.updated_at, date_format),
+    created_at: formatDate(auction_inventory.created_at, date_format),
+    updated_at: formatDate(auction_inventory.updated_at, date_format),
   }));
 };
 

@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { getManifestRecordsUseCase } from "src/application/use-cases/auctions/get-manifest-records.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ManifestSchema } from "src/entities/models/Manifest";
@@ -18,7 +18,7 @@ function presenter(manifest_records: ManifestSchema[]) {
     manifest_number: manifest.manifest_number,
     remarks: manifest.remarks,
     error_message: manifest.error_message,
-    created_at: format(manifest.created_at, "MMMM dd, yyyy"),
+    created_at: formatDate(manifest.created_at, "MMMM dd, yyyy"),
   }));
 }
 

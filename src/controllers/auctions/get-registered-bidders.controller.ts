@@ -1,6 +1,6 @@
 import { getRegisteredBiddersUseCase } from "src/application/use-cases/auctions/get-registered-bidders.use-case";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Response";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
@@ -10,7 +10,7 @@ function presenter(registeredBidders: RegisteredBidderSchema[]) {
   return registeredBidders.map((registeredBidder) => ({
     auction_id: registeredBidder.auction_id,
     auction_bidder_id: registeredBidder.auction_bidder_id,
-    auction_date: format(registeredBidder.created_at, date_format),
+    auction_date: formatDate(registeredBidder.created_at, date_format),
     already_consumed: registeredBidder.already_consumed,
     bidder: {
       bidder_id: registeredBidder.bidder.bidder_id,
@@ -23,10 +23,10 @@ function presenter(registeredBidders: RegisteredBidderSchema[]) {
     registration_fee: registeredBidder.registration_fee,
     service_charge: registeredBidder.service_charge,
     balance: registeredBidder.balance,
-    created_at: format(registeredBidder.created_at, date_format),
-    updated_at: format(registeredBidder.updated_at, date_format),
+    created_at: formatDate(registeredBidder.created_at, date_format),
+    updated_at: formatDate(registeredBidder.updated_at, date_format),
     deleted_at: registeredBidder.deleted_at
-      ? format(registeredBidder.deleted_at, date_format)
+      ? formatDate(registeredBidder.deleted_at, date_format)
       : null,
   }));
 }

@@ -2,7 +2,7 @@ import { getMonitoringUseCase } from "src/application/use-cases/auctions/get-mon
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
 import { ok, err } from "src/entities/models/Response";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(monitoring: AuctionsInventorySchema[]) {
@@ -16,8 +16,8 @@ function presenter(monitoring: AuctionsInventorySchema[]) {
     price: item.price,
     qty: item.qty,
     manifest_number: item.manifest_number,
-    created_at: format(item.created_at, "MMMM dd, yyyy"),
-    updated_at: format(item.updated_at, "MMMM dd, yyyy"),
+    created_at: formatDate(item.created_at, "MMMM dd, yyyy"),
+    updated_at: formatDate(item.updated_at, "MMMM dd, yyyy"),
     inventory: {
       inventory_id: item.inventory.inventory_id,
       barcode: item.inventory.barcode,
@@ -43,7 +43,7 @@ function presenter(monitoring: AuctionsInventorySchema[]) {
       inventory_status: item.inventory_status,
       remarks: item.remarks,
       receipt_number: item.receipt ? item.receipt.receipt_number : null,
-      created_at: format(item.created_at, "MMMM dd hh:mm a"),
+      created_at: formatDate(item.created_at, "MMMM dd hh:mm a"),
     })),
   }));
 }

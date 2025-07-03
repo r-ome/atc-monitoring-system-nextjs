@@ -22,8 +22,9 @@ import { getSuppliers } from "@/app/(protected)/suppliers/actions";
 import { DatePicker } from "@/app/components/ui/datepicker";
 import { Supplier } from "src/entities/models/Supplier";
 import { SelectWithSearch } from "@/app/components/ui/SelectWithSearch";
-import { format, addDays } from "date-fns";
+import { addDays } from "date-fns";
 import { createContainer } from "@/app/(protected)/containers/actions";
+import { formatDate } from "@/app/lib/utils";
 
 type option = Record<string, string | number | boolean>;
 
@@ -246,7 +247,7 @@ export default function Page() {
                     disabled
                     value={
                       arrivalDate
-                        ? format(addDays(arrivalDate, 40), "MMM dd, yyyy")
+                        ? formatDate(addDays(arrivalDate, 40), "MMM dd, yyyy")
                         : ""
                     }
                   />

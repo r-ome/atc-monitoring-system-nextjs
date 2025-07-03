@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/app/lib/utils";
@@ -35,7 +35,7 @@ export function DatePicker({
 
   useEffect(() => {
     if (!date) return;
-    setStringDate(format(date, "MMMM dd, yyyy"));
+    setStringDate(formatDate(date, "MMMM dd, yyyy"));
   }, [date]);
 
   return (
@@ -76,7 +76,7 @@ export function DatePicker({
           onSelect={(selectedDate) => {
             if (!selectedDate) return;
             onChange(selectedDate);
-            setStringDate(format(selectedDate, "MMMM dd, yyyy"));
+            setStringDate(formatDate(selectedDate, "MMMM dd, yyyy"));
           }}
           defaultMonth={date}
           initialFocus

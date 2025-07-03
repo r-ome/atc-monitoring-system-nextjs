@@ -2,7 +2,7 @@ import {
   SupplierSchema,
   SupplierInsertSchema,
 } from "src/entities/models/Supplier";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { createSupplierUseCase } from "src/application/use-cases/suppliers/create-supplier.use-case";
 import {
   DatabaseOperationError,
@@ -16,10 +16,10 @@ const presenter = (supplier: Omit<SupplierSchema, "containers">) => {
 
   return {
     ...supplier,
-    created_at: format(supplier.created_at, date_format),
-    updated_at: format(supplier.updated_at, date_format),
+    created_at: formatDate(supplier.created_at, date_format),
+    updated_at: formatDate(supplier.updated_at, date_format),
     deleted_at: supplier.deleted_at
-      ? format(supplier.deleted_at, date_format)
+      ? formatDate(supplier.deleted_at, date_format)
       : null,
   };
 };

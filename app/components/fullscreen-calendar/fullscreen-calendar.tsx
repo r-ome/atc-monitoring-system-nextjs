@@ -6,7 +6,6 @@ import {
   eachDayOfInterval,
   endOfMonth,
   endOfWeek,
-  format,
   parse,
   startOfToday,
   startOfWeek,
@@ -15,6 +14,7 @@ import {
 import { FullScreenCalendarDay } from "@/app/components/fullscreen-calendar/components/fullscreen-calendar-day";
 import { FullScreenCalendarHeader } from "@/app/components/fullscreen-calendar/components/fullscreen-calendar-header";
 import { FullScreenCalendarWeekDays } from "@/app/components/fullscreen-calendar/components/fullscreen-calendar-week-days";
+import { formatDate } from "@/app/lib/utils";
 
 // for routing purposes only
 
@@ -26,7 +26,7 @@ export function FullScreenCalendar({
   const today = startOfToday();
   const [selectedDay, setSelectedDay] = React.useState(today);
   const [currentMonth, setCurrentMonth] = React.useState(
-    format(today, "MMM-yyyy")
+    formatDate(today, "MMM-yyyy")
   );
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
 
@@ -37,16 +37,16 @@ export function FullScreenCalendar({
 
   function previousMonth() {
     const firstDayNextMonth = add(firstDayCurrentMonth, { months: -1 });
-    setCurrentMonth(format(firstDayNextMonth, "MMM-yyyy"));
+    setCurrentMonth(formatDate(firstDayNextMonth, "MMM-yyyy"));
   }
 
   function nextMonth() {
     const firstDayNextMonth = add(firstDayCurrentMonth, { months: 1 });
-    setCurrentMonth(format(firstDayNextMonth, "MMM-yyyy"));
+    setCurrentMonth(formatDate(firstDayNextMonth, "MMM-yyyy"));
   }
 
   function goToToday() {
-    setCurrentMonth(format(today, "MMM-yyyy"));
+    setCurrentMonth(formatDate(today, "MMM-yyyy"));
   }
 
   return (

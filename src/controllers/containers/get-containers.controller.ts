@@ -2,7 +2,7 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { getContainersUseCase } from "src/application/use-cases/containers/get-containers.use-case";
 import { ContainerSchema } from "src/entities/models/Container";
 import { BaseInventorySchema } from "src/entities/models/Inventory";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
 
@@ -32,27 +32,27 @@ const presenter = (
       name: container.supplier.name,
     },
     arrival_date: container.arrival_date
-      ? format(container.arrival_date, date_format)
+      ? formatDate(container.arrival_date, date_format)
       : undefined,
     due_date: container.due_date
-      ? format(container.due_date, date_format)
+      ? formatDate(container.due_date, date_format)
       : undefined,
     auction_start_date: container.auction_start_date
-      ? format(container.auction_start_date, date_format)
+      ? formatDate(container.auction_start_date, date_format)
       : undefined,
     auction_end_date: container.auction_end_date
-      ? format(container.auction_end_date, date_format)
+      ? formatDate(container.auction_end_date, date_format)
       : undefined,
     departure_date: container.departure_date
-      ? format(container.departure_date, date_format)
+      ? formatDate(container.departure_date, date_format)
       : undefined,
     eta_to_ph: container.eta_to_ph
-      ? format(container.eta_to_ph, date_format)
+      ? formatDate(container.eta_to_ph, date_format)
       : undefined,
-    created_at: format(container.created_at, date_format),
-    updated_at: format(container.updated_at, date_format),
+    created_at: formatDate(container.created_at, date_format),
+    updated_at: formatDate(container.updated_at, date_format),
     deleted_at: container.deleted_at
-      ? format(container.deleted_at, date_format)
+      ? formatDate(container.deleted_at, date_format)
       : null,
     inventories: container.inventories.map((item) => ({
       inventory_id: item.inventory_id,
@@ -67,9 +67,11 @@ const presenter = (
       status: item.status,
       is_bought_item: item.is_bought_item ?? 0,
       url: item.url,
-      created_at: format(item.created_at, date_format),
-      updated_at: format(item.updated_at, date_format),
-      deleted_at: item.deleted_at ? format(item.deleted_at, date_format) : null,
+      created_at: formatDate(item.created_at, date_format),
+      updated_at: formatDate(item.updated_at, date_format),
+      deleted_at: item.deleted_at
+        ? formatDate(item.deleted_at, date_format)
+        : null,
     })),
   }));
 };

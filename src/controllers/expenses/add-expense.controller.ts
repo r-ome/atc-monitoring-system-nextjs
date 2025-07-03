@@ -9,7 +9,7 @@ import {
   type ExpenseInsertSchema as ExpenseInsertSchemaType,
 } from "src/entities/models/Expense";
 import { err, ok } from "src/entities/models/Response";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(expense: ExpenseSchema) {
@@ -19,7 +19,7 @@ function presenter(expense: ExpenseSchema) {
     purpose: expense.purpose,
     remarks: expense.remarks,
     balance: expense.balance,
-    created_at: format(expense.created_at, "MMMM dd hh:mm a"),
+    created_at: formatDate(expense.created_at, "MMMM dd hh:mm a"),
   };
 }
 

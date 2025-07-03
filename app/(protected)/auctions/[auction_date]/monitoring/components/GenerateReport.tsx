@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { generateReport } from "@/app/lib/reports";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 
 interface GenerateReportProps {
   monitoring: AuctionsInventory[];
@@ -31,7 +31,7 @@ export const GenerateReportButton: React.FC<GenerateReportProps> = ({
               })),
             },
             ["monitoring"],
-            `${format(new Date(auction_date), "yyyy-MM-dd")} Monitoring`
+            `${formatDate(new Date(auction_date), "yyyy-MM-dd")} Monitoring`
           );
         }}
       >

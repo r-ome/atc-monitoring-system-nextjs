@@ -1,5 +1,5 @@
 import { getAuctionTransactionsUseCase } from "src/application/use-cases/payments/get-auction-transactions.use-case";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { ReceiptRecordsSchema } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Response";
 import { DatabaseOperationError } from "src/entities/errors/common";
@@ -17,7 +17,7 @@ function presenter(
     receipt_number: item.receipt_number,
     auction_bidder_id: item.auction_bidder_id,
     purpose: item.purpose,
-    created_at: format(item.created_at, date_format),
+    created_at: formatDate(item.created_at, date_format),
     total_amount_paid: item.payments.reduce(
       (acc, item) => (acc += item.amount_paid),
       0
@@ -31,7 +31,7 @@ function presenter(
       payment_id: payment.payment_id,
       payment_type: payment.payment_type,
       amount_paid: payment.amount_paid,
-      created_at: format(payment.created_at, date_format),
+      created_at: formatDate(payment.created_at, date_format),
     })),
   }));
 }

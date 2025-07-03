@@ -5,7 +5,7 @@ import {
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Response";
 import { SupplierSchema } from "src/entities/models/Supplier";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(supplier: SupplierSchema) {
@@ -20,10 +20,10 @@ function presenter(supplier: SupplierSchema) {
     email: supplier.email ?? "",
     contact_number: supplier.contact_number ?? "",
     shipper: supplier.shipper ?? "",
-    created_at: format(supplier.created_at, date_format),
-    updated_at: format(supplier.updated_at, date_format),
+    created_at: formatDate(supplier.created_at, date_format),
+    updated_at: formatDate(supplier.updated_at, date_format),
     deleted_at: supplier.deleted_at
-      ? format(supplier.deleted_at, date_format)
+      ? formatDate(supplier.deleted_at, date_format)
       : null,
     containers: supplier.containers.map((container) => {
       const sold_items = container.inventories.filter(

@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/app/components/ui/card";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { FullScreenCalendar } from "@/app/components/fullscreen-calendar/fullscreen-calendar";
 
 export default function Page() {
@@ -23,7 +23,7 @@ export default function Page() {
           <div className="w-full border">
             <FullScreenCalendar
               onDayClick={(date) => {
-                const formattedStringDate = format(date, "yyyy-MM-dd");
+                const formattedStringDate = formatDate(date, "yyyy-MM-dd");
                 redirect(`/auctions/${formattedStringDate}`);
               }}
             />

@@ -4,7 +4,7 @@ import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
 
@@ -12,10 +12,10 @@ const presenter = (branch: BranchSchema) => {
   const date_format = "MMM dd, yyyy";
   return {
     ...branch,
-    created_at: format(branch.created_at, date_format),
-    updated_at: format(branch.updated_at, date_format),
+    created_at: formatDate(branch.created_at, date_format),
+    updated_at: formatDate(branch.updated_at, date_format),
     deleted_at: branch.deleted_at
-      ? format(branch.deleted_at, date_format)
+      ? formatDate(branch.deleted_at, date_format)
       : null,
   };
 };

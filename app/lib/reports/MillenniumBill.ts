@@ -1,5 +1,5 @@
 import * as xlsx from "xlsx-js-style";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 
 type SheetDetails = {
   barcode: string;
@@ -573,7 +573,7 @@ const MillenniumBill = (
   sheet["A23"] = {
     v: `Second Hand Goods Container ${sheetDetails.barcode}【${
       sheetDetails.supplier.name
-    }】 ${format(new Date(sheetDetails.arrival_date), "MMMM dd yyyy")}`,
+    }】 ${formatDate(new Date(sheetDetails.arrival_date), "MMMM dd yyyy")}`,
     t: "s",
     s: {
       font: { name: "メイリオ", sz: 10 },

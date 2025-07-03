@@ -4,7 +4,7 @@ import {
 } from "src/entities/errors/common";
 import { getBidderByBidderNumberUseCase } from "src/application/use-cases/bidders/get-bidder-by-bidder-number.use-case";
 import { BidderSchema } from "src/entities/models/Bidder";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
 
@@ -14,16 +14,16 @@ const presenter = (bidder: BidderSchema) => {
     remarks: bidder.remarks || undefined,
     full_name: `${bidder.first_name} ${bidder.last_name}`,
     birthdate: bidder.birthdate
-      ? format(bidder.birthdate, "MMM dd, yyy")
+      ? formatDate(bidder.birthdate, "MMM dd, yyy")
       : null,
     created_at: bidder.created_at
-      ? format(bidder.created_at, "MMM dd, yyyy")
+      ? formatDate(bidder.created_at, "MMM dd, yyyy")
       : "",
     updated_at: bidder.updated_at
-      ? format(bidder.updated_at, "MMM dd, yyyy")
+      ? formatDate(bidder.updated_at, "MMM dd, yyyy")
       : "",
     deleted_at: bidder.deleted_at
-      ? format(bidder.deleted_at, "MMM dd, yyyy")
+      ? formatDate(bidder.deleted_at, "MMM dd, yyyy")
       : "",
     auctions_joined: bidder.auctions_joined.map((auction) => ({
       auction_bidder_id: auction.auction_bidder_id,
@@ -31,7 +31,7 @@ const presenter = (bidder: BidderSchema) => {
       service_charge: auction.service_charge,
       registration_fee: auction.registration_fee,
       balance: auction.balance,
-      created_at: format(auction.created_at, "MMM dd, yyyy"),
+      created_at: formatDate(auction.created_at, "MMM dd, yyyy"),
       auctions_inventories: auction.auctions_inventories,
     })),
   };

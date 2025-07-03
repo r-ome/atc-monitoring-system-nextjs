@@ -4,9 +4,9 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Response";
-import { format } from "date-fns";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
 import { logger } from "@/app/lib/logger";
+import { formatDate } from "@/app/lib/utils";
 
 const presenter = (auction_inventory: AuctionsInventorySchema) => {
   const date_format = "MMMM dd, yyyy";
@@ -20,8 +20,8 @@ const presenter = (auction_inventory: AuctionsInventorySchema) => {
     price: auction_inventory.price,
     qty: auction_inventory.qty,
     manifest_number: auction_inventory.manifest_number,
-    created_at: format(auction_inventory.created_at, date_format),
-    updated_at: format(auction_inventory.updated_at, date_format),
+    created_at: formatDate(auction_inventory.created_at, date_format),
+    updated_at: formatDate(auction_inventory.updated_at, date_format),
     inventory: {
       inventory_id: auction_inventory.inventory_id,
       barcode: auction_inventory.inventory.barcode,
@@ -47,7 +47,7 @@ const presenter = (auction_inventory: AuctionsInventorySchema) => {
       inventory_status: item.inventory_status,
       remarks: item.remarks,
       receipt_number: item.receipt ? item.receipt.receipt_number : null,
-      created_at: format(item.created_at, "MMMM dd hh:mm a"),
+      created_at: formatDate(item.created_at, "MMMM dd hh:mm a"),
     })),
   };
 };

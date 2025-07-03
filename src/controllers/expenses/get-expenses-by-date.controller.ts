@@ -2,7 +2,7 @@ import { getExpensesByDateUseCase } from "src/application/use-cases/expenses/get
 import { ExpenseSchema } from "src/entities/models/Expense";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Response";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(expenses: ExpenseSchema[], yesterday_balance: number) {
@@ -14,7 +14,7 @@ function presenter(expenses: ExpenseSchema[], yesterday_balance: number) {
       amount: expense.amount,
       purpose: expense.purpose,
       remarks: expense.remarks,
-      created_at: format(expense.created_at, "MMMM dd, yyyy hh:mm a"),
+      created_at: formatDate(expense.created_at, "MMMM dd, yyyy hh:mm a"),
     })),
   };
 }

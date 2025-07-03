@@ -3,7 +3,7 @@ import { getBidderReceiptsUseCase } from "src/application/use-cases/payments/get
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ReceiptRecordsSchema } from "src/entities/models/Payment";
 import { err, ok } from "src/entities/models/Response";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 
 function presenter(
   receipts: Omit<
@@ -20,8 +20,11 @@ function presenter(
       0
     ),
     purpose: receipt.purpose,
-    auction_date: format(receipt.auction_bidder.created_at, "MMMM dd, yyyy"),
-    created_at: format(receipt.created_at, "MMMM dd, yyyy HH:mm:ss a"),
+    auction_date: formatDate(
+      receipt.auction_bidder.created_at,
+      "MMMM dd, yyyy"
+    ),
+    created_at: formatDate(receipt.created_at, "MMMM dd, yyyy HH:mm:ss a"),
   }));
 }
 

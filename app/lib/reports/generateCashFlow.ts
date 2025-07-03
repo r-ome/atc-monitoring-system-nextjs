@@ -1,5 +1,5 @@
 import * as xlsx from "xlsx-js-style";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { Payment, PAYMENT_TYPE } from "src/entities/models/Payment";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Expense } from "src/entities/models/Expense";
@@ -14,7 +14,7 @@ const generateCashFlow = ({
   yesterdayBalance: number;
 }) => {
   const rawData = payments.map((item) => ({
-    date: format(new Date(item.created_at), "MMMM dd, yyyy"),
+    date: formatDate(new Date(item.created_at), "MMMM dd, yyyy"),
     bidder: `BIDDER ${item.bidder.bidder_number}`,
     purpose: item.receipt.purpose.replace(/_/g, " ").toUpperCase(), // e.g., "PULL OUT"
     amount: item.amount_paid,
@@ -52,7 +52,7 @@ const generateCashFlow = ({
   const outward = expenses
     .filter((item) => item.purpose === "EXPENSE")
     .map((item, i) => [
-      i === 0 ? format(new Date(item.created_at), "MMMM dd, yyyy") : "",
+      i === 0 ? formatDate(new Date(item.created_at), "MMMM dd, yyyy") : "",
       item.remarks,
       item.amount,
     ]);
@@ -129,7 +129,7 @@ const generateCashFlow = ({
   sheet["!autofilter"] = { ref: "A12:G12" };
 
   sheet["A1"] = {
-    v: `ATC JAPAN AUCTION DAILY CASH FLOW ${format(
+    v: `ATC JAPAN AUCTION DAILY CASH FLOW ${formatDate(
       new Date(),
       "MMMM dd, yyyy"
     ).toUpperCase()}`,
@@ -148,7 +148,7 @@ const generateCashFlow = ({
   };
 
   sheet["E1"] = {
-    v: `ATC JAPAN AUCTION DAILY CASH FLOW ${format(
+    v: `ATC JAPAN AUCTION DAILY CASH FLOW ${formatDate(
       new Date(),
       "MMMM dd, yyyy"
     ).toUpperCase()}`,

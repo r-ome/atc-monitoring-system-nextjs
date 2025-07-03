@@ -3,7 +3,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { BranchSchema } from "src/entities/models/Branch";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { getBranchByNameUseCase } from "src/application/use-cases/branches/get-branch-by-name.use-case";
 import { err, ok } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
@@ -13,10 +13,10 @@ const presenter = (branch: BranchSchema) => {
   return {
     branch_id: branch.branch_id,
     name: branch.name,
-    created_at: format(branch.created_at, date_format),
-    updated_at: format(branch.updated_at, date_format),
+    created_at: formatDate(branch.created_at, date_format),
+    updated_at: formatDate(branch.updated_at, date_format),
     deleted_at: branch.deleted_at
-      ? format(branch.deleted_at, date_format)
+      ? formatDate(branch.deleted_at, date_format)
       : null,
   };
 };

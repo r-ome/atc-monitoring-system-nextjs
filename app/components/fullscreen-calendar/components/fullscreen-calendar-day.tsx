@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { format, getDay, isEqual, isSameMonth, isToday } from "date-fns";
-
+import { getDay, isEqual, isSameMonth, isToday } from "date-fns";
 import { cn } from "@/app/lib/utils";
+import { formatDate } from "@/app/lib/utils";
 
 interface FullscreenCalendarDayProps {
   day: Date;
@@ -71,7 +71,9 @@ export function FullScreenCalendarDay({
             "flex h-7 w-7 items-center justify-center rounded-full text-xs hover:border"
           )}
         >
-          <time dateTime={format(day, "yyyy-MM-dd")}>{format(day, "d")}</time>
+          <time dateTime={formatDate(day, "yyyy-MM-dd")}>
+            {formatDate(day, "d")}
+          </time>
         </button>
       </header>
       <div className="flex-1 p-2.5"></div>

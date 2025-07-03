@@ -2,7 +2,7 @@ import { getPaymentsByDateUseCase } from "src/application/use-cases/payments/get
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { PaymentSchema } from "src/entities/models/Payment";
 import { err, ok } from "src/entities/models/Response";
-import { format } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(payments: PaymentSchema[]) {
@@ -11,7 +11,7 @@ function presenter(payments: PaymentSchema[]) {
     receipt_id: payment.receipt_id,
     amount_paid: payment.amount_paid,
     payment_type: payment.payment_type,
-    created_at: format(payment.created_at, "MMMM dd, yyyy hh:mm a"),
+    created_at: formatDate(payment.created_at, "MMMM dd, yyyy hh:mm a"),
     receipt: {
       receipt_id: payment.receipt.receipt_id,
       receipt_number: payment.receipt.receipt_number,
