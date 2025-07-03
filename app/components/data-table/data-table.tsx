@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import {
   flexRender,
@@ -12,6 +12,8 @@ import {
   ColumnFiltersState,
   getPaginationRowModel,
   PaginationState,
+  Row,
+  RowData,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -29,6 +31,7 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/app/components/ui/dropdown-menu";
 import { SearchComponent } from "@/app/components/data-table/SearchComponent";
+import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
 import { ChevronDown } from "lucide-react";
 
 export const DataTable = <TData, TValue>({
@@ -38,9 +41,10 @@ export const DataTable = <TData, TValue>({
   searchFilter,
   rowSelection,
   getRowId,
+  columnFilter,
+  filterColumns = false,
 }: DataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
-
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -63,6 +67,24 @@ export const DataTable = <TData, TValue>({
     onRowSelectionChange: rowSelection?.onRowSelectionChange,
     enableRowSelection: !!rowSelection,
     globalFilterFn: searchFilter?.globalFilterFn,
+    filterFns: {
+      includesIn: (
+        row: Row<RowData>,
+        columnId: string,
+        filterValue: unknown
+      ): boolean => {
+        if (
+          !filterValue ||
+          (Array.isArray(filterValue) && filterValue.length === 0)
+        )
+          return true;
+
+        if (Array.isArray(filterValue)) {
+          return filterValue.includes(row.getValue(columnId));
+        }
+        return true;
+      },
+    },
     state: {
       rowSelection: rowSelection?.selectedRows ?? {},
       globalFilter,
@@ -72,9 +94,16 @@ export const DataTable = <TData, TValue>({
     },
   });
 
+  const onChangeFilter = useCallback(
+    (value: string[]) =>
+      columnFilter?.column &&
+      table.getColumn(columnFilter.column)?.setFilterValue(value),
+    [table, columnFilter?.column]
+  );
+
   return (
     <div className="rounded-md border p-4 overflow-auto">
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-between gap-4 py-4">
         {searchFilter?.globalFilterFn && (
           <SearchComponent
             value={globalFilter}
@@ -83,31 +112,43 @@ export const DataTable = <TData, TValue>({
           />
         )}
 
+        {columnFilter?.options && (
+          <FilterColumnComponent
+            options={columnFilter?.options}
+            onChangeEvent={onChangeFilter}
+            {...columnFilter.filterComponentProps}
+          />
+        )}
+
         <div className="flex gap-4">
           {actionButtons && <div>{actionButtons}</div>}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Filter Column <ChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((item) => (
-                  <DropdownMenuCheckboxItem
-                    key={item.id}
-                    className="capitalize"
-                    checked={item.getIsVisible()}
-                    onCheckedChange={(value) => item.toggleVisibility(!!value)}
-                  >
-                    {item.id.replace(/_/gi, " ")}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {filterColumns && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Filter Column <ChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((item) => (
+                    <DropdownMenuCheckboxItem
+                      key={item.id}
+                      className="capitalize"
+                      checked={item.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        item.toggleVisibility(!!value)
+                      }
+                    >
+                      {item.id.replace(/_/gi, " ")}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 

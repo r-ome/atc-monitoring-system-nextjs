@@ -2,6 +2,7 @@
 
 import { ColumnDef, TableState, Updater } from "@tanstack/react-table";
 import type { SearchComponentProps } from "@/app/components/data-table/SearchComponent";
+import type { FilterColumnComponentProps } from "./FilterColumnComponent";
 
 import { FilterFnOption } from "@tanstack/react-table";
 
@@ -20,4 +21,11 @@ export interface DataTableProps<TData, TValue> {
     globalFilterFn?: FilterFnOption<TData>;
     searchComponentProps?: Partial<SearchComponentProps>;
   };
+  columnFilter?: {
+    column: string;
+    options: Record<string, string>[];
+    globalFilterFn?: FilterFnOption<TData>;
+    filterComponentProps?: Partial<FilterColumnComponentProps>;
+  };
+  filterColumns?: boolean;
 }

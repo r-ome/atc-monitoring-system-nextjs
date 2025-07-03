@@ -148,7 +148,7 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
     size: 80,
     header: ({ column }) => {
       return (
-        <div className="flex justify-end">
+        <div className="flex justify-center">
           <Button
             variant="ghost"
             className="cursor-pointer"
@@ -172,9 +172,11 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
   {
     accessorKey: "status",
     size: 80,
+    enableColumnFilter: true,
+    filterFn: "includesIn",
     header: ({ column }) => {
       return (
-        <div className="flex justify-center">
+        <div>
           <Button
             variant="ghost"
             className="cursor-pointer"
