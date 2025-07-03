@@ -22,7 +22,9 @@ export const PaymentRepository: IPaymentRepository = {
         where: { created_at: { gte: startOfDay, lte: endOfDay } },
         include: {
           receipt: {
-            include: { auction_bidder: { include: { bidder: true } } },
+            include: {
+              auction_bidder: { include: { bidder: true, auctions: true } },
+            },
           },
         },
         orderBy: { created_at: "desc" },

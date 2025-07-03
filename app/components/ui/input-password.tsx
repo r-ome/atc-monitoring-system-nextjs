@@ -16,8 +16,6 @@ const PasswordInput = React.forwardRef<
   const disabled =
     props.value === "" || props.value === undefined || props.disabled;
 
-  console.log(errorMessage);
-
   return (
     <div className="relative">
       <Input

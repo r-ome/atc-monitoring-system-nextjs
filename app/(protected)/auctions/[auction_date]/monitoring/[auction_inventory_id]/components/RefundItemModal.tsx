@@ -75,10 +75,9 @@ export const RefundItemModal: React.FC<RefundItemModalProps> = ({
       }
 
       if (!res.ok) {
-        console.log(res.error.cause);
-        // toast.error(res.error.message, {
-        //   description: res.error.cause as string,
-        // });
+        const description =
+          typeof res.error?.cause === "string" ? res.error?.cause : null;
+        toast.error(res.error.message, { description });
       }
     }
   };

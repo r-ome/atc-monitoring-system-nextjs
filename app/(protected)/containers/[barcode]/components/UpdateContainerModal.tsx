@@ -74,6 +74,7 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
   });
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errors, setErrors] = useState<Record<string, string[]>>();
 
   useEffect(() => {
     setNewContainer({
@@ -140,8 +141,12 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
         router.refresh();
         setOpenDialog(false);
       } else {
-        console.log({ message: res.error.message, cause: res.error.cause });
-        toast.error("lol error");
+        const description =
+          typeof res.error?.cause === "string" ? res.error?.cause : null;
+        toast.error(res.error.message, { description });
+        if (res.error.message === "Invalid Data!") {
+          setErrors(res.error.cause as Record<string, string[]>);
+        }
       }
     }
   };
@@ -216,6 +221,7 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 name="barcode"
                 value={newContainer.barcode}
                 onChange={handleUpdateChange}
+                error={errors}
               />
             </div>
             <div className="flex gap-4">
@@ -224,6 +230,7 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 name="bill_of_lading_number"
                 value={newContainer.bill_of_lading_number}
                 onChange={handleUpdateChange}
+                error={errors}
               />
             </div>
             <div className="flex gap-4">
@@ -232,6 +239,7 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 name="container_number"
                 value={newContainer.container_number}
                 onChange={handleUpdateChange}
+                error={errors}
               />
             </div>
             <div className="flex gap-4">
@@ -240,6 +248,7 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 name="auction_or_sell"
                 value={newContainer.auction_or_sell}
                 onChange={handleUpdateChange}
+                error={errors}
               />
             </div>
             <div className="flex gap-4">
@@ -262,6 +271,7 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                         Number(event.target.value.replace(/ kgs/gi, "")) * 0.001
                       );
                     }}
+                    error={errors}
                   />
                 </div>
               </div>

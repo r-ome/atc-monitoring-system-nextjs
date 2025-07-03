@@ -15,7 +15,11 @@ export type PAYMENT_PURPOSE = "REGISTRATION" | "PULL_OUT" | "REFUNDED" | "LESS";
 export type PAYMENT_TYPE = "CASH" | "BDO" | "BPI" | "GCASH";
 export type PaymentSchema = Prisma.paymentsGetPayload<{
   include: {
-    receipt: { include: { auction_bidder: { include: { bidder: true } } } };
+    receipt: {
+      include: {
+        auction_bidder: { include: { bidder: true; auctions: true } };
+      };
+    };
   };
 }>;
 

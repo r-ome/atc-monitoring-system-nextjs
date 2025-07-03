@@ -58,10 +58,9 @@ export const VoidItemModal: React.FC<VoidItemModalProps> = ({
       }
 
       if (!res.ok) {
-        console.log(res.error.cause);
-        // toast.error(res.error.message, {
-        //   description: res.error.cause as string,
-        // });
+        const description =
+          typeof res.error?.cause === "string" ? res.error?.cause : null;
+        toast.error(res.error.message, { description });
       }
     }
   };
