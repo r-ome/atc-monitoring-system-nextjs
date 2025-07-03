@@ -32,5 +32,7 @@ export const isRange = (value: Date | AuctionDateRange) => {
 };
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-export const formatDate = (date: Date, format: string = "MMMM dd, YYYY") =>
-  formatInTimeZone(date, timeZone, format);
+export const formatDate = (date: Date, format: string = "MMMM dd, YYYY") => {
+  console.log(timeZone);
+  return formatInTimeZone(date, timeZone, format);
+};
