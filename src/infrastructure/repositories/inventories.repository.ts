@@ -242,7 +242,7 @@ export const InventoryRepository: IInventoryRepository = {
               ? data?.manifest_number
               : undefined,
             inventory: {
-              update: { barcode: data.barcode },
+              update: { barcode: data.barcode, control: data.control },
             },
             histories: {
               create: {
