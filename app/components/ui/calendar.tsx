@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { DayPicker, CaptionProps } from "react-day-picker";
-import { ChevronLeft, ChevronRight } from "lucide-react"; // adjust if needed
-import { cn } from "@/app/lib/utils"; // adjust path
-import { buttonVariants } from "@/app/components/ui/button"; // adjust path
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/app/lib/utils";
+import { buttonVariants } from "@/app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 
 export function Calendar({
   className,
@@ -48,29 +56,45 @@ export function Calendar({
             <ChevronLeft className="size-4 cursor-pointer" />
           </button>
           <div className="flex items-center justify-center gap-2">
-            <select
-              value={displayMonth.getMonth()}
-              onChange={(e) => handleChange("month", Number(e.target.value))}
-              className="border px-2 py-1 rounded text-sm"
+            <Select
+              required
+              onValueChange={(month) => handleChange("month", Number(month))}
             >
-              {months.map((label, i) => (
-                <option key={i} value={i}>
-                  {label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={months[displayMonth.getMonth()]}
+                ></SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {months.map((label, i) => (
+                    <SelectItem key={i} value={i.toString()}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
 
-            <select
-              value={displayMonth.getFullYear()}
-              onChange={(e) => handleChange("year", Number(e.target.value))}
-              className="border px-2 py-1 rounded text-sm"
+            <Select
+              required
+              onValueChange={(year) => handleChange("year", Number(year))}
             >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={displayMonth.getFullYear()}
+                ></SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
           <button type="button" className="pl-3" onClick={nextMonth}>
             <ChevronRight className="size-4 cursor-pointer" />
