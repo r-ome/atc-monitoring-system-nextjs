@@ -78,7 +78,7 @@ export function DatePicker({
             onChange(selectedDate);
             setStringDate(formatDate(selectedDate, "MMMM dd, yyyy"));
           }}
-          defaultMonth={date}
+          // defaultMonth={date}
           initialFocus
         />
       </PopoverContent>
