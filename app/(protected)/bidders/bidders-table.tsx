@@ -21,9 +21,14 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
     const bidderNumber = (
       row.original as BidderRowType
     ).bidder_number.toLowerCase();
+    const birthdate = (
+      row.original as BidderRowType
+    ).birthdate?.toLowerCase() as string;
     const search = (filterValue ?? "").toLowerCase();
 
-    return fullName.includes(search) || bidderNumber.includes(search);
+    return [fullName, bidderNumber, birthdate]
+      .filter(Boolean)
+      .some((field) => field!.toLowerCase().includes(search));
   };
 
   return (
