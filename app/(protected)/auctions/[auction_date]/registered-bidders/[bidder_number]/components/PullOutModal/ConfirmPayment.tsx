@@ -66,12 +66,12 @@ export const ConfirmPayment: React.FC = () => {
     setPayments(updated);
   };
 
-  const selectedMethods = payments.map((p) => p.method).filter(Boolean);
+  // const selectedMethods = payments.map((p) => p.method).filter(Boolean);
 
-  const getAvailableMethods = (currentMethod: string) =>
-    PAYMENT_TYPE.filter(
-      (method) => !selectedMethods.includes(method) || method === currentMethod
-    );
+  // const getAvailableMethods = (currentMethod: string) =>
+  //   PAYMENT_TYPE.filter(
+  //     (method) => !selectedMethods.includes(method) || method === currentMethod
+  //   );
 
   return (
     <div className="space-y-2">
@@ -127,7 +127,7 @@ export const ConfirmPayment: React.FC = () => {
         <TabsContent value="multiple">
           <div className="space-y-2">
             {payments.map((item, index) => (
-              <div className="flex gap-2" key={item.method}>
+              <div className="flex gap-2" key={index}>
                 <div className="flex-1">
                   <Select
                     required
@@ -141,7 +141,7 @@ export const ConfirmPayment: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {getAvailableMethods(item.method).map((method) => (
+                        {PAYMENT_TYPE.map((method) => (
                           <SelectItem key={method} value={method}>
                             {method}
                           </SelectItem>
@@ -153,7 +153,7 @@ export const ConfirmPayment: React.FC = () => {
 
                 <div className="flex-1">
                   <InputNumber
-                    name={`${item.method}`}
+                    name={`${item.method}_${index}`}
                     required
                     onChange={(e) =>
                       handleAmountChange(index, Number(e.target.value))

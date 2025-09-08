@@ -55,9 +55,9 @@ export const getRegisteredBidderByBidderNumber = async (
 export const handleBidderPullOut = async (formData: FormData) => {
   const data = Object.fromEntries(formData.entries());
   const payments = Object.keys(data)
-    .filter((item) => PAYMENT_TYPE.includes(item as PaymentType))
+    .filter((item) => PAYMENT_TYPE.includes(item.split("_")[0] as PaymentType))
     .map((item) => ({
-      payment_type: item as PaymentType,
+      payment_type: item.split("_")[0] as PaymentType,
       amount_paid: typeof data[item] === "string" ? parseInt(data[item]) : 0,
     }));
 
