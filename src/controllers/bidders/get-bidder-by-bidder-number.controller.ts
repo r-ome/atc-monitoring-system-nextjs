@@ -16,6 +16,9 @@ const presenter = (bidder: BidderSchema) => {
     birthdate: bidder.birthdate
       ? formatDate(bidder.birthdate, "MMM dd, yyy")
       : null,
+    address: bidder.address,
+    store_name: bidder.store_name,
+    tin_number: bidder.tin_number,
     created_at: bidder.created_at
       ? formatDate(bidder.created_at, "MMM dd, yyyy")
       : "",

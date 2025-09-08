@@ -106,7 +106,7 @@ export default function Page() {
             <CardContent>
               <div className="flex flex-col gap-4">
                 <div className="flex gap-4">
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="bidder_number">Bidder Number:</Label>
                     <InputNumber
                       id="bidder_number"
@@ -116,7 +116,7 @@ export default function Page() {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="bidder_number">Status:</Label>
                     <Select disabled defaultValue="ACTIVE">
                       <SelectTrigger className="w-[180px] text-foreground">
@@ -134,7 +134,7 @@ export default function Page() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="first_name">First Name: </Label>
                     <Input
                       type="text"
@@ -144,11 +144,11 @@ export default function Page() {
                       required
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="middle_name">Middle Name: </Label>
                     <Input type="text" id="middle_name" name="middle_name" />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="last_name">Last Name: </Label>
                     <Input
                       type="text"
@@ -161,7 +161,7 @@ export default function Page() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="birthdate">Birth Date: </Label>
                     <DatePicker
                       id="birthdate"
@@ -171,14 +171,31 @@ export default function Page() {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="contact_number">Contact Number: </Label>
                     <Input id="contact_number" name="contact_number" required />
+                  </div>
+
+                  <div className="flex flex-col gap-2 w-1/3">
+                    <Label htmlFor="tin_number">TIN Number: </Label>
+                    <Input id="tin_number" name="tin_number" required />
                   </div>
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
+                    <Label htmlFor="address">Address: </Label>
+                    <Input id="address" name="address" required />
+                  </div>
+
+                  <div className="flex flex-col gap-2 w-1/3">
+                    <Label htmlFor="store_name">Store Name: </Label>
+                    <Input id="store_name" name="store_name" required />
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="registration_fee">Registration Fee: </Label>
                     <InputNumber
                       id="registration_fee"
@@ -189,7 +206,7 @@ export default function Page() {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="service_charge">Service Charge: </Label>
                     <InputNumber
                       id="service_charge"
@@ -200,7 +217,7 @@ export default function Page() {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="registered_at">Registered At:</Label>
                     {branches.length ? (
                       <Select defaultValue="BIÑAN" name="registered_at">

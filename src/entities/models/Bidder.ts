@@ -21,6 +21,9 @@ export type Bidder = {
   full_name: string;
   birthdate?: string | null;
   contact_number?: string | null;
+  address?: string | null;
+  tin_number?: string | null;
+  store_name?: string | null;
   registration_fee: number;
   service_charge: number;
   status: BIDDER_STATUS;
@@ -46,6 +49,9 @@ export const BidderInsertSchema = z.object({
   last_name: z.string(),
   birthdate: z.date().optional().nullable(),
   contact_number: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  tin_number: z.string().optional().nullable(),
+  store_name: z.string().optional().nullable(),
   registration_fee: z.coerce.number(),
   service_charge: z.coerce.number(),
   status: z.enum(BIDDER_STATUS),

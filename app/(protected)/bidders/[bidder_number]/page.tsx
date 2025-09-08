@@ -81,7 +81,12 @@ export default async function Page({
                 {bidder.status}
               </Badge>
             </CardTitle>
-            <CardDescription>{bidder.full_name}</CardDescription>
+            <CardDescription>
+              <p>{bidder.full_name}</p>
+              <p>Address: {bidder?.address}</p>
+              <p>TIN Number: {bidder?.tin_number}</p>
+              <p>Store Name: {bidder?.store_name}</p>
+            </CardDescription>
           </div>
           <UpdateBidderModal bidder={bidder} />
         </CardHeader>
