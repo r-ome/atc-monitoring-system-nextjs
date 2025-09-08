@@ -3,6 +3,7 @@ import { AuctionRepository } from "src/infrastructure/repositories/auctions.repo
 import { getRegisteredBiddersUseCase } from "./get-registered-bidders.use-case";
 import { InputParseError } from "src/entities/errors/common";
 import { getBiddersWithBalanceUseCase } from "./get-bidders-with-balance.use-case";
+import { formatDate } from "@/app/lib/utils";
 
 export const registerBidderUseCase = async (
   data: RegisterBidderInputSchema
@@ -21,10 +22,13 @@ export const registerBidderUseCase = async (
     const unpaid_items = match.auctions_inventories.filter(
       (item) => item.status === "UNPAID"
     );
+
     throw new InputParseError("Invalid Data!", {
       cause: `Bidder ${match.bidder.bidder_number} has still ${
         unpaid_items.length
-      } unpaid items and ₱${match.balance.toLocaleString()} unpaid balance!`,
+      } unpaid items and ₱${match.balance.toLocaleString()} unpaid balance (${formatDate(
+        match.created_at
+      )})!`,
     });
   }
 

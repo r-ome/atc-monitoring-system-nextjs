@@ -31,6 +31,6 @@ export const isRange = (value: Date | AuctionDateRange) => {
   );
 };
 
-export const formatDate = (date: Date, format: string = "MMMM dd, YYYY") => {
+export const formatDate = (date: Date, format: string = "MMMM dd, yyyy") => {
   return formatInTimeZone(date, "Asia/Manila", format);
 };
