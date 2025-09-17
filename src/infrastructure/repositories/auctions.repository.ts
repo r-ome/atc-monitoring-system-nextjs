@@ -202,7 +202,7 @@ export const AuctionRepository: IAuctionRepository = {
               price: item.PRICE.toString(),
               bidder_number: item.BIDDER,
               qty: item.QTY,
-              manifest_number: item.MANIFEST,
+              manifest_number: item.MANIFEST?.toString(),
               error_message: item.error,
             })),
           });
