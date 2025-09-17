@@ -41,6 +41,9 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   const [selectedBidder, setSelectedBidder] = useState<{
     [key: string]: string | number | boolean;
   }>();
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<{
+    [key: string]: string;
+  }>({ label: "CASH", value: "CASH" });
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -67,6 +70,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
     formData.append("bidder_id", selectedBidder.value as string);
     const balance = (selectedBidder.registration_fee as number) * -1;
     formData.append("balance", balance.toString());
+    formData.append("payment_method", selectedPaymentMethod.value as string);
     const res = await registerBidder(formData);
     if (res) {
       setIsLoading(false);
@@ -247,6 +251,28 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                 name="registration_fee"
                 defaultValue={3000}
                 value={selectedBidder?.registration_fee as number}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex flex-col gap-2">
+              <Label>Paymenth Method:</Label>
+
+              <SelectWithSearch
+                modal={true}
+                side="bottom"
+                placeholder="Choose Payment Method"
+                setSelected={(selected) =>
+                  setSelectedPaymentMethod(selected as Record<string, string>)
+                }
+                options={[
+                  { label: "GCASH", value: "GCASH" },
+                  { label: "BDO", value: "BDO" },
+                  { label: "BPI", value: "BPI" },
+                  { label: "CASH", value: "CASH" },
+                ]}
+                defaultValue={{ label: "CASH", value: "CASH" }}
               />
             </div>
           </div>

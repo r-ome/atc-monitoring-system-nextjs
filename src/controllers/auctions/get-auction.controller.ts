@@ -15,6 +15,8 @@ function presenter(auction: AuctionSchema) {
     [] as AuctionSchema["registered_bidders"][number]["auctions_inventories"]
   );
 
+  console.log(auction.registered_bidders[0]);
+
   return {
     auction_id: auction.auction_id,
     auctions_inventories,
@@ -32,6 +34,9 @@ function presenter(auction: AuctionSchema) {
       registration_fee: registered_bidder.registration_fee,
       already_consumed: registered_bidder.already_consumed,
       balance: registered_bidder.balance,
+      payment_method: registered_bidder.receipt_records.find(
+        (item) => item.purpose === "REGISTRATION"
+      )?.payments[0].payment_type,
       bidder: {
         bidder_id: registered_bidder.bidder_id,
         bidder_number: registered_bidder.bidder.bidder_number,
@@ -74,6 +79,7 @@ function presenter(auction: AuctionSchema) {
 export const GetAuctionController = async (auction_date: Date) => {
   try {
     const auction = await getAuctionUseCase(auction_date);
+    console.log({ auction: auction?.registered_bidders });
     if (!auction) {
       throw new NotFoundError("Auction not found!");
     }

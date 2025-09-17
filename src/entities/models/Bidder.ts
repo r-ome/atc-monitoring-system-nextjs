@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { AuctionsInventory, AuctionsInventorySchema } from "./Auction";
+import { PAYMENT_TYPE } from "./Payment";
 
 export const BIDDER_STATUS = ["BANNED", "ACTIVE", "INACTIVE"] as const;
 export type BIDDER_STATUS = "BANNED" | "ACTIVE" | "INACTIVE";
@@ -66,6 +67,7 @@ export const RegisterBidderInput = z.object({
   service_charge: z.coerce.number(),
   registration_fee: z.coerce.number(),
   balance: z.coerce.number(),
+  payment_method: z.enum(PAYMENT_TYPE),
 });
 
 export type RegisterBidderInputSchema = z.infer<typeof RegisterBidderInput>;
@@ -92,6 +94,7 @@ export type RegisteredBidder = {
   registration_fee: number;
   already_consumed: number;
   balance: number;
+  payment_method?: PAYMENT_TYPE;
   bidder: {
     bidder_id: string;
     bidder_number: string;

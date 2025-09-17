@@ -42,6 +42,7 @@ export const AuctionRepository: IAuctionRepository = {
             registered_bidders: {
               include: {
                 bidder: true,
+                receipt_records: { include: { payments: true } },
                 auctions_inventories: {
                   include: { inventory: { include: { container: true } } },
                 },
@@ -85,6 +86,7 @@ export const AuctionRepository: IAuctionRepository = {
           registered_bidders: {
             include: {
               bidder: true,
+              receipt_records: { include: { payments: true } },
               auctions_inventories: {
                 include: { inventory: { include: { container: true } } },
               },
@@ -123,7 +125,7 @@ export const AuctionRepository: IAuctionRepository = {
               payments: {
                 create: {
                   amount_paid: data.registration_fee,
-                  payment_type: "CASH",
+                  payment_type: data.payment_method,
                 },
               },
             },
