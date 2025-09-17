@@ -86,6 +86,7 @@ export const validateEmptyFields = (
     item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
     item.QTY = (item.QTY || "").toString();
     item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
+    item.MANIFEST = item.MANIFEST ? item.MANIFEST.toString().trim() : "";
 
     if (!emptyFields.length) {
       return { ...item, isValid: true, error: "", forReassign: false };
