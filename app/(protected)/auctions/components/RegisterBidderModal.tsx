@@ -272,7 +272,6 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                   { label: "BPI", value: "BPI" },
                   { label: "CASH", value: "CASH" },
                 ]}
-                defaultValue={{ label: "CASH", value: "CASH" }}
               />
             </div>
           </div>
