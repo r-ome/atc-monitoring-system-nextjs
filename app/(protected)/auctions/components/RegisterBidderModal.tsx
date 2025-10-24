@@ -71,6 +71,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
     const balance = (selectedBidder.registration_fee as number) * -1;
     formData.append("balance", balance.toString());
     formData.append("payment_method", selectedPaymentMethod.value as string);
+
     const res = await registerBidder(formData);
     if (res) {
       setIsLoading(false);
@@ -231,6 +232,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
               disabled: bidder.status === "BANNED",
               registration_fee: bidder.registration_fee,
               service_charge: bidder.service_charge,
+              payment_term: bidder.payment_term,
             }))}
           />
           <div className="flex gap-4">
@@ -253,6 +255,19 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                 value={selectedBidder?.registration_fee as number}
               />
             </div>
+            <div className="flex flex-col gap-2">
+              <Label>Payment Term:</Label>
+
+              <InputNumber
+                id="payment_term"
+                name="payment_term"
+                disabled
+                hasStepper={false}
+                suffix=" days"
+                value={selectedBidder?.payment_term as number}
+                required
+              />
+            </div>
           </div>
 
           <div>
@@ -262,22 +277,25 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
               <SelectWithSearch
                 modal={true}
                 side="bottom"
+                defaultValue={
+                  selectedPaymentMethod as { label: string; value: string }
+                }
                 placeholder="Choose Payment Method"
                 setSelected={(selected) =>
                   setSelectedPaymentMethod(selected as Record<string, string>)
                 }
                 options={[
-                  { label: "GCASH", value: "GCASH" },
                   { label: "BDO", value: "BDO" },
                   { label: "BPI", value: "BPI" },
                   { label: "CASH", value: "CASH" },
+                  { label: "GCASH", value: "GCASH" },
                 ]}
               />
             </div>
           </div>
           <DialogFooter>
             <DialogClose className="cursor-pointer">Cancel</DialogClose>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || !selectedBidder}>
               {isLoading && <Loader2Icon className="animate-spin" />}
               Submit
             </Button>

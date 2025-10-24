@@ -32,6 +32,7 @@ export type Bidder = {
   registered_at: string;
   created_at: string;
   updated_at: string;
+  payment_term: number;
   auctions_joined: {
     auction_bidder_id: string;
     auction_id: string;
@@ -57,6 +58,7 @@ export const BidderInsertSchema = z.object({
   service_charge: z.coerce.number(),
   status: z.enum(BIDDER_STATUS),
   registered_at: z.string(),
+  payment_term: z.coerce.number(),
 });
 
 export type BidderInsertSchema = z.infer<typeof BidderInsertSchema>;

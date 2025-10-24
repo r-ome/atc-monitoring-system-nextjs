@@ -31,6 +31,7 @@ function presenter(
     registration_fee: bidder.registration_fee,
     service_charge: bidder.service_charge,
     registered_at: bidder.registered_at,
+    payment_term: bidder.payment_term,
   };
 }
 
@@ -40,7 +41,6 @@ export const UpdateBidderController = async (
 ) => {
   try {
     input.birthdate = input.birthdate ? new Date(input.birthdate) : null;
-
     const { data, error: inputParseError } =
       BidderInsertSchema.safeParse(input);
 

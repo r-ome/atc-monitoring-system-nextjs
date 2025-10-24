@@ -115,6 +115,7 @@ export const BidderRepository: IBidderRepository = {
           registration_fee: data.registration_fee,
           service_charge: data.service_charge,
           registered_at: data.registered_at,
+          payment_term: data.payment_term,
         },
       });
 

@@ -20,6 +20,11 @@ import { Input } from "@/app/components/ui/input";
 import { updateBidder } from "@/app/(protected)/bidders/actions";
 import { InputNumber } from "@/app/components/ui/InputNumber";
 import { DatePicker } from "@/app/components/ui/datepicker";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 type UpdateBidderForm = {
   bidder_number?: string;
@@ -30,6 +35,7 @@ type UpdateBidderForm = {
   registration_fee?: number;
   service_charge?: number;
   status?: BIDDER_STATUS;
+  payment_term?: number;
 };
 
 interface UpdateBidderModalProps {
@@ -56,6 +62,7 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
       registration_fee: bidder.registration_fee,
       service_charge: bidder.service_charge,
       status: bidder.status,
+      payment_term: bidder.payment_term,
     });
 
     if (bidder.birthdate) {
@@ -69,6 +76,13 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
     const formData = new FormData(event.currentTarget);
     formData.append("registered_at", "BIÑAN");
     formData.append("status", "ACTIVE");
+    const formatted_payment_term = formData.get("payment_term");
+    if (typeof formatted_payment_term === "string") {
+      const n = formatted_payment_term.replace(/ days/gi, "");
+      formData.set("payment_term", String(n));
+    } else {
+      formData.delete("payment_term");
+    }
 
     const res = await updateBidder(bidder.bidder_id, formData);
     if (res) {
@@ -205,6 +219,29 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
                 date={birthdate}
                 onChange={setBirthdate}
               />
+            </div>
+            <div className="flex gap-4">
+              <Label className="w-40">
+                <Tooltip>
+                  <TooltipTrigger className="overflow-hidden whitespace-nowrap text-ellipsis max-w-[200px]">
+                    Payment Term
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    Number of days that bidder can pay their items <br /> before
+                    they can register in a new auction.
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
+              <div className="w-full">
+                <InputNumber
+                  name="payment_term"
+                  value={newBidder?.payment_term}
+                  onChange={handleUpdateChange}
+                  error={errors}
+                  suffix=" days"
+                  required
+                />
+              </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>

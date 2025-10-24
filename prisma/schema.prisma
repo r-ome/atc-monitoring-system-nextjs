@@ -91,6 +91,7 @@ model bidders {
   address          String?
   tin_number       String?
   store_name       String?
+  payment_term     Int                    @default(7)
   created_at       DateTime               @default(now()) @db.Timestamp(0)
   updated_at       DateTime               @default(now()) @updatedAt @db.DateTime(0)
   deleted_at       DateTime?

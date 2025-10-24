@@ -19,6 +19,12 @@ import {
 } from "@/app/components/ui/table";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
+
 export default async function Page({
   params,
 }: Readonly<{ params: Promise<{ bidder_number: string }> }>) {
@@ -86,6 +92,18 @@ export default async function Page({
               <p>Address: {bidder?.address}</p>
               <p>TIN Number: {bidder?.tin_number}</p>
               <p>Store Name: {bidder?.store_name}</p>
+              <p>
+                <Tooltip>
+                  <TooltipTrigger className="overflow-hidden whitespace-nowrap text-ellipsis max-w-[200px]">
+                    Payment Term:
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    Number of days that bidder can pay their items <br /> before
+                    they can register in a new auction.
+                  </TooltipContent>
+                </Tooltip>
+                {bidder?.payment_term} days
+              </p>
             </CardDescription>
           </div>
           <UpdateBidderModal bidder={bidder} />

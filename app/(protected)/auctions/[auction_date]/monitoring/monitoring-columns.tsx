@@ -113,7 +113,11 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
     },
     cell: ({ row }) => {
       const auction_inventory = row.original;
-      return <div className="flex justify-center">{auction_inventory.qty}</div>;
+      return (
+        <div className="flex justify-center">
+          {auction_inventory.qty === "0.5" ? "1/2" : auction_inventory.qty}
+        </div>
+      );
     },
   },
   {

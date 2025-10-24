@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
+import { pdf, PDFViewer } from "@react-pdf/renderer";
 import { getAuction } from "@/app/(protected)/auctions/actions";
 import { getReceiptDetails } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { ReceiptRecords } from "src/entities/models/Payment";
@@ -48,9 +48,32 @@ export default function ReceiptViewer() {
     return null;
   };
 
+  async function printPdf() {
+    const blob = await pdf(<ReceiptDocument />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "100%"; // Hide the iframe off-screen
+    iframe.style.bottom = "100%";
+    iframe.src = url;
+
+    iframe.onload = () => {
+      // Once the content is loaded, trigger the print dialog within the iframe
+      iframe.contentWindow?.print();
+    };
+
+    document.body.appendChild(iframe);
+  }
+
   return (
     <div className="flex flex-col gap-4 items-center">
-      <PDFDownloadLink
+      <div>
+        <Button className="w-full" onClick={printPdf}>
+          PRINT RECEIPT
+        </Button>
+      </div>
+
+      {/* <PDFDownloadLink
         fileName={receipt.receipt_number}
         document={<ReceiptDocument />}
       >
@@ -60,7 +83,7 @@ export default function ReceiptViewer() {
             PRINT RECEIPT
           </Button>
         )}
-      </PDFDownloadLink>
+      </PDFDownloadLink> */}
 
       <PDFViewer showToolbar={false} className="w-full h-screen">
         <ReceiptDocument />

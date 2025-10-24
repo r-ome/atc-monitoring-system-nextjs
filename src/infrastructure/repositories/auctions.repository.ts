@@ -63,6 +63,33 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
+  getAuctionById: async (auction_id) => {
+    try {
+      return await prisma.auctions.findFirst({
+        where: { auction_id },
+        include: {
+          registered_bidders: {
+            include: {
+              bidder: true,
+              receipt_records: { include: { payments: true } },
+              auctions_inventories: {
+                include: { inventory: { include: { container: true } } },
+              },
+            },
+            orderBy: { created_at: "desc" },
+          },
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error fetching Auction", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
   getAuction: async (auction_date) => {
     try {
       let start: Date;

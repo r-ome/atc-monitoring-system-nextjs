@@ -15,8 +15,6 @@ function presenter(auction: AuctionSchema) {
     [] as AuctionSchema["registered_bidders"][number]["auctions_inventories"]
   );
 
-  console.log(auction.registered_bidders[0]);
-
   return {
     auction_id: auction.auction_id,
     auctions_inventories,
@@ -79,7 +77,6 @@ function presenter(auction: AuctionSchema) {
 export const GetAuctionController = async (auction_date: Date) => {
   try {
     const auction = await getAuctionUseCase(auction_date);
-    console.log({ auction: auction?.registered_bidders });
     if (!auction) {
       throw new NotFoundError("Auction not found!");
     }

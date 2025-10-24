@@ -15,6 +15,7 @@ import {
 import { CancelItemsSchema } from "src/entities/models/Inventory";
 
 export interface IAuctionRepository {
+  getAuctionById: (auction_id: string) => Promise<AuctionSchema | null>;
   getAuction: (
     auction_date: Date | AuctionDateRange
   ) => Promise<AuctionSchema | null>;
