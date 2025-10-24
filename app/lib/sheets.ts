@@ -84,7 +84,13 @@ export const validateEmptyFields = (
     const required = ["BARCODE", "BIDDER", "PRICE"] as const;
     const emptyFields = required.filter((field) => !item[field]);
     item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
-    item.QTY = (item.QTY || "").toString();
+    if (item.QTY) {
+      if (item.QTY == "0.5") {
+        item.QTY = "1/2";
+      }
+      item.QTY = item.QTY.toString();
+    }
+
     item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
     item.MANIFEST = item.MANIFEST ? item.MANIFEST.toString().trim() : "";
 
@@ -277,11 +283,11 @@ export const removeDuplicates = (
       DESCRIPTION: sheet_item.DESCRIPTION,
       BIDDER: sheet_item.BIDDER,
       QTY: sheet_item.QTY,
-      PRICE: sheet_item.PRICE,
+      PRICE: sheet_item.PRICE.toString(),
     });
 
     const sheet_bidder = sheet_item.BIDDER;
-    // if items exists in monitoring but has a cancelled or refunded status, reassign item to new bidder;
+    // if items exists in monitoring but has a cancelled or refunded status, reassign item to new bidder
     const existing_cancelled_items = monitoring
       .filter((item) => ["CANCELLED", "REFUNDED"].includes(item.status))
       .map((item) =>
@@ -299,6 +305,7 @@ export const removeDuplicates = (
       const matched_item = monitoring.find(
         (item) => item.inventory.barcode === sheet_item.BARCODE
       );
+
       sheet_item.forReassign = true;
       if (matched_item) {
         sheet_item.auction_inventory_id = matched_item.auction_inventory_id;

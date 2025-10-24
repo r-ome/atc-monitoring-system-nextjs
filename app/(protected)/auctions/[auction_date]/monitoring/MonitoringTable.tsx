@@ -45,6 +45,7 @@ export const MonitoringTable = ({ monitoring }: MonitoringTableProps) => {
           { label: "PAID", value: "PAID" },
           { label: "UNPAID", value: "UNPAID" },
           { label: "CANCELLED", value: "CANCELLED" },
+          { label: "REFUNDED", value: "REFUNDED" },
         ],
         filterComponentProps: { placeholder: "Filter By Status" },
       }}
