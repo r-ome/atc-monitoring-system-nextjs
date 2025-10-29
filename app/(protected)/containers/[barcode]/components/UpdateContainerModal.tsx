@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Loader2Icon } from "lucide-react";
@@ -140,6 +140,7 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
         toast.success("Successfully updated Container!");
         router.refresh();
         setOpenDialog(false);
+        redirect(`${res.value.barcode}`);
       } else {
         const description =
           typeof res.error?.cause === "string" ? res.error?.cause : null;
