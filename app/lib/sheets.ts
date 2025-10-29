@@ -154,6 +154,7 @@ export const formatSlashedBarcodes = (
 
       return {
         ...item,
+        PRICE: new_prices[i].toString(),
         BARCODE: is_inventory ? `${parent}-${new_barcode}` : new_barcode,
         CONTROL:
           new_control && new_control.length > 1
@@ -161,7 +162,6 @@ export const formatSlashedBarcodes = (
               ? new_control[i]
               : "NC"
             : new_control && new_control.join(""),
-        PRICES: new_prices[i],
       };
     });
 
