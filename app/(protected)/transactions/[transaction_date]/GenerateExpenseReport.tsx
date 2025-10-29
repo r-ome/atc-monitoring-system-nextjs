@@ -27,7 +27,7 @@ export const GenerateExpenseReport: React.FC<GenerateExpenseReportProps> = ({
           ["cash_flow"],
           `Daily Cash Flow ${formatDate(
             new Date(transaction_date),
-            "MMMM dd, yyyy"
+            "MMM dd, yyyy"
           )}`
         );
       }}
