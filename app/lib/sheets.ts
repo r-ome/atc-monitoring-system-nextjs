@@ -132,6 +132,28 @@ const divideIntoHundreds = (total: number, parts: number) => {
   return rounded_portions;
 };
 
+const divideQuantites = (qty: string | number, parts: number) => {
+  const match = String(qty).match(/^(\d+)\s*(\w+)?$/i);
+  if (!match) return Array(parts).fill(String(qty));
+
+  const [, numStr, unit = ""] = match;
+  const total = parseInt(numStr, 10);
+
+  if (/LOT|SET/i.test(String(qty)))
+    return Array.from({ length: parts }, () => String(qty));
+
+  if (total === 1)
+    return Array.from({ length: parts }, () => `1${unit ? " " + unit : ""}`);
+
+  const base = Math.floor(total / parts);
+  const remainder = total % parts;
+
+  return Array.from({ length: parts }, (_, i) => {
+    const value = i < remainder ? base + 1 : base;
+    return `${value}${unit ? " " + unit : ""}`;
+  });
+};
+
 export const formatSlashedBarcodes = (
   data: ManifestInsertSchema[]
 ): ManifestInsertSchema[] => {
@@ -148,6 +170,8 @@ export const formatSlashedBarcodes = (
       parseInt(item.PRICE, 10),
       new_barcodes.length
     );
+    const new_quantities = divideQuantites(item.QTY, new_barcodes.length);
+
     const new_rows = new_barcodes.map((new_barcode, i) => {
       const is_inventory = new_barcode.split("-").length === 1;
       new_barcode = formatNumberPadding(new_barcode, 3);
@@ -156,6 +180,7 @@ export const formatSlashedBarcodes = (
         ...item,
         PRICE: new_prices[i].toString(),
         BARCODE: is_inventory ? `${parent}-${new_barcode}` : new_barcode,
+        QTY: new_quantities[i].toString(),
         CONTROL:
           new_control && new_control.length > 1
             ? new_control[i]
