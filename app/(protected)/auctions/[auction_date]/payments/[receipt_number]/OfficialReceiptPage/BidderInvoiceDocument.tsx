@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Document, Page, Font, View, StyleSheet } from "@react-pdf/renderer";
 
 import InvoiceHeading from "./InvoiceHeading";
@@ -39,6 +38,7 @@ const styles = StyleSheet.create({
 
 export interface BidderInvoiceDocumentProps {
   receipt: Omit<ReceiptRecords, "payments" | "created_at">;
+  computation: Computation;
 }
 
 export type Computation = {
@@ -60,16 +60,8 @@ export type Computation = {
 
 const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
   receipt,
+  computation,
 }) => {
-  const [computation, setComputation] = useState<Computation>({
-    number_of_items: 0,
-    total_item_price: 0,
-    service_charge: 0,
-    service_charge_amount: 0,
-    less: 0,
-    grandTotal: 0,
-  });
-
   const chunkSize = 28;
   const newArr = [];
   for (let i = 0; i < receipt.auctions_inventories.length; i += chunkSize) {
@@ -85,37 +77,6 @@ const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
       }));
     newArr.push(chunk);
   }
-
-  const total_item_price = receipt.auctions_inventories.reduce(
-    (acc: number, item) => {
-      return (acc = acc + (item.price ? item.price : 0));
-    },
-    0
-  );
-
-  useEffect(() => {
-    if (!receipt) return;
-    const receiptNumber = receipt.receipt_number.split("-")[1];
-    const less =
-      parseInt(receiptNumber, 10) > 1 ? 0 : receipt.bidder.registration_fee;
-    const service_charge_amount =
-      (total_item_price * receipt.bidder.service_charge) / 100;
-    const number_of_items = receipt.auctions_inventories?.length || 0;
-
-    const grandTotal =
-      total_item_price +
-      (total_item_price * receipt.bidder.service_charge) / 100 -
-      less;
-
-    setComputation({
-      service_charge: receipt.bidder.service_charge,
-      service_charge_amount,
-      less,
-      number_of_items,
-      total_item_price,
-      grandTotal,
-    });
-  }, [receipt, total_item_price]);
 
   return (
     <Document pageMode="fullScreen">

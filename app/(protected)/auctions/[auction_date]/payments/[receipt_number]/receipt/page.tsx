@@ -43,8 +43,40 @@ export default function ReceiptViewer() {
   const ReceiptDocument = () => {
     if (receipt.purpose === "REFUNDED")
       return <RefundDocument receipt={receipt} />;
-    if (receipt.purpose === "PULL_OUT")
-      return <BidderInvoiceDocument receipt={receipt} />;
+    if (receipt.purpose === "PULL_OUT") {
+      const total_item_price = receipt.auctions_inventories.reduce(
+        (acc: number, item) => {
+          return (acc = acc + (item.price ? item.price : 0));
+        },
+        0
+      );
+
+      const receiptNumber = receipt.receipt_number.split("-")[1];
+      const less =
+        parseInt(receiptNumber, 10) > 1 ? 0 : receipt.bidder.registration_fee;
+      const service_charge_amount =
+        (total_item_price * receipt.bidder.service_charge) / 100;
+      const number_of_items = receipt.auctions_inventories?.length || 0;
+
+      const grandTotal =
+        total_item_price +
+        (total_item_price * receipt.bidder.service_charge) / 100 -
+        less;
+
+      return (
+        <BidderInvoiceDocument
+          receipt={receipt}
+          computation={{
+            service_charge: receipt.bidder.service_charge,
+            service_charge_amount,
+            less,
+            number_of_items,
+            total_item_price,
+            grandTotal,
+          }}
+        />
+      );
+    }
     return null;
   };
 
@@ -85,7 +117,7 @@ export default function ReceiptViewer() {
         )}
       </PDFDownloadLink> */}
 
-      <PDFViewer showToolbar={false} className="w-full h-screen">
+      <PDFViewer className="w-full h-screen">
         <ReceiptDocument />
       </PDFViewer>
     </div>
