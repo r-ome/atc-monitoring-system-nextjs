@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
-import { cn } from "@/app/lib/utils";
+import { cn, formatDate } from "@/app/lib/utils";
 
 export const columns: ColumnDef<Manifest>[] = [
   {
@@ -148,6 +148,32 @@ export const columns: ColumnDef<Manifest>[] = [
       const manifest = row.original;
       return (
         <div className="flex justify-center">{manifest.manifest_number}</div>
+      );
+    },
+  },
+  {
+    accessorKey: "created_at",
+    size: 80,
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Uploaded Date
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const manifest = row.original;
+      return (
+        <div className="flex justify-center">
+          {formatDate(new Date(manifest.created_at), "MMM dd hh:mm a")}
+        </div>
       );
     },
   },
