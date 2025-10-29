@@ -190,7 +190,17 @@ export default function Page() {
 
                   <div className="flex flex-col gap-2 w-1/3">
                     <Label htmlFor="store_name">Store Name: </Label>
-                    <Input id="store_name" name="store_name" required />
+                    <Input id="store_name" name="store_name" />
+                  </div>
+
+                  <div className="flex flex-col gap-2 w-1/3">
+                    <Label htmlFor="payment_term">Payment Term: </Label>
+                    <InputNumber
+                      id="payment_term"
+                      name="payment_term"
+                      defaultValue={7}
+                      required
+                    />
                   </div>
                 </div>
 

@@ -114,7 +114,7 @@ export const formatControlDescriptionQty = (
     if (!item.isValid) return item;
     if (!item.DESCRIPTION) item.DESCRIPTION = "NO DESCRIPTION";
     if (!item.QTY) item.QTY = "NO QTY";
-    if (!item.MANIFEST) item.QTY = "NO MANIFEST";
+    if (!item.MANIFEST) item.MANIFEST = "NO MANIFEST";
     item.CONTROL = !item.CONTROL ? "NC" : formatNumberPadding(item.CONTROL, 4);
     item.BIDDER = formatNumberPadding(item.BIDDER, 4);
 
