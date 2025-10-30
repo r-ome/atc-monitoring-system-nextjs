@@ -68,7 +68,12 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
     const formData = new FormData(event.currentTarget);
     formData.append("auction_id", auction.auction_id);
     formData.append("bidder_id", selectedBidder.value as string);
-    const balance = (selectedBidder.registration_fee as number) * -1;
+    const registration_fee = parseInt(
+      (formData.get("registration_fee") as string) || "0",
+      10
+    );
+    const balance =
+      registration_fee > 1 ? registration_fee * -1 : registration_fee;
     formData.append("balance", balance.toString());
     formData.append("payment_method", selectedPaymentMethod.value as string);
 
@@ -272,7 +277,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
 
           <div>
             <div className="flex flex-col gap-2">
-              <Label>Paymenth Method:</Label>
+              <Label>Payment Method:</Label>
 
               <SelectWithSearch
                 modal={true}
