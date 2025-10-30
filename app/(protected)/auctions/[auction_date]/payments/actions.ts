@@ -7,6 +7,7 @@ import { GetPaymentsByDateController } from "src/controllers/payments/get-paymen
 import { GetReceiptDetailsController } from "src/controllers/payments/get-receipt-details.controllers";
 import { AddExpenseController } from "src/controllers/expenses/add-expense.controller";
 import { GetBidderReceiptsController } from "src/controllers/payments/get-bidder-receipts.controller";
+import { UpdateRegistrationPaymentController } from "src/controllers/payments/update-registration-payment.controller";
 
 export const getPaymentsByDate = async (date: string) => {
   const input = new Date(date);
@@ -41,4 +42,12 @@ export const addExpense = async (formData: FormData) => {
 
 export const getBidderReceipts = async (auction_bidder_id: string) => {
   return await GetBidderReceiptsController(auction_bidder_id);
+};
+
+export const updateRegistrationPayment = async (
+  payment_id: string,
+  formData: FormData
+) => {
+  const input = Object.fromEntries(formData.entries());
+  return await UpdateRegistrationPaymentController(payment_id, input);
 };

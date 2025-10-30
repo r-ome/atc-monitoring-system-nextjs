@@ -226,6 +226,7 @@ model payments {
   receipt_id   String
   amount_paid  Int             @default(0)
   payment_type payments_type   @default(CASH)
+  remarks      String?
   created_at   DateTime        @default(now()) @db.Timestamp(0)
   updated_at   DateTime        @default(now()) @updatedAt @db.DateTime(0)
   deleted_at   DateTime?       @db.DateTime(0)

@@ -3,6 +3,7 @@ import {
   RefundAuctionInventories,
   ReceiptRecordsSchema,
   PaymentSchema,
+  RegistrationPaymentUpdateSchema,
 } from "src/entities/models/Payment";
 
 export interface IPaymentRepository {
@@ -31,4 +32,8 @@ export interface IPaymentRepository {
   ) => Promise<
     Omit<ReceiptRecordsSchema, "auctions_inventories" | "inventory_histories">[]
   >;
+  updateRegistrationPayment: (
+    payment_id: string,
+    data: RegistrationPaymentUpdateSchema
+  ) => Promise<void>;
 }

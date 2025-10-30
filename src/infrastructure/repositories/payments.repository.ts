@@ -300,4 +300,29 @@ export const PaymentRepository: IPaymentRepository = {
       throw error;
     }
   },
+  updateRegistrationPayment: async (payment_id, data) => {
+    try {
+      const current_payment = await prisma.payments.findFirst({
+        where: { payment_id },
+      });
+
+      if (current_payment) {
+        await prisma.payments.update({
+          where: { payment_id },
+          data: {
+            payment_type: data.payment_type,
+            remarks: `Updated payment type from ${current_payment.payment_type} to ${data.payment_type}`,
+          },
+        });
+      }
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error handling bidder pullout!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
 };

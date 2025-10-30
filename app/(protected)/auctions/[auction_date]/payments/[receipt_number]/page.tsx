@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/app/components/ui/badge";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Button } from "@/app/components/ui/button";
+import { UpdateRegistrationPaymentMethodModal } from "./UpdateRegistrationPaymentMethodModal/UpdateRegistrationPaymentMethodModal";
 
 export default async function Page({
   params,
@@ -99,6 +100,12 @@ export default async function Page({
                 <TableHead>Date & Time</TableHead>
                 <TableHead>Payment Type</TableHead>
                 <TableHead>Amount Paid</TableHead>
+                {receipt.purpose === "REGISTRATION" ? (
+                  <>
+                    <TableHead className="w-20">Remarks</TableHead>
+                    <TableHead className="w-20"></TableHead>
+                  </>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -107,6 +114,17 @@ export default async function Page({
                   <TableCell>{item.created_at}</TableCell>
                   <TableCell>{item.payment_type}</TableCell>
                   <TableCell>₱ {item.amount_paid.toLocaleString()}</TableCell>
+                  {receipt.purpose === "REGISTRATION" ? (
+                    <>
+                      <TableCell>{item?.remarks}</TableCell>
+                      <TableCell className="flex justify-end">
+                        <UpdateRegistrationPaymentMethodModal
+                          receipt={receipt}
+                          payment={item}
+                        />
+                      </TableCell>
+                    </>
+                  ) : null}
                 </TableRow>
               ))}
             </TableBody>

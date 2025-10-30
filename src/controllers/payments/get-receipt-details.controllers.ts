@@ -45,6 +45,7 @@ function presenter(
       payment_id: payment.payment_id,
       payment_type: payment.payment_type,
       amount_paid: payment.amount_paid,
+      remarks: payment?.remarks,
       created_at: formatDate(payment.created_at, date_format),
     })),
   };

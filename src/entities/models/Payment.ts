@@ -30,6 +30,7 @@ export type Payment = {
   payment_type: PAYMENT_TYPE;
   created_at: string;
   auction_date: string;
+  remarks?: string | null;
   receipt: {
     receipt_id: string;
     receipt_number: string;
@@ -146,3 +147,11 @@ export const RefundAuctionInventories = z.object({
 });
 
 export type RefundAuctionInventories = z.infer<typeof RefundAuctionInventories>;
+
+export const RegistrationPaymentUpdateSchema = z.object({
+  payment_type: z.enum(PAYMENT_TYPE),
+});
+
+export type RegistrationPaymentUpdateSchema = z.infer<
+  typeof RegistrationPaymentUpdateSchema
+>;

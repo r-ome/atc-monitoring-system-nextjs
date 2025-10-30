@@ -1,0 +1,44 @@
+import { logger } from "@/app/lib/logger";
+import { updateRegistrationPaymentUseCase } from "src/application/use-cases/payments/update-registration-payment.use-case";
+import {
+  DatabaseOperationError,
+  InputParseError,
+} from "src/entities/errors/common";
+import {
+  RegistrationPaymentUpdateSchema,
+  type RegistrationPaymentUpdateSchema as RegistrationPaymentUpdateSchemaType,
+} from "src/entities/models/Payment";
+import { err, ok } from "src/entities/models/Response";
+
+export const UpdateRegistrationPaymentController = async (
+  payment_id: string,
+  input: Partial<RegistrationPaymentUpdateSchemaType>
+) => {
+  try {
+    const { data, error: inputParseError } =
+      RegistrationPaymentUpdateSchema.safeParse(input);
+
+    if (inputParseError) {
+      throw new InputParseError("Invalid Data!", {
+        cause: inputParseError.flatten().fieldErrors,
+      });
+    }
+
+    const res = await updateRegistrationPaymentUseCase(payment_id, data);
+    return ok(res);
+  } catch (error) {
+    logger("UpdateRegistrationPaymentController", error);
+    if (error instanceof InputParseError) {
+      return err({ message: error.message, cause: error.cause });
+    }
+
+    if (error instanceof DatabaseOperationError) {
+      return err({ message: "Server Error", cause: error?.message });
+    }
+
+    return err({
+      message: "An error occurred! Please contact your admin!",
+      cause: "Server Error",
+    });
+  }
+};
