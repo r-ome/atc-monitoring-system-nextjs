@@ -9,7 +9,10 @@ import {
   isPrismaError,
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
-import { ManifestInsertSchema } from "src/entities/models/Manifest";
+import {
+  ManifestInsertSchema,
+  ManifestUpdateSchema,
+} from "src/entities/models/Manifest";
 import { Override } from "src/entities/models/Response";
 import { AUCTION_ITEM_STATUS } from "src/entities/models/Auction";
 import { isRange } from "@/app/lib/utils";
@@ -659,6 +662,133 @@ export const AuctionRepository: IAuctionRepository = {
           price: data.price,
         },
       });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(error.message, {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  updateManifest: async (manifest_id, data, original) => {
+    try {
+      const valid_rows_in_sheet = data.filter((item) => item.isValid);
+
+      return await prisma.$transaction(
+        async (tx) => {
+          // update manifest record
+          const manifest = await tx.manifest_records.update({
+            where: { manifest_id },
+            data: {
+              barcode: original.barcode,
+              control: original.control,
+              description: original.description,
+              price: original.price.toString(),
+              bidder_number: original.bidder_number,
+              qty: original.qty,
+              manifest_number: original.manifest_number?.toString(),
+              error_message: data[0].error,
+            },
+          });
+          // insert newly created_inventories
+          const for_creating_inventories = valid_rows_in_sheet.filter(
+            (item) => !item.inventory_id && item.container_id
+          );
+          await tx.inventories.createMany({
+            data: for_creating_inventories.map((item) => ({
+              container_id: item.container_id!,
+              control: item.control,
+              barcode: item.barcode,
+              description: item.description,
+              status: "SOLD",
+            })),
+          });
+          const newly_created_inventories = await tx.inventories.findMany({
+            where: {
+              barcode: {
+                in: for_creating_inventories.map((item) => item.barcode),
+              },
+            },
+          });
+          const auction_inventories = valid_rows_in_sheet.map((item) => {
+            const match = newly_created_inventories.find(
+              (inventory) => inventory.barcode === item.barcode
+            );
+            console.log(item);
+            if (!item.auction_bidder_id) {
+              throw new Error("Auction Bidder ID does not exist");
+            }
+            item.inventory_id = item.inventory_id ?? match?.inventory_id;
+            return item as Override<
+              ManifestUpdateSchema,
+              {
+                auction_bidder_id: string;
+                inventory_id: string;
+                service_charge: number;
+              }
+            >;
+          });
+          const created_auctions_inventories = await Promise.all(
+            auction_inventories.map((item) =>
+              tx.auctions_inventories.create({
+                data: {
+                  auction_bidder_id: item.auction_bidder_id,
+                  inventory_id: item.inventory_id,
+                  description: item.description,
+                  status: "UNPAID",
+                  price: parseInt(item.price, 10),
+                  qty: item.qty,
+                  manifest_number: item.manifest_number as string,
+                },
+              })
+            )
+          );
+          const auctions_inventories = await tx.auctions_inventories.findMany({
+            include: { histories: true },
+            where: {
+              auction_inventory_id: {
+                in: created_auctions_inventories.map(
+                  (item) => item.auction_inventory_id as string
+                ),
+              },
+            },
+          });
+          await tx.inventory_histories.createMany({
+            data: auctions_inventories.map((item) => ({
+              auction_inventory_id: item.auction_inventory_id,
+              inventory_id: item.inventory_id,
+              auction_status: "UNPAID",
+              inventory_status: "SOLD",
+              remarks: item.histories.length ? "REASSIGNED" : "ENCODED",
+            })),
+          });
+          // update bidder balance
+          const update_balance = auction_inventories.reduce(
+            (acc: Record<string, number>, item) => {
+              const price = parseInt(item.price, 10);
+              const service_charge_amount = (price * item.service_charge) / 100;
+              const total = price + service_charge_amount;
+              acc[item.auction_bidder_id] =
+                (acc[item.auction_bidder_id] || 0) + total;
+              return acc;
+            },
+            {}
+          );
+          await Promise.all(
+            Object.entries(update_balance).map(([auction_bidder_id, amount]) =>
+              tx.auctions_bidders.update({
+                where: { auction_bidder_id },
+                data: { balance: { increment: amount } },
+              })
+            )
+          );
+
+          return manifest;
+        },
+        { maxWait: 10000, timeout: 30000 }
+      );
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError(error.message, {

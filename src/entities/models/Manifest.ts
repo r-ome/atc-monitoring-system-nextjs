@@ -53,3 +53,22 @@ export type BoughtItemsSheetRecord = Record<
   "BARCODE" | "CONTROL" | "DESCRIPTION" | "OLD_PRICE" | "NEW_PRICE",
   string
 >;
+
+export const ManifestUpdateSchema = z.object({
+  manifest_id: z.string(),
+  barcode: z.string(),
+  control: z.string(),
+  description: z.string(),
+  bidder_number: z.string(),
+  price: z.coerce.string(),
+  qty: z.coerce.string(),
+  manifest_number: z.string().optional().nullable(),
+  auction_bidder_id: z.string().optional().nullable(),
+  service_charge: z.number().optional().nullable(),
+  inventory_id: z.string().optional().nullable(),
+  container_id: z.string().optional().nullable(),
+  isValid: z.boolean().optional(),
+  error: z.string(),
+});
+
+export type ManifestUpdateSchema = z.infer<typeof ManifestUpdateSchema>;

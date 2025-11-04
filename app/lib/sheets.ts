@@ -192,7 +192,7 @@ export const formatControlDescriptionQty = (
   });
 };
 
-const divideIntoHundreds = (total: number, parts: number) => {
+export const divideIntoHundreds = (total: number, parts: number) => {
   const portion = total / parts;
   const rounded_portions = Array(parts)
     .fill(0)
@@ -202,7 +202,7 @@ const divideIntoHundreds = (total: number, parts: number) => {
   return rounded_portions;
 };
 
-const divideQuantites = (qty: string | number, parts: number) => {
+export const divideQuantites = (qty: string | number, parts: number) => {
   const match = String(qty).match(/^(\d+)\s*(\w+)?$/i);
   if (!match) return Array(parts).fill(String(qty));
 

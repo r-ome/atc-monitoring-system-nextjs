@@ -10,8 +10,12 @@ import {
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
 import { cn, formatDate } from "@/app/lib/utils";
+import { SetStateAction } from "react";
 
-export const columns: ColumnDef<Manifest>[] = [
+export const columns = (
+  setOpen: React.Dispatch<SetStateAction<boolean>>,
+  setSelected: React.Dispatch<SetStateAction<Manifest>>
+): ColumnDef<Manifest>[] => [
   {
     accessorKey: "barcode",
     size: 100,
@@ -31,7 +35,20 @@ export const columns: ColumnDef<Manifest>[] = [
     },
     cell: ({ row }) => {
       const manifest = row.original;
-      return <div className="flex justify-center"> {manifest.barcode}</div>;
+      return (
+        <div
+          className="flex justify-center hover:underline hover:cursor-pointer"
+          onClick={() => {
+            if (manifest.error_message !== "") {
+              setOpen(true);
+              setSelected(manifest);
+            }
+          }}
+        >
+          {" "}
+          {manifest.barcode}
+        </div>
+      );
     },
   },
   {

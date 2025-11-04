@@ -17,6 +17,7 @@ import {
 import {
   ManifestInsertSchema,
   ManifestSchema,
+  ManifestUpdateSchema,
 } from "src/entities/models/Manifest";
 import { CancelItemsSchema } from "src/entities/models/Inventory";
 
@@ -69,4 +70,9 @@ export interface IAuctionRepository {
     counter_check_id: string,
     data: CounterCheckUpdateSchema
   ) => Promise<CounterCheckSchema>;
+  updateManifest: (
+    manifest_id: string,
+    data: ManifestUpdateSchema[],
+    original: ManifestUpdateSchema
+  ) => Promise<ManifestSchema>;
 }

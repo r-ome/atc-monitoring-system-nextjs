@@ -13,6 +13,7 @@ import { CancelItemsController } from "src/controllers/auctions/cancel-items.con
 import { UploadCounterCheckController } from "src/controllers/auctions/upload-counter-check.controller";
 import { GetCounterCheckController } from "src/controllers/auctions/get-counter-check.controller";
 import { UpdateCounterCheckController } from "src/controllers/auctions/update-counter-check.controller";
+import { UpdateManifestController } from "src/controllers/auctions/update-manifest.controller";
 import {
   PAYMENT_TYPE,
   type PAYMENT_TYPE as PaymentType,
@@ -123,4 +124,13 @@ export const updateCounterCheck = async (
 ) => {
   const data = Object.fromEntries(formData.entries());
   return await UpdateCounterCheckController(counterCheckId, data);
+};
+
+export const updateManifest = async (
+  auction_id: string,
+  manifest_id: string,
+  formData: FormData
+) => {
+  const data = Object.fromEntries(formData.entries());
+  return await UpdateManifestController(auction_id, manifest_id, data);
 };
