@@ -15,6 +15,7 @@ model auctions {
   deleted_at         DateTime?          @db.DateTime(0)
   registered_bidders auctions_bidders[]
   manifest_records   manifest_records[]
+  counter_check      counter_check[]
 }
 
 model auctions_bidders {
@@ -271,6 +272,22 @@ model expenses {
   created_at DateTime        @default(now()) @db.Timestamp(0)
   updated_at DateTime        @default(now()) @updatedAt @db.DateTime(0)
   deleted_at DateTime?       @db.DateTime(0)
+}
+
+model counter_check {
+  counter_check_id String    @id @default(uuid())
+  auction_id       String
+  control          String?
+  bidder_number    String?
+  price            String?
+  page             String?
+  error            String?
+  created_at       DateTime  @default(now()) @db.Timestamp(0)
+  updated_at       DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at       DateTime? @db.DateTime(0)
+  auction          auctions  @relation(fields: [auction_id], references: [auction_id], map: "fk_counter_check_auctions")
+
+  @@index([auction_id], map: "fk_counter_check_auctions")
 }
 
 enum users_role {

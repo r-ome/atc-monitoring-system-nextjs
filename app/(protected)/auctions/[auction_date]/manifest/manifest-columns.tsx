@@ -198,7 +198,7 @@ export const columns: ColumnDef<Manifest>[] = [
       return (
         <div
           className={cn(
-            "flex justify-start truncate",
+            "flex justify-center truncate",
             manifest.error_message ? "text-red-500" : "text-green-500"
           )}
         >

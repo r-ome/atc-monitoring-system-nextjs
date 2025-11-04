@@ -8,7 +8,7 @@ import {
   validateEmptyFields,
   formatExistingInventories,
   addContainerIdForNewInventories,
-  removeDuplicates,
+  removeManifestDuplicates,
 } from "@/app/lib/sheets";
 import { getRegisteredBiddersUseCase } from "./get-registered-bidders.use-case";
 import { getContainersUseCase } from "../containers/get-containers.use-case";
@@ -31,7 +31,7 @@ export const uploadManifestUseCase = async (
   const existing_inventories = await getAllInventoriesUseCase();
   const containers = await getContainersUseCase();
 
-  const something = validateEmptyFields(data);
+  const something = validateEmptyFields(data, "manifest");
   const something1 = formatControlDescriptionQty(something);
   const something2 = formatSlashedBarcodes(something1);
   const something3 = validateBidders(something2, registered_bidders);
@@ -40,7 +40,7 @@ export const uploadManifestUseCase = async (
     existing_inventories
   );
   const something5 = addContainerIdForNewInventories(something4, containers);
-  const something6 = removeDuplicates(something5, monitoring);
+  const something6 = removeManifestDuplicates(something5, monitoring);
 
   winston_logger.info(
     something6.filter((item) =>

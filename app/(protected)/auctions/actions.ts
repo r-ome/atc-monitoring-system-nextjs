@@ -10,6 +10,9 @@ import { GetManifestRecordsController } from "src/controllers/auctions/get-manif
 import { GetRegisteredBidderController } from "src/controllers/auctions/get-registered-bidder.controller";
 import { HandleBidderPullOutController } from "src/controllers/payments/handle-bidder-pullout.controllers";
 import { CancelItemsController } from "src/controllers/auctions/cancel-items.controller";
+import { UploadCounterCheckController } from "src/controllers/auctions/upload-counter-check.controller";
+import { GetCounterCheckController } from "src/controllers/auctions/get-counter-check.controller";
+import { UpdateCounterCheckController } from "src/controllers/auctions/update-counter-check.controller";
 import {
   PAYMENT_TYPE,
   type PAYMENT_TYPE as PaymentType,
@@ -100,4 +103,24 @@ export const cancelItems = async (formData: FormData) => {
   };
 
   return await CancelItemsController(input);
+};
+
+export const uploadCounterCheck = async (
+  auctionId: string,
+  formData: FormData
+) => {
+  const file = formData.get("file");
+  return await UploadCounterCheckController(auctionId, file as File);
+};
+
+export const getCounterCheck = async (auction_id: string) => {
+  return await GetCounterCheckController(auction_id);
+};
+
+export const updateCounterCheck = async (
+  counterCheckId: string,
+  formData: FormData
+) => {
+  const data = Object.fromEntries(formData.entries());
+  return await UpdateCounterCheckController(counterCheckId, data);
 };

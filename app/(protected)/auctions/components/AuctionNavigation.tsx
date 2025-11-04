@@ -30,6 +30,11 @@ export const AuctionNavigation = () => {
       description: "Monitoring Page",
     },
     {
+      title: "Counter Check",
+      link: "counter-check",
+      description: "Counter Check details",
+    },
+    {
       title: "Payments",
       link: "payments",
       description: "Bidder's balances and settle of payments",

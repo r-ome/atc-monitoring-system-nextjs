@@ -10,6 +10,11 @@ import {
 } from "src/entities/models/Inventory";
 import { ContainerSchema } from "src/entities/models/Container";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
+import {
+  CounterCheckRecord,
+  CounterCheckInsertSchema,
+  CounterCheckSchema,
+} from "src/entities/models/CounterCheck";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { InputParseError } from "src/entities/errors/common";
 import { logger } from "./logger";
@@ -22,7 +27,7 @@ export const VALID_FILE_TYPES = [
 
 export const getSheetData = (
   file: ArrayBuffer,
-  type: "manifest" | "inventory" = "inventory"
+  type: "manifest" | "inventory" | "counter_check" = "inventory"
 ): { data: Record<string, string>[]; headers: string[] } => {
   try {
     const workbook = xlsx.read(file, { type: "array" });
@@ -33,6 +38,32 @@ export const getSheetData = (
     }) as Record<string, string>[];
 
     let headers: string[] = [];
+
+    if (type === "counter_check") {
+      headers = [];
+      headers = Object.values(data[0])
+        .filter((item) => item)
+        .map((item) => item.trim());
+
+      data = data
+        .slice(1)
+        .map<Record<string, string>>((item) =>
+          headers.reduce(
+            (acc, header, headerIndex) => ({
+              ...acc,
+              [header]: Object.values(item)[headerIndex],
+            }),
+            {}
+          )
+        )
+        .map((item1) => ({
+          PAGE: item1["PAGE#"].toString(),
+          CONTROL: item1.CONTROL,
+          PRICE: item1["TOTAL SALES"].toString(),
+          BIDDER: item1.BIDDER,
+        }));
+    }
+
     if (type === "manifest") {
       headers = [];
       headers = Object.values(data[1])
@@ -64,7 +95,9 @@ export const getSheetData = (
             `{"BARCODE":"","CONTROL":"","DESCRIPTION":"","BIDDER":"","PRICE":"","QTY":"","MANIFEST":""}`
           );
         });
-    } else {
+    }
+
+    if (type === "inventory") {
       headers = data.length ? Object.keys(data[0]) : [];
     }
 
@@ -77,34 +110,71 @@ export const getSheetData = (
   }
 };
 
-export const validateEmptyFields = (
-  data: ManifestSheetRecord[]
-): ManifestInsertSchema[] => {
-  return data.map((item) => {
-    const required = ["BARCODE", "BIDDER", "PRICE"] as const;
-    const emptyFields = required.filter((field) => !item[field]);
-    item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
-    if (item.QTY) {
-      if (item.QTY == "0.5") {
-        item.QTY = "1/2";
+export const validateEmptyFields = <T extends "manifest" | "counter_check">(
+  data: T extends "manifest" ? ManifestSheetRecord[] : CounterCheckRecord[],
+  type: T
+): T extends "manifest"
+  ? ManifestInsertSchema[]
+  : CounterCheckInsertSchema[] => {
+  return data
+    .map((item) => {
+      const required =
+        type === "manifest"
+          ? (["BARCODE", "BIDDER", "PRICE"] as (keyof ManifestSheetRecord)[])
+          : ([
+              "PAGE",
+              "CONTROL",
+              "BIDDER",
+              "PRICE",
+            ] as (keyof CounterCheckRecord)[]);
+
+      const emptyFields = required.filter(
+        (field) => !item[field as keyof typeof item]
+      );
+      item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
+
+      if (type === "manifest") {
+        const manifestItem = item as ManifestSheetRecord;
+        if (manifestItem.QTY) {
+          if (manifestItem.QTY == "0.5") {
+            manifestItem.QTY = "1/2";
+          }
+          manifestItem.QTY = manifestItem.QTY.toString();
+        }
+        manifestItem.MANIFEST = manifestItem.MANIFEST
+          ? manifestItem.MANIFEST.toString().trim()
+          : "";
       }
-      item.QTY = item.QTY.toString();
-    }
 
-    item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
-    item.MANIFEST = item.MANIFEST ? item.MANIFEST.toString().trim() : "";
+      item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
 
-    if (!emptyFields.length) {
-      return { ...item, isValid: true, error: "", forReassign: false };
-    }
+      if (!emptyFields.length) {
+        return {
+          ...item,
+          isValid: true,
+          error: "",
+          ...(type === "manifest" ? { forReassign: false } : {}),
+        };
+      }
 
-    return {
-      ...item,
-      isValid: false,
-      forReassign: false,
-      error: `Required Fields: ${emptyFields.join(", ")}`,
-    };
-  });
+      if (type === "manifest") {
+        return {
+          ...item,
+          isValid: false,
+          forReassign: false,
+          error: `Required Fields: ${emptyFields.join(", ")}`,
+        };
+      } else {
+        return {
+          ...item,
+          isValid: false,
+          error: `Required Fields: ${emptyFields.join(", ")}`,
+        };
+      }
+    })
+    .slice(1) as T extends "manifest"
+    ? ManifestInsertSchema[]
+    : CounterCheckInsertSchema[];
 };
 
 export const formatControlDescriptionQty = (
@@ -284,7 +354,7 @@ export const addContainerIdForNewInventories = (
   });
 };
 
-export const removeDuplicates = (
+export const removeManifestDuplicates = (
   data: ManifestInsertSchema[],
   monitoring: AuctionsInventorySchema[]
 ) => {
@@ -345,5 +415,34 @@ export const removeDuplicates = (
     }
 
     return sheet_item;
+  });
+};
+
+export const removeCounterCheckDuplicates = (
+  data: CounterCheckInsertSchema[],
+  counterCheck: CounterCheckSchema[]
+) => {
+  const something2 = counterCheck.map((item) =>
+    JSON.stringify({
+      PAGE: item.page,
+      CONTROL: item.control,
+      PRICE: item.price,
+      BIDDER: item.bidder_number,
+    })
+  );
+
+  return data.map((item) => {
+    const fields = JSON.stringify({
+      PAGE: item.PAGE,
+      CONTROL: item.CONTROL,
+      PRICE: item.PRICE,
+      BIDDER: item.BIDDER,
+    });
+
+    if (something2.includes(fields)) {
+      item.isValid = false;
+    }
+
+    return item;
   });
 };

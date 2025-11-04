@@ -606,4 +606,67 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
+  uploadCounterCheck: async (auction_id, data) => {
+    try {
+      const valid_rows_in_sheet = data.filter((item) => item.isValid);
+
+      const counter_check_records = await prisma.counter_check.createMany({
+        data: valid_rows_in_sheet.map((item) => ({
+          auction_id,
+          control: item.CONTROL,
+          price: item.PRICE.toString(),
+          page: item.PAGE,
+          bidder_number: item.BIDDER,
+          error: item.error,
+        })),
+      });
+
+      return counter_check_records;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(error.message, {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  getCounterCheckRecords: async (auction_id) => {
+    try {
+      return await prisma.counter_check.findMany({
+        where: { auction_id },
+        orderBy: { page: "asc" },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(error.message, {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  updateCounterCheck: async (counter_check_id, data) => {
+    try {
+      return await prisma.counter_check.update({
+        where: { counter_check_id },
+        data: {
+          page: data.page,
+          control: data.control,
+          bidder_number: data.bidder_number,
+          price: data.price,
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(error.message, {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
 };

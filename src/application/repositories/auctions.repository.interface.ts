@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import {
   AUCTION_ITEM_STATUS,
   AuctionDateRange,
@@ -8,6 +9,11 @@ import {
   RegisterBidderInputSchema,
   RegisteredBidderSchema,
 } from "src/entities/models/Bidder";
+import {
+  CounterCheckInsertSchema,
+  CounterCheckSchema,
+  CounterCheckUpdateSchema,
+} from "src/entities/models/CounterCheck";
 import {
   ManifestInsertSchema,
   ManifestSchema,
@@ -44,6 +50,10 @@ export interface IAuctionRepository {
       "auction_bidder" | "inventory" | "histories" | "receipt"
     >[]
   >;
+  uploadCounterCheck: (
+    auction_id: string,
+    data: CounterCheckInsertSchema[]
+  ) => Promise<Prisma.BatchPayload>;
   getManifestRecords: (auction_id: string) => Promise<ManifestSchema[]>;
   cancelItems: (data: CancelItemsSchema) => Promise<void>;
   getBiddersWithBalance: () => Promise<
@@ -54,4 +64,9 @@ export interface IAuctionRepository {
       >[];
     })[]
   >;
+  getCounterCheckRecords: (auction_id: string) => Promise<CounterCheckSchema[]>;
+  updateCounterCheck: (
+    counter_check_id: string,
+    data: CounterCheckUpdateSchema
+  ) => Promise<CounterCheckSchema>;
 }
