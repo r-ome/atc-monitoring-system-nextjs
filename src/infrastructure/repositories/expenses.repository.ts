@@ -5,6 +5,7 @@ import {
 } from "@/app/lib/error-handler";
 import { IExpenseRepository } from "src/application/repositories/expenses.repository.interface";
 import { DatabaseOperationError } from "src/entities/errors/common";
+import { ExpenseSchema } from "src/entities/models/Expense";
 
 export const ExpensesRepository: IExpenseRepository = {
   getExpensesByDate: async (date) => {
@@ -20,22 +21,7 @@ export const ExpensesRepository: IExpenseRepository = {
         orderBy: { created_at: "desc" },
       });
 
-      const startOfYesterday = new Date(date);
-      startOfYesterday.setDate(date.getDate() - 1);
-      startOfYesterday.setHours(0, 0, 0, 0);
-
-      const endOfYesterday = new Date(date);
-      endOfYesterday.setDate(date.getDate() - 1);
-      endOfYesterday.setHours(23, 59, 59, 999);
-
-      const expense = await prisma.expenses.findFirst({
-        where: { created_at: { gte: startOfYesterday, lte: endOfYesterday } },
-        orderBy: { created_at: "desc" },
-      });
-
-      const yesterday_balance =
-        expense?.balance === 0 ? 0 : expense?.balance ?? 0;
-      return { expenses, yesterday_balance };
+      return { expenses };
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting expenses", {
@@ -68,6 +54,27 @@ export const ExpensesRepository: IExpenseRepository = {
 
         return created;
       });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error adding expense", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  getPettyCashBalance: async (date: Date) => {
+    try {
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const petty_cash_balance = await prisma.expenses.findFirst({
+        where: { created_at: { lte: nextDay } },
+        orderBy: { created_at: "desc" },
+      });
+
+      return petty_cash_balance;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error adding expense", {

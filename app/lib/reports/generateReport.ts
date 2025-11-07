@@ -100,7 +100,11 @@ const generateReport = (
   }
 
   if (reports.includes("cash_flow")) {
-    xlsx.utils.book_append_sheet(workbook, generateCashFlow(data), filename);
+    xlsx.utils.book_append_sheet(
+      workbook,
+      generateCashFlow(data),
+      filename.toUpperCase()
+    );
   }
 
   if (reports.includes("monthly_commission")) {

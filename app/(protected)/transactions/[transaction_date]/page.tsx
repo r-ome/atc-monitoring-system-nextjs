@@ -1,6 +1,7 @@
 import {
   getExpensesByDate,
   getPaymentsByDate,
+  getPettyCashBalance,
 } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import {
   Card,
@@ -27,16 +28,19 @@ export default async function Page({
   const { transaction_date } = await params;
   const transactions_res = await getPaymentsByDate(transaction_date);
   const expenses_res = await getExpensesByDate(transaction_date);
+  const petty_cash_res = await getPettyCashBalance(transaction_date);
 
-  if (!transactions_res.ok || !expenses_res.ok) {
-    const err = [transactions_res, expenses_res].find((res) => !res.ok)?.error;
+  if (!transactions_res.ok || !expenses_res.ok || !petty_cash_res.ok) {
+    const err = [transactions_res, expenses_res, petty_cash_res].find(
+      (res) => !res.ok
+    )?.error;
     if (!err) return;
     return <ErrorComponent error={err} />;
   }
 
   const transactions = transactions_res.value;
   const expenses = expenses_res.value.expenses;
-  const yesterday_balance = expenses_res.value.yesterday_balance;
+  const petty_cash_balance = petty_cash_res.value;
 
   return (
     <>
@@ -53,7 +57,7 @@ export default async function Page({
                 <GenerateExpenseReport
                   transactions={transactions}
                   expenses={expenses}
-                  yesterdayBalance={yesterday_balance}
+                  yesterdayBalance={petty_cash_balance}
                 />
                 <AddExpenseModal />
               </div>
@@ -72,7 +76,7 @@ export default async function Page({
             <TabsContent value="expense">
               <ExpensesTab
                 expenses={expenses}
-                yesterdayBalance={yesterday_balance}
+                pettyCashBalance={petty_cash_balance}
               />
             </TabsContent>
           </Tabs>

@@ -14,7 +14,7 @@ import {
 
 interface ExpensesTabProps {
   expenses: Expense[];
-  yesterdayBalance: number;
+  pettyCashBalance: number;
 }
 
 type ExpenseTypesTotal = {
@@ -25,7 +25,7 @@ type ExpenseTypesTotal = {
 
 export const ExpensesTab: React.FC<ExpensesTabProps> = ({
   expenses,
-  yesterdayBalance,
+  pettyCashBalance,
 }) => {
   const [expenseTypesTotal, setExpenseTypesTotal] = useState<ExpenseTypesTotal>(
     {
@@ -36,16 +36,20 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
   );
 
   useEffect(() => {
-    const total = expenses.reduce((acc, item) => (acc += item.amount), 0);
-    const cashOnHand = expenses[0]?.balance || 0;
-    const pettyCashBalance = yesterdayBalance + cashOnHand;
+    const total = expenses
+      .filter((item) => item.purpose === "EXPENSE")
+      .reduce((acc, item) => (acc += item.amount), 0);
+    const cashOnHand = expenses
+      .filter((item) => item.purpose === "ADD_PETTY_CASH")
+      .reduce((acc, item) => (acc += item.amount), 0);
+
     setExpenseTypesTotal((prev) => ({
       ...prev,
       TOTAL_EXPENSES: total,
       CASH_ON_HAND_FOR_PETTY_CASH: cashOnHand,
       PETTY_CASH_BALANCE: pettyCashBalance,
     }));
-  }, [expenses, yesterdayBalance]);
+  }, [expenses]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -77,10 +81,10 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
         <TableBody>
           {expenses.map((item) => (
             <TableRow key={item.expense_id}>
-              <TableCell>{item.purpose}</TableCell>
-              <TableCell>{item.balance}</TableCell>
-              <TableCell>{item.amount}</TableCell>
-              <TableCell>{item.remarks}</TableCell>
+              <TableCell>{item.purpose.replace(/_/g, " ")}</TableCell>
+              <TableCell>{item.balance.toLocaleString()}</TableCell>
+              <TableCell>{item.amount.toLocaleString()}</TableCell>
+              <TableCell>{item.remarks?.toLocaleUpperCase()}</TableCell>
               <TableCell>{item.created_at}</TableCell>
             </TableRow>
           ))}

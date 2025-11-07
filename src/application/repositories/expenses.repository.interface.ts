@@ -4,8 +4,7 @@ import {
 } from "src/entities/models/Expense";
 
 export interface IExpenseRepository {
-  getExpensesByDate: (
-    date: Date
-  ) => Promise<{ expenses: ExpenseSchema[]; yesterday_balance: number }>;
+  getExpensesByDate: (date: Date) => Promise<{ expenses: ExpenseSchema[] }>;
   addExpense: (input: ExpenseInsertSchema) => Promise<ExpenseSchema>;
+  getPettyCashBalance: (date: Date) => Promise<ExpenseSchema | null>;
 }

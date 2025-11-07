@@ -5,9 +5,8 @@ import { ok, err } from "src/entities/models/Response";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(expenses: ExpenseSchema[], yesterday_balance: number) {
+function presenter(expenses: ExpenseSchema[]) {
   return {
-    yesterday_balance,
     expenses: expenses.map((expense) => ({
       expense_id: expense.expense_id,
       balance: expense.balance,
@@ -21,10 +20,8 @@ function presenter(expenses: ExpenseSchema[], yesterday_balance: number) {
 
 export const GetExpensesByDateController = async (date: Date) => {
   try {
-    const { expenses, yesterday_balance } = await getExpensesByDateUseCase(
-      date
-    );
-    return ok(presenter(expenses, yesterday_balance));
+    const { expenses } = await getExpensesByDateUseCase(date);
+    return ok(presenter(expenses));
   } catch (error) {
     logger("GetExpensesByDateController", error);
     if (error instanceof DatabaseOperationError) {

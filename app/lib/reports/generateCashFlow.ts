@@ -78,10 +78,10 @@ const generateCashFlow = ({
   const inwardHeaders = ["DATE", "PARTICULAR", "AMOUNT", "PAYMENT TYPE"];
 
   const sheet = xlsx.utils.aoa_to_sheet([
-    ...Array.from({ length: 11 }, () => [...Array(10).fill("")]),
+    ...Array.from({ length: 11 }, () => [...Array(15).fill("")]),
     inwardHeaders,
     ...inward,
-    ...Array.from({ length: 2 }, () => [...Array(10).fill("")]),
+    ...Array.from({ length: 2 }, () => [...Array(15).fill("")]),
   ]);
 
   sheet["!merges"] = [
@@ -111,8 +111,6 @@ const generateCashFlow = ({
     { s: { r: 2, c: 6 }, e: { r: 2, c: 7 } }, // G3:H3
     { s: { r: 3, c: 4 }, e: { r: 3, c: 5 } }, // E4:F4
     { s: { r: 3, c: 6 }, e: { r: 3, c: 7 } }, // G3:H3
-    { s: { r: 4, c: 4 }, e: { r: 4, c: 5 } }, // E5:F5
-    { s: { r: 4, c: 6 }, e: { r: 4, c: 7 } }, // G5:G5
   ];
 
   sheet["!rows"] = [{ hpt: 40 }];
@@ -802,39 +800,26 @@ const generateCashFlow = ({
     },
   };
 
-  sheet["E5"] = {
-    v: "PETTY CASH",
-    t: "s",
-    s: {
-      font: { name: "Calibri", sz: 10 },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "right",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        left: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
+  // sheet["E5"] = {
+  //   v: "PETTY CASH",
+  //   t: "s",
+  //   s: {
+  //     font: { name: "Calibri", sz: 10 },
+  //     fill: { fgColor: { rgb: "DDEBF7" } },
+  //     alignment: {
+  //       horizontal: "right",
+  //       vertical: "center",
+  //       wrapText: true,
+  //     },
+  //     border: {
+  //       top: { style: "thin", color: { rgb: "000000" } },
+  //       left: { style: "thin", color: { rgb: "000000" } },
+  //       bottom: { style: "thin", color: { rgb: "000000" } },
+  //     },
+  //   },
+  // };
 
-  [
-    "B2",
-    "C2",
-    "D2",
-    "F4",
-    "F2",
-    "F3",
-    "F5",
-    "G5",
-    "H5",
-    "H3",
-    "H2",
-    "H4",
-  ].forEach((cell) => {
+  ["B2", "C2", "D2", "F4", "F2", "F3", "H3", "H2", "H4"].forEach((cell) => {
     sheet[cell] = {
       v: "",
       t: "s",
@@ -1039,6 +1024,159 @@ const generateCashFlow = ({
         top: { style: "thin", color: { rgb: "000000" } },
         right: { style: "thin", color: { rgb: "000000" } },
         bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet[`J4`] = {
+    v: "BALANCE PETTY CASH",
+    t: "s",
+    s: {
+      font: { name: "Calibri", sz: 11, color: { rgb: "F00000" } },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet[`J5`] = {
+    v: "PETTY CASH",
+    t: "s",
+    s: {
+      font: { name: "Calibri", sz: 11, color: { rgb: "F00000" } },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet[`J6`] = {
+    v: "TOTAL",
+    t: "s",
+    s: {
+      font: { name: "Calibri", sz: 11, color: { rgb: "F00000" } },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet[`K4`] = {
+    v: yesterdayBalance,
+    t: "n",
+    z: '"₱" #,##0.00',
+    s: {
+      font: { name: "Calibri", sz: 11 },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet["L4"] = {
+    v: formatDate(new Date(), "dd-MM-yyyy"),
+    t: "s",
+    s: {
+      font: { name: "Calibri", sz: 11 },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet["L5"] = {
+    v: formatDate(new Date(), "dd-MM-yyyy"),
+    t: "s",
+    s: {
+      font: { name: "Calibri", sz: 11 },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet["K5"] = {
+    v: `0`,
+    t: "n",
+    z: '"₱" #,##0.00;"₱" [Red]-#,##0.00',
+    s: {
+      font: { name: "Calibri", sz: 11 },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet["K6"] = {
+    f: `SUM(K4:K5)`,
+    t: "n",
+    z: '"₱" #,##0.00;"₱" [Red]-#,##0.00',
+    s: {
+      font: { name: "Calibri", sz: 11 },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  sheet["L6"] = {
+    v: "",
+    t: "s",
+    s: {
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
       },
     },
   };

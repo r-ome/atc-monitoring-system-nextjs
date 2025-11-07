@@ -716,7 +716,6 @@ export const AuctionRepository: IAuctionRepository = {
             const match = newly_created_inventories.find(
               (inventory) => inventory.barcode === item.barcode
             );
-            console.log(item);
             if (!item.auction_bidder_id) {
               throw new Error("Auction Bidder ID does not exist");
             }

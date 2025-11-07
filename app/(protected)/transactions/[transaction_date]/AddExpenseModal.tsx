@@ -27,6 +27,11 @@ import { addExpense } from "@/app/(protected)/auctions/[auction_date]/payments/a
 import { toast } from "sonner";
 import { formatDate } from "@/app/lib/utils";
 
+// NOTES
+// BALANCE PETTY CASH: Balance from yesterday
+// PETTY CASH: amount that is added today
+// TOTAL: Total of both
+
 export const AddExpenseModal: React.FC = () => {
   const router = useRouter();
   const { transaction_date } = useParams();
@@ -67,7 +72,7 @@ export const AddExpenseModal: React.FC = () => {
                 Amount
               </Label>
               <div className="w-full">
-                <InputNumber name="amount" min={0} required />
+                <InputNumber name="amount" min={0} decimalScale={2} required />
               </div>
             </div>
 

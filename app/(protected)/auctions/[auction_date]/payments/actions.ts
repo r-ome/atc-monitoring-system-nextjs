@@ -8,6 +8,7 @@ import { GetReceiptDetailsController } from "src/controllers/payments/get-receip
 import { AddExpenseController } from "src/controllers/expenses/add-expense.controller";
 import { GetBidderReceiptsController } from "src/controllers/payments/get-bidder-receipts.controller";
 import { UpdateRegistrationPaymentController } from "src/controllers/payments/update-registration-payment.controller";
+import { GetPettyCashBalanceController } from "src/controllers/expenses/get-petty-cash-balance.controller";
 
 export const getPaymentsByDate = async (date: string) => {
   const input = new Date(date);
@@ -50,4 +51,9 @@ export const updateRegistrationPayment = async (
 ) => {
   const input = Object.fromEntries(formData.entries());
   return await UpdateRegistrationPaymentController(payment_id, input);
+};
+
+export const getPettyCashBalance = async (date: string) => {
+  const input = new Date(date);
+  return await GetPettyCashBalanceController(input);
 };
