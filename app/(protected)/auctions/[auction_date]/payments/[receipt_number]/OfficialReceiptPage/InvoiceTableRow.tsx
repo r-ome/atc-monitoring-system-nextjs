@@ -2,7 +2,7 @@ import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const rowAttributes = {
   borderRightColor: "black",
-  paddingTop: 5,
+  paddingTop: 2,
   borderRight: 1,
   borderBottom: 1,
   fontSize: 10,
@@ -10,7 +10,7 @@ const rowAttributes = {
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    height: 24,
+    height: 15,
     textAlign: "center",
     flexGrow: 1,
     borderColor: "#000",

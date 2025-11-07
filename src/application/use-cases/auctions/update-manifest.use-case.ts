@@ -6,7 +6,6 @@ import {
 import { ManifestUpdateSchema } from "src/entities/models/Manifest";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
-import { InputParseError } from "src/entities/errors/common";
 import { getAllInventoriesUseCase } from "../inventories/get-all-inventories.use-case";
 import { ContainerSchema } from "src/entities/models/Container";
 import { getContainersUseCase } from "../containers/get-containers.use-case";
@@ -217,20 +216,7 @@ const removeManifestDuplicates = (
       PRICE: item.price.toString(),
     });
 
-    const sheet_bidder = item.bidder_number;
     // if items exists in monitoring but has a cancelled or refunded status, reassign item to new bidder
-    const existing_cancelled_items = monitoring
-      .filter((item) => ["CANCELLED", "REFUNDED"].includes(item.status))
-      .map((item) =>
-        JSON.stringify({
-          BARCODE: item.inventory.barcode,
-          CONTROL: item.inventory.control,
-          DESCRIPTION: item.description,
-          BIDDER: sheet_bidder,
-          QTY: item.qty,
-          PRICE: item.price.toString(),
-        })
-      );
 
     if (existing_monitoring.includes(fields)) {
       item.isValid = false;

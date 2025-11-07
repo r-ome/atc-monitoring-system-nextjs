@@ -1,8 +1,7 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
 import { useState, useEffect, SetStateAction } from "react";
-import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
+import { pdf, PDFViewer } from "@react-pdf/renderer";
 import { getBidderReceipts } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { PAYMENT_PURPOSE, ReceiptRecords } from "src/entities/models/Payment";
 import { Button } from "@/app/components/ui/button";
@@ -139,6 +138,23 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
     return null;
   };
 
+  async function printPdf() {
+    const blob = await pdf(<ReceiptDocument />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "100%"; // Hide the iframe off-screen
+    iframe.style.bottom = "100%";
+    iframe.src = url;
+
+    iframe.onload = () => {
+      // Once the content is loaded, trigger the print dialog within the iframe
+      iframe.contentWindow?.print();
+    };
+
+    document.body.appendChild(iframe);
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="min-w-[1000px] max-h-[700px]">
@@ -165,7 +181,11 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
               Close
             </Button>
           </DialogClose>
-          <PDFDownloadLink
+
+          <Button className="w-full" onClick={printPdf}>
+            PRINT RECEIPT
+          </Button>
+          {/* <PDFDownloadLink
             fileName={receipt.receipt_number}
             document={<ReceiptDocument />}
           >
@@ -175,7 +195,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
                 Download Receipt
               </Button>
             )}
-          </PDFDownloadLink>
+          </PDFDownloadLink> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>

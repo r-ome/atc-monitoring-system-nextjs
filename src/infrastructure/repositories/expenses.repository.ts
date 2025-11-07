@@ -5,7 +5,6 @@ import {
 } from "@/app/lib/error-handler";
 import { IExpenseRepository } from "src/application/repositories/expenses.repository.interface";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { ExpenseSchema } from "src/entities/models/Expense";
 
 export const ExpensesRepository: IExpenseRepository = {
   getExpensesByDate: async (date) => {

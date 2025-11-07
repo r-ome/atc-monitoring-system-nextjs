@@ -17,7 +17,6 @@ import {
 } from "@/app/components/ui/dialog";
 import { Input } from "@/app/components/ui/input";
 import { toast } from "sonner";
-import { CounterCheck } from "src/entities/models/CounterCheck";
 import { Manifest } from "src/entities/models/Manifest";
 
 type UpdateManifestForm = {
