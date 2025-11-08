@@ -71,9 +71,10 @@ const generateCashFlow = ({
   const totalGCash = getTotal("GCASH");
   const totalBPI = getTotal("BPI");
   const totalRefund = refundAmount;
-  const totalInward = payments
-    .filter((item) => item.receipt.purpose !== "REFUNDED")
-    .reduce((acc, item) => (acc += item.amount_paid), 0);
+  const totalInward =
+    payments
+      .filter((item) => item.receipt.purpose !== "REFUNDED")
+      .reduce((acc, item) => (acc += item.amount_paid), 0) - refundAmount;
 
   const inwardHeaders = ["DATE", "PARTICULAR", "AMOUNT", "PAYMENT TYPE"];
 
