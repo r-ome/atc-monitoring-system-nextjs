@@ -64,6 +64,7 @@ export const UpdateManifestModal: React.FC<UpdateManifestProps> = ({
 
     const formData = new FormData(event.currentTarget);
     formData.append("error", JSON.stringify(selected?.error_message));
+    formData.append("manifest_id", selected.manifest_id);
     const res = await updateManifest(
       selected.auction_id,
       selected.manifest_id,
