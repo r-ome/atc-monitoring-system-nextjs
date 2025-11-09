@@ -57,7 +57,7 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
     },
   },
   {
-    accessorKey: "receipt",
+    accessorKey: "receipt_number",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
