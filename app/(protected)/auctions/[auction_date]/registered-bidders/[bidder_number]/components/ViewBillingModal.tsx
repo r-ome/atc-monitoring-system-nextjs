@@ -30,7 +30,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
   const { registeredBidder, selectedItems } = useBidderPullOutModalContext();
   const [receipt, setReceipt] =
     useState<Omit<ReceiptRecords, "payments" | "created_at">>();
-  const [receiptNumber, setReceiptNumber] = useState<string>();
+  const [receiptNumber, setReceiptNumber] = useState<string>("0");
 
   useEffect(() => {
     if (!registeredBidder?.auction_bidder_id) return;
