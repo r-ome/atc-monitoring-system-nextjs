@@ -2,15 +2,16 @@ import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const rowAttributes = {
   borderRightColor: "black",
-  paddingTop: 2,
+  paddingTop: 5,
+  paddingBottom: 1,
   borderRight: 1,
   borderBottom: 1,
-  fontSize: 10,
+  fontSize: 12,
 };
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    height: 15,
+    height: 20,
     textAlign: "center",
     flexGrow: 1,
     borderColor: "#000",

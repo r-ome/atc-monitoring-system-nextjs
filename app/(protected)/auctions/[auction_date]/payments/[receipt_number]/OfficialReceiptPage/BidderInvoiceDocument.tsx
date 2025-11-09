@@ -62,7 +62,7 @@ const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
   receipt,
   computation,
 }) => {
-  const chunkSize = 28;
+  const chunkSize = 35;
   const newArr = [];
   for (let i = 0; i < receipt.auctions_inventories.length; i += chunkSize) {
     const chunk = receipt.auctions_inventories

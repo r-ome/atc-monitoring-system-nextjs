@@ -45,7 +45,9 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
         if (pull_out_receipts.length) {
           const latest_receipt_number = Math.max(...pull_out_receipts);
           setReceiptNumber(
-            `${registeredBidder.bidder.bidder_number}-${latest_receipt_number}`
+            `${registeredBidder.bidder.bidder_number}-${
+              latest_receipt_number + 1
+            }`
           );
         } else {
           setReceiptNumber(`${registeredBidder.bidder.bidder_number}-1`);
@@ -110,7 +112,6 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
         0
       );
 
-      const receiptNumber = receipt.receipt_number.split("-")[1];
       const less =
         parseInt(receiptNumber, 10) > 1 ? 0 : receipt.bidder.registration_fee;
       const service_charge_amount =
