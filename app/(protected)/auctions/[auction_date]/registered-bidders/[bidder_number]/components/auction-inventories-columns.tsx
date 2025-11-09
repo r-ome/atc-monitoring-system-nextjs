@@ -47,6 +47,7 @@ export const columns: ColumnDef<AuctionInventory>[] = [
   },
   {
     accessorKey: "auction_status",
+    accessorFn: (row) => row.status,
     size: 80,
     header: ({ column }) => {
       return (
@@ -62,20 +63,18 @@ export const columns: ColumnDef<AuctionInventory>[] = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      const auctionInventory = row.original;
+    cell: ({ getValue }) => {
+      const status = getValue<string>();
       return (
         <div className="flex justify-center">
           <Badge
             variant={
-              ["CANCELLED", "UNPAID", "REFUNDED"].includes(
-                auctionInventory.status
-              )
+              ["CANCELLED", "UNPAID", "REFUNDED"].includes(status)
                 ? "destructive"
                 : "success"
             }
           >
-            {auctionInventory.status}
+            {status}
           </Badge>
         </div>
       );
@@ -83,6 +82,7 @@ export const columns: ColumnDef<AuctionInventory>[] = [
   },
   {
     accessorKey: "barcode",
+    accessorFn: (row) => row.inventory.barcode,
     size: 100,
     header: ({ column }) => {
       return (
@@ -98,17 +98,13 @@ export const columns: ColumnDef<AuctionInventory>[] = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      const auctionInventory = row.original;
-      return (
-        <div className="flex justify-center">
-          {auctionInventory.inventory.barcode}
-        </div>
-      );
+    cell: ({ getValue }) => {
+      return <div className="flex justify-center">{getValue<string>()}</div>;
     },
   },
   {
     accessorKey: "control",
+    accessorFn: (row) => row.inventory.control,
     size: 100,
     header: ({ column }) => {
       return (
@@ -124,13 +120,8 @@ export const columns: ColumnDef<AuctionInventory>[] = [
         </div>
       );
     },
-    cell: ({ row }) => {
-      const auctionInventory = row.original;
-      return (
-        <div className="flex justify-center">
-          {auctionInventory.inventory.control}
-        </div>
-      );
+    cell: ({ getValue }) => {
+      return <div className="flex justify-center">{getValue<string>()}</div>;
     },
   },
   {
