@@ -64,6 +64,27 @@ export const columns: ColumnDef<InventoryRowType>[] = [
     },
   },
   {
+    accessorKey: "description",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Description
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const inventory = row.original;
+      return <div className="flex justify-center">{inventory.description}</div>;
+    },
+  },
+  {
     accessorKey: "status",
     header: ({ column }) => {
       return (
