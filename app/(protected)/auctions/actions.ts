@@ -14,6 +14,7 @@ import { UploadCounterCheckController } from "src/controllers/auctions/upload-co
 import { GetCounterCheckController } from "src/controllers/auctions/get-counter-check.controller";
 import { UpdateCounterCheckController } from "src/controllers/auctions/update-counter-check.controller";
 import { UpdateManifestController } from "src/controllers/auctions/update-manifest.controller";
+import { InsertAuctionInventoryController } from "src/controllers/auctions/insert-auction-inventory.controller";
 import {
   PAYMENT_TYPE,
   type PAYMENT_TYPE as PaymentType,
@@ -133,4 +134,12 @@ export const updateManifest = async (
 ) => {
   const data = Object.fromEntries(formData.entries());
   return await UpdateManifestController(auction_id, manifest_id, data);
+};
+
+export const insertAuctionInventory = async (
+  auction_id: string,
+  formData: FormData
+) => {
+  const data = Object.fromEntries(formData.entries());
+  return await InsertAuctionInventoryController(auction_id, data);
 };

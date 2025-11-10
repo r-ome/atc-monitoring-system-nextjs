@@ -4,6 +4,7 @@ import { UploadManifestModal } from "@/app/(protected)/auctions/[auction_date]/m
 import { getAuction, getMonitoring } from "@/app/(protected)/auctions/actions";
 import { MonitoringTable } from "./MonitoringTable";
 import { GenerateReportButton } from "./components/GenerateReport";
+import { AddOnModal } from "./components/AddOnModal";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
@@ -36,6 +37,10 @@ export default async function Page({
         {session.user.role !== "ENCODER" && (
           <GenerateReportButton monitoring={monitoring} />
         )}
+        <AddOnModal
+          auction_id={auction.auction_id}
+          registered_bidders={auction.registered_bidders}
+        />
       </div>
       <MonitoringTable monitoring={monitoring} />
     </div>

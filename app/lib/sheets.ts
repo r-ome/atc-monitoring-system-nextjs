@@ -116,63 +116,61 @@ export const validateEmptyFields = <T extends "manifest" | "counter_check">(
 ): T extends "manifest"
   ? ManifestInsertSchema[]
   : CounterCheckInsertSchema[] => {
-  return data
-    .map((item) => {
-      const required =
-        type === "manifest"
-          ? (["BARCODE", "BIDDER", "PRICE"] as (keyof ManifestSheetRecord)[])
-          : ([
-              "PAGE",
-              "CONTROL",
-              "BIDDER",
-              "PRICE",
-            ] as (keyof CounterCheckRecord)[]);
+  return data.map((item) => {
+    const required =
+      type === "manifest"
+        ? (["BARCODE", "BIDDER", "PRICE"] as (keyof ManifestSheetRecord)[])
+        : ([
+            "PAGE",
+            "CONTROL",
+            "BIDDER",
+            "PRICE",
+          ] as (keyof CounterCheckRecord)[]);
 
-      const emptyFields = required.filter(
-        (field) => !item[field as keyof typeof item]
-      );
-      item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
+    const emptyFields = required.filter(
+      (field) => !item[field as keyof typeof item]
+    );
+    item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
 
-      if (type === "manifest") {
-        const manifestItem = item as ManifestSheetRecord;
-        if (manifestItem.QTY) {
-          if (manifestItem.QTY == "0.5") {
-            manifestItem.QTY = "1/2";
-          }
-          manifestItem.QTY = manifestItem.QTY.toString();
+    if (type === "manifest") {
+      const manifestItem = item as ManifestSheetRecord;
+      if (manifestItem.QTY) {
+        if (manifestItem.QTY == "0.5") {
+          manifestItem.QTY = "1/2";
         }
-        manifestItem.MANIFEST = manifestItem.MANIFEST
-          ? manifestItem.MANIFEST.toString().trim()
-          : "";
+        manifestItem.QTY = manifestItem.QTY.toString();
       }
+      manifestItem.MANIFEST = manifestItem.MANIFEST
+        ? manifestItem.MANIFEST.toString().trim()
+        : "";
+    }
 
-      item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
+    item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
 
-      if (!emptyFields.length) {
-        return {
-          ...item,
-          isValid: true,
-          error: "",
-          ...(type === "manifest" ? { forReassign: false } : {}),
-        };
-      }
+    if (!emptyFields.length) {
+      return {
+        ...item,
+        isValid: true,
+        error: "",
+        ...(type === "manifest" ? { forReassign: false } : {}),
+      };
+    }
 
-      if (type === "manifest") {
-        return {
-          ...item,
-          isValid: false,
-          forReassign: false,
-          error: `Required Fields: ${emptyFields.join(", ")}`,
-        };
-      } else {
-        return {
-          ...item,
-          isValid: false,
-          error: `Required Fields: ${emptyFields.join(", ")}`,
-        };
-      }
-    })
-    .slice(1) as T extends "manifest"
+    if (type === "manifest") {
+      return {
+        ...item,
+        isValid: false,
+        forReassign: false,
+        error: `Required Fields: ${emptyFields.join(", ")}`,
+      };
+    } else {
+      return {
+        ...item,
+        isValid: false,
+        error: `Required Fields: ${emptyFields.join(", ")}`,
+      };
+    }
+  }) as T extends "manifest"
     ? ManifestInsertSchema[]
     : CounterCheckInsertSchema[];
 };
