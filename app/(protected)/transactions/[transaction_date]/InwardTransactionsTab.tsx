@@ -41,7 +41,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
     (acc, item) => {
       acc["INWARD_TOTAL_CASH"] += item.amount_paid;
 
-      if (item.payment_type === "CASH")
+      if (item.payment_type === "CASH" && item.receipt.purpose !== "REFUNDED")
         acc[item.payment_type] += item.amount_paid;
       if (item.payment_type === "BDO")
         acc[item.payment_type] += item.amount_paid;

@@ -59,6 +59,7 @@ const generateCashFlow = ({
 
   const getTotal = (paymentType: PAYMENT_TYPE) =>
     payments
+      .filter((item) => item.receipt.purpose !== "REFUNDED")
       .filter((item) => item.payment_type === paymentType)
       .reduce((acc, item) => (acc += item.amount_paid), 0);
 
@@ -70,11 +71,12 @@ const generateCashFlow = ({
   const totalBDO = getTotal("BDO");
   const totalGCash = getTotal("GCASH");
   const totalBPI = getTotal("BPI");
-  const totalRefund = refundAmount;
-  const totalInward =
-    payments
-      .filter((item) => item.receipt.purpose !== "REFUNDED")
-      .reduce((acc, item) => (acc += item.amount_paid), 0) - refundAmount;
+  const totalRefund = refundAmount * -1;
+  const totalInward = payments
+    .filter((item) => item.receipt.purpose !== "REFUNDED")
+    .reduce((acc, item) => (acc += item.amount_paid), 0);
+
+  console.log({ totalInward });
 
   const inwardHeaders = ["DATE", "PARTICULAR", "AMOUNT", "PAYMENT TYPE"];
 

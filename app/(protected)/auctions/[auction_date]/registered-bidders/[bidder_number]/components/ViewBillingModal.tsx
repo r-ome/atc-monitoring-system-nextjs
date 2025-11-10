@@ -164,7 +164,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
           <DialogDescription>Billing</DialogDescription>
         </DialogHeader>
 
-        {receipt.auctions_inventories.length ? (
+        {open && receipt.auctions_inventories.length ? (
           <div className="flex-1 overflow-hidden min-h-[500px]">
             <PDFViewer className="w-full h-full" showToolbar={false}>
               <ReceiptDocument />
