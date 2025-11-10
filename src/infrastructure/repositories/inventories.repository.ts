@@ -232,6 +232,7 @@ export const InventoryRepository: IInventoryRepository = {
         });
 
         await tx.auctions_inventories.update({
+          where: { auction_inventory_id: data.auction_inventory_id },
           data: {
             auction_bidder: {
               connect: { auction_bidder_id: selected_bidder.auction_bidder_id },
@@ -253,7 +254,6 @@ export const InventoryRepository: IInventoryRepository = {
               },
             },
           },
-          where: { auction_inventory_id: data.auction_inventory_id },
         });
       });
     } catch (error) {

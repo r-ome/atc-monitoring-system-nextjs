@@ -267,7 +267,9 @@ export const AuctionRepository: IAuctionRepository = {
               : ([] as typeof for_reassigning)),
           ].map((item) => {
             const match = newly_created_inventories.find(
-              (inventory) => inventory.barcode === item.BARCODE
+              (inventory) =>
+                inventory.barcode === item.BARCODE &&
+                inventory.control === item.CONTROL
             );
 
             if (!item.auction_bidder_id) {
