@@ -45,7 +45,7 @@ export const updateAuctionItemUseCase = async (
       item.barcode === data.barcode && item.inventory_id !== data.inventory_id
   );
 
-  if (match) {
+  if (has_inventory_barcode && match) {
     throw new InputParseError("Invalid Data!", {
       cause: {
         barcode: [`Barcode ${data.barcode} already taken!`],
