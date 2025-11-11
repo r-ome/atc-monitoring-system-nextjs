@@ -62,7 +62,7 @@ const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
   receipt,
   computation,
 }) => {
-  const chunkSize = 33;
+  const chunkSize = 30;
   const newArr = [];
   for (let i = 0; i < receipt.auctions_inventories.length; i += chunkSize) {
     const chunk = receipt.auctions_inventories
@@ -82,7 +82,7 @@ const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
     <Document pageMode="fullScreen">
       {newArr.map((item, i: number, arr) => {
         return (
-          <Page size="A4" key={i} style={styles.page} wrap={true}>
+          <Page size="LETTER" key={i} style={styles.page} wrap={true}>
             <BidderReceiptTop receiptNumber={receipt.receipt_number} />
             {i === 0 ? (
               <InvoiceHeading
