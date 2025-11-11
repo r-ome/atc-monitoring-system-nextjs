@@ -113,7 +113,9 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
       );
 
       const less =
-        parseInt(receiptNumber, 10) > 1 ? 0 : receipt.bidder.registration_fee;
+        parseInt(receiptNumber.split("-")[1], 10) > 1
+          ? 0
+          : receipt.bidder.registration_fee;
       const service_charge_amount =
         (total_item_price * receipt.bidder.service_charge) / 100;
       const number_of_items = receipt.auctions_inventories?.length || 0;
