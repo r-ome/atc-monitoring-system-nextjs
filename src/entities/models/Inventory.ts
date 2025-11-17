@@ -12,7 +12,11 @@ export const INVENTORY_STATUS = [
 export type INVENTORY_STATUS = "SOLD" | "UNSOLD" | "BOUGHT_ITEM" | "VOID";
 export type BaseInventorySchema = Prisma.inventoriesGetPayload<object>;
 export type InventorySchema = Prisma.inventoriesGetPayload<{
-  include: { histories: true; auctions_inventories: true; container: true };
+  include: {
+    histories: { include: { receipt: true } };
+    auctions_inventories: true;
+    container: true;
+  };
 }>;
 
 export type Inventory = {
@@ -27,7 +31,7 @@ export type Inventory = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  histories: InventoryHistory[];
+  histories: InventoryHistorySchema[];
   auctions_inventories: Omit<AuctionsInventory, "inventory" | "histories">[];
   // histories: InventoryHistorySchema[];
 };

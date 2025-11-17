@@ -32,6 +32,7 @@ function presenter(inventory: InventorySchema) {
       auction_inventory_id: history.auction_inventory_id,
       inventory_id: history.inventory_id,
       receipt_id: history.receipt_id || null,
+      receipt_number: history.receipt?.receipt_number,
       auction_status: history.auction_status,
       inventory_status: history.inventory_status,
       remarks: history.remarks,

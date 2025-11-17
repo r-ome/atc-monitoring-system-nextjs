@@ -271,7 +271,10 @@ export const InventoryRepository: IInventoryRepository = {
       const inventory = await prisma.inventories.findFirst({
         where: { inventory_id },
         include: {
-          histories: true,
+          histories: {
+            include: { receipt: true },
+            orderBy: { created_at: "desc" },
+          },
           container: true,
           auctions_inventories: {
             include: { receipt: true, auction_bidder: true },

@@ -266,11 +266,16 @@ export const AuctionRepository: IAuctionRepository = {
               ? for_reassigning
               : ([] as typeof for_reassigning)),
           ].map((item) => {
-            const match = newly_created_inventories.find(
-              (inventory) =>
+            const match = newly_created_inventories.find((inventory) => {
+              if (inventory.barcode.split("-").length === 3) {
+                return inventory.barcode === item.BARCODE;
+              }
+
+              return (
                 inventory.barcode === item.BARCODE &&
                 inventory.control === item.CONTROL
-            );
+              );
+            });
 
             if (!item.auction_bidder_id) {
               throw new Error("Auction Bidder ID does not exist");

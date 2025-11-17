@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { updateInventory } from "@/app/(protected)/inventories/actions";
 
 interface UpdateInventoryModalProps {
-  inventory: Omit<Inventory, "auctions_inventories">;
+  inventory: Omit<Inventory, "auctions_inventories" | "histories">;
 }
 
 type UpdateInventoryForm = {

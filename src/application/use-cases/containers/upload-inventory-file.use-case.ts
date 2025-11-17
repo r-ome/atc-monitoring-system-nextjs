@@ -5,6 +5,7 @@ import type {
   InventorySheetFormattedRecords,
 } from "src/entities/models/Inventory";
 import { InputParseError } from "src/entities/errors/common";
+import { formatNumberPadding } from "@/app/lib/utils";
 
 export const uploadInventoryFileUseCase = async (
   barcode: string,
@@ -15,7 +16,7 @@ export const uploadInventoryFileUseCase = async (
   const formatted_rows = rows.map((item) => ({
     container_id: container.container_id,
     barcode: item.BARCODE,
-    control: item.CONTROL,
+    control: formatNumberPadding(item.CONTROL.toString()),
     description: item.DESCRIPTION,
     status: "UNSOLD",
   })) as InventorySheetFormattedRecords;

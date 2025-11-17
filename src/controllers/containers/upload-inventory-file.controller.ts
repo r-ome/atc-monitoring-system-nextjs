@@ -45,7 +45,10 @@ export const UploadInventoryFileController = async (
       "DESCRIPTION",
     ]);
 
-    if (validInventoryHeaders !== JSON.stringify(headers)) {
+    if (
+      validInventoryHeaders !==
+      JSON.stringify(headers.filter((item) => !item.includes("EMPTY")))
+    ) {
       throw new InputParseError("Invalid Data!", {
         cause: { file: ["Sheet has invalid headers."] },
       });

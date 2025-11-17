@@ -3,10 +3,7 @@
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  insertAuctionInventory,
-  uploadManifest,
-} from "@/app/(protected)/auctions/actions";
+import { insertAuctionInventory } from "@/app/(protected)/auctions/actions";
 import { Button } from "@/app/components/ui/button";
 import { Label } from "@/app/components/ui/label";
 import { SelectWithSearch } from "@/app/components/ui/SelectWithSearch";
@@ -37,7 +34,6 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
-  const [errors, setErrors] = useState<Record<string, string[]>>();
   const [selectedBidder, setSelectedBidder] = useState<{
     [key: string]: string;
   }>();
@@ -86,13 +82,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="BARCODE">Barcode: </Label>
-              <Input
-                type="text"
-                id="BARCODE"
-                name="BARCODE"
-                error={errors}
-                required
-              />
+              <Input type="text" id="BARCODE" name="BARCODE" required />
             </div>
 
             <div className="flex flex-col gap-2 w-full">
@@ -102,29 +92,17 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
 
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="DESCRIPTION">Description: </Label>
-              <Input
-                type="text"
-                id="DESCRIPTION"
-                name="DESCRIPTION"
-                error={errors}
-                required
-              />
+              <Input type="text" id="DESCRIPTION" name="DESCRIPTION" required />
             </div>
 
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="PRICE">Price: </Label>
-              <InputNumber
-                id="PRICE"
-                name="PRICE"
-                error={errors}
-                min={0}
-                required
-              />
+              <InputNumber id="PRICE" name="PRICE" min={0} required />
             </div>
 
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="QTY">Qty: </Label>
-              <Input type="text" id="QTY" name="QTY" error={errors} required />
+              <Input type="text" id="QTY" name="QTY" required />
             </div>
 
             <div className="flex flex-col gap-2 w-full">

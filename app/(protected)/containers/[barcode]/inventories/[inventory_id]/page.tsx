@@ -60,7 +60,7 @@ export default async function Page({
               <TableCell>{item.created_at}</TableCell>
               <TableCell>{item.auction_status}</TableCell>
               <TableCell>{item.inventory_status}</TableCell>
-              <TableCell>{item.receipt_id}</TableCell>
+              <TableCell>{item.receipt_number}</TableCell>
               <TableCell>{item.remarks}</TableCell>
             </TableRow>
           ))}
