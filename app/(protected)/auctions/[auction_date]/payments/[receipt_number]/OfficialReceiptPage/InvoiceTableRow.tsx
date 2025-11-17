@@ -54,18 +54,16 @@ interface InvoiceTableRowProps {
 }
 
 const InvoiceTableRow: React.FC<InvoiceTableRowProps> = ({ items }) => {
-  const rows = items
-    .sort((a, b) => a.control.localeCompare(b.control))
-    .map((item, i) => (
-      <View style={styles.row} key={i} wrap={false}>
-        <Text style={styles.barcode}>{item.barcode}</Text>
-        <Text style={styles.control}>{item.control}</Text>
-        <Text style={styles.description}>{item.description}</Text>
-        <Text style={styles.bidder}>{item.bidder}</Text>
-        <Text style={styles.qty}>{item.qty}</Text>
-        <Text style={styles.price}>{item.price.toLocaleString()}</Text>
-      </View>
-    ));
+  const rows = items.map((item, i) => (
+    <View style={styles.row} key={i} wrap={false}>
+      <Text style={styles.barcode}>{item.barcode}</Text>
+      <Text style={styles.control}>{item.control}</Text>
+      <Text style={styles.description}>{item.description}</Text>
+      <Text style={styles.bidder}>{item.bidder}</Text>
+      <Text style={styles.qty}>{item.qty}</Text>
+      <Text style={styles.price}>{item.price.toLocaleString()}</Text>
+    </View>
+  ));
 
   return <View>{rows}</View>;
 };

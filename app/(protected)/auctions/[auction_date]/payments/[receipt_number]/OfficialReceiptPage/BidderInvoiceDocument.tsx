@@ -64,17 +64,18 @@ const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
 }) => {
   const chunkSize = 30;
   const newArr = [];
-  for (let i = 0; i < receipt.auctions_inventories.length; i += chunkSize) {
-    const chunk = receipt.auctions_inventories
-      .slice(i, i + chunkSize)
-      .map((item) => ({
-        barcode: item.barcode || "NO BARCODE",
-        control: item.control || "NC",
-        description: item.description || "NO DESCRIPTION",
-        qty: item.qty || "NO QTY",
-        price: item.price || 0,
-        bidder: receipt.bidder.bidder_number,
-      }));
+  const auctions_inventories = receipt.auctions_inventories.sort((a, b) =>
+    a.control!.localeCompare(b.control!)
+  );
+  for (let i = 0; i < auctions_inventories.length; i += chunkSize) {
+    const chunk = auctions_inventories.slice(i, i + chunkSize).map((item) => ({
+      barcode: item.barcode || "NO BARCODE",
+      control: item.control || "NC",
+      description: item.description || "NO DESCRIPTION",
+      qty: item.qty || "NO QTY",
+      price: item.price || 0,
+      bidder: receipt.bidder.bidder_number,
+    }));
     newArr.push(chunk);
   }
 
