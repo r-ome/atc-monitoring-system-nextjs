@@ -180,7 +180,7 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
     filterFn: "includesIn",
     header: ({ column }) => {
       return (
-        <div>
+        <div className="justify-center flex">
           <Button
             variant="ghost"
             className="cursor-pointer"
@@ -203,6 +203,32 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
           >
             {auction_inventory.status}
           </Badge>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "manifest_number",
+    size: 80,
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Manifest
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const auction_inventory = row.original;
+      return (
+        <div className="flex justify-center">
+          {auction_inventory.manifest_number}
         </div>
       );
     },

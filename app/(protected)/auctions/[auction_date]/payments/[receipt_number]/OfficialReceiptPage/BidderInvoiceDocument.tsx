@@ -12,6 +12,7 @@ import InvoiceTableFooter from "./InvoiceTableFooter";
 import InvoiceTermsAndConditions from "./InvoiceTermsAndConditions";
 import InvoiceSignatories from "./InvoiceSignatories";
 import { ReceiptRecords } from "src/entities/models/Payment";
+import { formatNumberPadding } from "@/app/lib/utils";
 
 Font.register({
   family: "Arial",
@@ -64,9 +65,15 @@ const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
 }) => {
   const chunkSize = 30;
   const newArr = [];
-  const auctions_inventories = receipt.auctions_inventories.sort((a, b) =>
-    a.control!.localeCompare(b.control!)
-  );
+  const auctions_inventories = receipt.auctions_inventories
+    .map((item) => {
+      // the .map() function is temporary
+      // TO DO: remove this function on November 29, 2025
+      if (!item.control) return item;
+      item.control = formatNumberPadding(item.control.replace(/\./g, ""), 4);
+      return item;
+    })
+    .sort((a, b) => a.control!.localeCompare(b.control!));
   for (let i = 0; i < auctions_inventories.length; i += chunkSize) {
     const chunk = auctions_inventories.slice(i, i + chunkSize).map((item) => ({
       barcode: item.barcode || "NO BARCODE",
