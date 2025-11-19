@@ -156,6 +156,11 @@ export const InventoryRepository: IInventoryRepository = {
           auction_inventory.auction_bidder_id !==
           selected_bidder.auction_bidder_id;
 
+        let auction_inventory_status = auction_inventory.status;
+        if (is_item_reassigned && auction_inventory_status === "REFUNDED") {
+          auction_inventory_status = "UNPAID";
+        }
+
         if (auction_inventory.status === "UNPAID") {
           const previous_bidder = await tx.auctions_bidders.findFirst({
             where: {
@@ -239,6 +244,7 @@ export const InventoryRepository: IInventoryRepository = {
             },
             price: data.price,
             description: data.description,
+            status: auction_inventory_status,
             manifest_number: data.manifest_number
               ? data?.manifest_number
               : undefined,
