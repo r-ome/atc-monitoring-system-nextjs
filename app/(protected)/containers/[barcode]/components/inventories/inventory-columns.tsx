@@ -13,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/app/components/ui/dropdown-menu";
-// import { Inventory } from "src/entities/models/Inventory";
 import { InventoryRowType } from "./ContainerInventoriesTable";
 
 export const columns: ColumnDef<InventoryRowType>[] = [
@@ -86,9 +85,10 @@ export const columns: ColumnDef<InventoryRowType>[] = [
   },
   {
     accessorKey: "status",
+    size: 100,
     header: ({ column }) => {
       return (
-        <div className="flex justify-start">
+        <div className="flex justify-center">
           <Button
             variant="ghost"
             className="cursor-pointer"
@@ -103,7 +103,7 @@ export const columns: ColumnDef<InventoryRowType>[] = [
     cell: ({ row }) => {
       const inventory = row.original;
       return (
-        <div className="flex justify-start">
+        <div className="flex justify-center">
           <Badge
             variant={
               ["SOLD", "BOUGHT_ITEM"].includes(inventory.status)
@@ -114,6 +114,29 @@ export const columns: ColumnDef<InventoryRowType>[] = [
             {inventory.status}
           </Badge>
         </div>
+      );
+    },
+  },
+  {
+    accessorKey: "auction_date",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Auction Date
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const inventory = row.original;
+      return (
+        <div className="flex justify-center">{inventory.auction_date}</div>
       );
     },
   },

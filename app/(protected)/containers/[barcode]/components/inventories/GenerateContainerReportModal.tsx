@@ -53,7 +53,8 @@ export const GenerateContainerReportModal = ({
 
   const auction_dates = auction_inventories.reduce<Record<string, number>>(
     (acc, item: InventoryRowType) => {
-      const date = item.auctions_inventories[0].created_at;
+      const date = item?.auction_date;
+      if (!date) return acc;
       acc[date] = (acc[date] ?? 0) + 1;
       return acc;
     },
@@ -67,9 +68,7 @@ export const GenerateContainerReportModal = ({
       const auction_status = item.auctions_inventories[0].status;
       return !["CANCELLED", "REFUND"].includes(auction_status);
     })
-    .filter((item) =>
-      selectedDates.includes(item.auctions_inventories[0].created_at)
-    )
+    .filter((item) => selectedDates.includes(item?.auction_date || ""))
     .map((item) => {
       const auction_inventory = item.auctions_inventories[0];
       return {

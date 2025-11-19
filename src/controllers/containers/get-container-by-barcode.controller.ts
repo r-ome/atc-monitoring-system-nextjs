@@ -64,6 +64,9 @@ const presenter = (container: ContainerSchema) => {
       status: item.status,
       is_bought_item: item.is_bought_item ?? 0,
       url: item.url,
+      auction_date: item.auction_date
+        ? formatDate(item.auction_date, date_format)
+        : "---",
       created_at: formatDate(item.created_at, date_format),
       updated_at: formatDate(item.updated_at, date_format),
       deleted_at: item.deleted_at

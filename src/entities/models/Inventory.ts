@@ -28,6 +28,7 @@ export type Inventory = {
   status: INVENTORY_STATUS;
   is_bought_item: number;
   url?: string | null;
+  auction_date?: string;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

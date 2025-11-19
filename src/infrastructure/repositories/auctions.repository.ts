@@ -222,6 +222,16 @@ export const AuctionRepository: IAuctionRepository = {
 
       return await prisma.$transaction(
         async (tx) => {
+          const auction = await tx.auctions.findFirst({
+            where: { auction_id },
+          });
+
+          if (!auction) {
+            throw new DatabaseOperationError("Error Uploading Manifest", {
+              cause: "NO AUCTION FOUND!",
+            });
+          }
+
           // insert manifest records
           await tx.manifest_records.createMany({
             data: data.map((item) => ({
@@ -249,6 +259,7 @@ export const AuctionRepository: IAuctionRepository = {
               barcode: item.BARCODE,
               description: item.DESCRIPTION,
               status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
+              auction_date: auction?.created_at,
             })),
           });
 
@@ -305,6 +316,7 @@ export const AuctionRepository: IAuctionRepository = {
                     price: parseInt(item.PRICE, 10),
                     qty: item.QTY,
                     manifest_number: item.MANIFEST as string,
+                    auction_date: auction?.created_at,
                   },
                 })
               )
@@ -699,10 +711,22 @@ export const AuctionRepository: IAuctionRepository = {
               error_message: data[0].error,
             },
           });
+
+          const auction = await tx.auctions.findFirst({
+            where: { auction_id: manifest.auction_id },
+          });
+
+          if (!auction) {
+            throw new DatabaseOperationError("Error updating manifest", {
+              cause: "No auction found!",
+            });
+          }
+
           // insert newly created_inventories
           const for_creating_inventories = valid_rows_in_sheet.filter(
             (item) => !item.inventory_id && item.container_id
           );
+
           await tx.inventories.createMany({
             data: for_creating_inventories.map((item) => ({
               container_id: item.container_id!,
@@ -712,6 +736,7 @@ export const AuctionRepository: IAuctionRepository = {
               status: "SOLD",
             })),
           });
+
           const newly_created_inventories = await tx.inventories.findMany({
             where: {
               barcode: {
@@ -719,6 +744,7 @@ export const AuctionRepository: IAuctionRepository = {
               },
             },
           });
+
           const auction_inventories = valid_rows_in_sheet.map((item) => {
             const match = newly_created_inventories.find(
               (inventory) => inventory.barcode === item.barcode
@@ -736,6 +762,7 @@ export const AuctionRepository: IAuctionRepository = {
               }
             >;
           });
+
           const created_auctions_inventories = await Promise.all(
             auction_inventories.map((item) =>
               tx.auctions_inventories.create({
@@ -747,6 +774,7 @@ export const AuctionRepository: IAuctionRepository = {
                   price: parseInt(item.price, 10),
                   qty: item.qty,
                   manifest_number: item.manifest_number as string,
+                  auction_date: auction.created_at,
                 },
               })
             )
