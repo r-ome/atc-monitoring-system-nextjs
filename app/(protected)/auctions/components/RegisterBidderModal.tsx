@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, CircleX } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -14,6 +14,20 @@ import {
   DialogHeader,
 } from "@/app/components/ui/dialog";
 
+import {
+  Tabs,
+  TabsTrigger,
+  TabsList,
+  TabsContent,
+} from "@/app/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { SelectWithSearch } from "@/app/components/ui/SelectWithSearch";
 import { Bidder } from "src/entities/models/Bidder";
 import { getBidders } from "@/app/(protected)/bidders/actions";
@@ -23,12 +37,22 @@ import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { Auction } from "src/entities/models/Auction";
 import { RegisteredBidder } from "src/entities/models/Bidder";
+import {
+  PAYMENT_TYPE,
+  type PAYMENT_TYPE as PaymentType,
+} from "src/entities/models/Payment";
 import { toast } from "sonner";
 
 interface RegisterBidderModalProps {
   auction: Auction;
   registeredBidders: RegisteredBidder[];
 }
+
+type PaymentEntry = {
+  method: PaymentType | "";
+  amount: number;
+};
+const initialState = [{ method: "Cash" as PaymentType, amount: 0 }];
 
 export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   auction,
@@ -44,6 +68,33 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<{
     [key: string]: string;
   }>({ label: "CASH", value: "CASH" });
+  const [payments, setPayments] = useState<PaymentEntry[]>(initialState);
+
+  const handleAdd = () => {
+    if (payments.length < PAYMENT_TYPE.length) {
+      setPayments([...payments, { method: "", amount: 0 }]);
+    }
+  };
+
+  const handleMethodChange = (index: number, newMethod: PaymentType) => {
+    setPayments((prev) => {
+      const updated = [...prev];
+      updated[index].method = newMethod;
+      return updated;
+    });
+  };
+
+  const handleAmountChange = (index: number, newAmount: number) => {
+    const updated = [...payments];
+    updated[index].amount = newAmount;
+    setPayments(updated);
+  };
+
+  const handleRemove = (index: number) => {
+    const updated = [...payments];
+    updated.splice(index, 1);
+    setPayments(updated);
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -99,52 +150,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   //   setIsLoading(true);
   //   // bidder_numbers
   //   const bidder_numbers = [
-  //     "0003",
-  //     "0006",
-  //     "0026",
-  //     "0028",
-  //     "0033",
-  //     "0043",
-  //     "0044",
-  //     "0060",
-  //     "0077",
-  //     "0096",
-  //     "0181",
-  //     "0189",
-  //     "0207",
-  //     "0209",
-  //     "0211",
-  //     "0219",
-  //     "0234",
-  //     "0237",
-  //     "0256",
-  //     "0284",
-  //     "0292",
-  //     "0458",
-  //     "0467",
-  //     "0489",
-  //     "0529",
-  //     "0532",
-  //     "0594",
-  //     "0667",
-  //     "0728",
-  //     "0744",
-  //     "0755",
-  //     "0784",
-  //     "0794",
-  //     "0819",
-  //     "0840",
-  //     "0848",
-  //     "0857",
-  //     "0859",
-  //     "0876",
-  //     "0889",
-  //     "0896",
-  //     "0897",
-  //     "0904",
-  //     "0907",
-  //     "0909",
-  //     "0911",
+
   //   ];
   //   const bidder_with_details = bidder_numbers
   //     .filter((item) =>
@@ -256,7 +262,105 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
 
           <div>
             <div className="flex flex-col gap-2">
-              <Label>Payment Method:</Label>
+              <Tabs
+                defaultValue="single"
+                onValueChange={() => setPayments([...initialState])}
+              >
+                <TabsList className="w-full">
+                  <TabsTrigger value="single">Single/Full Payment</TabsTrigger>
+                  <TabsTrigger value="multiple">Multiple Payments</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="single">
+                  <Select
+                    required
+                    onValueChange={(value) =>
+                      handleMethodChange(0, value as PaymentType)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Payment Type"></SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {PAYMENT_TYPE.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {item}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+
+                  {payments.length ? (
+                    <input
+                      type="hidden"
+                      value={0}
+                      name={`${payments[0].method}`}
+                    />
+                  ) : null}
+                </TabsContent>
+
+                <TabsContent value="multiple">
+                  <div className="space-y-2">
+                    {payments.map((item, index) => (
+                      <div className="flex gap-2" key={index}>
+                        <div className="flex-1">
+                          <Select
+                            required
+                            value={payments[index].method}
+                            onValueChange={(value) =>
+                              handleMethodChange(index, value as PaymentType)
+                            }
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select Payment Type"></SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {PAYMENT_TYPE.map((method) => (
+                                  <SelectItem key={method} value={method}>
+                                    {method}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex-1">
+                          <InputNumber
+                            name={`${item.method}_${index}`}
+                            required
+                            onChange={(e) =>
+                              handleAmountChange(index, Number(e.target.value))
+                            }
+                          />
+                        </div>
+
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleRemove(index)}
+                        >
+                          <CircleX />
+                        </Button>
+                      </div>
+                    ))}
+
+                    {payments.length < PAYMENT_TYPE.length && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAdd}
+                        disabled={payments.some((item) => item.method === "")}
+                      >
+                        Add Payment Method
+                      </Button>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+              {/* <Label>Payment Method:</Label>
 
               <SelectWithSearch
                 modal={true}
@@ -274,7 +378,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                   { label: "CASH", value: "CASH" },
                   { label: "GCASH", value: "GCASH" },
                 ]}
-              />
+              /> */}
             </div>
           </div>
           <DialogFooter>

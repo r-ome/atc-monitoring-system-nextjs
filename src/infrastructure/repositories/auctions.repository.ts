@@ -141,26 +141,30 @@ export const AuctionRepository: IAuctionRepository = {
         where: { bidder_id: data.bidder_id },
       });
 
-      return await prisma.auctions_bidders.create({
-        data: {
-          auction_id: data.auction_id,
-          bidder_id: data.bidder_id,
-          service_charge: data.service_charge,
-          registration_fee: data.registration_fee,
-          balance: data.balance,
-          receipt_records: {
-            create: {
-              receipt_number: `${bidder?.bidder_number}REG`,
-              purpose: "REGISTRATION",
-              payments: {
-                create: {
-                  amount_paid: data.registration_fee,
-                  payment_type: data.payment_method,
+      return await prisma.$transaction(async (tx) => {
+        return await tx.auctions_bidders.create({
+          data: {
+            auction_id: data.auction_id,
+            bidder_id: data.bidder_id,
+            service_charge: data.service_charge,
+            registration_fee: data.registration_fee,
+            balance: data.balance,
+            receipt_records: {
+              create: {
+                receipt_number: `${bidder?.bidder_number}REG`,
+                purpose: "REGISTRATION",
+                payments: {
+                  createMany: {
+                    data: data.payments.map((payment) => ({
+                      amount_paid: payment.amount_paid,
+                      payment_type: payment.payment_type,
+                    })),
+                  },
                 },
               },
             },
           },
-        },
+        });
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

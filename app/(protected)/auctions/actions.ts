@@ -28,9 +28,16 @@ export const getAuction = async (auctionDate: string) => {
   return await GetAuctionController(new Date(auctionDate));
 };
 
-export const registerBidder = async (data: FormData) => {
-  const input = Object.fromEntries(data.entries());
-  return await RegisterBidderController(input);
+export const registerBidder = async (input: FormData) => {
+  const data = Object.fromEntries(input.entries());
+  const payments = Object.keys(data)
+    .filter((item) => PAYMENT_TYPE.includes(item.split("_")[0] as PaymentType))
+    .map((item) => ({
+      payment_type: item.split("_")[0] as PaymentType,
+      amount_paid: typeof data[item] === "string" ? parseInt(data[item]) : 0,
+    }));
+
+  return await RegisterBidderController({ ...data, payments });
 };
 
 export const getRegisteredBidders = async (auctionId: string) => {

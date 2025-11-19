@@ -23,6 +23,17 @@ export const RegisterBidderController = async (
       });
     }
 
+    const total_amount_paid = data.payments.reduce(
+      (acc, item) => (acc += item.amount_paid),
+      0
+    );
+
+    if (total_amount_paid !== data.registration_fee) {
+      throw new InputParseError("Invalid Data!", {
+        cause: `Amount Paid should be equal to Grand Total(₱${data.registration_fee.toLocaleString()})`,
+      });
+    }
+
     const res = await registerBidderUseCase(data);
     return ok(res);
   } catch (error) {

@@ -66,13 +66,6 @@ export const ConfirmPayment: React.FC = () => {
     setPayments(updated);
   };
 
-  // const selectedMethods = payments.map((p) => p.method).filter(Boolean);
-
-  // const getAvailableMethods = (currentMethod: string) =>
-  //   PAYMENT_TYPE.filter(
-  //     (method) => !selectedMethods.includes(method) || method === currentMethod
-  //   );
-
   return (
     <div className="space-y-2">
       <Table>

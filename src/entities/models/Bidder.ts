@@ -69,7 +69,12 @@ export const RegisterBidderInput = z.object({
   service_charge: z.coerce.number(),
   registration_fee: z.coerce.number(),
   balance: z.coerce.number(),
-  payment_method: z.enum(PAYMENT_TYPE),
+  payments: z.array(
+    z.object({
+      payment_type: z.enum(PAYMENT_TYPE),
+      amount_paid: z.number(),
+    })
+  ),
 });
 
 export type RegisterBidderInputSchema = z.infer<typeof RegisterBidderInput>;
