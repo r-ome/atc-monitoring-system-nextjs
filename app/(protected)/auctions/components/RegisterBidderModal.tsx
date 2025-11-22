@@ -65,9 +65,9 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   const [selectedBidder, setSelectedBidder] = useState<{
     [key: string]: string | number | boolean;
   }>();
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<{
-    [key: string]: string;
-  }>({ label: "CASH", value: "CASH" });
+  // const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<{
+  //   [key: string]: string;
+  // }>({ label: "CASH", value: "CASH" });
   const [payments, setPayments] = useState<PaymentEntry[]>(initialState);
 
   const handleAdd = () => {
@@ -126,7 +126,10 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
     const balance =
       registration_fee > 1 ? registration_fee * -1 : registration_fee;
     formData.append("balance", balance.toString());
-    formData.append("payment_method", selectedPaymentMethod.value as string);
+    // formData.append("payment_method", selectedPaymentMethod.value as string);
+    if (payments.length === 1) {
+      formData.append(`${payments[0].method}`, registration_fee.toString());
+    }
 
     const res = await registerBidder(formData);
     if (res) {

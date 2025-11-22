@@ -30,7 +30,7 @@ export const RegisterBidderController = async (
 
     if (total_amount_paid !== data.registration_fee) {
       throw new InputParseError("Invalid Data!", {
-        cause: `Amount Paid should be equal to Grand Total(₱${data.registration_fee.toLocaleString()})`,
+        cause: `Amount Paid should be equal to (₱${data.registration_fee.toLocaleString()})`,
       });
     }
 
