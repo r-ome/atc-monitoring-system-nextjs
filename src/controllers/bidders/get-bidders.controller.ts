@@ -9,8 +9,10 @@ const presenter = (
   bidders: Omit<BidderSchema, "auctions_joined" | "requirements">[]
 ) => {
   const date_format = "MMM dd, yyyy";
+
   return bidders.map((item) => ({
     ...item,
+    branch: { branch_id: item.branch_id, name: item.branch?.name ?? "" },
     remarks: item.remarks || undefined,
     full_name: `${item.first_name} ${item.last_name}`,
     birthdate: item.birthdate ? formatDate(item.birthdate, date_format) : null,
@@ -22,9 +24,9 @@ const presenter = (
   }));
 };
 
-export const GetBiddersController = async () => {
+export const GetBiddersController = async (branch_ids: string[]) => {
   try {
-    const bidders = await getBiddersUseCase();
+    const bidders = await getBiddersUseCase(branch_ids);
     return ok(presenter(bidders));
   } catch (error) {
     logger("GetBiddersController", error);

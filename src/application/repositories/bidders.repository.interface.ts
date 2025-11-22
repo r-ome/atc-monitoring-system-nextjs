@@ -5,12 +5,16 @@ import type {
 
 export interface IBidderRepository {
   getBidder(bidder_number: string): Promise<BidderSchema>;
-  getBidderByBidderNumber(bidder_number: string): Promise<BidderSchema | null>;
-  getBidders(): Promise<
-    Omit<BidderSchema, "auctions_joined" | "requirements">[]
-  >;
+  getBidderByBidderNumber(
+    bidder_number: string,
+    branch_id: string
+  ): Promise<BidderSchema | null>;
+  getBidders(
+    branch_ids: string[]
+  ): Promise<Omit<BidderSchema, "auctions_joined" | "requirements">[]>;
   createBidder(
-    bidder: BidderInsertSchema
+    bidder: BidderInsertSchema,
+    branch_ids: string[]
   ): Promise<Omit<BidderSchema, "auctions_joined" | "requirements">>;
   updateBidder(
     bidder_id: string,

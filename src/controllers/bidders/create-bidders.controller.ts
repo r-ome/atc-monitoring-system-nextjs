@@ -28,7 +28,8 @@ const presenter = (
 };
 
 export const CreateBidderController = async (
-  input: Partial<BidderInsertSchemaType>
+  input: Partial<BidderInsertSchemaType>,
+  branch_ids: string[]
 ) => {
   try {
     input = {
@@ -45,7 +46,7 @@ export const CreateBidderController = async (
       });
     }
 
-    const bidder = await createBidderUseCase(data);
+    const bidder = await createBidderUseCase(data, branch_ids);
     return ok(presenter(bidder));
   } catch (error) {
     logger("CreateBidderController", error);

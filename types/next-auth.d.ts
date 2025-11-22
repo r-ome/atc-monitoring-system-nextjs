@@ -8,6 +8,7 @@ declare module "next-auth" {
       name: string;
       username?: string;
       role: USER_ROLES;
+      branches: { branch_id: string; name: string }[];
     } & DefaultSession["user"];
   }
 
@@ -23,5 +24,6 @@ declare module "next-auth/jwt" {
     id: string;
     name?: string;
     username?: string;
+    branches: { branch_id: string; name: string }[];
   }
 }

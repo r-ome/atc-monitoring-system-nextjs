@@ -18,7 +18,7 @@ import { AUCTION_ITEM_STATUS } from "src/entities/models/Auction";
 import { isRange } from "@/app/lib/utils";
 
 export const AuctionRepository: IAuctionRepository = {
-  startAuction: async (auction_date) => {
+  startAuction: async (auction_date, branch_id) => {
     try {
       return await prisma.$transaction(async (tx) => {
         const atc_default_bidder = await tx.bidders.findFirst({
@@ -32,6 +32,7 @@ export const AuctionRepository: IAuctionRepository = {
         const created = await tx.auctions.create({
           data: {
             created_at: auction_date,
+            branch_id,
             registered_bidders: {
               create: {
                 bidder_id: atc_default_bidder.bidder_id,
@@ -93,7 +94,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  getAuction: async (auction_date) => {
+  getAuction: async (auction_date, branch_ids) => {
     try {
       let start: Date;
       let end: Date;
@@ -110,8 +111,11 @@ export const AuctionRepository: IAuctionRepository = {
         throw new DatabaseOperationError("Invalid auction_date input");
       }
 
-      return await prisma.auctions.findFirst({
-        where: { created_at: { gte: start, lte: end } },
+      const auctions = await prisma.auctions.findFirst({
+        where: {
+          created_at: { gte: start, lte: end },
+          branch_id: { in: branch_ids },
+        },
         include: {
           registered_bidders: {
             include: {
@@ -125,6 +129,8 @@ export const AuctionRepository: IAuctionRepository = {
           },
         },
       });
+
+      return auctions;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error fetching Auction", {

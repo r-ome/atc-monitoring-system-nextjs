@@ -11,6 +11,10 @@ import { logger } from "@/app/lib/logger";
 const presenter = (bidder: BidderSchema) => {
   return {
     ...bidder,
+    branch: {
+      branch_id: bidder.branch_id,
+      name: bidder.branch?.name ?? "",
+    },
     remarks: bidder.remarks || undefined,
     full_name: `${bidder.first_name} ${bidder.last_name}`,
     birthdate: bidder.birthdate
@@ -41,10 +45,14 @@ const presenter = (bidder: BidderSchema) => {
 };
 
 export const GetBidderByBidderNumberController = async (
-  bidderNumber: string
+  bidderNumber: string,
+  branch_id: string
 ) => {
   try {
-    const bidder = await getBidderByBidderNumberUseCase(bidderNumber);
+    const bidder = await getBidderByBidderNumberUseCase(
+      bidderNumber,
+      branch_id
+    );
     return ok(presenter(bidder));
   } catch (error) {
     logger("GetBidderByBidderNumberController", error);

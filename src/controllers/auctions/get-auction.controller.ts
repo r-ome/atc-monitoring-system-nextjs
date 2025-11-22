@@ -81,9 +81,12 @@ function presenter(auction: AuctionSchema) {
   };
 }
 
-export const GetAuctionController = async (auction_date: Date) => {
+export const GetAuctionController = async (
+  auction_date: Date,
+  branch_ids: string[]
+) => {
   try {
-    const auction = await getAuctionUseCase(auction_date);
+    const auction = await getAuctionUseCase(auction_date, branch_ids);
     if (!auction) {
       throw new NotFoundError("Auction not found!");
     }

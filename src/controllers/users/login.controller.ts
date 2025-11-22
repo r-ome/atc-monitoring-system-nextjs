@@ -12,7 +12,13 @@ import { loginUseCase } from "src/application/use-cases/users/login.use-case";
 import { logger } from "@/app/lib/logger";
 
 function presenter(user: UserSchema) {
-  return user;
+  return {
+    ...user,
+    branches: user.branches.map((branch) => ({
+      branch_id: branch.branch_id,
+      name: branch.branch.name,
+    })),
+  };
 }
 
 export const LoginController = async (

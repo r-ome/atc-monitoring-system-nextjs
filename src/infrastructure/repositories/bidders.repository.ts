@@ -36,11 +36,12 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
-  getBidderByBidderNumber: async (bidder_number) => {
+  getBidderByBidderNumber: async (bidder_number, branch_id) => {
     try {
       const bidder = await prisma.bidders.findFirst({
-        where: { bidder_number },
+        where: { bidder_number, branch_id },
         include: {
+          branch: true,
           auctions_joined: { include: { auctions_inventories: true } },
           requirements: true,
         },
@@ -57,9 +58,11 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
-  getBidders: async () => {
+  getBidders: async (branch_ids) => {
     try {
       return await prisma.bidders.findMany({
+        where: { branch_id: { in: branch_ids } },
+        include: { branch: true },
         orderBy: { bidder_number: "asc" },
       });
     } catch (error) {
@@ -72,9 +75,9 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
-  createBidder: async (bidder) => {
+  createBidder: async (bidder, branch_ids) => {
     try {
-      const created = await prisma.bidders.create({
+      return await prisma.bidders.create({
         data: {
           bidder_number: bidder.bidder_number,
           first_name: bidder.first_name,
@@ -87,10 +90,9 @@ export const BidderRepository: IBidderRepository = {
           registration_fee: bidder.registration_fee,
           contact_number: bidder.contact_number,
           status: "ACTIVE",
+          branch_id: branch_ids[0],
         },
       });
-
-      return created;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error creating bidder!", {

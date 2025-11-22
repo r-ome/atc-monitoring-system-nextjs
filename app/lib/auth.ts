@@ -1,13 +1,8 @@
-import type { JWT } from "next-auth/jwt";
-import {
-  type SessionStrategy,
-  type Session,
-  type User,
-  NextAuthOptions,
-} from "next-auth";
+import { type SessionStrategy, NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { LoginController } from "src/controllers/users/login.controller";
 import { InputParseError } from "src/entities/errors/common";
+import { USER_ROLES } from "src/entities/models/User";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -39,29 +34,30 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt" as SessionStrategy,
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: User }): Promise<JWT> {
+    async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.name = user.username;
-        token.username = user.username;
-        token.role = user.role;
+        token.id = (user as any).id;
+        token.username = (user as any).username;
+        token.role = (user as any).role;
+        const branches = (user as any).branches as
+          | { branch_id: string; name: string }[]
+          | undefined;
+        token.branches = branches ?? [];
       }
+
+      // Safety: ensure array exists
+      if (!token.branches) token.branches = [];
       return token;
     },
-    async session({
-      session,
-      token,
-    }: {
-      session: Session;
-      token: JWT;
-    }): Promise<Session> {
+
+    async session({ session, token }) {
       session.user = {
         ...session.user,
-        id: token.id,
-        name: token.name,
-        username: token.username,
-        role: token.role,
-      } as Session["user"];
+        id: token.id as string,
+        username: token.username as string,
+        role: token.role as USER_ROLES,
+        branches: token.branches ?? [],
+      };
       return session;
     },
   },

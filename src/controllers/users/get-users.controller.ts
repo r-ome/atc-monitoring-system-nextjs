@@ -13,6 +13,7 @@ function presenter(users: UserSchema[]) {
       name: user.name,
       username: user.username,
       role: user.role,
+      branches: user.branches.map((item) => item.branch_id),
       created_at: formatDate(user.created_at, "MMMM dd, yyyy"),
       updated_at: formatDate(user.updated_at, "MMMM dd, yyyy"),
     }));

@@ -7,7 +7,16 @@ export const getUsers = async () => {
   return await GetUsersController();
 };
 
-export const registerUser = async (data: FormData) => {
-  const input = Object.fromEntries(data.entries());
-  return await RegisterUserController(input);
+export const registerUser = async (formData: FormData) => {
+  const input = Object.fromEntries(formData.entries());
+  const branches = (
+    typeof input.branches === "string" ? JSON.parse(input.branches) : []
+  ) as { label: string; value: string }[];
+
+  const data = {
+    ...input,
+    branches: branches.map((item) => item.value),
+  };
+
+  return await RegisterUserController(data);
 };

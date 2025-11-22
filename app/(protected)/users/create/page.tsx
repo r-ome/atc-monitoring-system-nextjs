@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -24,6 +24,10 @@ import { Button } from "@/app/components/ui/button";
 import { PasswordInput } from "@/app/components/ui/input-password";
 import { registerUser } from "@/app/(protected)/users/actions";
 import { toast } from "sonner";
+import { Branch } from "src/entities/models/Branch";
+import { getBranches } from "@/app/(protected)/branches/actions";
+import { SelectWithSearch } from "@/app/components/ui/SelectWithSearch";
+import { Skeleton } from "@/app/components/ui/skeleton";
 
 export default function Page() {
   const router = useRouter();
@@ -33,11 +37,31 @@ export default function Page() {
   const [errors, setErrors] = useState<Record<string, string[]> | undefined>(
     undefined
   );
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<{
+    label: string;
+    branch_id: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchBranchData = async () => {
+      const branch_res = await getBranches();
+      if (branch_res.ok) {
+        setBranches(branch_res.value);
+      }
+    };
+
+    fetchBranchData();
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
+
+    if (!selectedBranch) return;
+
     const formData = new FormData(event.currentTarget);
+    formData.append("branches", JSON.stringify([selectedBranch]));
     const res = await registerUser(formData);
     if (res) {
       setIsLoading(false);
@@ -109,6 +133,26 @@ export default function Page() {
                     name="username"
                     error={errors}
                   />
+                </div>
+
+                <div className="flex flex-col gap-2 w-1/2">
+                  <Label htmlFor="branch">Designated Branch</Label>
+                  {branches.length ? (
+                    <SelectWithSearch
+                      placeholder="Search Branch"
+                      options={branches.map((branch) => ({
+                        label: `${branch.name}`,
+                        value: branch.branch_id,
+                      }))}
+                      setSelected={(branch) =>
+                        setSelectedBranch(
+                          branch as { label: string; branch_id: string }
+                        )
+                      }
+                    />
+                  ) : (
+                    <Skeleton className="w-full h-[36px]" />
+                  )}
                 </div>
               </div>
 

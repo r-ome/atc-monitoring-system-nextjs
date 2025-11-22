@@ -9,9 +9,10 @@ export type BidderRowType = Omit<Bidder, "auctions_joined">;
 
 interface BiddersTableProps {
   bidders: BidderRowType[];
+  branches: { branch_id: string; name: string }[];
 }
 
-export const BiddersTable = ({ bidders }: BiddersTableProps) => {
+export const BiddersTable = ({ bidders, branches }: BiddersTableProps) => {
   const globalFilterFn = (
     row: CoreRow<BidderRowType>,
     columnId?: string,
@@ -33,7 +34,7 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
 
   return (
     <DataTable
-      columns={columns}
+      columns={columns(branches)}
       data={bidders}
       searchFilter={{
         globalFilterFn,

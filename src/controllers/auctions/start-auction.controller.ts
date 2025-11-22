@@ -8,10 +8,13 @@ function presenter(auction: Omit<AuctionSchema, "registered_bidders">) {
   return auction;
 }
 
-export const StartAuctionController = async (auction_date: string) => {
+export const StartAuctionController = async (
+  auction_date: string,
+  branch_id: string
+) => {
   try {
     const input = new Date(auction_date);
-    const auction = await startAuctionUseCase(input);
+    const auction = await startAuctionUseCase(input, branch_id);
     return ok(presenter(auction));
   } catch (error) {
     logger("StartAuctionController", error);

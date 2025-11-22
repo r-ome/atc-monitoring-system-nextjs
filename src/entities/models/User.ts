@@ -16,7 +16,9 @@ export type USER_ROLES =
   | "CASHIER"
   | "ENCODER";
 
-export type UserSchema = Prisma.usersGetPayload<object>;
+export type UserSchema = Prisma.usersGetPayload<{
+  include: { branches: { include: { branch: true } } };
+}>;
 
 export type User = {
   user_id: string;
@@ -25,12 +27,14 @@ export type User = {
   role: USER_ROLES;
   created_at: string;
   updated_at: string;
+  branches: string[];
 };
 
 export const UsersInsertSchema = z.object({
   name: z.string().min(1),
   username: z.string().min(1),
   password: z.string().min(1),
+  branches: z.array(z.string()),
   role: z.enum(["ENCODER", "CASHIER"]),
 });
 export type UsersInsertSchema = z.infer<typeof UsersInsertSchema>;
@@ -49,6 +53,7 @@ export const RegisterUserInputSchema = z.object({
     .string()
     .min(6, { message: "Password must contain at least 6 characters!" }),
   role: z.enum(["CASHIER", "ENCODER"]),
+  branches: z.array(z.string()),
 });
 
 export type RegisterUserInputSchema = z.infer<typeof RegisterUserInputSchema>;

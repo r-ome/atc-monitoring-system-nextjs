@@ -84,7 +84,7 @@ export const columns: ColumnDef<User>[] = [
             <DropdownMenuItem
             // onClick={() => redirect(`/bidders/${bidder.bidder_number}`)}
             >
-              View Bidder Profile
+              View User Profile
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -19,17 +19,25 @@ import {
   PAYMENT_TYPE,
   type PAYMENT_TYPE as PaymentType,
 } from "src/entities/models/Payment";
+import { authOptions } from "@/app/lib/auth";
+import { getServerSession } from "next-auth";
 
 export const startAuction = async (auctionDate: string) => {
-  return await StartAuctionController(auctionDate);
+  const session = await getServerSession(authOptions);
+  if (!session) return;
+  const branch_id = session.user.branches[0];
+  return await StartAuctionController(auctionDate, branch_id);
 };
 
 export const getAuction = async (auctionDate: string) => {
-  return await GetAuctionController(new Date(auctionDate));
+  const session = await getServerSession(authOptions);
+  if (!session) return;
+  const branch_ids = session.user.branches;
+  return await GetAuctionController(new Date(auctionDate), branch_ids);
 };
 
-export const registerBidder = async (input: FormData) => {
-  const data = Object.fromEntries(input.entries());
+export const registerBidder = async (formData: FormData) => {
+  const data = Object.fromEntries(formData.entries());
   const payments = Object.keys(data)
     .filter((item) => PAYMENT_TYPE.includes(item.split("_")[0] as PaymentType))
     .map((item) => ({

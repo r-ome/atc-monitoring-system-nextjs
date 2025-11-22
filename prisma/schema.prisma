@@ -10,12 +10,16 @@ datasource db {
 
 model auctions {
   auction_id         String             @id @default(uuid())
+  branch_id          String?
   created_at         DateTime           @default(now()) @db.Timestamp(0)
   updated_at         DateTime           @default(now()) @updatedAt @db.DateTime(0)
   deleted_at         DateTime?          @db.DateTime(0)
   registered_bidders auctions_bidders[]
   manifest_records   manifest_records[]
   counter_check      counter_check[]
+  branch             branches?          @relation(fields: [branch_id], references: [branch_id])
+
+  @@index([branch_id])
 }
 
 model auctions_bidders {
@@ -79,7 +83,7 @@ model bidder_requirements {
 
 model bidders {
   bidder_id        String                 @id @default(uuid())
-  bidder_number    String                 @unique
+  bidder_number    String
   first_name       String
   middle_name      String?
   last_name        String
@@ -93,6 +97,7 @@ model bidders {
   address          String?
   tin_number       String?
   store_name       String?
+  branch_id        String?
   payment_term     Int                    @default(7)
   created_at       DateTime               @default(now()) @db.Timestamp(0)
   updated_at       DateTime               @default(now()) @updatedAt @db.DateTime(0)
@@ -100,6 +105,9 @@ model bidders {
   auctions_joined  auctions_bidders[]
   requirements     bidder_requirements[]
   ban_histories    bidder_ban_histories[]
+  branch           branches?              @relation(fields: [branch_id], references: [branch_id])
+
+  @@index([branch_id])
 }
 
 model bidder_ban_histories {
@@ -115,12 +123,16 @@ model bidder_ban_histories {
 }
 
 model branches {
-  branch_id  String       @id @default(uuid())
+  branch_id  String           @id @default(uuid())
   name       String
-  created_at DateTime     @default(now()) @db.Timestamp(0)
-  updated_at DateTime     @default(now()) @updatedAt @db.DateTime(0)
+  created_at DateTime         @default(now()) @db.Timestamp(0)
+  updated_at DateTime         @default(now()) @updatedAt @db.DateTime(0)
   deleted_at DateTime?
   containers containers[]
+  users      users_branches[]
+  auctions   auctions[]
+  bidders    bidders[]
+  expenses   expenses[]
 }
 
 model containers {
@@ -222,6 +234,8 @@ model receipt_records {
   auctions_inventories auctions_inventories[]
   payments             payments[]
   inventory_histories  inventory_histories[]
+
+  @@index([auction_bidder_id])
 }
 
 model payments {
@@ -255,18 +269,34 @@ model suppliers {
 }
 
 model users {
-  user_id    String     @id @default(uuid())
+  user_id    String           @id @default(uuid())
   name       String
   username   String
   password   String
   role       users_role
-  created_at DateTime   @default(now()) @db.Timestamp(0)
-  updated_at DateTime   @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at DateTime?  @db.DateTime(0)
+  branches   users_branches[]
+  created_at DateTime         @default(now()) @db.Timestamp(0)
+  updated_at DateTime         @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at DateTime?        @db.DateTime(0)
+}
+
+model users_branches {
+  user_id    String
+  branch_id  String
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at DateTime? @db.DateTime(0)
+  user       users     @relation(fields: [user_id], references: [user_id])
+  branch     branches  @relation(fields: [branch_id], references: [branch_id])
+
+  @@id([user_id, branch_id])
+  @@index([branch_id])
+  @@index([user_id])
 }
 
 model expenses {
   expense_id String          @id @default(uuid())
+  branch_id  String?
   balance    Int             @default(0)
   amount     Int             @default(0)
   purpose    expense_purpose
@@ -274,6 +304,9 @@ model expenses {
   created_at DateTime        @default(now()) @db.Timestamp(0)
   updated_at DateTime        @default(now()) @updatedAt @db.DateTime(0)
   deleted_at DateTime?       @db.DateTime(0)
+  branch     branches?       @relation(fields: [branch_id], references: [branch_id])
+
+  @@index([branch_id])
 }
 
 model counter_check {
