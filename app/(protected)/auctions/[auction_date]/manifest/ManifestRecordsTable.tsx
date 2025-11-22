@@ -58,7 +58,9 @@ export const ManifestRecordsTable = ({
       <UpdateManifestModal open={open} setOpen={setOpen} selected={selected} />
       <DataTable
         columns={columns(setOpen, setSelected)}
-        data={manifestRecords}
+        data={manifestRecords.filter(
+          (item) => item.barcode && !item.barcode?.match(/barcode/gi)
+        )}
         searchFilter={{
           globalFilterFn,
           searchComponentProps: {
