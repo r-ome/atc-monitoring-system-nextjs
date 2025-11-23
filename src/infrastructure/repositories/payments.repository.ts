@@ -18,7 +18,7 @@ export const PaymentRepository: IPaymentRepository = {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      return await prisma.payments.findMany({
+      const payments = await prisma.payments.findMany({
         where: { created_at: { gte: startOfDay, lte: endOfDay } },
         include: {
           receipt: {
@@ -29,6 +29,8 @@ export const PaymentRepository: IPaymentRepository = {
         },
         orderBy: { created_at: "desc" },
       });
+
+      return payments;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting payments", {
