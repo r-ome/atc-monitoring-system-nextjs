@@ -10,6 +10,7 @@ import {
   Gavel,
   UsersRound,
   HandCoins,
+  Cog,
 } from "lucide-react";
 import {
   Sidebar,
@@ -78,6 +79,12 @@ const items = [
     url: "/transactions",
     icon: HandCoins,
     allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
+  },
+  {
+    title: "Configurations",
+    url: "/configurations",
+    icon: Cog,
+    allowed_roles: ["OWNER", "SUPER_ADMIN"],
   },
 ];
 

@@ -228,12 +228,15 @@ model payments {
   payment_id   String          @id @default(uuid())
   receipt_id   String
   amount_paid  Int             @default(0)
-  payment_type payments_type   @default(CASH)
+  payment_type payments_type
   remarks      String?
   created_at   DateTime        @default(now()) @db.Timestamp(0)
   updated_at   DateTime        @default(now()) @updatedAt @db.DateTime(0)
   deleted_at   DateTime?       @db.DateTime(0)
   receipt      receipt_records @relation(fields: [receipt_id], references: [receipt_id])
+
+  payment_method_id String?
+  payment_method    payment_methods? @relation(fields: [payment_method_id], references: [payment_method_id])
 
   @@index([receipt_id], map: "fk_payments_receipt")
 }
@@ -290,6 +293,21 @@ model counter_check {
   auction          auctions  @relation(fields: [auction_id], references: [auction_id], map: "fk_counter_check_auctions")
 
   @@index([auction_id], map: "fk_counter_check_auctions")
+}
+
+model payment_methods {
+  payment_method_id String     @id @default(uuid())
+  name              String     @unique
+  state             state      @default(DISABLED)
+  created_at        DateTime   @default(now()) @db.Timestamp(0)
+  updated_at        DateTime   @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at        DateTime?  @db.DateTime(0)
+  payments          payments[]
+}
+
+enum state {
+  ENABLED
+  DISABLED
 }
 
 enum users_role {

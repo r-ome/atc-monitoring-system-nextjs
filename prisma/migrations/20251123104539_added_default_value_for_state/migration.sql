@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `payment_methods` MODIFY `state` ENUM('ENABLED', 'DISABLED') NOT NULL DEFAULT 'DISABLED';

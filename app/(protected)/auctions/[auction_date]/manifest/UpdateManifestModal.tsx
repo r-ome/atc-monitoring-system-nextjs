@@ -103,8 +103,8 @@ export const UpdateManifestModal: React.FC<UpdateManifestProps> = ({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Counter Check</DialogTitle>
-            <DialogDescription>Update Counter Check details</DialogDescription>
+            <DialogTitle>Update Manifest</DialogTitle>
+            <DialogDescription>Update Manifest details</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex gap-4">
