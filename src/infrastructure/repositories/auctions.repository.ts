@@ -546,7 +546,7 @@ export const AuctionRepository: IAuctionRepository = {
 
           await tx.receipt_records.create({
             data: {
-              receipt_number: `${bidder.bidder.bidder_number}-refund`,
+              receipt_number: `${bidder.bidder.bidder_number}REF`,
               auction_bidder_id: data.auction_bidder_id,
               purpose: "REFUNDED",
               remarks: data.reason,
