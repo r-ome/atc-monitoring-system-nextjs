@@ -64,7 +64,7 @@ export type ReceiptRecords = {
   remarks?: string | null;
   payments: {
     payment_id: string;
-    payment_method: PaymentMethod["name"];
+    payment_method: PaymentMethod;
     amount_paid: number;
     created_at: string;
   }[];

@@ -43,7 +43,20 @@ function presenter(
     })),
     payments: receipt.payments.map((payment) => ({
       payment_id: payment.payment_id,
-      payment_method: payment?.payment_method?.name,
+      payment_method: {
+        payment_method_id: payment?.payment_method?.payment_method_id ?? "",
+        name: payment?.payment_method?.name ?? "",
+        state: payment?.payment_method?.state ?? "DISABLED",
+        created_at: payment?.payment_method
+          ? formatDate(payment?.payment_method?.created_at, date_format)
+          : "",
+        updated_at: payment?.payment_method
+          ? formatDate(payment?.payment_method?.updated_at, date_format)
+          : "",
+        deleted_at: payment?.payment_method?.deleted_at
+          ? formatDate(payment?.payment_method?.deleted_at, date_format)
+          : "",
+      },
       amount_paid: payment.amount_paid,
       remarks: payment?.remarks,
       created_at: formatDate(payment.created_at, date_format),
