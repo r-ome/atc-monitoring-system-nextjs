@@ -64,30 +64,38 @@ export default async function Page({
         </CardTitle>
         <CardDescription>
           <div className="flex gap-4">
-            <div className="flex flex-col items-center">
-              <p className="leading-7 text-md">
-                <Badge
-                  variant={
-                    receipt.purpose === "REFUNDED" ? "destructive" : "success"
-                  }
-                >
-                  {receipt.purpose.replace(/_/g, " ")}
-                </Badge>
-              </p>
-            </div>
+            <div className="flex flex-col justify-start items-start gap-2">
+              <div className="flex">
+                <div className="leading-7 text-md">
+                  <Badge
+                    variant={
+                      receipt.purpose === "REFUNDED" ? "destructive" : "success"
+                    }
+                  >
+                    {receipt.purpose.replace(/_/g, " ")}
+                  </Badge>
+                </div>
+                {receipt.purpose === "REFUNDED" ? (
+                  <div className="font-black text-lg ml-4">
+                    REASON: {receipt.remarks}
+                  </div>
+                ) : null}
+              </div>
 
-            {receipt.purpose !== "REGISTRATION" ? (
+              {receipt.purpose !== "REGISTRATION" ? (
+                <div className="flex flex-col items-center">
+                  <p className="leading-7 text-md w-fit">
+                    TOTAL ITEMS: {receipt.auctions_inventories?.length} items
+                  </p>
+                </div>
+              ) : null}
+
               <div className="flex flex-col items-center">
                 <p className="leading-7 text-md w-fit">
-                  TOTAL ITEMS: {receipt.auctions_inventories?.length} items
+                  TOTAL AMOUNT PAID: ₱
+                  {receipt.total_amount_paid.toLocaleString()}
                 </p>
               </div>
-            ) : null}
-
-            <div className="flex flex-col items-center">
-              <p className="leading-7 text-md w-fit">
-                TOTAL AMOUNT PAID: ₱{receipt.total_amount_paid.toLocaleString()}
-              </p>
             </div>
           </div>
         </CardDescription>
@@ -123,6 +131,11 @@ export default async function Page({
                           payment={item}
                         />
                       </TableCell>
+                    </>
+                  ) : null}
+                  {receipt.purpose === "REFUNDED" ? (
+                    <>
+                      <TableCell>{item?.remarks}</TableCell>
                     </>
                   ) : null}
                 </TableRow>
