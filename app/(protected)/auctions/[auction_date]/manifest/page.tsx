@@ -4,6 +4,7 @@ import {
 } from "@/app/(protected)/auctions/actions";
 import { ManifestRecordsTable } from "@/app/(protected)/auctions/[auction_date]/manifest/ManifestRecordsTable";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { UploadManifestModal } from "@/app/(protected)/auctions/[auction_date]/monitoring/components/UploadManifestModal";
 
 export default async function Page({
   params,
@@ -24,5 +25,12 @@ export default async function Page({
 
   const manifest_records = manifest_res.value;
 
-  return <ManifestRecordsTable manifestRecords={manifest_records} />;
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-4">
+        <UploadManifestModal auction_id={auction.auction_id} />
+      </div>
+      <ManifestRecordsTable manifestRecords={manifest_records} />;
+    </div>
+  );
 }

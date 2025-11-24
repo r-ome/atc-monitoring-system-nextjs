@@ -1,6 +1,5 @@
 export const dynamic = "force-dynamic";
 
-import { UploadManifestModal } from "@/app/(protected)/auctions/[auction_date]/monitoring/components/UploadManifestModal";
 import { getAuction, getMonitoring } from "@/app/(protected)/auctions/actions";
 import { MonitoringTable } from "./MonitoringTable";
 import { GenerateReportButton } from "./components/GenerateReport";
@@ -33,7 +32,6 @@ export default async function Page({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-4">
-        <UploadManifestModal auction_id={auction.auction_id} />
         {session.user.role !== "ENCODER" && (
           <GenerateReportButton monitoring={monitoring} />
         )}
