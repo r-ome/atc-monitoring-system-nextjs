@@ -29,7 +29,7 @@ function presenter(
     },
     payments: item.payments.map((payment) => ({
       payment_id: payment.payment_id,
-      payment_type: payment.payment_type,
+      payment_method: payment.payment_method?.name,
       amount_paid: payment.amount_paid,
       created_at: formatDate(payment.created_at, date_format),
     })),

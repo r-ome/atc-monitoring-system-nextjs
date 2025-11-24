@@ -33,15 +33,13 @@ import { Bidder } from "src/entities/models/Bidder";
 import { getBidders } from "@/app/(protected)/bidders/actions";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { registerBidder } from "@/app/(protected)/auctions/actions";
+import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { Auction } from "src/entities/models/Auction";
 import { RegisteredBidder } from "src/entities/models/Bidder";
-import {
-  PAYMENT_TYPE,
-  type PAYMENT_TYPE as PaymentType,
-} from "src/entities/models/Payment";
 import { toast } from "sonner";
+import { PaymentMethod } from "src/entities/models/PaymentMethod";
 
 interface RegisterBidderModalProps {
   auction: Auction;
@@ -49,10 +47,10 @@ interface RegisterBidderModalProps {
 }
 
 type PaymentEntry = {
-  method: PaymentType | "";
+  method: PaymentMethod["name"] | "";
   amount: number;
 };
-const initialState = [{ method: "Cash" as PaymentType, amount: 0 }];
+const initialState = [{ method: "Cash" as PaymentMethod["name"], amount: 0 }];
 
 export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   auction,
@@ -65,18 +63,19 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   const [selectedBidder, setSelectedBidder] = useState<{
     [key: string]: string | number | boolean;
   }>();
-  // const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<{
-  //   [key: string]: string;
-  // }>({ label: "CASH", value: "CASH" });
   const [payments, setPayments] = useState<PaymentEntry[]>(initialState);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
   const handleAdd = () => {
-    if (payments.length < PAYMENT_TYPE.length) {
+    if (payments.length < paymentMethods.length) {
       setPayments([...payments, { method: "", amount: 0 }]);
     }
   };
 
-  const handleMethodChange = (index: number, newMethod: PaymentType) => {
+  const handleMethodChange = (
+    index: number,
+    newMethod: PaymentMethod["name"]
+  ) => {
     setPayments((prev) => {
       const updated = [...prev];
       updated[index].method = newMethod;
@@ -98,8 +97,10 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      const res = await getBidders();
-      if (res.ok) setBidders(res.value);
+      const bidderRes = await getBidders();
+      if (bidderRes.ok) setBidders(bidderRes.value);
+      const paymentMethodsRes = await getPaymentMethods();
+      if (paymentMethodsRes.ok) setPaymentMethods(paymentMethodsRes.value);
     };
     fetchInitialData();
   }, []);
@@ -126,9 +127,27 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
     const balance =
       registration_fee > 1 ? registration_fee * -1 : registration_fee;
     formData.append("balance", balance.toString());
-    // formData.append("payment_method", selectedPaymentMethod.value as string);
     if (payments.length === 1) {
-      formData.append(`${payments[0].method}`, registration_fee.toString());
+      formData.append(
+        `PAYMENT_${payments[0].method}`,
+        registration_fee.toString()
+      );
+    }
+
+    const data = Object.fromEntries(formData.entries());
+
+    const bidder_payments = Object.keys(data)
+      .filter((item) => item.includes("PAYMENT_"))
+      .map((item) => ({
+        payment_method: item.replace("PAYMENT_", "").split("_")[0],
+        amount_paid: typeof data[item] === "string" ? parseInt(data[item]) : 0,
+      }));
+
+    formData.append("payments", JSON.stringify(bidder_payments));
+    for (const key of Array.from(formData.keys())) {
+      if (key.startsWith("PAYMENT_")) {
+        formData.delete(key);
+      }
     }
 
     const res = await registerBidder(formData);
@@ -277,18 +296,19 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                 <TabsContent value="single">
                   <Select
                     required
-                    onValueChange={(value) =>
-                      handleMethodChange(0, value as PaymentType)
-                    }
+                    onValueChange={(value) => handleMethodChange(0, value)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Payment Type"></SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {PAYMENT_TYPE.map((item) => (
-                          <SelectItem key={item} value={item}>
-                            {item}
+                        {paymentMethods.map((item) => (
+                          <SelectItem
+                            key={item.payment_method_id}
+                            value={item.payment_method_id}
+                          >
+                            {item.name}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -299,7 +319,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                     <input
                       type="hidden"
                       value={0}
-                      name={`${payments[0].method}`}
+                      name={`PAYMENT_${payments[0].method}`}
                     />
                   ) : null}
                 </TabsContent>
@@ -313,7 +333,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                             required
                             value={payments[index].method}
                             onValueChange={(value) =>
-                              handleMethodChange(index, value as PaymentType)
+                              handleMethodChange(index, value)
                             }
                           >
                             <SelectTrigger className="w-full">
@@ -321,9 +341,12 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
-                                {PAYMENT_TYPE.map((method) => (
-                                  <SelectItem key={method} value={method}>
-                                    {method}
+                                {paymentMethods.map((item) => (
+                                  <SelectItem
+                                    key={item.payment_method_id}
+                                    value={item.payment_method_id}
+                                  >
+                                    {item.name}
                                   </SelectItem>
                                 ))}
                               </SelectGroup>
@@ -333,7 +356,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
 
                         <div className="flex-1">
                           <InputNumber
-                            name={`${item.method}_${index}`}
+                            name={`PAYMENT_${item.method}_${index}`}
                             required
                             onChange={(e) =>
                               handleAmountChange(index, Number(e.target.value))
@@ -350,7 +373,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                       </div>
                     ))}
 
-                    {payments.length < PAYMENT_TYPE.length && (
+                    {payments.length < paymentMethods.length && (
                       <Button
                         type="button"
                         variant="outline"

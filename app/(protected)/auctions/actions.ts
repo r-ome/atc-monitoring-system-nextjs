@@ -15,10 +15,6 @@ import { GetCounterCheckController } from "src/controllers/auctions/get-counter-
 import { UpdateCounterCheckController } from "src/controllers/auctions/update-counter-check.controller";
 import { UpdateManifestController } from "src/controllers/auctions/update-manifest.controller";
 import { InsertAuctionInventoryController } from "src/controllers/auctions/insert-auction-inventory.controller";
-import {
-  PAYMENT_TYPE,
-  type PAYMENT_TYPE as PaymentType,
-} from "src/entities/models/Payment";
 
 export const startAuction = async (auctionDate: string) => {
   return await StartAuctionController(auctionDate);
@@ -30,14 +26,9 @@ export const getAuction = async (auctionDate: string) => {
 
 export const registerBidder = async (input: FormData) => {
   const data = Object.fromEntries(input.entries());
-  const payments = Object.keys(data)
-    .filter((item) => PAYMENT_TYPE.includes(item.split("_")[0] as PaymentType))
-    .map((item) => ({
-      payment_type: item.split("_")[0] as PaymentType,
-      amount_paid: typeof data[item] === "string" ? parseInt(data[item]) : 0,
-    }));
+  data.payments = JSON.parse(data.payments as string);
 
-  return await RegisterBidderController({ ...data, payments });
+  return await RegisterBidderController(data);
 };
 
 export const getRegisteredBidders = async (auctionId: string) => {
@@ -66,23 +57,9 @@ export const getRegisteredBidderByBidderNumber = async (
 
 export const handleBidderPullOut = async (formData: FormData) => {
   const data = Object.fromEntries(formData.entries());
-  const payments = Object.keys(data)
-    .filter((item) => PAYMENT_TYPE.includes(item.split("_")[0] as PaymentType))
-    .map((item) => ({
-      payment_type: item.split("_")[0] as PaymentType,
-      amount_paid: typeof data[item] === "string" ? parseInt(data[item]) : 0,
-    }));
-
-  const input = {
-    amount_to_be_paid: parseInt(data.amount_to_be_paid as string),
-    auction_bidder_id: data.auction_bidder_id as string,
-    auction_inventory_ids:
-      typeof data.auction_inventory_ids === "string" &&
-      JSON.parse(data.auction_inventory_ids),
-    payments,
-  };
-
-  return await HandleBidderPullOutController(input);
+  data.payments = JSON.parse(data.payments as string);
+  data.auction_inventory_ids = JSON.parse(data.auction_inventory_ids as string);
+  return await HandleBidderPullOutController(data);
 };
 
 export const cancelItems = async (formData: FormData) => {

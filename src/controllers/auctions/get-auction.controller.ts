@@ -7,7 +7,6 @@ import {
 import { err, ok } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
-import { PAYMENT_TYPE } from "src/entities/models/Payment";
 
 function presenter(auction: AuctionSchema) {
   const date_format = "MMM dd, yyyy";
@@ -30,17 +29,15 @@ function presenter(auction: AuctionSchema) {
         auction_bidder_id: registered_bidder.auction_bidder_id,
         auction_id: registered_bidder.auction_id,
         auction_date: formatDate(auction.created_at, date_format),
-        created_at: formatDate(
-          registered_bidder.created_at,
-          "MMMM dd, yyyy hh:mm a"
-        ),
+        created_at: formatDate(registered_bidder.created_at, "hh:mm a"),
         service_charge: registered_bidder.service_charge,
         registration_fee: registered_bidder.registration_fee,
         already_consumed: registered_bidder.already_consumed,
         balance: registered_bidder.balance,
-        payment_method: ((receipt_records?.payments || []).length > 1
-          ? "MULTIPLE"
-          : receipt_records?.payments[0].payment_type) as PAYMENT_TYPE,
+        payment_method:
+          (receipt_records?.payments || []).length > 1
+            ? "MULTIPLE"
+            : receipt_records?.payments[0].payment_method?.name,
         bidder: {
           bidder_id: registered_bidder.bidder_id,
           bidder_number: registered_bidder.bidder.bidder_number,

@@ -1,24 +1,29 @@
 import * as xlsx from "xlsx-js-style";
 import { formatDate } from "@/app/lib/utils";
-import { Payment, PAYMENT_TYPE } from "src/entities/models/Payment";
+import { Payment } from "src/entities/models/Payment";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Expense } from "src/entities/models/Expense";
+import { PaymentMethod } from "src/entities/models/PaymentMethod";
+
+type GenerateCashFlowProps = {
+  payments: Payment[];
+  expenses: Expense[];
+  yesterdayBalance: number;
+  paymentMethods: PaymentMethod[];
+};
 
 const generateCashFlow = ({
   payments,
   expenses,
   yesterdayBalance,
-}: {
-  payments: Payment[];
-  expenses: Expense[];
-  yesterdayBalance: number;
-}) => {
+  paymentMethods,
+}: GenerateCashFlowProps) => {
   const rawData = payments.map((item) => ({
     date: formatDate(new Date(item.created_at), "MMMM dd, yyyy"),
     bidder: `BIDDER ${item.bidder.bidder_number}`,
     purpose: item.receipt.purpose.replace(/_/g, " ").toUpperCase(), // e.g., "PULL OUT"
     amount: item.amount_paid,
-    payment_type: item.payment_type,
+    payment_method: item.payment_method,
   }));
 
   // Extract first date
@@ -31,7 +36,7 @@ const generateCashFlow = ({
       action,
       bidder: item.bidder,
       amount: item.amount,
-      payment_type: item.payment_type,
+      payment_method: item.payment_method,
     };
   });
 
@@ -45,7 +50,7 @@ const generateCashFlow = ({
   const finalRows = sorted.map((item) => {
     const label = seen.has(item.action) ? "" : item.action;
     seen.add(item.action);
-    return [label, item.bidder, item.amount, item.payment_type];
+    return [label, item.bidder, item.amount, item.payment_method];
   });
   const inward = [[date, "", "", ""], ...finalRows];
 
@@ -57,10 +62,10 @@ const generateCashFlow = ({
       item.amount,
     ]);
 
-  const getTotal = (paymentType: PAYMENT_TYPE) =>
+  const getTotal = (paymentType: PaymentMethod["name"]) =>
     payments
       .filter((item) => item.receipt.purpose !== "REFUNDED")
-      .filter((item) => item.payment_type === paymentType)
+      .filter((item) => item.payment_method.name === paymentType)
       .reduce((acc, item) => (acc += item.amount_paid), 0);
 
   const refundAmount = payments

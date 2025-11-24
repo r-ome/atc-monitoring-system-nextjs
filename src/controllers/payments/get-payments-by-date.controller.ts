@@ -10,7 +10,16 @@ function presenter(payments: PaymentSchema[]) {
     payment_id: payment.payment_id,
     receipt_id: payment.receipt_id,
     amount_paid: payment.amount_paid,
-    payment_type: payment.payment_type,
+    payment_method: {
+      payment_method_id: payment.payment_method?.payment_method_id ?? "",
+      name: payment.payment_method?.name ?? "",
+      state: payment.payment_method?.state ?? "DISABLED",
+      created_at: formatDate(payment.created_at, "MMMM dd, yyyy hh:mm a"),
+      updated_at: formatDate(payment.updated_at, "MMMM dd, yyyy hh:mm a"),
+      deleted_at: payment.deleted_at
+        ? formatDate(payment.deleted_at, "MMMM dd, yyyy hh:mm a")
+        : null,
+    },
     auction_date: formatDate(
       payment.receipt.auction_bidder.auctions.created_at,
       "yyyy-MM-dd"

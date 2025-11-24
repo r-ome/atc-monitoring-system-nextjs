@@ -21,6 +21,7 @@ export const PaymentRepository: IPaymentRepository = {
       const payments = await prisma.payments.findMany({
         where: { created_at: { gte: startOfDay, lte: endOfDay } },
         include: {
+          payment_method: true,
           receipt: {
             include: {
               auction_bidder: { include: { bidder: true, auctions: true } },
@@ -47,7 +48,7 @@ export const PaymentRepository: IPaymentRepository = {
         orderBy: { created_at: "desc" },
         include: {
           auctions_inventories: true,
-          payments: true,
+          payments: { include: { payment_method: true } },
           auction_bidder: { include: { bidder: true } },
         },
       });
@@ -118,7 +119,7 @@ export const PaymentRepository: IPaymentRepository = {
               data: {
                 receipt_id: created_receipt.receipt_id,
                 amount_paid: item.amount_paid,
-                payment_type: item.payment_type,
+                payment_method_id: item.payment_method,
               },
             })
           )
@@ -177,6 +178,10 @@ export const PaymentRepository: IPaymentRepository = {
           },
         });
 
+        const cash_payment_method = await tx.payment_methods.findFirst({
+          where: { name: "CASH" },
+        });
+
         const receipt = await tx.receipt_records.create({
           data: {
             receipt_number: `${auction_bidder.bidder.bidder_number}REF`,
@@ -192,7 +197,7 @@ export const PaymentRepository: IPaymentRepository = {
                       (item.new_price * auction_bidder.service_charge) / 100),
                   0
                 ),
-                payment_type: "CASH",
+                payment_method_id: cash_payment_method?.payment_method_id,
               },
             },
           },
@@ -265,7 +270,7 @@ export const PaymentRepository: IPaymentRepository = {
           inventory_histories: {
             include: { auction_inventory: { include: { inventory: true } } },
           },
-          payments: true,
+          payments: { include: { payment_method: true } },
         },
       });
 
@@ -289,7 +294,7 @@ export const PaymentRepository: IPaymentRepository = {
       return await prisma.receipt_records.findMany({
         where: { auction_bidder_id },
         include: {
-          payments: true,
+          payments: { include: { payment_method: true } },
           auction_bidder: { include: { bidder: true } },
         },
       });
@@ -306,14 +311,15 @@ export const PaymentRepository: IPaymentRepository = {
     try {
       const current_payment = await prisma.payments.findFirst({
         where: { payment_id },
+        include: { payment_method: true },
       });
 
       if (current_payment) {
         await prisma.payments.update({
           where: { payment_id },
           data: {
-            payment_type: data.payment_type,
-            remarks: `Updated payment type from ${current_payment.payment_type} to ${data.payment_type}`,
+            payment_method_id: data.payment_method,
+            remarks: `Updated payment type from ${current_payment?.payment_method?.name} to ${data.payment_method}`,
           },
         });
       }

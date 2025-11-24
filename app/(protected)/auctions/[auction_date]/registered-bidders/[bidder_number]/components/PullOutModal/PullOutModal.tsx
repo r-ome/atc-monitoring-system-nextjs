@@ -80,6 +80,20 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
     );
 
     formData.append("amount_to_be_paid", grandTotal.toString());
+    const data = Object.fromEntries(formData.entries());
+    const bidder_payments = Object.keys(data)
+      .filter((item) => item.includes("PAYMENT_"))
+      .map((item) => ({
+        payment_method: item.replace("PAYMENT_", "").split("_")[0],
+        amount_paid: typeof data[item] === "string" ? parseInt(data[item]) : 0,
+      }));
+
+    formData.append("payments", JSON.stringify(bidder_payments));
+    for (const key of Array.from(formData.keys())) {
+      if (key.startsWith("PAYMENT_")) {
+        formData.delete(key);
+      }
+    }
 
     const res = await handleBidderPullOut(formData);
 

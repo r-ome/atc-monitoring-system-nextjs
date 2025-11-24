@@ -157,7 +157,7 @@ export const AuctionRepository: IAuctionRepository = {
                   createMany: {
                     data: data.payments.map((payment) => ({
                       amount_paid: payment.amount_paid,
-                      payment_type: payment.payment_type,
+                      payment_method: payment.payment_method,
                     })),
                   },
                 },
@@ -495,6 +495,10 @@ export const AuctionRepository: IAuctionRepository = {
           include: { bidder: true },
         });
 
+        const cash_payment_method = await tx.payment_methods.findFirst({
+          where: { name: "CASH" },
+        });
+
         if (!bidder) {
           throw new NotFoundError("Bidder not found!");
         }
@@ -549,7 +553,7 @@ export const AuctionRepository: IAuctionRepository = {
               payments: {
                 create: {
                   amount_paid: paid_items_total_price,
-                  payment_type: "CASH",
+                  payment_method_id: cash_payment_method?.payment_method_id,
                 },
               },
               inventory_histories: {

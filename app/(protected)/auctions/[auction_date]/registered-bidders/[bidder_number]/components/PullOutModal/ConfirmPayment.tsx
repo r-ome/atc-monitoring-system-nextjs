@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CircleX } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { InputNumber } from "@/app/components/ui/InputNumber";
@@ -24,29 +24,40 @@ import {
   TableRow,
   TableFooter,
 } from "@/app/components/ui/table";
-import {
-  PAYMENT_TYPE,
-  type PAYMENT_TYPE as PaymentType,
-} from "src/entities/models/Payment";
 import { useBidderPullOutModalContext } from "../../context/BidderPullOutModalContext";
+import { PaymentMethod } from "src/entities/models/PaymentMethod";
+import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 
 type PaymentEntry = {
-  method: PaymentType | "";
+  method: PaymentMethod["name"] | "";
   amount: number;
 };
-const initialState = [{ method: "Cash" as PaymentType, amount: 0 }];
+const initialState = [{ method: "Cash", amount: 0 }];
 
 export const ConfirmPayment: React.FC = () => {
   const { grandTotal } = useBidderPullOutModalContext();
   const [payments, setPayments] = useState<PaymentEntry[]>(initialState);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const res = await getPaymentMethods();
+      if (res.ok) setPaymentMethods(res.value);
+    };
+
+    fetchInitialData();
+  }, [getPaymentMethods]);
 
   const handleAdd = () => {
-    if (payments.length < PAYMENT_TYPE.length) {
+    if (payments.length < paymentMethods.length) {
       setPayments([...payments, { method: "", amount: 0 }]);
     }
   };
 
-  const handleMethodChange = (index: number, newMethod: PaymentType) => {
+  const handleMethodChange = (
+    index: number,
+    newMethod: PaymentMethod["name"]
+  ) => {
     setPayments((prev) => {
       const updated = [...prev];
       updated[index].method = newMethod;
@@ -90,18 +101,19 @@ export const ConfirmPayment: React.FC = () => {
         <TabsContent value="single">
           <Select
             required
-            onValueChange={(value) =>
-              handleMethodChange(0, value as PaymentType)
-            }
+            onValueChange={(value) => handleMethodChange(0, value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Payment Type"></SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {PAYMENT_TYPE.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
+                {paymentMethods.map((item) => (
+                  <SelectItem
+                    key={item.payment_method_id}
+                    value={item.payment_method_id}
+                  >
+                    {item.name}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -112,7 +124,7 @@ export const ConfirmPayment: React.FC = () => {
             <input
               type="hidden"
               value={grandTotal}
-              name={`${payments[0].method}`}
+              name={`PAYMENT_${payments[0].method}`}
             />
           ) : null}
         </TabsContent>
@@ -125,18 +137,19 @@ export const ConfirmPayment: React.FC = () => {
                   <Select
                     required
                     value={payments[index].method}
-                    onValueChange={(value) =>
-                      handleMethodChange(index, value as PaymentType)
-                    }
+                    onValueChange={(value) => handleMethodChange(index, value)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Payment Type"></SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {PAYMENT_TYPE.map((method) => (
-                          <SelectItem key={method} value={method}>
-                            {method}
+                        {paymentMethods.map((item) => (
+                          <SelectItem
+                            key={item.payment_method_id}
+                            value={item.payment_method_id}
+                          >
+                            {item.name}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -146,7 +159,7 @@ export const ConfirmPayment: React.FC = () => {
 
                 <div className="flex-1">
                   <InputNumber
-                    name={`${item.method}_${index}`}
+                    name={`PAYMENT_${item.method}_${index}`}
                     required
                     onChange={(e) =>
                       handleAmountChange(index, Number(e.target.value))
@@ -163,7 +176,7 @@ export const ConfirmPayment: React.FC = () => {
               </div>
             ))}
 
-            {payments.length < PAYMENT_TYPE.length && (
+            {payments.length < paymentMethods.length && (
               <Button
                 type="button"
                 variant="outline"

@@ -19,7 +19,7 @@ import { updateRegistrationPayment } from "@/app/(protected)/auctions/[auction_d
 import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { toast } from "sonner";
-import { PAYMENT_TYPE } from "src/entities/models/Payment";
+import { PaymentMethod } from "src/entities/models/PaymentMethod";
 
 interface UpdateRegistrationPaymentMethodModalProps {
   receipt: {
@@ -31,7 +31,7 @@ interface UpdateRegistrationPaymentMethodModalProps {
   };
   payment: {
     payment_id: string;
-    payment_type: PAYMENT_TYPE;
+    payment_method?: PaymentMethod["name"];
   };
 }
 
@@ -42,8 +42,8 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
   const [open, setOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<{
-    [key: string]: string;
-  }>({ label: payment.payment_type, value: payment.payment_type });
+    [key: string]: string | undefined;
+  }>({ label: payment.payment_method, value: payment.payment_method });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -51,7 +51,7 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
     if (!receipt || !payment) return;
 
     const formData = new FormData(event.currentTarget);
-    formData.append("payment_type", selectedPaymentMethod.value as string);
+    formData.append("payment_method", selectedPaymentMethod.value as string);
 
     const res = await updateRegistrationPayment(payment.payment_id, formData);
     if (res) {

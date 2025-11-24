@@ -187,6 +187,7 @@ model inventory_histories {
 
   @@index([auction_inventory_id], map: "fk_inventory_histories_auctions_inventories")
   @@index([inventory_id], map: "fk_inventory_histories_inventory")
+  @@index([receipt_id], map: "fk_inventory_histories_receipt_records")
 }
 
 model manifest_records {
@@ -222,14 +223,16 @@ model receipt_records {
   auctions_inventories auctions_inventories[]
   payments             payments[]
   inventory_histories  inventory_histories[]
+
+  @@index([auction_bidder_id], map: "fk_receipt_records_auction_bidders")
 }
 
 model payments {
   payment_id   String          @id @default(uuid())
   receipt_id   String
   amount_paid  Int             @default(0)
-  payment_type payments_type
   remarks      String?
+  payment_type String?
   created_at   DateTime        @default(now()) @db.Timestamp(0)
   updated_at   DateTime        @default(now()) @updatedAt @db.DateTime(0)
   deleted_at   DateTime?       @db.DateTime(0)
@@ -239,6 +242,7 @@ model payments {
   payment_method    payment_methods? @relation(fields: [payment_method_id], references: [payment_method_id])
 
   @@index([receipt_id], map: "fk_payments_receipt")
+  @@index([payment_method_id], map: "fk_payments_payment_method")
 }
 
 model suppliers {
@@ -316,13 +320,6 @@ enum users_role {
   OWNER
   CASHIER
   ENCODER
-}
-
-enum payments_type {
-  CASH
-  BDO
-  BPI
-  GCASH
 }
 
 enum payments_purpose {

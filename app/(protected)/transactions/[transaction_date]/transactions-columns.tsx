@@ -118,7 +118,7 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => <ReceiptNumberCell row={row} />,
   },
   {
-    id: "payment_type",
+    id: "payment_method.name",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
@@ -127,7 +127,7 @@ export const columns: ColumnDef<Payment>[] = [
             className="cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Payment Type
+            Payment Method
             <ArrowUpDown />
           </Button>
         </div>
@@ -135,7 +135,9 @@ export const columns: ColumnDef<Payment>[] = [
     },
     cell: ({ row }) => {
       const payment = row.original;
-      return <div className="flex justify-center">{payment.payment_type}</div>;
+      return (
+        <div className="flex justify-center">{payment.payment_method.name}</div>
+      );
     },
   },
   {

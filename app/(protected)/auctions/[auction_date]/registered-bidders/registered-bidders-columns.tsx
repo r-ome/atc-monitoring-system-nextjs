@@ -118,32 +118,32 @@ export const columns: ColumnDef<RegisteredBidder>[] = [
       );
     },
   },
-  {
-    accessorKey: "payment_method",
-    size: 80,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Payment Type
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const registeredBidder = row.original;
-      return (
-        <div className="flex justify-start">
-          {registeredBidder.payment_method}
-        </div>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "payment_method",
+  //   size: 80,
+  //   header: ({ column }) => {
+  //     return (
+  //       <div className="flex justify-center">
+  //         <Button
+  //           variant="ghost"
+  //           className="cursor-pointer"
+  //           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+  //         >
+  //           Payment Type
+  //           <ArrowUpDown />
+  //         </Button>
+  //       </div>
+  //     );
+  //   },
+  //   cell: ({ row }) => {
+  //     const registeredBidder = row.original;
+  //     return (
+  //       <div className="flex justify-start">
+  //         {registeredBidder.payment_method}
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "balance",
     size: 80,
@@ -166,7 +166,7 @@ export const columns: ColumnDef<RegisteredBidder>[] = [
       return (
         <div
           className={cn(
-            "flex justify-start",
+            "flex justify-center",
             registeredBidder.balance > 0 && "text-red-500",
             registeredBidder.balance < 0 && "text-green-500"
           )}

@@ -23,7 +23,9 @@ export type AuctionSchema = Prisma.auctionsGetPayload<{
     registered_bidders: {
       include: {
         bidder: true;
-        receipt_records: { include: { payments: true } };
+        receipt_records: {
+          include: { payments: { include: { payment_method: true } } };
+        };
         auctions_inventories: {
           include: {
             inventory: { include: { container: true } };
