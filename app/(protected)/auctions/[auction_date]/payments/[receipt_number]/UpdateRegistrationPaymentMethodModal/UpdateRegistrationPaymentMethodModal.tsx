@@ -31,7 +31,7 @@ interface UpdateRegistrationPaymentMethodModalProps {
   };
   payment: {
     payment_id: string;
-    payment_method?: PaymentMethod["name"];
+    payment_method?: PaymentMethod;
   };
 }
 
@@ -43,7 +43,10 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<{
     [key: string]: string | undefined;
-  }>({ label: payment.payment_method, value: payment.payment_method });
+  }>({
+    label: payment?.payment_method?.name,
+    value: payment?.payment_method?.payment_method_id,
+  });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

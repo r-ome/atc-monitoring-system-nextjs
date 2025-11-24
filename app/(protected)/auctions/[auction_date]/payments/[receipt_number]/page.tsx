@@ -120,7 +120,7 @@ export default async function Page({
               {receipt.payments.map((item) => (
                 <TableRow key={item.payment_id}>
                   <TableCell>{item.created_at}</TableCell>
-                  <TableCell>{item.payment_method}</TableCell>
+                  <TableCell>{item.payment_method.name}</TableCell>
                   <TableCell>₱ {item.amount_paid.toLocaleString()}</TableCell>
                   {receipt.purpose === "REGISTRATION" ? (
                     <>
