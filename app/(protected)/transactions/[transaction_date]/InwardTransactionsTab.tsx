@@ -26,7 +26,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
     };
 
     fetchInitialData();
-  }, [getPaymentMethods]);
+  }, []);
 
   const globalFilterFn = (
     row: CoreRow<Payment>,

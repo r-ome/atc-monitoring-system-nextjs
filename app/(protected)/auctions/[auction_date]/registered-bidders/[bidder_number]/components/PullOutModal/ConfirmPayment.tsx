@@ -46,7 +46,7 @@ export const ConfirmPayment: React.FC = () => {
     };
 
     fetchInitialData();
-  }, [getPaymentMethods]);
+  }, []);
 
   const handleAdd = () => {
     if (payments.length < paymentMethods.length) {

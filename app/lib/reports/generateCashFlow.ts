@@ -16,8 +16,8 @@ const generateCashFlow = ({
   payments,
   expenses,
   yesterdayBalance,
-  paymentMethods,
-}: GenerateCashFlowProps) => {
+}: // paymentMethods,
+GenerateCashFlowProps) => {
   const rawData = payments.map((item) => ({
     date: formatDate(new Date(item.created_at), "MMMM dd, yyyy"),
     bidder: `BIDDER ${item.bidder.bidder_number}`,
