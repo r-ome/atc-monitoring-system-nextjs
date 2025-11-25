@@ -72,7 +72,14 @@ export default async function Page({
       ].map((detail, i) => (
         <div key={i} className={cn("flex flex-col items-center w-1/2")}>
           <p className="text-muted-foreground">{detail.label}</p>{" "}
-          <p className="text-card-foreground">{detail.value}</p>
+          <p
+            className={cn(
+              "text-card-foreground",
+              detail.label === "Balance" ? "text-red-500" : ""
+            )}
+          >
+            {detail.value}
+          </p>
         </div>
       ))}
     </div>

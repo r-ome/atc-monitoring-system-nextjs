@@ -120,32 +120,6 @@ export const columns: ColumnDef<RegisteredBidder>[] = [
       );
     },
   },
-  // {
-  //   accessorKey: "payment_method",
-  //   size: 80,
-  //   header: ({ column }) => {
-  //     return (
-  //       <div className="flex justify-center">
-  //         <Button
-  //           variant="ghost"
-  //           className="cursor-pointer"
-  //           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-  //         >
-  //           Payment Type
-  //           <ArrowUpDown />
-  //         </Button>
-  //       </div>
-  //     );
-  //   },
-  //   cell: ({ row }) => {
-  //     const registeredBidder = row.original;
-  //     return (
-  //       <div className="flex justify-start">
-  //         {registeredBidder.payment_method}
-  //       </div>
-  //     );
-  //   },
-  // },
   {
     accessorKey: "balance",
     size: 80,
@@ -201,35 +175,4 @@ export const columns: ColumnDef<RegisteredBidder>[] = [
       );
     },
   },
-  // {
-  //   id: "actions",
-  //   enableHiding: false,
-  //   size: 50,
-  //   cell: ({ row }) => {
-  //     const registeredBidder = row.original;
-  //     return (
-  //       <DropdownMenu>
-  //         <DropdownMenuTrigger asChild className="cursor-pointer">
-  //           <Button variant="ghost" className="h-8 w-8 p-0">
-  //             <span className="sr-only">Open menu</span>
-  //             <MoreHorizontal />
-  //           </Button>
-  //         </DropdownMenuTrigger>
-  //         <DropdownMenuContent align="end">
-  //           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-  //           <DropdownMenuSeparator />
-  //           <DropdownMenuItem
-  //             onClick={() =>
-  //               redirect(
-  //                 `registered-bidders/${registeredBidder.bidder.bidder_number}`
-  //               )
-  //             }
-  //           >
-  //             View Bidder
-  //           </DropdownMenuItem>
-  //         </DropdownMenuContent>
-  //       </DropdownMenu>
-  //     );
-  //   },
-  // },
 ];

@@ -24,6 +24,11 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
         </div>
       );
     },
+    sortingFn: (rowA, rowB, columnId) => {
+      const a = new Date(rowA.getValue<string>(columnId)).getTime();
+      const b = new Date(rowB.getValue<string>(columnId)).getTime();
+      return a - b;
+    },
     cell: ({ row }) => {
       const transaction = row.original;
       return (

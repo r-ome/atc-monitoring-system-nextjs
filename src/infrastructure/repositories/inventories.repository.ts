@@ -157,11 +157,12 @@ export const InventoryRepository: IInventoryRepository = {
           selected_bidder.auction_bidder_id;
 
         let auction_inventory_status = auction_inventory.status;
+        console.log({ here: is_item_reassigned, auction_inventory_status });
         if (is_item_reassigned && auction_inventory_status === "REFUNDED") {
           auction_inventory_status = "UNPAID";
         }
 
-        if (auction_inventory.status === "UNPAID") {
+        if (auction_inventory_status === "UNPAID") {
           const previous_bidder = await tx.auctions_bidders.findFirst({
             where: {
               auction_bidder_id: auction_inventory?.auction_bidder_id,
@@ -171,7 +172,6 @@ export const InventoryRepository: IInventoryRepository = {
           if (!previous_bidder) {
             throw new NotFoundError("Previous Bidder does not exist!");
           }
-
           const prev_bidder_service_charge_amount =
             (auction_inventory?.price * previous_bidder.service_charge) / 100;
 

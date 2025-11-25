@@ -182,9 +182,20 @@ export const PaymentRepository: IPaymentRepository = {
           where: { name: "CASH" },
         });
 
+        const refunded_receipts = await tx.receipt_records.findMany({
+          select: { receipt_number: true },
+          where: {
+            purpose: "REFUNDED",
+            auction_bidder_id: data.auction_bidder_id,
+          },
+        });
+        const current_refunded_receipt_count = refunded_receipts.length;
+
         const receipt = await tx.receipt_records.create({
           data: {
-            receipt_number: `${auction_bidder.bidder.bidder_number}REF`,
+            receipt_number: `${auction_bidder.bidder.bidder_number}REF${
+              current_refunded_receipt_count + 1
+            }`,
             auction_bidder_id: data.auction_bidder_id,
             purpose: "REFUNDED",
             remarks: data.reason,
