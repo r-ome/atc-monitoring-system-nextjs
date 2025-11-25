@@ -8,15 +8,6 @@ import {
 } from "@/app/components/ui/card";
 import { Badge } from "@/app/components/ui/badge";
 import { UpdateBidderModal } from "./UpdateBidderModal";
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableCaption,
-} from "@/app/components/ui/table";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 import {
@@ -24,6 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import AuctionsJoined from "./components/AuctionsJoinedTable";
 
 export default async function Page({
   params,
@@ -113,33 +105,10 @@ export default async function Page({
         </CardContent>
       </Card>
 
-      <div className="border rounded-2xl p-2">
-        <Table>
-          <TableCaption>Auctions Joined</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Auction Date</TableHead>
-              <TableHead>Service Charge</TableHead>
-              <TableHead>Registration Fee</TableHead>
-              <TableHead>Balance</TableHead>
-              <TableHead>Total Items</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {bidder.auctions_joined.map((item) => (
-              <TableRow key={item.auction_bidder_id}>
-                <TableCell>{item.created_at}</TableCell>
-                <TableCell>{item.service_charge}%</TableCell>
-                <TableCell>{item.registration_fee.toLocaleString()}</TableCell>
-                <TableCell>₱{item.balance.toLocaleString()}</TableCell>
-                <TableCell>
-                  {(item.auctions_inventories || []).length}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <AuctionsJoined
+        auctionsJoined={bidder.auctions_joined}
+        bidderNumber={bidder.bidder_number}
+      />
     </div>
   );
 }

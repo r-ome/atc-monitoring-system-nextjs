@@ -139,7 +139,9 @@ export const columns = (
       const manifest = row.original;
       return (
         <div className="flex justify-center">
-          {manifest.price ? manifest.price : null}
+          {manifest.price
+            ? parseInt(manifest.price, 10).toLocaleString()
+            : null}
         </div>
       );
     },

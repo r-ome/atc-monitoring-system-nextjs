@@ -3,15 +3,7 @@
 import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/app/components/ui/dropdown-menu";
+import { ArrowUpDown } from "lucide-react";
 import { Badge } from "@/app/components/ui/badge";
 import { BidderRowType } from "./bidders-table";
 
@@ -35,7 +27,14 @@ export const columns: ColumnDef<BidderRowType>[] = [
     },
     cell: ({ row }) => {
       const bidder = row.original;
-      return <div className="flex justify-center">{bidder.bidder_number}</div>;
+      return (
+        <div
+          className="flex justify-center hover:underline hover:cursor-pointer"
+          onClick={() => redirect(`/bidders/${bidder.bidder_number}`)}
+        >
+          {bidder.bidder_number}
+        </div>
+      );
     },
   },
   {
@@ -75,28 +74,28 @@ export const columns: ColumnDef<BidderRowType>[] = [
       return <div className="flex justify-center">{bidder.birthdate}</div>;
     },
   },
-  {
-    accessorKey: "service_charge",
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          className="cursor-pointer flex justify-center"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Service Charge (%)
-          <ArrowUpDown />
-        </Button>
-      </div>
-    ),
-    size: 130,
-    cell: ({ row }) => {
-      const bidder = row.original;
-      return (
-        <div className="flex justify-center">{bidder.service_charge}%</div>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "service_charge",
+  //   header: ({ column }) => (
+  //     <div className="flex justify-center">
+  //       <Button
+  //         variant="ghost"
+  //         className="cursor-pointer flex justify-center"
+  //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+  //       >
+  //         Service Charge (%)
+  //         <ArrowUpDown />
+  //       </Button>
+  //     </div>
+  //   ),
+  //   size: 130,
+  //   cell: ({ row }) => {
+  //     const bidder = row.original;
+  //     return (
+  //       <div className="flex justify-center">{bidder.service_charge}%</div>
+  //     );
+  //   },
+  // },
   // {
   //   accessorKey: "contact_number",
   //   header: "Contact",
@@ -106,32 +105,32 @@ export const columns: ColumnDef<BidderRowType>[] = [
   //     return <div>{bidder.contact_number}</div>;
   //   },
   // },
-  {
-    accessorKey: "registration_fee",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer flex justify-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Registration Fee
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    size: 100,
-    cell: ({ row }) => {
-      const bidder = row.original;
-      return (
-        <div className="flex justify-center">
-          {bidder.registration_fee.toLocaleString()}
-        </div>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "registration_fee",
+  //   header: ({ column }) => {
+  //     return (
+  //       <div className="flex justify-center">
+  //         <Button
+  //           variant="ghost"
+  //           className="cursor-pointer flex justify-center"
+  //           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+  //         >
+  //           Registration Fee
+  //           <ArrowUpDown />
+  //         </Button>
+  //       </div>
+  //     );
+  //   },
+  //   size: 100,
+  //   cell: ({ row }) => {
+  //     const bidder = row.original;
+  //     return (
+  //       <div className="flex justify-center">
+  //         {bidder.registration_fee.toLocaleString()}
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "status",
     header: ({ column }) => {
@@ -159,33 +158,6 @@ export const columns: ColumnDef<BidderRowType>[] = [
             {bidder.status}
           </Badge>
         </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    size: 50,
-    cell: ({ row }) => {
-      const bidder = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="cursor-pointer">
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => redirect(`/bidders/${bidder.bidder_number}`)}
-            >
-              View Bidder Profile
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       );
     },
   },

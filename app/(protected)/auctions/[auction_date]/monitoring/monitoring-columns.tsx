@@ -3,15 +3,7 @@
 import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/app/components/ui/dropdown-menu";
+import { ArrowUpDown } from "lucide-react";
 import { Badge } from "@/app/components/ui/badge";
 import { AuctionsInventory } from "src/entities/models/Auction";
 
@@ -36,7 +28,12 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
     cell: ({ row }) => {
       const auction_inventory = row.original;
       return (
-        <div className="flex justify-center">
+        <div
+          className="flex justify-center hover:underline hover:cursor-pointer"
+          onClick={() =>
+            redirect(`monitoring/${auction_inventory.auction_inventory_id}`)
+          }
+        >
           {auction_inventory.inventory.barcode}
         </div>
       );
@@ -230,35 +227,6 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
         <div className="flex justify-center">
           {auction_inventory.manifest_number}
         </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    size: 50,
-    cell: ({ row }) => {
-      const auction_inventory = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="cursor-pointer">
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                redirect(`monitoring/${auction_inventory.auction_inventory_id}`)
-              }
-            >
-              View Item
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       );
     },
   },

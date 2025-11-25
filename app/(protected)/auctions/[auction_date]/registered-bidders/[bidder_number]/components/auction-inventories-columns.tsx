@@ -5,8 +5,9 @@ import type { RegisteredBidder } from "src/entities/models/Bidder";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Badge } from "@/app/components/ui/badge";
-import { cn } from "@/app/lib/utils";
+import { cn, formatDate } from "@/app/lib/utils";
 import { Checkbox } from "@/app/components/ui/checkbox";
+import { redirect } from "next/navigation";
 
 export type AuctionInventory = RegisteredBidder["auction_inventories"][number];
 
@@ -98,8 +99,23 @@ export const columns: ColumnDef<AuctionInventory>[] = [
         </div>
       );
     },
-    cell: ({ getValue }) => {
-      return <div className="flex justify-center">{getValue<string>()}</div>;
+    cell: ({ row }) => {
+      const item = row.original;
+      return (
+        <div
+          className="flex justify-center hover:underline hover:cursor-pointer"
+          onClick={() =>
+            redirect(
+              `/auctions/${formatDate(
+                new Date(item.created_at),
+                "yyyy-MM-dd"
+              )}/monitoring/${item.auction_inventory_id}`
+            )
+          }
+        >
+          {item.inventory.barcode}
+        </div>
+      );
     },
   },
   {
