@@ -119,6 +119,28 @@ export const columns = (
     },
   },
   {
+    accessorKey: "qty",
+    size: 100,
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            QTY
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const manifest = row.original;
+      return <div className="flex justify-center">{manifest.qty}</div>;
+    },
+  },
+  {
     accessorKey: "price",
     size: 100,
     header: ({ column }) => {
