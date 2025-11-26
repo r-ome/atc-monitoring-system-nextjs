@@ -1,9 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./monitoring-columns";
+import { buildGroupIndexMap } from "@/app/lib/utils";
 
 interface MonitoringTableProps {
   monitoring: AuctionsInventory[];
@@ -35,9 +37,14 @@ export const MonitoringTable = ({ monitoring }: MonitoringTableProps) => {
       .some((field) => field!.toLowerCase().includes(search));
   };
 
+  const groupIndexMap = useMemo(
+    () => buildGroupIndexMap(monitoring, (r) => r.is_slash_item),
+    [monitoring]
+  );
+
   return (
     <DataTable
-      columns={columns}
+      columns={columns(groupIndexMap)}
       data={monitoring}
       columnFilter={{
         column: "status",

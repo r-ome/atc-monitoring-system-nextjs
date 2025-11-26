@@ -34,7 +34,8 @@ export const StartAuctionButton = () => {
         toast.success("Successfully created an auction!");
         router.refresh();
       } else {
-        toast.error("lol error.");
+        console.log(res.error);
+        toast.error(".");
       }
     }
   };

@@ -63,6 +63,7 @@ export type AuctionsInventory = {
   price: number;
   qty: string;
   manifest_number: string;
+  is_slash_item: string | null;
   created_at: string;
   updated_at: string;
   inventory: {

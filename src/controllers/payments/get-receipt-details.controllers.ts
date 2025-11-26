@@ -40,6 +40,7 @@ function presenter(
       qty: item.auction_inventory?.qty,
       price: item.auction_inventory?.price,
       manifest_number: item.auction_inventory?.manifest_number,
+      is_slash_item: item.auction_inventory?.is_slash_item,
     })),
     payments: receipt.payments.map((payment) => ({
       payment_id: payment.payment_id,

@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface InvoiceTableRowProps {
+export type InvoiceTableRowProps = {
   items: {
     barcode: string;
     control: string;
@@ -51,7 +51,7 @@ interface InvoiceTableRowProps {
     qty: string;
     price: number;
   }[];
-}
+};
 
 const InvoiceTableRow: React.FC<InvoiceTableRowProps> = ({ items }) => {
   const rows = items.map((item, i) => (

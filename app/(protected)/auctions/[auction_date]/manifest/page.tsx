@@ -30,7 +30,7 @@ export default async function Page({
       <div className="flex gap-4">
         <UploadManifestModal auction_id={auction.auction_id} />
       </div>
-      <ManifestRecordsTable manifestRecords={manifest_records} />;
+      <ManifestRecordsTable manifestRecords={manifest_records} />
     </div>
   );
 }

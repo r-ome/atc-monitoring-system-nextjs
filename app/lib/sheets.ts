@@ -18,6 +18,7 @@ import {
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { InputParseError } from "src/entities/errors/common";
 import { logger } from "./logger";
+import { v4 as uuidv4 } from "uuid";
 
 export const VALID_FILE_TYPES = [
   "application/x-iwork-numbers-sffnumbers",
@@ -161,6 +162,7 @@ export const validateEmptyFields = <T extends "manifest" | "counter_check">(
         ...item,
         isValid: false,
         forReassign: false,
+        isSlashItem: null,
         error: `Required Fields: ${emptyFields.join(", ")}`,
       };
     } else {
@@ -241,13 +243,15 @@ export const formatSlashedBarcodes = (
       new_barcodes.length
     );
     const new_quantities = divideQuantites(item.QTY, new_barcodes.length);
+    const slashGroupUuid = new_barcodes.length > 1 ? uuidv4() : null;
 
-    const new_rows = new_barcodes.map((new_barcode, i) => {
+    const new_rows = new_barcodes.map((new_barcode, i, acc) => {
       const is_inventory = new_barcode.split("-").length === 1;
       new_barcode = formatNumberPadding(new_barcode, 3);
 
       return {
         ...item,
+        isSlashItem: slashGroupUuid,
         PRICE: new_prices[i].toString(),
         BARCODE: is_inventory ? `${parent}-${new_barcode}` : new_barcode,
         QTY: new_quantities[i].toString(),

@@ -49,6 +49,7 @@ model auctions_inventories {
   price                Int                      @default(0)
   qty                  String
   manifest_number      String
+  is_slash_item        String?
   auction_date         DateTime
   created_at           DateTime                 @default(now()) @db.Timestamp(0)
   updated_at           DateTime                 @default(now()) @updatedAt @db.DateTime(0)
@@ -200,6 +201,7 @@ model manifest_records {
   bidder_number   String?
   qty             String?
   manifest_number String?
+  is_slash_item   String?
   remarks         String?   @db.Text
   error_message   String?   @db.Text
   created_at      DateTime  @default(now()) @db.Timestamp(0)

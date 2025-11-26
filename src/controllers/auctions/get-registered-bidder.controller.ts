@@ -36,6 +36,7 @@ function presenter(registeredBidder: RegisteredBidderSchema) {
         status: auction_inventory.status,
         price: auction_inventory.price,
         qty: auction_inventory.qty,
+        is_slash_item: auction_inventory.is_slash_item,
         manifest_number: auction_inventory.manifest_number,
         created_at: formatDate(auction_inventory.created_at, "MMMM dd, yyyy"),
         updated_at: formatDate(auction_inventory.updated_at, "MMMM dd, yyyy"),

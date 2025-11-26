@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, SetStateAction } from "react";
+import { useState, useMemo, useEffect, SetStateAction } from "react";
 import { pdf, PDFViewer } from "@react-pdf/renderer";
 import { getBidderReceipts } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { PAYMENT_PURPOSE, ReceiptRecords } from "src/entities/models/Payment";
@@ -17,6 +17,7 @@ import {
 } from "@/app/components/ui/dialog";
 import { useBidderPullOutModalContext } from "../context/BidderPullOutModalContext";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { buildGroupIndexMap } from "@/app/lib/utils";
 
 interface ViewBillingModalProps {
   open: boolean;
@@ -70,6 +71,8 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
           (item) => item.status === "UNPAID"
         );
 
+    const groupIndexMap = buildGroupIndexMap(items, (r) => r.is_slash_item);
+
     const receipt = {
       receipt_id: "BILLING",
       receipt_number: receiptNumber || registeredBidder.bidder.bidder_number,
@@ -85,15 +88,20 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
         service_charge: registeredBidder.service_charge,
         already_consumed: registeredBidder.already_consumed,
       },
-      auctions_inventories: items.map((item) => ({
-        auction_inventory_id: item.auction_inventory_id,
-        barcode: item.inventory.barcode,
-        control: item.inventory.control,
-        description: item.description,
-        qty: item.qty,
-        price: item.price,
-        manifest_number: item.manifest_number,
-      })),
+      auctions_inventories: items.map((item) => {
+        const isSlashItem = item.is_slash_item;
+        const idx = isSlashItem ? groupIndexMap[isSlashItem] : undefined;
+        return {
+          auction_inventory_id: item.auction_inventory_id,
+          barcode: item.inventory.barcode,
+          control: `${idx ? ` (A${idx})` : ""} ${item.inventory.control}`,
+          description: item.description,
+          qty: item.qty,
+          price: item.price,
+          manifest_number: item.manifest_number,
+          is_slash_item: item.is_slash_item,
+        };
+      }),
     };
 
     setReceipt(receipt);
@@ -146,12 +154,11 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
     const url = URL.createObjectURL(blob);
     const iframe = document.createElement("iframe");
     iframe.style.position = "fixed";
-    iframe.style.right = "100%"; // Hide the iframe off-screen
+    iframe.style.right = "100%";
     iframe.style.bottom = "100%";
     iframe.src = url;
 
     iframe.onload = () => {
-      // Once the content is loaded, trigger the print dialog within the iframe
       iframe.contentWindow?.print();
     };
 

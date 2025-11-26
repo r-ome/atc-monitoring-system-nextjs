@@ -14,6 +14,7 @@ export type Manifest = {
   qty: string | null;
   manifest_number: string | null;
   remarks: string | null;
+  is_slash_item: string | null;
   error_message: string | null;
   created_at: string;
 };
@@ -43,6 +44,7 @@ export const ManifestInsertSchema = z.object({
   inventory_id: z.string().optional().nullable(),
   isValid: z.boolean(),
   forReassign: z.boolean(),
+  isSlashItem: z.string().nullable(),
   auction_inventory_id: z.string().optional().nullable(),
   error: z.string(),
 });

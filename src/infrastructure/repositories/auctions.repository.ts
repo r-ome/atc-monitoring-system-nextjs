@@ -157,7 +157,7 @@ export const AuctionRepository: IAuctionRepository = {
                   createMany: {
                     data: data.payments.map((payment) => ({
                       amount_paid: payment.amount_paid,
-                      payment_method: payment.payment_method,
+                      payment_method_id: payment.payment_method,
                     })),
                   },
                 },
@@ -247,6 +247,7 @@ export const AuctionRepository: IAuctionRepository = {
               bidder_number: item.BIDDER,
               qty: item.QTY,
               manifest_number: item.MANIFEST?.toString(),
+              is_slash_item: item.isSlashItem,
               error_message: item.error,
             })),
           });
@@ -321,6 +322,7 @@ export const AuctionRepository: IAuctionRepository = {
                     qty: item.QTY,
                     manifest_number: item.MANIFEST as string,
                     auction_date: auction?.created_at,
+                    is_slash_item: item.isSlashItem,
                   },
                 })
               )

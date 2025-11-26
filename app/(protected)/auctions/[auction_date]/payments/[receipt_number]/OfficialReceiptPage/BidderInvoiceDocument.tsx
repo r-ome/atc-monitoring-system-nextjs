@@ -12,7 +12,7 @@ import InvoiceTableFooter from "./InvoiceTableFooter";
 import InvoiceTermsAndConditions from "./InvoiceTermsAndConditions";
 import InvoiceSignatories from "./InvoiceSignatories";
 import { ReceiptRecords } from "src/entities/models/Payment";
-import { formatNumberPadding } from "@/app/lib/utils";
+import { InvoiceTableRowProps } from "./InvoiceTableRow";
 
 Font.register({
   family: "Arial",
@@ -51,36 +51,19 @@ export type Computation = {
   grandTotal: number;
 };
 
-// export type Signatories = {
-//   isPartial: boolean;
-//   purpose?: PAYMENT_PURPOSE;
-//   amountPaid?: number;
-//   balance?: number;
-//   full_name: string;
-// };
-
 const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
   receipt,
   computation,
 }) => {
   const chunkSize = 30;
   const newArr = [];
-  const auctions_inventories = receipt.auctions_inventories
-    .map((item) => {
-      // the .map() function is temporary
-      // TO DO: remove this function on November 29, 2025
-      if (!item.control) return item;
-      item.control = formatNumberPadding(item.control.replace(/\./g, ""), 4);
-      return item;
-    })
-    .sort((a, b) => a.control!.localeCompare(b.control!));
+  const auctions_inventories = receipt.auctions_inventories.sort((a, b) =>
+    a.control!.localeCompare(b.control!)
+  );
   for (let i = 0; i < auctions_inventories.length; i += chunkSize) {
     const chunk = auctions_inventories.slice(i, i + chunkSize).map((item) => ({
-      barcode: item.barcode || "NO BARCODE",
-      control: item.control || "NC",
-      description: item.description || "NO DESCRIPTION",
-      qty: item.qty || "NO QTY",
-      price: item.price || 0,
+      ...item,
+      barcode: item.barcode ?? "",
       bidder: receipt.bidder.bidder_number,
     }));
     newArr.push(chunk);
@@ -112,7 +95,7 @@ const BidderInvoiceDocument: React.FC<BidderInvoiceDocumentProps> = ({
               }}
             >
               <InvoiceTableHeader />
-              <InvoiceTableRow items={item} />
+              <InvoiceTableRow items={item as InvoiceTableRowProps["items"]} />
             </View>
             {i === arr.length - 1 ? (
               <View>

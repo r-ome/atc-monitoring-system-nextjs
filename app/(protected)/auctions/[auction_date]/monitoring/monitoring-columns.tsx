@@ -6,8 +6,17 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Badge } from "@/app/components/ui/badge";
 import { AuctionsInventory } from "src/entities/models/Auction";
+import { createGroupSortingFn } from "@/app/lib/utils";
 
-export const columns: ColumnDef<AuctionsInventory>[] = [
+const controlGroupSortingFn = createGroupSortingFn<AuctionsInventory, string>(
+  (row) => row.is_slash_item ?? row.auction_inventory_id,
+  (row) => row.inventory.control,
+  (a, b) => a.localeCompare(b)
+);
+
+export const columns = (
+  slashGroupMap: Record<string, number>
+): ColumnDef<AuctionsInventory>[] => [
   {
     accessorKey: "inventory.barcode",
     size: 100,
@@ -57,11 +66,16 @@ export const columns: ColumnDef<AuctionsInventory>[] = [
         </div>
       );
     },
+    sortingFn: controlGroupSortingFn,
     cell: ({ row }) => {
       const auction_inventory = row.original;
+      const is_slash_item = auction_inventory.is_slash_item;
+      const idx = is_slash_item ? slashGroupMap[is_slash_item] : undefined;
+
       return (
         <div className="flex justify-center">
           {auction_inventory.inventory.control}
+          {idx ? `(A${idx})` : ""}
         </div>
       );
     },

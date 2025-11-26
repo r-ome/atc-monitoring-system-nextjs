@@ -53,9 +53,11 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => setOpenPullOutModal(true)}
-            disabled={selectedItems.some((item) =>
-              ["PAID", "CANCELLED"].includes(item.status)
-            )}
+            disabled={
+              selectedItems.some((item) =>
+                ["PAID", "CANCELLED"].includes(item.status)
+              ) || !selectedItems.length
+            }
           >
             Pull Out
           </DropdownMenuItem>
@@ -81,7 +83,6 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
           >
             View Receipt
           </DropdownMenuItem>
-          <DropdownMenuItem>Print Receipt</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

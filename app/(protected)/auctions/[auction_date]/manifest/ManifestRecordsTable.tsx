@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./manifest-columns";
 import { Manifest } from "src/entities/models/Manifest";
 import { UpdateManifestModal } from "./UpdateManifestModal";
+import { buildGroupIndexMap } from "@/app/lib/utils";
 
 interface ManifestRecordsTableProps {
   manifestRecords: Manifest[];
@@ -53,11 +54,16 @@ export const ManifestRecordsTable = ({
       .some((field) => field!.toLowerCase().includes(search));
   };
 
+  const groupIndexMap = useMemo(
+    () => buildGroupIndexMap(manifestRecords, (r) => r.is_slash_item),
+    [manifestRecords]
+  );
+
   return (
     <>
       <UpdateManifestModal open={open} setOpen={setOpen} selected={selected} />
       <DataTable
-        columns={columns(setOpen, setSelected)}
+        columns={columns(setOpen, setSelected, groupIndexMap)}
         data={manifestRecords.filter(
           (item) => item.barcode && !item.barcode?.match(/barcode/gi)
         )}

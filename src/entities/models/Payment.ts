@@ -84,6 +84,7 @@ export type ReceiptRecords = {
     qty?: string;
     price?: number;
     manifest_number?: string;
+    is_slash_item?: string | null;
   }[];
   created_at: string;
 };

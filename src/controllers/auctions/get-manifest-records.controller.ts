@@ -18,6 +18,7 @@ function presenter(manifest_records: ManifestSchema[]) {
     manifest_number: manifest.manifest_number,
     remarks: manifest.remarks,
     error_message: manifest.error_message,
+    is_slash_item: manifest.is_slash_item,
     created_at: formatDate(manifest.created_at, "MMMM dd, yyyy HH:mm:ss"),
   }));
 }

@@ -12,9 +12,18 @@ import {
 import { cn, formatDate } from "@/app/lib/utils";
 import { SetStateAction } from "react";
 
+import { createGroupSortingFn } from "@/app/lib/utils";
+
+const controlGroupSortingFn = createGroupSortingFn<Manifest, string>(
+  (row) => row.is_slash_item ?? row.manifest_id,
+  (row) => row.control ?? "",
+  (a, b) => a.localeCompare(b)
+);
+
 export const columns = (
   setOpen: React.Dispatch<SetStateAction<boolean>>,
-  setSelected: React.Dispatch<SetStateAction<Manifest>>
+  setSelected: React.Dispatch<SetStateAction<Manifest>>,
+  groupIndexMap: Record<string, number>
 ): ColumnDef<Manifest>[] => [
   {
     accessorKey: "barcode",
@@ -45,7 +54,6 @@ export const columns = (
             }
           }}
         >
-          {" "}
           {manifest.barcode}
         </div>
       );
@@ -54,6 +62,7 @@ export const columns = (
   {
     accessorKey: "control",
     size: 100,
+    sortingFn: controlGroupSortingFn,
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
@@ -70,7 +79,15 @@ export const columns = (
     },
     cell: ({ row }) => {
       const manifest = row.original;
-      return <div className="flex justify-center">{manifest.control}</div>;
+      const is_slash_item = manifest.is_slash_item;
+      const idx = is_slash_item ? groupIndexMap[is_slash_item] : undefined;
+
+      console.log(idx);
+      return (
+        <div className="flex justify-center">
+          {manifest.control} {idx ? `(A${idx})` : ""}
+        </div>
+      );
     },
   },
   {

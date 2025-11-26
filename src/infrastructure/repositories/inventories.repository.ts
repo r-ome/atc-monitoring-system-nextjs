@@ -157,7 +157,6 @@ export const InventoryRepository: IInventoryRepository = {
           selected_bidder.auction_bidder_id;
 
         let auction_inventory_status = auction_inventory.status;
-        console.log({ here: is_item_reassigned, auction_inventory_status });
         if (is_item_reassigned && auction_inventory_status === "REFUNDED") {
           auction_inventory_status = "UNPAID";
         }
