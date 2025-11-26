@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, SetStateAction } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import { pdf, PDFViewer } from "@react-pdf/renderer";
 import { getBidderReceipts } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { PAYMENT_PURPOSE, ReceiptRecords } from "src/entities/models/Payment";

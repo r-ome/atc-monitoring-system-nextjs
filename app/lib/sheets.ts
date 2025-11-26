@@ -245,7 +245,7 @@ export const formatSlashedBarcodes = (
     const new_quantities = divideQuantites(item.QTY, new_barcodes.length);
     const slashGroupUuid = new_barcodes.length > 1 ? uuidv4() : null;
 
-    const new_rows = new_barcodes.map((new_barcode, i, acc) => {
+    const new_rows = new_barcodes.map((new_barcode, i) => {
       const is_inventory = new_barcode.split("-").length === 1;
       new_barcode = formatNumberPadding(new_barcode, 3);
 
