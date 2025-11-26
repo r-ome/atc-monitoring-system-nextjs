@@ -22,6 +22,7 @@ const presenter = (auction_inventory: AuctionsInventorySchema) => {
     manifest_number: auction_inventory.manifest_number,
     created_at: formatDate(auction_inventory.created_at, date_format),
     updated_at: formatDate(auction_inventory.updated_at, date_format),
+    is_slash_item: auction_inventory.is_slash_item,
     inventory: {
       inventory_id: auction_inventory.inventory_id,
       barcode: auction_inventory.inventory.barcode,
