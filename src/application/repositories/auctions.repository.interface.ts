@@ -8,6 +8,7 @@ import {
 import {
   RegisterBidderInputSchema,
   RegisteredBidderSchema,
+  UpdateBidderRegistrationSchema,
 } from "src/entities/models/Bidder";
 import {
   CounterCheckInsertSchema,
@@ -75,4 +76,8 @@ export interface IAuctionRepository {
     data: ManifestUpdateSchema[],
     original: ManifestUpdateSchema
   ) => Promise<ManifestSchema>;
+  updateBidderRegistration: (
+    auction_bidder_id: string,
+    data: UpdateBidderRegistrationSchema
+  ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
 }

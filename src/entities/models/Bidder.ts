@@ -63,6 +63,15 @@ export const BidderInsertSchema = z.object({
 
 export type BidderInsertSchema = z.infer<typeof BidderInsertSchema>;
 
+export const UpdateBidderRegistrationInput = z.object({
+  service_charge: z.coerce.number(),
+  registration_fee: z.coerce.number(),
+});
+
+export type UpdateBidderRegistrationSchema = z.infer<
+  typeof UpdateBidderRegistrationInput
+>;
+
 export const RegisterBidderInput = z.object({
   auction_id: z.string(),
   bidder_id: z.string(),

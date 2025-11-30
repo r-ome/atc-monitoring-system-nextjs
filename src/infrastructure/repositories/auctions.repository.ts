@@ -869,4 +869,34 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
+  updateBidderRegistration: async (auction_bidder_id, data) => {
+    try {
+      const bidder = await prisma.auctions_bidders.findFirst({
+        where: { auction_bidder_id },
+      });
+
+      if (!bidder) {
+        throw new NotFoundError("AUCTION BIDDER NOT FOUND!");
+      }
+
+      return await prisma.$transaction(async (tx) => {
+        return await tx.auctions_bidders.update({
+          where: { auction_bidder_id },
+          data: {
+            service_charge: data.service_charge,
+            registration_fee: data.registration_fee,
+          },
+        });
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        console.error(error);
+        throw new DatabaseOperationError("Error registering bidder", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
 };

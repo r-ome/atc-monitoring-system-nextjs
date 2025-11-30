@@ -1,108 +1,109 @@
 "use client";
 
-import { SetStateAction, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
 import { Loader2Icon } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { updateBidderRegistration } from "@/app/(protected)/auctions/actions";
 import { Button } from "@/app/components/ui/button";
+import { Label } from "@/app/components/ui/label";
 import {
   Dialog,
-  DialogHeader,
-  DialogTitle,
+  DialogTrigger,
   DialogContent,
-  DialogFooter,
+  DialogHeader,
   DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
 } from "@/app/components/ui/dialog";
-import { DialogDescription } from "@radix-ui/react-dialog";
-import { useBidderPullOutModalContext } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/context/BidderPullOutModalContext";
-import { Textarea } from "@/app/components/ui/textarea";
-import { Label } from "@/app/components/ui/label";
 import { toast } from "sonner";
-import {
-  getRegisteredBidderByBidderNumber,
-  cancelItems,
-} from "@/app/(protected)/auctions/actions";
+import { InputNumber } from "@/app/components/ui/InputNumber";
 
-interface CancelItemsModalProps {
-  open: boolean;
-  onOpenChange: React.Dispatch<SetStateAction<boolean>>;
+interface UpdateBidderRegistrationProps {
+  bidder: {
+    auction_bidder_id: string;
+    registration_fee: number;
+    service_charge: number;
+  };
 }
 
-export const UpdateBidderRegistrationModal: React.FC<CancelItemsModalProps> = ({
-  open,
-  onOpenChange,
-}) => {
-  const { auction_date }: { auction_date: string } = useParams();
+export const UpdateBidderRegistrationModal: React.FC<
+  UpdateBidderRegistrationProps
+> = ({ bidder }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { selectedItems, registeredBidder } = useBidderPullOutModalContext();
+  const [open, setOpen] = useState<boolean>(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
+
     const formData = new FormData(event.currentTarget);
-    const toBeCancelledItems = selectedItems.map((item) => ({
-      auction_inventory_id: item.auction_inventory_id,
-      inventory_id: item.inventory_id,
-    }));
-    if (!registeredBidder) return;
+    const res = await updateBidderRegistration(
+      bidder.auction_bidder_id,
+      formData
+    );
 
-    formData.append("auction_bidder_id", registeredBidder.auction_bidder_id);
-    formData.append("auction_inventories", JSON.stringify(toBeCancelledItems));
-
-    const res = await cancelItems(formData);
     if (res) {
       setIsLoading(false);
-
       if (res.ok) {
-        toast.success(`Successfully cancelled ${selectedItems.length} items!`);
-        onOpenChange(false);
-        await getRegisteredBidderByBidderNumber(
-          registeredBidder.bidder.bidder_number,
-          auction_date
-        );
+        toast.success("Successfully uploaded bidder registration!");
+        setOpen(false);
         router.refresh();
       }
 
       if (!res.ok) {
-        toast.error(res.error.message, {
-          description: res.error.cause as string,
-        });
+        const description =
+          typeof res.error?.cause === "string" ? res.error?.cause : null;
+        toast.error(res.error.message, { description });
       }
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[700px]">
-        <DialogHeader>
-          <DialogTitle>Cancel Items</DialogTitle>
-        </DialogHeader>
-        <DialogDescription className="font-bold uppercase">
-          You are about to cancel {selectedItems.length} items. Are you sure?
-        </DialogDescription>
+    <div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button>Update Bidder Registration</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Bidder Registration</DialogTitle>
+            <DialogDescription>
+              Update Service Service Charge and Registration Fee
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex flex-col gap-2">
+              <Label>Service Charge:</Label>
+              <InputNumber
+                id="service_charge"
+                name="service_charge"
+                defaultValue={12}
+                value={bidder?.service_charge as number}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>Registration Fee:</Label>
 
-        <form onSubmit={handleSubmit} id="cancel-items-modal">
-          <div className="mx-auto w-5/6 flex flex-col gap-2 mt-4">
-            <Label>Reason:</Label>
-            <Textarea
-              name="reason"
-              placeholder="Please add reason here"
-              required
-            />
-          </div>
-        </form>
+              <InputNumber
+                id="registration_fee"
+                name="registration_fee"
+                defaultValue={3000}
+                value={bidder?.registration_fee as number}
+              />
+            </div>
 
-        <DialogFooter className="flex sm:justify-center">
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-
-          <Button type="submit" form="cancel-items-modal" disabled={isLoading}>
-            {isLoading && <Loader2Icon className="animate-spin" />}
-            Submit
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <DialogFooter>
+              <DialogClose className="cursor-pointer">Cancel</DialogClose>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2Icon className="animate-spin" />}
+                Submit
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
