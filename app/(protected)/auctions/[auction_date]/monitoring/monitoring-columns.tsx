@@ -7,6 +7,7 @@ import { ArrowUpDown } from "lucide-react";
 import { Badge } from "@/app/components/ui/badge";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { createGroupSortingFn } from "@/app/lib/utils";
+import { cn } from "@/app/lib/utils";
 
 const controlGroupSortingFn = createGroupSortingFn<AuctionsInventory, string>(
   (row) => row.is_slash_item ?? row.auction_inventory_id,
@@ -16,7 +17,7 @@ const controlGroupSortingFn = createGroupSortingFn<AuctionsInventory, string>(
 
 export const columns = (
   slashGroupMap: Record<string, number>,
-  isMasterList = "ALL"
+  isMasterList = false
 ): ColumnDef<AuctionsInventory>[] => [
   {
     accessorKey: "inventory.barcode",
@@ -39,10 +40,15 @@ export const columns = (
       const auction_inventory = row.original;
       return (
         <div
-          className="flex justify-center hover:underline hover:cursor-pointer"
-          onClick={() =>
-            redirect(`monitoring/${auction_inventory.auction_inventory_id}`)
-          }
+          className={cn(
+            `flex justify-center`,
+            !isMasterList && "hover:underline hover:cursor-pointer"
+          )}
+          onClick={() => {
+            if (!isMasterList) {
+              redirect(`monitoring/${auction_inventory.auction_inventory_id}`);
+            }
+          }}
         >
           {auction_inventory.inventory.barcode}
         </div>
@@ -245,7 +251,7 @@ export const columns = (
       );
     },
   },
-  ...(isMasterList === "ALL"
+  ...(!isMasterList
     ? [
         {
           accessorKey: "created_at",

@@ -19,7 +19,7 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col gap-2">
-      <MonitoringTable monitoring={monitoring} />
+      <MonitoringTable monitoring={monitoring} isMasterList={true} />
     </div>
   );
 }

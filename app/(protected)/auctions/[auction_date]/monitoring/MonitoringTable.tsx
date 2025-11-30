@@ -9,9 +9,13 @@ import { buildGroupIndexMap } from "@/app/lib/utils";
 
 interface MonitoringTableProps {
   monitoring: AuctionsInventory[];
+  isMasterList?: boolean;
 }
 
-export const MonitoringTable = ({ monitoring }: MonitoringTableProps) => {
+export const MonitoringTable = ({
+  monitoring,
+  isMasterList = false,
+}: MonitoringTableProps) => {
   const globalFilterFn = (
     row: CoreRow<AuctionsInventory>,
     _columnId?: string,
@@ -44,7 +48,7 @@ export const MonitoringTable = ({ monitoring }: MonitoringTableProps) => {
 
   return (
     <DataTable
-      columns={columns(groupIndexMap)}
+      columns={columns(groupIndexMap, isMasterList)}
       data={monitoring}
       columnFilter={{
         column: "status",
