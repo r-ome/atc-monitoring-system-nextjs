@@ -93,6 +93,7 @@ export default async function Page({
             <CardTitle>Bidder: {bidder.bidder.bidder_number}</CardTitle>
             <CardDescription>{bidder.bidder.full_name}</CardDescription>
           </div>
+          <div>UPDATE BIDDER REGISTRATION</div>
         </CardHeader>
         <CardContent>
           <BidderProfile />

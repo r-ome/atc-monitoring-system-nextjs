@@ -50,7 +50,8 @@ export const UploadCounterCheckController = async (
       data as CounterCheckRecord[]
     );
 
-    return ok(`${res.count} records uploaded!`);
+    // return ok(`${res.count} records uploaded!`);
+    return ok(`0 records uploaded!`);
   } catch (error) {
     logger("UploadCounterCheckController", error);
     if (error instanceof InputParseError) {

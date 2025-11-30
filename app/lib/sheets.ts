@@ -71,7 +71,7 @@ export const getSheetData = (
         .filter((item) => item)
         .map((item) => item.trim());
       data = data
-        .slice(1)
+        .slice(2)
         .map<Record<string, string>>((item) =>
           headers.reduce(
             (acc, header, headerIndex) => ({
@@ -111,70 +111,41 @@ export const getSheetData = (
   }
 };
 
-export const validateEmptyFields = <T extends "manifest" | "counter_check">(
-  data: T extends "manifest" ? ManifestSheetRecord[] : CounterCheckRecord[],
-  type: T
-): T extends "manifest"
-  ? ManifestInsertSchema[]
-  : CounterCheckInsertSchema[] => {
-  return data.map((item) => {
-    const required =
-      type === "manifest"
-        ? (["BARCODE", "BIDDER", "PRICE"] as (keyof ManifestSheetRecord)[])
-        : ([
-            "PAGE",
-            "CONTROL",
-            "BIDDER",
-            "PRICE",
-          ] as (keyof CounterCheckRecord)[]);
-
-    const emptyFields = required.filter(
-      (field) => !item[field as keyof typeof item]
-    );
+export const validateEmptyFields = (
+  data: ManifestSheetRecord[]
+): ManifestInsertSchema[] => {
+  return data.map((item, i, acc) => {
+    const required = ["BARCODE", "BIDDER", "PRICE"] as const;
+    const empty_fields = required.filter((field) => !item[field]);
     item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
-
-    if (type === "manifest") {
-      const manifestItem = item as ManifestSheetRecord;
-      if (manifestItem.QTY) {
-        if (manifestItem.QTY == "0.5") {
-          manifestItem.QTY = "1/2";
-        }
-        manifestItem.QTY = manifestItem.QTY.toString();
+    if (item.QTY) {
+      if (item.QTY == "0.5") {
+        item.QTY = "1/2";
       }
-      manifestItem.MANIFEST = manifestItem.MANIFEST
-        ? manifestItem.MANIFEST.toString().trim()
-        : "";
+      item.QTY = item.QTY.toString();
     }
 
     item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
+    item.MANIFEST = item.MANIFEST ? item.MANIFEST.toString().trim() : "";
 
-    if (!emptyFields.length) {
+    if (!empty_fields.length) {
       return {
         ...item,
         isValid: true,
         error: "",
-        ...(type === "manifest" ? { forReassign: false } : {}),
+        forUpdating: false,
+        isSlashItem: "",
       };
     }
 
-    if (type === "manifest") {
-      return {
-        ...item,
-        isValid: false,
-        forReassign: false,
-        isSlashItem: null,
-        error: `Required Fields: ${emptyFields.join(", ")}`,
-      };
-    } else {
-      return {
-        ...item,
-        isValid: false,
-        error: `Required Fields: ${emptyFields.join(", ")}`,
-      };
-    }
-  }) as T extends "manifest"
-    ? ManifestInsertSchema[]
-    : CounterCheckInsertSchema[];
+    return {
+      ...item,
+      isValid: false,
+      forUpdating: false,
+      isSlashItem: "",
+      error: `Required Fields: ${empty_fields.join(", ")}`,
+    };
+  });
 };
 
 export const formatControlDescriptionQty = (
@@ -293,6 +264,32 @@ export const validateBidders = (
   });
 };
 
+export const removeManifestDuplicates = (
+  data: ManifestInsertSchema[]
+): ManifestInsertSchema[] => {
+  const seen = new Set<string>();
+
+  return data.map((item) => {
+    if (!item.isValid) return item;
+    const key = `${item.BARCODE}-${item.CONTROL}`;
+    if (seen.has(key)) {
+      return { ...item, isValid: false, error: "DUPLICATE MANIFEST" };
+    } else {
+      seen.add(key);
+      return item;
+    }
+  });
+};
+
+/**
+ * This function checks the all inventories and compares it to the manifest
+ * if there are no existing inventories, it will return the inventory_id with a null value
+ * indicating that a new inventory needs to be created
+ *
+ * @param data
+ * @param existing_inventories
+ * @returns ManifestInsertSchema[]
+ */
 export const formatExistingInventories = (
   data: ManifestInsertSchema[],
   existing_inventories: Omit<
@@ -303,14 +300,30 @@ export const formatExistingInventories = (
   return data.map((item) => {
     if (!item.isValid) return item;
 
-    // check if it has inventory barcode (e.g. 27-01-01) (the 3 digit from the combination)
-    // if barcode is only a combination of container barcode we skip it and consider it as new inventory
-    const has_inventory_barcode = item.BARCODE.split("-").length === 3;
-    if (!has_inventory_barcode) return item;
+    /**
+     * Find auction_inventory item in the inventories
+     * SCENARIO A:
+     * check if the auction inventory has a container barcode
+     * check if container barcode already exists and is SOLD
+     * if SOLD
+     * - return error saying that item already exists and SOLD
+     *
+     * SCENARIO B:
+     * check if auction inventory has a container barcode
+     * if auction inventory has no container barcode, add control to condition
+     * check if inventory with no container barcode but has control exists and is SOLD
+     * if SOLD
+     * - return error saying that item already exists and SOLD
+     */
+    const existing_inventory = existing_inventories.find((inventory) => {
+      if (item.BARCODE.split("-").length === 3) {
+        return inventory.barcode === item.BARCODE;
+      }
 
-    const existing_inventory = existing_inventories.find(
-      (inventory) => inventory.barcode === item.BARCODE
-    );
+      return (
+        inventory.barcode === item.BARCODE && inventory.control === item.CONTROL
+      );
+    });
 
     if (existing_inventory)
       if (["SOLD"].includes(existing_inventory.status)) {
@@ -358,7 +371,7 @@ export const addContainerIdForNewInventories = (
   });
 };
 
-export const removeManifestDuplicates = (
+export const removeMonitoringDuplicates = (
   data: ManifestInsertSchema[],
   monitoring: AuctionsInventorySchema[]
 ) => {
@@ -366,12 +379,23 @@ export const removeManifestDuplicates = (
     JSON.stringify({
       BARCODE: item.inventory.barcode,
       CONTROL: item.inventory.control,
-      DESCRIPTION: item.description,
-      BIDDER: item.auction_bidder.bidder.bidder_number,
-      QTY: item.qty,
-      PRICE: item.price.toString(),
     })
   );
+
+  /**
+   * If item already exists but have CANCELLED or REFUNDED status
+   * update item to:
+   * inventory status: SOLD
+   * auction inventory status: UNPAID
+   */
+  const existing_cancelled_items = monitoring
+    .filter((item) => ["CANCELLED", "REFUNDED"].includes(item.status))
+    .map((item) =>
+      JSON.stringify({
+        BARCODE: item.inventory.barcode,
+        CONTROL: item.inventory.control,
+      })
+    );
 
   return data.map((sheet_item) => {
     if (!sheet_item.isValid) return sheet_item;
@@ -379,33 +403,16 @@ export const removeManifestDuplicates = (
     const fields = JSON.stringify({
       BARCODE: sheet_item.BARCODE,
       CONTROL: sheet_item.CONTROL,
-      DESCRIPTION: sheet_item.DESCRIPTION,
-      BIDDER: sheet_item.BIDDER,
-      QTY: sheet_item.QTY,
-      PRICE: sheet_item.PRICE.toString(),
     });
-
-    const sheet_bidder = sheet_item.BIDDER;
-    // if items exists in monitoring but has a cancelled or refunded status, reassign item to new bidder
-    const existing_cancelled_items = monitoring
-      .filter((item) => ["CANCELLED", "REFUNDED"].includes(item.status))
-      .map((item) =>
-        JSON.stringify({
-          BARCODE: item.inventory.barcode,
-          CONTROL: item.inventory.control,
-          DESCRIPTION: item.description,
-          BIDDER: sheet_bidder,
-          QTY: item.qty,
-          PRICE: item.price.toString(),
-        })
-      );
 
     if (existing_cancelled_items.includes(fields)) {
       const matched_item = monitoring.find(
-        (item) => item.inventory.barcode === sheet_item.BARCODE
+        (item) =>
+          item.inventory.barcode === sheet_item.BARCODE &&
+          item.inventory.control === sheet_item.CONTROL
       );
 
-      sheet_item.forReassign = true;
+      sheet_item.forUpdating = true;
       if (matched_item) {
         sheet_item.auction_inventory_id = matched_item.auction_inventory_id;
       }

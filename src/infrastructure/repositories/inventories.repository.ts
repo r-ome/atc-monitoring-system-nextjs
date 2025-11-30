@@ -126,20 +126,20 @@ export const InventoryRepository: IInventoryRepository = {
   },
   updateAuctionItem: async (data) => {
     try {
-      const selected_bidder = await prisma.auctions_bidders.findFirst({
-        where: {
-          auction_id: data.auction_id,
-          bidder: { bidder_number: data.bidder_number },
-        },
-      });
-
-      if (!selected_bidder?.auction_bidder_id) {
-        throw new NotFoundError("Selected Bidder doesn't exist!", {
-          cause: "Selected bidder doesn't exist!",
-        });
-      }
-
       await prisma.$transaction(async (tx) => {
+        const selected_bidder = await prisma.auctions_bidders.findFirst({
+          where: {
+            auction_id: data.auction_id,
+            bidder: { bidder_number: data.bidder_number },
+          },
+        });
+
+        if (!selected_bidder?.auction_bidder_id) {
+          throw new NotFoundError("Selected Bidder doesn't exist!", {
+            cause: "Selected bidder doesn't exist!",
+          });
+        }
+
         const auction_inventory = await tx.auctions_inventories.findFirst({
           where: { auction_inventory_id: data.auction_inventory_id },
           include: {

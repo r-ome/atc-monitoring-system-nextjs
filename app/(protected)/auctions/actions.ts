@@ -85,7 +85,7 @@ export const cancelItems = async (formData: FormData) => {
     auction_bidder_id: data.auction_bidder_id as string,
     auction_inventory_ids,
     inventory_ids,
-    reason: data.reason as string,
+    reason: (data.reason as string).toUpperCase(),
   };
 
   return await CancelItemsController(input);

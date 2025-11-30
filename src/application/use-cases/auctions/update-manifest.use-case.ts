@@ -39,7 +39,7 @@ export const updateManifestUseCase = async (
     existing_inventories
   );
   const something4 = addContainerIdForNewInventories(something3, containers);
-  const something5 = removeManifestDuplicates(something4, monitoring);
+  const something5 = removeMonitoringDuplicates(something4, monitoring);
 
   const something = await AuctionRepository.updateManifest(
     manifest_id,
@@ -189,7 +189,7 @@ const formatSlashedBarcodes = (
   return new_rows;
 };
 
-const removeManifestDuplicates = (
+const removeMonitoringDuplicates = (
   data: ManifestUpdateSchema[],
   monitoring: AuctionsInventorySchema[]
 ) => {

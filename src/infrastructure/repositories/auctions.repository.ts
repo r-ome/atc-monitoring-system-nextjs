@@ -206,82 +206,77 @@ export const AuctionRepository: IAuctionRepository = {
   },
   uploadManifest: async (auction_id, data, is_bought_items = false) => {
     try {
-      const valid_rows_in_sheet = data.filter(
-        (item) => item.isValid && !item.forReassign
-      );
+      /**
+       * steps:
+       * 1. insert manifest_records
+       * 2. create new inventories
+       * 3. create auction inventories and link them to newly created inventories
+       * 4. update cancelled auction_inventories if (new ones where encoded)
+       *
+       * scenarios:
+       * a. newly fresh auction_inventory with new inventories
+       * b. link existing inventories to auction_inventories
+       * c. update cancelled auctions_inventories
+       * d. container barcodes without inventory barcode (e.g. 00-08)
+       */
 
-      const for_reassigning = data.filter((item) => item.forReassign);
+      return await prisma.$transaction(async (tx) => {
+        const auction = await tx.auctions.findFirst({
+          where: { auction_id },
+        });
 
-      const items_for_reassigning = for_reassigning.reduce(
-        (acc: Record<string, string[]>, item) => {
-          if (!item.auction_bidder_id || !item.auction_inventory_id) return acc;
-          acc[item.auction_bidder_id] = [
-            ...(acc[item.auction_bidder_id] ?? []),
-            item.auction_inventory_id,
-          ];
-          return acc;
-        },
-        {}
-      );
-
-      return await prisma.$transaction(
-        async (tx) => {
-          const auction = await tx.auctions.findFirst({
-            where: { auction_id },
+        if (!auction) {
+          throw new DatabaseOperationError("Error Uploading Manifest", {
+            cause: "NO AUCTION FOUND!",
           });
+        }
 
-          if (!auction) {
-            throw new DatabaseOperationError("Error Uploading Manifest", {
-              cause: "NO AUCTION FOUND!",
-            });
-          }
+        // insert manifest records
+        await tx.manifest_records.createMany({
+          data: data.map((item) => ({
+            auction_id,
+            barcode: item.BARCODE,
+            control: item.CONTROL,
+            description: item.DESCRIPTION,
+            price: item.PRICE.toString(),
+            bidder_number: item.BIDDER,
+            qty: item.QTY,
+            manifest_number: item.MANIFEST?.toString(),
+            is_slash_item: item.isSlashItem,
+            error_message: item.error,
+          })),
+        });
 
-          // insert manifest records
-          await tx.manifest_records.createMany({
-            data: data.map((item) => ({
-              auction_id,
-              barcode: item.BARCODE,
-              control: item.CONTROL,
-              description: item.DESCRIPTION,
-              price: item.PRICE.toString(),
-              bidder_number: item.BIDDER,
-              qty: item.QTY,
-              manifest_number: item.MANIFEST?.toString(),
-              is_slash_item: item.isSlashItem,
-              error_message: item.error,
-            })),
-          });
+        const new_inventories = data
+          .filter((item) => item.isValid)
+          .filter((item) => !item.forUpdating);
+        const for_updating = data
+          .filter((item) => item.isValid)
+          .filter((item) => item.forUpdating);
 
-          // insert newly created_inventories
-          const for_creating_inventories = valid_rows_in_sheet.filter(
-            (item) => !item.inventory_id && item.container_id
-          );
+        // create new inventories (items that has no record in container inventories)
+        await tx.inventories.createMany({
+          data: new_inventories.map((item) => ({
+            container_id: item.container_id!,
+            barcode: item.BARCODE,
+            control: item.CONTROL,
+            description: item.DESCRIPTION,
+            status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
+            auction_date: auction.created_at,
+          })),
+        });
 
-          await tx.inventories.createMany({
-            data: for_creating_inventories.map((item) => ({
-              container_id: item.container_id!,
-              control: item.CONTROL,
-              barcode: item.BARCODE,
-              description: item.DESCRIPTION,
-              status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
-              auction_date: auction?.created_at,
-            })),
-          });
-
-          const newly_created_inventories = await tx.inventories.findMany({
-            where: {
-              barcode: {
-                in: for_creating_inventories.map((item) => item.BARCODE),
-              },
+        const newly_created_inventories = await tx.inventories.findMany({
+          where: {
+            barcode: {
+              in: new_inventories.map((item) => item.BARCODE),
             },
-          });
+          },
+        });
 
-          const auction_inventories = [
-            ...valid_rows_in_sheet,
-            ...(for_reassigning.length
-              ? for_reassigning
-              : ([] as typeof for_reassigning)),
-          ].map((item) => {
+        // modify data for inserting into auctions_inventories table
+        const auction_inventories = [...new_inventories, ...for_updating].map(
+          (item) => {
             const match = newly_created_inventories.find((inventory) => {
               if (inventory.barcode.split("-").length === 3) {
                 return inventory.barcode === item.BARCODE;
@@ -306,106 +301,126 @@ export const AuctionRepository: IAuctionRepository = {
                 service_charge: number;
               }
             >;
-          });
-
-          const created_auctions_inventories = await Promise.all(
-            auction_inventories
-              .filter((item) => !item.forReassign)
-              .map((item) =>
-                tx.auctions_inventories.create({
-                  data: {
-                    auction_bidder_id: item.auction_bidder_id,
-                    inventory_id: item.inventory_id,
-                    description: item.DESCRIPTION,
-                    status: is_bought_items ? "PAID" : "UNPAID",
-                    price: parseInt(item.PRICE, 10),
-                    qty: item.QTY,
-                    manifest_number: item.MANIFEST as string,
-                    auction_date: auction?.created_at,
-                    is_slash_item: item.isSlashItem,
-                  },
-                })
-              )
-          );
-
-          const auctions_inventories = await tx.auctions_inventories.findMany({
-            include: { histories: true },
-            where: {
-              auction_inventory_id: {
-                in: [...created_auctions_inventories, ...for_reassigning].map(
-                  (item) => item.auction_inventory_id as string
-                ),
-              },
-            },
-          });
-
-          await tx.inventory_histories.createMany({
-            data: auctions_inventories.map((item) => ({
-              auction_inventory_id: item.auction_inventory_id,
-              inventory_id: item.inventory_id,
-              auction_status: "UNPAID",
-              inventory_status: "SOLD",
-              remarks: item.histories.length ? "REASSIGNED" : "ENCODED",
-            })),
-          });
-
-          // reassign item if item status is cancelled
-          if (Object.keys(items_for_reassigning).length) {
-            await tx.inventories.updateMany({
-              data: { status: "SOLD" },
-              where: {
-                inventory_id: {
-                  in: for_reassigning.map(
-                    (item) => item.inventory_id as string
-                  ),
-                },
-              },
-            });
-
-            await Promise.all(
-              Object.entries(items_for_reassigning).map(
-                ([new_auction_bidder_id, auction_inventory_ids]) =>
-                  tx.auctions_inventories.updateMany({
-                    data: {
-                      auction_bidder_id: new_auction_bidder_id,
-                      status: "UNPAID",
-                    },
-                    where: {
-                      auction_inventory_id: { in: auction_inventory_ids },
-                    },
-                  })
-              )
-            );
           }
+        );
 
-          // update bidder balance
-          const update_balance = auction_inventories.reduce(
-            (acc: Record<string, number>, item) => {
-              const price = parseInt(item.PRICE, 10);
-              const service_charge_amount = (price * item.service_charge) / 100;
-              const total = price + service_charge_amount;
+        // insert data in auctions_inventories table
+        const created_auctions_inventories = await Promise.all(
+          auction_inventories
+            .filter((item) => !item.forUpdating)
+            .map((item) =>
+              tx.auctions_inventories.create({
+                data: {
+                  auction_bidder_id: item.auction_bidder_id,
+                  inventory_id: item.inventory_id,
+                  description: item.DESCRIPTION,
+                  status: is_bought_items ? "PAID" : "UNPAID",
+                  price: parseInt(item.PRICE, 10),
+                  qty: item.QTY,
+                  manifest_number: item.MANIFEST as string,
+                  auction_date: auction?.created_at,
+                  is_slash_item: item.isSlashItem,
+                },
+              })
+            )
+        );
 
-              acc[item.auction_bidder_id] =
-                (acc[item.auction_bidder_id] || 0) + total;
-
-              return acc;
+        // add "encoded" in history
+        const auctions_inventories = await tx.auctions_inventories.findMany({
+          include: { histories: true },
+          where: {
+            auction_inventory_id: {
+              in: [...created_auctions_inventories, ...for_updating].map(
+                (item) => item.auction_inventory_id as string
+              ),
             },
-            {}
-          );
+          },
+        });
 
+        await tx.inventory_histories.createMany({
+          data: auctions_inventories.map((item) => ({
+            auction_inventory_id: item.auction_inventory_id,
+            inventory_id: item.inventory_id,
+            auction_status: "UNPAID",
+            inventory_status: "SOLD",
+            remarks: item.histories.length ? "REASSIGNED" : "ENCODED",
+          })),
+        });
+
+        /**
+         * If item is CANCELLED but was encoded again:
+         * update item inventory status to: SOLD
+         * update auction inventory status to: UNPAID
+         */
+        if (for_updating.length) {
+          await tx.inventories.updateMany({
+            data: { status: "SOLD" },
+            where: {
+              inventory_id: {
+                in: for_updating.map((item) => item.inventory_id as string),
+              },
+            },
+          });
+
+          // update CANCELLED ITEM
           await Promise.all(
-            Object.entries(update_balance).map(([auction_bidder_id, amount]) =>
-              tx.auctions_bidders.update({
-                where: { auction_bidder_id },
-                data: { balance: { increment: amount } },
+            for_updating.map((item) =>
+              tx.auctions_inventories.update({
+                data: {
+                  auction_bidder_id: item.auction_bidder_id as string,
+                  description: item.DESCRIPTION,
+                  price: parseInt(item.PRICE, 10),
+                  qty: item.QTY,
+                  status: "UNPAID",
+                },
+                where: {
+                  auction_inventory_id: item.auction_inventory_id!,
+                },
               })
             )
           );
 
-          return auctions_inventories;
-        },
-        { maxWait: 10000, timeout: 30000 }
-      );
+          await Promise.all(
+            for_updating.map((item) =>
+              tx.inventory_histories.create({
+                data: {
+                  auction_inventory_id: item.auction_inventory_id,
+                  inventory_id: item.inventory_id!,
+                  auction_status: "UNPAID",
+                  inventory_status: "SOLD",
+                  remarks:
+                    "Updated item from CANCELLED to UNPAID. ITEM ENCODED AGAIN",
+                },
+              })
+            )
+          );
+        }
+
+        const update_balance = auction_inventories.reduce(
+          (acc: Record<string, number>, item) => {
+            const price = parseInt(item.PRICE, 10);
+            const service_charge_amount = (price * item.service_charge) / 100;
+            const total = price + service_charge_amount;
+
+            acc[item.auction_bidder_id] =
+              (acc[item.auction_bidder_id] || 0) + total;
+
+            return acc;
+          },
+          {}
+        );
+
+        await Promise.all(
+          Object.entries(update_balance).map(([auction_bidder_id, amount]) =>
+            tx.auctions_bidders.update({
+              where: { auction_bidder_id },
+              data: { balance: { increment: amount } },
+            })
+          )
+        );
+
+        return auctions_inventories;
+      });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error uploading manifest", {

@@ -234,7 +234,9 @@ export const PaymentRepository: IPaymentRepository = {
                 price: item.new_price,
                 auction_bidder: {
                   connect: {
-                    auction_bidder_id: atc_default_bidder?.auction_bidder_id,
+                    auction_bidder_id: is_full_refund
+                      ? atc_default_bidder?.auction_bidder_id
+                      : data.auction_bidder_id,
                   },
                 },
                 receipt: {
