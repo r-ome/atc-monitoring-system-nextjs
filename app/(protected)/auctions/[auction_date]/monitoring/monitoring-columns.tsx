@@ -15,7 +15,8 @@ const controlGroupSortingFn = createGroupSortingFn<AuctionsInventory, string>(
 );
 
 export const columns = (
-  slashGroupMap: Record<string, number>
+  slashGroupMap: Record<string, number>,
+  isMasterList = "ALL"
 ): ColumnDef<AuctionsInventory>[] => [
   {
     accessorKey: "inventory.barcode",
@@ -244,4 +245,35 @@ export const columns = (
       );
     },
   },
+  ...(isMasterList === "ALL"
+    ? [
+        {
+          accessorKey: "created_at",
+          header: ({ column }) => {
+            return (
+              <div className="justify-center flex">
+                <Button
+                  variant="ghost"
+                  className="cursor-pointer"
+                  onClick={() =>
+                    column.toggleSorting(column.getIsSorted() === "asc")
+                  }
+                >
+                  Auction Date
+                  <ArrowUpDown />
+                </Button>
+              </div>
+            );
+          },
+          cell: ({ row }) => {
+            const auction_inventory = row.original;
+            return (
+              <div className="flex justify-center">
+                {auction_inventory.created_at}
+              </div>
+            );
+          },
+        } as ColumnDef<AuctionsInventory>,
+      ]
+    : []),
 ];

@@ -182,6 +182,17 @@ export const AuctionRepository: IAuctionRepository = {
     status: AUCTION_ITEM_STATUS[] = []
   ) => {
     try {
+      if (auction_id === "ALL") {
+        return await prisma.auctions_inventories.findMany({
+          include: {
+            auction_bidder: { include: { bidder: true } },
+            inventory: true,
+            receipt: true,
+            histories: { include: { receipt: true } },
+          },
+        });
+      }
+
       return await prisma.auctions_inventories.findMany({
         where: {
           auction_bidder: { auction_id: auction_id },

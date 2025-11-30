@@ -11,6 +11,7 @@ import {
   UsersRound,
   HandCoins,
   Cog,
+  List,
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,6 +38,12 @@ const items = [
     url: "/auctions",
     icon: Gavel,
     allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "ENCODER"],
+  },
+  {
+    title: "Monitoring",
+    url: "/monitoring-all",
+    icon: List,
+    allowed_roles: ["OWNER", "SUPER_ADMIN"],
   },
   {
     title: "Bidders",
