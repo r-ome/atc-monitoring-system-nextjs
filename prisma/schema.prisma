@@ -55,7 +55,8 @@ model auctions_inventories {
   updated_at           DateTime                 @default(now()) @updatedAt @db.DateTime(0)
   deleted_at           DateTime?                @db.DateTime(0)
   auction_bidder       auctions_bidders         @relation(fields: [auction_bidder_id], references: [auction_bidder_id], onDelete: Cascade, map: "fk_auctions_inventories_auctions_bidders")
-  inventory            inventories              @relation(fields: [inventory_id], references: [inventory_id], onDelete: Cascade, map: "fk_auctions_inventories_inventories")
+  // inventory            inventories              @relation(fields: [inventory_id], references: [inventory_id], onDelete: Cascade, map: "fk_auctions_inventories_inventories")
+  inventory            inventories              @relation("InventoryToAuctionInventories", fields: [inventory_id], references: [inventory_id])
   receipt              receipt_records?         @relation(fields: [receipt_id], references: [receipt_id], onDelete: Cascade, map: "fk_auctions_inventories_receipt")
   histories            inventory_histories[]
 
@@ -165,7 +166,7 @@ model inventories {
   updated_at           DateTime               @default(now()) @updatedAt @db.DateTime(0)
   deleted_at           DateTime?              @db.DateTime(0)
   container            containers             @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_inventories_container_id")
-  auctions_inventories auctions_inventories[]
+  auctions_inventories auctions_inventories[] @relation("InventoryToAuctionInventories")
   histories            inventory_histories[]
 
   @@index([container_id], map: "fk_inventories_container_id")

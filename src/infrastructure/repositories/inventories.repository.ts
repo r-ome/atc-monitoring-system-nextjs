@@ -244,10 +244,12 @@ export const InventoryRepository: IInventoryRepository = {
             price: data.price,
             description: data.description,
             status: auction_inventory_status,
+
             manifest_number: data.manifest_number
               ? data?.manifest_number
               : undefined,
             inventory: {
+              connect: { inventory_id: data.inventory_id },
               update: { barcode: data.barcode, control: data.control },
             },
             histories: {
@@ -368,6 +370,24 @@ export const InventoryRepository: IInventoryRepository = {
         throw new DatabaseOperationError("Error getting bought items", {
           cause: error.message,
         });
+      }
+      throw error;
+    }
+  },
+  getInventoryWithNoAuctionInventory: async () => {
+    try {
+      return await prisma.inventories.findMany({
+        include: { auctions_inventories: true },
+        where: { auctions_inventories: { none: {} } },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(
+          "Error getting inventories with no auction inventories",
+          {
+            cause: error.message,
+          }
+        );
       }
       throw error;
     }

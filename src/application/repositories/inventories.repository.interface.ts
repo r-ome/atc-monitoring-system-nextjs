@@ -46,4 +46,7 @@ export interface IInventoryRepository {
   getBoughtItems: () => Promise<
     Omit<InventorySchema, "histories" | "container">[]
   >;
+  getInventoryWithNoAuctionInventory: () => Promise<
+    Omit<InventorySchema, "histories" | "container">[]
+  >;
 }

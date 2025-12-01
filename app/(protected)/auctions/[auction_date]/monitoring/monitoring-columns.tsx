@@ -251,7 +251,7 @@ export const columns = (
       );
     },
   },
-  ...(!isMasterList
+  ...(isMasterList
     ? [
         {
           accessorKey: "created_at",

@@ -16,7 +16,10 @@ import {
 import { SetStateAction } from "react";
 import { useAuctionItemContext } from "../context/AuctionItemContext";
 import { Button } from "@/app/components/ui/button";
-import { updateAuctionInventory } from "@/app/(protected)/inventories/actions";
+import {
+  updateAuctionInventory,
+  getInventoriesWithNoAuctionsInventories,
+} from "@/app/(protected)/inventories/actions";
 import { toast } from "sonner";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
@@ -63,6 +66,13 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
   const [auction, setAuction] = useState<Auction>();
   const [newAuctionInventory, setNewAuctionInventory] =
     useState<UpdateItemForm>({});
+  const [inventories, setInventories] = useState<
+    { inventory_id: string; barcode: string; control: string }[]
+  >([]);
+  const [selectedInventory, setSelectedInventory] = useState<{
+    label: string;
+    value: string;
+  }>();
 
   useEffect(() => {
     setNewAuctionInventory({
@@ -79,6 +89,8 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
   useEffect(() => {
     const fetchAuctionData = async () => {
       const auction_res = await getAuction(auction_date);
+      const inventories_res = await getInventoriesWithNoAuctionsInventories();
+      if (!inventories_res.ok) return;
       if (!auction_res.ok) return;
       if (!auctionInventory) return;
 
@@ -89,9 +101,9 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
       if (!registered_bidders_res.ok) return;
 
       setAuction(auction);
+      setInventories(inventories_res.value);
 
       const registered_bidders = registered_bidders_res.value;
-
       setRegisteredBidders(registered_bidders);
       const selectedBidder = registered_bidders.find(
         (registeredBidder) =>
@@ -121,6 +133,9 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
       auctionInventory.auction_inventory_id
     );
     formData.append("inventory_id", auctionInventory.inventory_id);
+    if (selectedInventory) {
+      formData.set("inventory_id", selectedInventory.value);
+    }
     if (selectedBidder) {
       formData.append("bidder_number", selectedBidder.value);
     }
@@ -251,6 +266,24 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                       label: item.bidder.bidder_number,
                       value: item.bidder.bidder_number,
                     }))}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Label className="w-30">Inventory:</Label>
+              <div className="w-full">
+                <SelectWithSearch
+                  defaultValue={selectedBidder}
+                  placeholder="Select a inventory"
+                  setSelected={(selected) =>
+                    setSelectedInventory(
+                      selected as { label: string; value: string }
+                    )
+                  }
+                  options={inventories.map((item) => ({
+                    label: `${item.barcode} (${item.control})`,
+                    value: item.inventory_id,
+                  }))}
                 />
               </div>
             </div>

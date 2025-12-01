@@ -8,6 +8,7 @@ import { VoidItemsController } from "src/controllers/inventories/void-items.cont
 import { formatNumberPadding } from "@/app/lib/utils";
 import { UploadBoughtItemsController } from "src/controllers/inventories/upload-bought-items.controller";
 import { GetBoughtItemsController } from "src/controllers/inventories/get-bought-items.controller";
+import { GetInventoriesWithNoAuctionsInventoriesController } from "src/controllers/inventories/get-inventories-with-no-auctions-inventories.controller";
 
 export const getAuctionItemDetails = async (auctionInventoryId: string) => {
   return await GetAuctionItemDetailsController(auctionInventoryId);
@@ -49,4 +50,8 @@ export const uploadBoughtItems = async (formData: FormData) => {
 
 export const getBoughtItems = async () => {
   return await GetBoughtItemsController();
+};
+
+export const getInventoriesWithNoAuctionsInventories = async () => {
+  return await GetInventoriesWithNoAuctionsInventoriesController();
 };

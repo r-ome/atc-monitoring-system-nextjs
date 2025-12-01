@@ -49,6 +49,7 @@ export const UpdateInventoryModal: React.FC<UpdateInventoryModalProps> = ({
     event.preventDefault();
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
+    formData.append("container_id", inventory.container.container_id);
 
     const res = await updateInventory(inventory.inventory_id, formData);
     if (res) {
@@ -58,7 +59,7 @@ export const UpdateInventoryModal: React.FC<UpdateInventoryModalProps> = ({
         router.refresh();
         setOpenDialog(false);
       } else {
-        toast.error("lol. error");
+        toast.error("error");
       }
     }
   };

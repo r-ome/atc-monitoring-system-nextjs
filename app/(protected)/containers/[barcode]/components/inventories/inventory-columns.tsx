@@ -4,15 +4,7 @@ import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { Badge } from "@/app/components/ui/badge";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/app/components/ui/dropdown-menu";
+import { ArrowUpDown } from "lucide-react";
 import { InventoryRowType } from "./ContainerInventoriesTable";
 
 export const columns: ColumnDef<InventoryRowType>[] = [
@@ -34,7 +26,18 @@ export const columns: ColumnDef<InventoryRowType>[] = [
     },
     cell: ({ row }) => {
       const container = row.original;
-      return <div className="flex justify-center">{container.barcode}</div>;
+      return (
+        <div
+          className="flex justify-center hover:cursor-pointer hover:underline"
+          onClick={() =>
+            redirect(
+              `${container.container.barcode}/inventories/${container.inventory_id}`
+            )
+          }
+        >
+          {container.barcode}
+        </div>
+      );
     },
   },
   {
@@ -144,35 +147,35 @@ export const columns: ColumnDef<InventoryRowType>[] = [
     accessorKey: "created_at",
     header: "Created At",
   },
-  {
-    id: "actions",
-    enableHiding: false,
-    size: 50,
-    cell: ({ row }) => {
-      const inventory = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="cursor-pointer">
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                redirect(
-                  `${inventory.container.barcode}/inventories/${inventory.inventory_id}`
-                )
-              }
-            >
-              View Item
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
+  // {
+  //   id: "actions",
+  //   enableHiding: false,
+  //   size: 50,
+  //   cell: ({ row }) => {
+  //     const inventory = row.original;
+  //     return (
+  //       <DropdownMenu>
+  //         <DropdownMenuTrigger asChild className="cursor-pointer">
+  //           <Button variant="ghost" className="h-8 w-8 p-0">
+  //             <span className="sr-only">Open menu</span>
+  //             <MoreHorizontal />
+  //           </Button>
+  //         </DropdownMenuTrigger>
+  //         <DropdownMenuContent align="end">
+  //           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+  //           <DropdownMenuSeparator />
+  //           <DropdownMenuItem
+  //             onClick={() =>
+  //               redirect(
+  //                 `${inventory.container.barcode}/inventories/${inventory.inventory_id}`
+  //               )
+  //             }
+  //           >
+  //             View Item
+  //           </DropdownMenuItem>
+  //         </DropdownMenuContent>
+  //       </DropdownMenu>
+  //     );
+  //   },
+  // },
 ];
