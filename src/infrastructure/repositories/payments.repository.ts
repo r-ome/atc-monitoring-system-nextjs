@@ -204,8 +204,11 @@ export const PaymentRepository: IPaymentRepository = {
                 amount_paid: data.auction_inventories.reduce(
                   (acc, item) =>
                     (acc +=
+                      item.prev_price -
                       item.new_price +
-                      (item.new_price * auction_bidder.service_charge) / 100),
+                      (item.prev_price -
+                        item.new_price * auction_bidder.service_charge) /
+                        100),
                   0
                 ),
                 payment_method_id: cash_payment_method?.payment_method_id,
