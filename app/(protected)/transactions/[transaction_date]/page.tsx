@@ -19,7 +19,7 @@ import { formatDate } from "@/app/lib/utils";
 import { InwardTransactionsTab } from "./InwardTransactionsTab";
 import { ExpensesTab } from "./ExpensesTab";
 import { AddExpenseModal } from "./AddExpenseModal";
-// import { GenerateExpenseReport } from "./GenerateExpenseReport";
+import { GenerateExpenseReport } from "./GenerateExpenseReport";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 
@@ -51,7 +51,7 @@ export default async function Page({
   const transactions = transactions_res.value;
   const expenses = expenses_res.value.expenses;
   const petty_cash_balance = petty_cash_res.value;
-  // const payment_methods = payment_methods_res.value;
+  const payment_methods = payment_methods_res.value;
 
   return (
     <>
@@ -65,11 +65,12 @@ export default async function Page({
               </h1>
 
               <div className="flex gap-4">
-                {/* <GenerateExpenseReport
+                <GenerateExpenseReport
                   transactions={transactions}
                   expenses={expenses}
                   yesterdayBalance={petty_cash_balance}
-                /> */}
+                  paymentMethods={payment_methods}
+                />
                 <AddExpenseModal />
               </div>
             </div>

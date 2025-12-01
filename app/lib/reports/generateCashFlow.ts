@@ -16,8 +16,8 @@ const generateCashFlow = ({
   payments,
   expenses,
   yesterdayBalance,
-}: // paymentMethods,
-GenerateCashFlowProps) => {
+  paymentMethods,
+}: GenerateCashFlowProps) => {
   const rawData = payments.map((item) => ({
     date: formatDate(new Date(item.created_at), "MMMM dd, yyyy"),
     bidder: `BIDDER ${item.bidder.bidder_number}`,
@@ -25,11 +25,7 @@ GenerateCashFlowProps) => {
     amount: item.amount_paid,
     payment_method: item.payment_method,
   }));
-
-  // Extract first date
   const date = rawData[0]?.date || "";
-
-  // Normalize & group
   const grouped = rawData.map((item) => {
     const action = item.purpose === "PULL OUT" ? "PULLOUT" : item.purpose;
     return {
@@ -50,7 +46,7 @@ GenerateCashFlowProps) => {
   const finalRows = sorted.map((item) => {
     const label = seen.has(item.action) ? "" : item.action;
     seen.add(item.action);
-    return [label, item.bidder, item.amount, item.payment_method];
+    return [label, item.bidder, item.amount, item.payment_method.name];
   });
   const inward = [[date, "", "", ""], ...finalRows];
 
@@ -72,46 +68,58 @@ GenerateCashFlowProps) => {
     .filter((item) => item.receipt.purpose === "REFUNDED")
     .reduce((acc, item) => (acc += item.amount_paid), 0);
 
-  const totalCash = getTotal("CASH");
-  const totalBDO = getTotal("BDO");
-  const totalGCash = getTotal("GCASH");
-  const totalBPI = getTotal("BPI");
+  const total_payments = paymentMethods.reduce((acc, item) => {
+    acc[item.name] = formatNumberToCurrency(getTotal(item.name));
+    return acc;
+  }, {} as Record<string, string>);
+
   const totalRefund = refundAmount * -1;
   const totalInward = payments
     .filter((item) => item.receipt.purpose !== "REFUNDED")
     .reduce((acc, item) => (acc += item.amount_paid), 0);
 
-  console.log({ totalInward });
-
   const inwardHeaders = ["DATE", "PARTICULAR", "AMOUNT", "PAYMENT TYPE"];
 
   const sheet = xlsx.utils.aoa_to_sheet([
-    ...Array.from({ length: 11 }, () => [...Array(15).fill("")]),
+    ...Array.from({ length: Object.keys(total_payments).length + 7 }, () => [
+      ...Array(15).fill(""),
+    ]),
     inwardHeaders,
     ...inward,
-    ...Array.from({ length: 2 }, () => [...Array(15).fill("")]),
+    ...Array.from({ length: 4 }, () => [...Array(15).fill("")]),
   ]);
+
+  // payment_methods
+  // + refund + cash remit + petty cash
+  const dynamic_merges = [
+    ...Object.keys(total_payments),
+    ...Array(3).fill(null),
+  ].map((_, i) => {
+    const row = i + 2;
+    return [
+      { s: { r: row, c: 0 }, e: { r: row, c: 1 } },
+      { s: { r: row, c: 2 }, e: { r: row, c: 3 } },
+    ];
+  });
+  const divider_row = dynamic_merges.length + 2;
+  const inward_total_cash_row_merge = divider_row + 1;
 
   sheet["!merges"] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }, // A1:D1
     { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }, // A2:D2
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } }, // A3:B3
-    { s: { r: 2, c: 2 }, e: { r: 2, c: 3 } }, // C3:D3
-    { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } }, // A4:B4
-    { s: { r: 3, c: 2 }, e: { r: 3, c: 3 } }, // C4:D4
-    { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } }, // A5:A5
-    { s: { r: 4, c: 2 }, e: { r: 4, c: 3 } }, // C5:D5
-    { s: { r: 5, c: 0 }, e: { r: 5, c: 1 } }, // A6:A6
-    { s: { r: 5, c: 2 }, e: { r: 5, c: 3 } }, // C7:D7
-    { s: { r: 6, c: 0 }, e: { r: 6, c: 1 } }, // A7:B7
-    { s: { r: 6, c: 2 }, e: { r: 6, c: 3 } }, // C7:D7
-    { s: { r: 7, c: 0 }, e: { r: 7, c: 1 } }, // A8:B8
-    { s: { r: 7, c: 2 }, e: { r: 7, c: 3 } }, // C8:D8
-    { s: { r: 8, c: 0 }, e: { r: 8, c: 1 } }, // A9:B9
-    { s: { r: 8, c: 2 }, e: { r: 8, c: 3 } }, // C9:D9
-    { s: { r: 9, c: 0 }, e: { r: 9, c: 3 } }, // A10:D10
-    { s: { r: 10, c: 0 }, e: { r: 10, c: 1 } }, // A11:B11
-    { s: { r: 10, c: 2 }, e: { r: 10, c: 3 } }, // C11:D11
+    ...dynamic_merges.flat(),
+    {
+      s: { r: divider_row, c: 0 },
+      e: { r: divider_row, c: 3 },
+    }, // A:D - divider from breakdown and table
+    {
+      s: { r: inward_total_cash_row_merge, c: 0 },
+      e: { r: inward_total_cash_row_merge, c: 1 },
+    },
+    {
+      s: { r: inward_total_cash_row_merge, c: 2 },
+      e: { r: inward_total_cash_row_merge, c: 3 },
+    },
     { s: { r: 0, c: 4 }, e: { r: 0, c: 7 } }, // E1:H1
     { s: { r: 1, c: 4 }, e: { r: 1, c: 5 } }, // E2:F2
     { s: { r: 1, c: 6 }, e: { r: 1, c: 7 } }, // G2:H2
@@ -132,7 +140,273 @@ GenerateCashFlowProps) => {
     { wch: 25 },
     { wch: 20 },
   ];
-  sheet["!autofilter"] = { ref: "A12:G12" };
+  sheet["!autofilter"] = {
+    ref: `A${Object.keys(total_payments).length + 8}:G${
+      Object.keys(total_payments).length + 8
+    }`,
+  };
+
+  Object.keys(total_payments)
+    .sort((a, b) => a.localeCompare(b))
+    .forEach((item, index) => {
+      const row = index + 3;
+      sheet[`A${row}`] = {
+        v: item,
+        t: "s",
+        s: {
+          font: { name: "Abadi", sz: 10, bold: true },
+          fill: { fgColor: { rgb: "D9E1F2" } },
+          alignment: {
+            horizontal: "center",
+            vertical: "center",
+            wrapText: true,
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+          },
+        },
+      };
+      ["B", "D"].forEach((item) => {
+        sheet[`${item}${row}`] = {
+          v: "",
+          t: "s",
+          s: {
+            border: {
+              top: { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              right: { style: "thin", color: { rgb: "000000" } },
+            },
+          },
+        };
+      });
+      sheet[`C${row}`] = {
+        v: total_payments[item],
+        t: "s",
+        s: {
+          font: { name: "Abadi", sz: 10, bold: true },
+          fill: { fgColor: { rgb: "D9E1F2" } },
+          alignment: {
+            horizontal: "center",
+            vertical: "center",
+            wrapText: true,
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+          },
+        },
+      };
+    });
+
+  const refund_row = Object.keys(total_payments).length + 3;
+  sheet[`A${refund_row}`] = {
+    v: "REFUND",
+    t: "s",
+    s: {
+      font: { name: "Abadi", sz: 10, bold: true },
+      fill: { fgColor: { rgb: "D9E1F2" } },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+  sheet[`C${refund_row}`] = {
+    v: totalRefund,
+    t: "n",
+    z: '"₱" #,##0.00;("₱"[Red]#,##0.00)',
+    s: {
+      font: { name: "Abadi", sz: 10, bold: true },
+      fill: { fgColor: { rgb: "D9E1F2" } },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+  ["B", "D"].forEach((item) => {
+    sheet[`${item}${refund_row}`] = {
+      v: "",
+      t: "s",
+      s: {
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
+        },
+      },
+    };
+  });
+
+  const petty_cash_row = refund_row + 1;
+  sheet[`A${petty_cash_row}`] = {
+    v: "PETTY CASH ON HAND",
+    t: "s",
+    s: {
+      font: { name: "Abadi", sz: 10, bold: true },
+      fill: { fgColor: { rgb: "D9E1F2" } },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+  sheet[`C${petty_cash_row}`] = {
+    f: "G2",
+    t: "n",
+    z: "#,##0",
+    s: {
+      font: { name: "Abadi", sz: 10, bold: true },
+      fill: { fgColor: { rgb: "D9E1F2" } },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+
+  ["B", "D"].forEach((item) => {
+    sheet[`${item}${petty_cash_row}`] = {
+      v: "",
+      t: "s",
+      s: {
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
+        },
+      },
+    };
+  });
+
+  const cash_remit_row = petty_cash_row + 1;
+  sheet[`A${cash_remit_row}`] = {
+    v: "CASH REMIT",
+    t: "s",
+    s: {
+      font: { name: "Abadi", sz: 10, bold: true },
+      fill: { fgColor: { rgb: "D9E1F2" } },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+  sheet[`C${cash_remit_row}`] = {
+    v: total_payments.CASH,
+    t: "s",
+    s: {
+      font: { name: "Abadi", sz: 10, bold: true },
+      fill: { fgColor: { rgb: "D9E1F2" } },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+  ["B", "D"].forEach((item) => {
+    sheet[`${item}${cash_remit_row}`] = {
+      v: "",
+      t: "s",
+      s: {
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
+        },
+      },
+    };
+  });
+
+  const inward_total_cash_row = cash_remit_row + 2;
+  sheet[`A${inward_total_cash_row}`] = {
+    v: "INWARD TOTAL CASH",
+    t: "s",
+    s: {
+      font: { name: "Arial", sz: 12, bold: true },
+      fill: { fgColor: { rgb: "9BC2E6" } },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+  sheet[`C${inward_total_cash_row}`] = {
+    v: formatNumberToCurrency(totalInward),
+    t: "s",
+    s: {
+      font: { name: "Arial", sz: 10, bold: true },
+      fill: { fgColor: { rgb: "9BC2E6" } },
+      alignment: {
+        horizontal: "center",
+        vertical: "center",
+        wrapText: true,
+      },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+      },
+    },
+  };
+  ["B", "D"].forEach((item) => {
+    sheet[`${item}${inward_total_cash_row}`] = {
+      v: "",
+      t: "s",
+      s: {
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
+        },
+      },
+    };
+  });
 
   sheet["A1"] = {
     v: `ATC JAPAN AUCTION DAILY CASH FLOW ${formatDate(
@@ -152,7 +426,6 @@ GenerateCashFlowProps) => {
       },
     },
   };
-
   sheet["E1"] = {
     v: `ATC JAPAN AUCTION DAILY CASH FLOW ${formatDate(
       new Date(),
@@ -171,13 +444,12 @@ GenerateCashFlowProps) => {
       },
     },
   };
-
   sheet["A2"] = {
     v: "CASH BOOK",
     t: "s",
     s: {
       font: { name: "Calibri", sz: 14, bold: true },
-      fill: { fgColor: { rgb: "8EA9DB" } },
+      fill: { fgColor: { rgb: "9BC2E6" } },
       alignment: {
         horizontal: "center",
         vertical: "center",
@@ -188,7 +460,6 @@ GenerateCashFlowProps) => {
       },
     },
   };
-
   sheet["E2"] = {
     v: "CASH ON HAND FOR PETTY CASH",
     t: "s",
@@ -242,509 +513,11 @@ GenerateCashFlowProps) => {
     },
   };
 
-  sheet["A3"] = {
-    v: "CASH",
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["B3"] = {
+  sheet[`A${cash_remit_row + 1}`] = {
     v: "",
     t: "s",
     s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["C3"] = {
-    v: formatNumberToCurrency(totalCash),
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["D3"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["A4"] = {
-    v: "BDO",
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["B4"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["C4"] = {
-    v: formatNumberToCurrency(totalBDO),
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["D4"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["A5"] = {
-    v: "GCASH",
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["B5"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["C5"] = {
-    v: formatNumberToCurrency(totalGCash),
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["D5"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["A6"] = {
-    v: "BPI",
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["B6"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["C6"] = {
-    v: formatNumberToCurrency(totalBPI),
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["D6"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["A7"] = {
-    v: "REFUND",
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["B7"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["C7"] = {
-    v: totalRefund,
-    t: "n",
-    z: '"₱" #,##0.00;("₱"[Red]#,##0.00)',
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["D7"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["A8"] = {
-    v: "PETTY CASH ON HAND",
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["B8"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["C8"] = {
-    f: "G2",
-    t: "n",
-    z: "#,##0",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["D8"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["A9"] = {
-    v: "CASH REMIT",
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["B9"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["C9"] = {
-    v: formatNumberToCurrency(totalCash),
-    t: "s",
-    s: {
-      font: { name: "Abadi", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "DDEBF7" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["D9"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["A10"] = {
-    v: "",
-    t: "s",
-    s: {
-      fill: { fgColor: { rgb: "DDEBF7" } },
-    },
-  };
-
-  sheet["A11"] = {
-    v: "INWARD TOTAL CASH",
-    t: "s",
-    s: {
-      font: { name: "Arial", sz: 12, bold: true },
-      fill: { fgColor: { rgb: "8EA9DB" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["B11"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["C11"] = {
-    v: formatNumberToCurrency(totalInward),
-    t: "s",
-    s: {
-      font: { name: "Arial", sz: 10, bold: true },
-      fill: { fgColor: { rgb: "8EA9DB" } },
-      alignment: {
-        horizontal: "center",
-        vertical: "center",
-        wrapText: true,
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
-    },
-  };
-
-  sheet["D11"] = {
-    v: "",
-    t: "s",
-    s: {
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-      },
+      fill: { fgColor: { rgb: "BDD7EE" } },
     },
   };
 
@@ -808,25 +581,6 @@ GenerateCashFlowProps) => {
     },
   };
 
-  // sheet["E5"] = {
-  //   v: "PETTY CASH",
-  //   t: "s",
-  //   s: {
-  //     font: { name: "Calibri", sz: 10 },
-  //     fill: { fgColor: { rgb: "DDEBF7" } },
-  //     alignment: {
-  //       horizontal: "right",
-  //       vertical: "center",
-  //       wrapText: true,
-  //     },
-  //     border: {
-  //       top: { style: "thin", color: { rgb: "000000" } },
-  //       left: { style: "thin", color: { rgb: "000000" } },
-  //       bottom: { style: "thin", color: { rgb: "000000" } },
-  //     },
-  //   },
-  // };
-
   ["B2", "C2", "D2", "F4", "F2", "F3", "H3", "H2", "H4"].forEach((cell) => {
     sheet[cell] = {
       v: "",
@@ -842,7 +596,10 @@ GenerateCashFlowProps) => {
   });
 
   inwardHeaders.forEach((_, colIndex) => {
-    const headerCell = xlsx.utils.encode_cell({ r: 11, c: colIndex });
+    const headerCell = xlsx.utils.encode_cell({
+      r: Object.keys(total_payments).length + 7,
+      c: colIndex,
+    });
     if (!sheet[headerCell]) return;
     sheet[headerCell].s = {
       font: { name: "Calibri", sz: 11, bold: true },
@@ -865,7 +622,7 @@ GenerateCashFlowProps) => {
 
     inwardHeaders.forEach((_, colIndex) => {
       const cellAddress = xlsx.utils.encode_cell({
-        r: rowIndex + 12,
+        r: rowIndex + 13,
         c: colIndex,
       });
 
@@ -938,11 +695,14 @@ GenerateCashFlowProps) => {
   const outwardHeaders = ["DATE", "PARTICULAR", "AMOUNT"];
 
   xlsx.utils.sheet_add_aoa(sheet, [outwardHeaders, ...outward], {
-    origin: { r: 11, c: 4 },
+    origin: { r: Object.keys(total_payments).length + 7, c: 4 },
   });
 
   outwardHeaders.forEach((_, colIndex) => {
-    const headerCell = xlsx.utils.encode_cell({ r: 11, c: colIndex + 4 });
+    const headerCell = xlsx.utils.encode_cell({
+      r: Object.keys(total_payments).length + 7,
+      c: colIndex + 4,
+    });
     if (!sheet[headerCell]) return;
     sheet[headerCell].s = {
       font: { name: "Calibri", sz: 11, bold: true },
@@ -965,7 +725,7 @@ GenerateCashFlowProps) => {
 
     outwardHeaders.forEach((_, colIndex) => {
       const cellAddress = xlsx.utils.encode_cell({
-        r: rowIndex + 12,
+        r: rowIndex + 13,
         c: colIndex + 4,
       });
 
