@@ -23,13 +23,18 @@ const generateCashFlow = ({
     bidder: `BIDDER ${item.bidder.bidder_number}`,
     purpose: item.receipt.purpose.replace(/_/g, " ").toUpperCase(), // e.g., "PULL OUT"
     amount: item.amount_paid,
-    payment_method: item.payment_method,
+    payment_method: item.payment_method.name,
   }));
+  const normalizeAction = (purpose: string) => {
+    const p = purpose.trim().toUpperCase();
+    if (p === "PULL OUT") return "PULLOUT";
+    if (p === "REFUNDED") return "REFUND";
+    return p;
+  };
   const date = rawData[0]?.date || "";
   const grouped = rawData.map((item) => {
-    const action = item.purpose === "PULL OUT" ? "PULLOUT" : item.purpose;
     return {
-      action,
+      action: normalizeAction(item.purpose),
       bidder: item.bidder,
       amount: item.amount,
       payment_method: item.payment_method,
@@ -37,17 +42,19 @@ const generateCashFlow = ({
   });
 
   const order = { REGISTRATION: 0, PULLOUT: 1, REFUND: 2 };
-  const sorted = grouped.sort(
-    (a, b) =>
-      order[a.action as "REGISTRATION" | "PULLOUT" | "REFUND"] -
-      order[b.action as "REGISTRATION" | "PULLOUT" | "REFUND"]
-  );
+  const sorted = grouped.sort((a, b) => {
+    const oa = order[a.action as "REGISTRATION" | "PULLOUT" | "REFUND"] ?? 999;
+    const ob = order[b.action as "REGISTRATION" | "PULLOUT" | "REFUND"] ?? 999;
+    return oa - ob;
+  });
+
   const seen = new Set();
   const finalRows = sorted.map((item) => {
     const label = seen.has(item.action) ? "" : item.action;
     seen.add(item.action);
-    return [label, item.bidder, item.amount, item.payment_method.name];
+    return [label, item.bidder, item.amount, item.payment_method];
   });
+
   const inward = [[date, "", "", ""], ...finalRows];
 
   const outward = expenses
