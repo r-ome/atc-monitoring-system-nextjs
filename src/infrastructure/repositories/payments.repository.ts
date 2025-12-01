@@ -191,6 +191,23 @@ export const PaymentRepository: IPaymentRepository = {
         });
         const current_refunded_receipt_count = refunded_receipts.length;
 
+        const prices = data.auction_inventories.reduce(
+          (acc, item) => {
+            acc.new_price += item.new_price;
+            acc.prev_price += item.prev_price;
+            return acc;
+          },
+          { new_price: 0, prev_price: 0 }
+        );
+
+        console.log(
+          prices.prev_price -
+            prices.new_price +
+            ((prices.prev_price - prices.new_price) *
+              auction_bidder.service_charge) /
+              100
+        );
+
         const receipt = await tx.receipt_records.create({
           data: {
             receipt_number: `${auction_bidder.bidder.bidder_number}REF${
@@ -201,16 +218,12 @@ export const PaymentRepository: IPaymentRepository = {
             remarks: data.reason,
             payments: {
               create: {
-                amount_paid: data.auction_inventories.reduce(
-                  (acc, item) =>
-                    (acc +=
-                      item.prev_price -
-                      item.new_price +
-                      (item.prev_price -
-                        item.new_price * auction_bidder.service_charge) /
-                        100),
-                  0
-                ),
+                amount_paid:
+                  prices.prev_price -
+                  prices.new_price +
+                  ((prices.prev_price - prices.new_price) *
+                    auction_bidder.service_charge) /
+                    100,
                 payment_method_id: cash_payment_method?.payment_method_id,
               },
             },
