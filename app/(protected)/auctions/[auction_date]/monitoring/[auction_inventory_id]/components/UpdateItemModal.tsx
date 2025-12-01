@@ -67,7 +67,12 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
   const [newAuctionInventory, setNewAuctionInventory] =
     useState<UpdateItemForm>({});
   const [inventories, setInventories] = useState<
-    { inventory_id: string; barcode: string; control: string }[]
+    {
+      inventory_id: string;
+      barcode: string;
+      control: string;
+      created_at: string;
+    }[]
   >([]);
   const [selectedInventory, setSelectedInventory] = useState<{
     label: string;
@@ -281,7 +286,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                     )
                   }
                   options={inventories.map((item) => ({
-                    label: `${item.barcode} (${item.control})`,
+                    label: `${item.barcode} (${item.control}) (${item.created_at})`,
                     value: item.inventory_id,
                   }))}
                 />

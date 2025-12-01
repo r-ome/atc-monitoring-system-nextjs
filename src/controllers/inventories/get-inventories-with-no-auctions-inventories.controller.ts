@@ -3,6 +3,7 @@ import { getInventoriesWithNoAuctionsInventoriesUseCase } from "src/application/
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { InventorySchema } from "src/entities/models/Inventory";
 import { err, ok } from "src/entities/models/Response";
+import { formatDate } from "@/app/lib/utils";
 
 function presenter(
   inventories: Omit<InventorySchema, "histories" | "container">[]
@@ -11,6 +12,7 @@ function presenter(
     inventory_id: item.inventory_id,
     barcode: item.barcode,
     control: item.control ?? "NC",
+    created_at: formatDate(item.created_at, "MMM dd, yyyy"),
   }));
 }
 

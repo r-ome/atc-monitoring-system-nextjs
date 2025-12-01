@@ -378,7 +378,7 @@ export const InventoryRepository: IInventoryRepository = {
     try {
       return await prisma.inventories.findMany({
         include: { auctions_inventories: true },
-        where: { auctions_inventories: { none: {} } },
+        where: { auctions_inventories: { none: {} }, status: { not: "VOID" } },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
