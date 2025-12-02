@@ -7,7 +7,7 @@ import {
 import {
   UpdateExpenseInput,
   type UpdateExpenseInputSchema,
-} from "src/entities/models/Payment";
+} from "src/entities/models/Expense";
 import { err, ok } from "src/entities/models/Response";
 
 export const UpdateExpenseController = async (

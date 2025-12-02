@@ -1,11 +1,9 @@
-import { ExpenseSchema } from "src/entities/models/Expense";
 import {
   PullOutPaymentInsertSchema,
   RefundAuctionInventories,
   ReceiptRecordsSchema,
   PaymentSchema,
   RegistrationPaymentUpdateSchema,
-  UpdateExpenseInputSchema,
 } from "src/entities/models/Payment";
 
 export interface IPaymentRepository {
@@ -38,8 +36,4 @@ export interface IPaymentRepository {
     payment_id: string,
     data: RegistrationPaymentUpdateSchema
   ) => Promise<void>;
-  updateExpense: (
-    expense_id: string,
-    data: UpdateExpenseInputSchema
-  ) => Promise<ExpenseSchema>;
 }

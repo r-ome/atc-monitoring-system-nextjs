@@ -156,11 +156,3 @@ export const RegistrationPaymentUpdateSchema = z.object({
 export type RegistrationPaymentUpdateSchema = z.infer<
   typeof RegistrationPaymentUpdateSchema
 >;
-
-export const UpdateExpenseInput = z.object({
-  amount: z.coerce.number(),
-  purpose: z.string(),
-  remarks: z.string(),
-});
-
-export type UpdateExpenseInputSchema = z.infer<typeof UpdateExpenseInput>;
