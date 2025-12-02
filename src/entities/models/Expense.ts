@@ -9,7 +9,7 @@ export type Expense = {
   balance: number;
   amount: number;
   purpose: EXPENSE_PURPOSE;
-  remarks: string | null;
+  remarks: string;
   created_at: string;
 };
 

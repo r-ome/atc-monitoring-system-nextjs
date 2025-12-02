@@ -1,16 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CoreRow } from "@tanstack/react-table";
 import { Expense } from "src/entities/models/Expense";
 import { Card, CardTitle, CardDescription } from "@/app/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@/app/components/ui/table";
+import { columns } from "./expenses-columns";
+import { DataTable } from "@/app/components/data-table/data-table";
+import { UpdateExpenseModal } from "./UpdateExpenseModal";
 
 interface ExpensesTabProps {
   expenses: Expense[];
@@ -34,6 +30,20 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
       TOTAL_EXPENSES: 0,
     }
   );
+  const [selectedExpense, setSelectedExpense] = useState<{
+    expense_id: string;
+    amount: number;
+    remarks: string;
+    purpose: "EXPENSE" | "ADD_PETTY_CASH";
+  }>({
+    expense_id: "",
+    amount: 0,
+    remarks: "",
+    purpose: "ADD_PETTY_CASH",
+  });
+
+  const [openUpdateExpenseModal, setOpenUpdateExpenseModal] =
+    useState<boolean>(false);
 
   useEffect(() => {
     const total = expenses
@@ -50,6 +60,19 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
       PETTY_CASH_BALANCE: pettyCashBalance,
     }));
   }, [expenses, setExpenseTypesTotal, pettyCashBalance]);
+
+  const globalFilterFn = (
+    row: CoreRow<Expense>,
+    _columnId?: string,
+    filterValue?: string
+  ) => {
+    const search = (filterValue ?? "").toLowerCase();
+    const { amount, remarks } = row.original;
+
+    return [amount, remarks]
+      .filter(Boolean)
+      .some((field) => field?.toString()!.toLowerCase().includes(search));
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -68,28 +91,27 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
           </Card>
         ))}
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Purpose</TableHead>
-            <TableHead>Balance</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Remarks</TableHead>
-            <TableHead>Date</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {expenses.map((item) => (
-            <TableRow key={item.expense_id}>
-              <TableCell>{item.purpose.replace(/_/g, " ")}</TableCell>
-              <TableCell>{item.balance.toLocaleString()}</TableCell>
-              <TableCell>{item.amount.toLocaleString()}</TableCell>
-              <TableCell>{item.remarks?.toLocaleUpperCase()}</TableCell>
-              <TableCell>{item.created_at}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+
+      <DataTable
+        columns={columns}
+        data={expenses}
+        searchFilter={{
+          globalFilterFn,
+          searchComponentProps: {
+            placeholder: "Search here",
+          },
+        }}
+        onRowClick={(expense) => {
+          setOpenUpdateExpenseModal(true);
+          setSelectedExpense(expense);
+        }}
+      />
+
+      <UpdateExpenseModal
+        open={openUpdateExpenseModal}
+        onOpenChange={setOpenUpdateExpenseModal}
+        expense={selectedExpense}
+      />
     </div>
   );
 };

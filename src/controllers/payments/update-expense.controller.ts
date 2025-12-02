@@ -1,0 +1,44 @@
+import { logger } from "@/app/lib/logger";
+import { updateExpenseUseCase } from "src/application/use-cases/payments/update-expense.use-case";
+import {
+  DatabaseOperationError,
+  InputParseError,
+} from "src/entities/errors/common";
+import {
+  UpdateExpenseInput,
+  type UpdateExpenseInputSchema,
+} from "src/entities/models/Payment";
+import { err, ok } from "src/entities/models/Response";
+
+export const UpdateExpenseController = async (
+  expense_id: string,
+  input: Partial<UpdateExpenseInputSchema>
+) => {
+  try {
+    const { data, error: inputParseError } =
+      UpdateExpenseInput.safeParse(input);
+
+    if (inputParseError) {
+      throw new InputParseError("Invalid Data!", {
+        cause: inputParseError.flatten().fieldErrors,
+      });
+    }
+
+    const res = await updateExpenseUseCase(expense_id, data);
+    return ok(res);
+  } catch (error) {
+    logger("UpdateExpenseController", error);
+    if (error instanceof InputParseError) {
+      return err({ message: error.message, cause: error.cause });
+    }
+
+    if (error instanceof DatabaseOperationError) {
+      return err({ message: "Server Error", cause: error?.message });
+    }
+
+    return err({
+      message: "An error occurred! Please contact your admin!",
+      cause: "Server Error",
+    });
+  }
+};

@@ -13,7 +13,7 @@ function presenter(expenses: ExpenseSchema[]) {
       amount: expense.amount,
       purpose: expense.purpose,
       remarks: expense.remarks,
-      created_at: formatDate(expense.created_at, "MMMM dd, yyyy hh:mm a"),
+      created_at: formatDate(expense.created_at, "hh:mm a"),
     })),
   };
 }

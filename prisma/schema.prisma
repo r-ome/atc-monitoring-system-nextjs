@@ -279,7 +279,7 @@ model expenses {
   balance    Int             @default(0)
   amount     Int             @default(0)
   purpose    expense_purpose
-  remarks    String?
+  remarks    String
   created_at DateTime        @default(now()) @db.Timestamp(0)
   updated_at DateTime        @default(now()) @updatedAt @db.DateTime(0)
   deleted_at DateTime?       @db.DateTime(0)

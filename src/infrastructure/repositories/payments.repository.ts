@@ -354,4 +354,26 @@ export const PaymentRepository: IPaymentRepository = {
       throw error;
     }
   },
+  updateExpense: async (expense_id, data) => {
+    try {
+      const updated = await prisma.expenses.update({
+        where: { expense_id },
+        data: {
+          amount: data.amount,
+          remarks: data.remarks,
+          purpose: data.purpose as "EXPENSE" | "ADD_PETTY_CASH",
+        },
+      });
+
+      return updated;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error updating expense!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
 };

@@ -28,4 +28,5 @@ export interface DataTableProps<TData, TValue> {
     filterComponentProps?: Partial<FilterColumnComponentProps>;
   };
   filterColumns?: boolean;
+  onRowClick?: (row: TData) => void;
 }

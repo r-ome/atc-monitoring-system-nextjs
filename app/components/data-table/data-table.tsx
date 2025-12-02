@@ -33,6 +33,7 @@ import {
 import { SearchComponent } from "@/app/components/data-table/SearchComponent";
 import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
 import { ChevronDown } from "lucide-react";
+import { cn } from "@/app/lib/utils";
 
 export const DataTable = <TData, TValue>({
   columns,
@@ -42,6 +43,7 @@ export const DataTable = <TData, TValue>({
   rowSelection,
   getRowId,
   columnFilter,
+  onRowClick,
   filterColumns = false,
 }: DataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
@@ -183,6 +185,8 @@ export const DataTable = <TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
+                onClick={() => onRowClick?.(row.original)}
+                className={cn(onRowClick ? "hover:cursor-pointer" : "")}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell

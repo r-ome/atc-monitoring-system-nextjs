@@ -5,6 +5,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Payment } from "src/entities/models/Payment";
+import { Badge } from "@/app/components/ui/badge";
 
 const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
   const payment = row.original;
@@ -44,7 +45,15 @@ export const columns: ColumnDef<Payment>[] = [
       const payment = row.original;
       return (
         <div className="flex justify-center">
-          {payment.receipt.purpose.replace(/_/g, " ")}
+          <Badge
+            variant={
+              ["PULL_OUT", "REGISTRATION"].includes(payment.receipt.purpose)
+                ? "success"
+                : "destructive"
+            }
+          >
+            {payment.receipt.purpose.replace(/_/g, " ")}
+          </Badge>
         </div>
       );
     },
@@ -144,13 +153,13 @@ export const columns: ColumnDef<Payment>[] = [
     accessorKey: "created_at",
     header: ({ column }) => {
       return (
-        <div className="flex justify-end">
+        <div className="flex justify-center">
           <Button
             variant="ghost"
             className="cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Date & Time
+            Time
             <ArrowUpDown />
           </Button>
         </div>
