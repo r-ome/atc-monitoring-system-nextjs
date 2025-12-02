@@ -16,6 +16,7 @@ import { UpdateCounterCheckController } from "src/controllers/auctions/update-co
 import { UpdateManifestController } from "src/controllers/auctions/update-manifest.controller";
 import { InsertAuctionInventoryController } from "src/controllers/auctions/insert-auction-inventory.controller";
 import { UpdateBidderRegistrationController } from "src/controllers/auctions/update-bidder-registration.controller";
+import { UnregisterBidderController } from "src/controllers/auctions/unregister-bidder.controller";
 
 export const startAuction = async (auctionDate: string) => {
   return await StartAuctionController(auctionDate);
@@ -135,4 +136,8 @@ export const updateBidderRegistration = async (
 ) => {
   const data = Object.fromEntries(formData.entries());
   return await UpdateBidderRegistrationController(auction_bidder_id, data);
+};
+
+export const unregisterBidder = async (auction_bidder_id: string) => {
+  return await UnregisterBidderController(auction_bidder_id);
 };

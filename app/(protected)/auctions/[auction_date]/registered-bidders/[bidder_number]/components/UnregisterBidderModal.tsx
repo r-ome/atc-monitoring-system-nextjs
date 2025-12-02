@@ -3,9 +3,8 @@
 import { Loader2Icon } from "lucide-react";
 import { SetStateAction, useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateBidderRegistration } from "@/app/(protected)/auctions/actions";
+import { unregisterBidder } from "@/app/(protected)/auctions/actions";
 import { Button } from "@/app/components/ui/button";
-import { Label } from "@/app/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -16,21 +15,20 @@ import {
   DialogTitle,
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
-import { InputNumber } from "@/app/components/ui/InputNumber";
 
-interface UpdateBidderRegistrationProps {
+interface UnregisterBidderModalProps {
   open: boolean;
   onOpenChange: React.Dispatch<SetStateAction<boolean>>;
   bidder: {
     auction_bidder_id: string;
-    registration_fee: number;
-    service_charge: number;
   };
 }
 
-export const UpdateBidderRegistrationModal: React.FC<
-  UpdateBidderRegistrationProps
-> = ({ open, onOpenChange, bidder }) => {
+export const UnregisterBidderModal: React.FC<UnregisterBidderModalProps> = ({
+  open,
+  onOpenChange,
+  bidder,
+}) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -38,16 +36,12 @@ export const UpdateBidderRegistrationModal: React.FC<
     event.preventDefault();
     setIsLoading(true);
 
-    const formData = new FormData(event.currentTarget);
-    const res = await updateBidderRegistration(
-      bidder.auction_bidder_id,
-      formData
-    );
+    const res = await unregisterBidder(bidder.auction_bidder_id);
 
     if (res) {
       setIsLoading(false);
       if (res.ok) {
-        toast.success("Successfully uploaded bidder registration!");
+        toast.success("Successfully unregistered bidder!");
         onOpenChange(false);
         router.refresh();
       }
@@ -65,39 +59,15 @@ export const UpdateBidderRegistrationModal: React.FC<
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Bidder Registration</DialogTitle>
+            <DialogTitle>Unregister Bidder from Auction</DialogTitle>
             <DialogDescription>
-              Update Service Service Charge and Registration Fee
+              Bidder should not have any items in the auction before removing
+              from auction
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <Label>Service Charge:</Label>
-              <InputNumber
-                id="service_charge"
-                name="service_charge"
-                defaultValue={12}
-                value={bidder?.service_charge as number}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>Registration Fee:</Label>
-
-              <InputNumber
-                id="registration_fee"
-                name="registration_fee"
-                defaultValue={3000}
-                value={bidder?.registration_fee as number}
-              />
-            </div>
-
             <DialogFooter>
-              <DialogClose
-                className="cursor-pointer"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </DialogClose>
+              <DialogClose className="cursor-pointer">Cancel</DialogClose>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit

@@ -200,14 +200,6 @@ export const PaymentRepository: IPaymentRepository = {
           { new_price: 0, prev_price: 0 }
         );
 
-        console.log(
-          prices.prev_price -
-            prices.new_price +
-            ((prices.prev_price - prices.new_price) *
-              auction_bidder.service_charge) /
-              100
-        );
-
         const receipt = await tx.receipt_records.create({
           data: {
             receipt_number: `${auction_bidder.bidder.bidder_number}REF${

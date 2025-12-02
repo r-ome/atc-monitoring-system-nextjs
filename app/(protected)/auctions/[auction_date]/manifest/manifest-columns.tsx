@@ -82,7 +82,6 @@ export const columns = (
       const is_slash_item = manifest.is_slash_item;
       const idx = is_slash_item ? groupIndexMap[is_slash_item] : undefined;
 
-      console.log(idx);
       return (
         <div className="flex justify-center">
           {manifest.control} {idx ? `(A${idx})` : ""}

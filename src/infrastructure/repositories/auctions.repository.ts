@@ -515,6 +515,35 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
+  getRegisteredBidderById: async (auction_bidder_id) => {
+    try {
+      return await prisma.auctions_bidders.findFirst({
+        where: { auction_bidder_id },
+        include: {
+          bidder: true,
+          auctions_inventories: {
+            include: {
+              receipt: true,
+              inventory: { include: { container: true } },
+              histories: {
+                include: { receipt: true },
+                orderBy: { created_at: "desc" },
+              },
+            },
+            orderBy: { price: "desc" },
+          },
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error fetching registered bidder", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
   cancelItems: async (data) => {
     try {
       await prisma.$transaction(async (tx) => {
@@ -892,6 +921,42 @@ export const AuctionRepository: IAuctionRepository = {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         console.error(error);
         throw new DatabaseOperationError("Error registering bidder", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  unregisterBidder: async (auction_bidder_id) => {
+    try {
+      const bidder = await prisma.auctions_bidders.findFirst({
+        where: { auction_bidder_id },
+      });
+
+      if (!bidder) {
+        throw new NotFoundError("AUCTION BIDDER NOT FOUND!");
+      }
+
+      return await prisma.$transaction(async (tx) => {
+        await tx.payments.deleteMany({
+          where: {
+            receipt: { auction_bidder_id },
+          },
+        });
+
+        await tx.receipt_records.deleteMany({
+          where: { auction_bidder: { auction_bidder_id } },
+        });
+
+        await tx.auctions_bidders.delete({
+          where: { auction_bidder_id },
+        });
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        console.error(error);
+        throw new DatabaseOperationError("Error unregistering bidder!", {
           cause: error.message,
         });
       }

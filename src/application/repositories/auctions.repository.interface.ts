@@ -38,6 +38,9 @@ export interface IAuctionRepository {
     bidder_number: string,
     auction_id: string
   ) => Promise<RegisteredBidderSchema | null>;
+  getRegisteredBidderById: (
+    auction_bidder_id: string
+  ) => Promise<RegisteredBidderSchema | null>;
   getMonitoring: (
     auction_id: string,
     status: AUCTION_ITEM_STATUS[]
@@ -80,4 +83,5 @@ export interface IAuctionRepository {
     auction_bidder_id: string,
     data: UpdateBidderRegistrationSchema
   ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
+  unregisterBidder: (auction_bidder_id: string) => Promise<void>;
 }

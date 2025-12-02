@@ -11,7 +11,7 @@ import {
 import { cn } from "@/app/lib/utils";
 import { BidderItemsTable } from "./components/BidderItemsTable";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-import { UpdateBidderRegistrationModal } from "./components/UpdateBidderRegistrationModal";
+import { BidderRegistrationOptions } from "./components/BidderRegistrationOptions";
 
 export default async function Page({
   params,
@@ -95,7 +95,7 @@ export default async function Page({
             <CardDescription>{bidder.bidder.full_name}</CardDescription>
           </div>
           <div>
-            <UpdateBidderRegistrationModal bidder={bidder} />
+            <BidderRegistrationOptions bidder={bidder} />
           </div>
         </CardHeader>
         <CardContent>
