@@ -1,9 +1,9 @@
 "use client";
 
 import { SetStateAction, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
-import { Loader2Icon } from "lucide-react";
+import { OctagonAlert, Loader2Icon } from "lucide-react";
 import {
   Dialog,
   DialogHeader,
@@ -26,6 +26,17 @@ import { handleBidderPullOut } from "@/app/(protected)/auctions/actions";
 import { ConfirmPayment } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/components/PullOutModal/ConfirmPayment";
 import { useBidderPullOutModalContext } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/context/BidderPullOutModalContext";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/components/ui/alert-dialog";
+import { formatDate } from "@/app/lib/utils";
 
 interface PullOutModalProps {
   open: boolean;
@@ -54,17 +65,26 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
   open,
   onOpenChange,
 }) => {
+  const params = useParams();
   const {
     selectedItems,
     registeredBidder: bidderPaymentDetails,
     grandTotal,
   } = useBidderPullOutModalContext();
+
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!openAlertDialog) {
+      setOpenAlertDialog(true);
+      return;
+    }
+
     const formData = new FormData(event.currentTarget);
     setIsLoading(true);
     if (bidderPaymentDetails) {
@@ -82,10 +102,10 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
     formData.append("amount_to_be_paid", grandTotal.toString());
     const data = Object.fromEntries(formData.entries());
     const bidder_payments = Object.keys(data)
-      .filter((item) => item.includes("PAYMENT_"))
-      .map((item) => ({
-        payment_method: item.replace("PAYMENT_", "").split("_")[0],
-        amount_paid: typeof data[item] === "string" ? parseInt(data[item]) : 0,
+      .filter((key) => key.includes("PAYMENT_"))
+      .map((key) => ({
+        payment_method: key.replace("PAYMENT_", "").split("_")[0],
+        amount_paid: typeof data[key] === "string" ? parseInt(data[key]) : 0,
       }));
 
     formData.append("payments", JSON.stringify(bidder_payments));
@@ -104,109 +124,149 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
             bidderPaymentDetails?.bidder.bidder_number
           }!`,
         });
+        setOpenAlertDialog(false);
         router.refresh();
         onOpenChange(false);
         setCurrentStep(1);
-      }
-
-      if (!res.ok) {
+      } else {
         const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
+          typeof res.error?.cause === "string" ? res.error.cause : null;
+
         toast.error(res.error.message, { description });
       }
-      setIsLoading(false);
     }
-  };
-
-  const PullOutSteps = () => {
-    return (
-      <div className="space-y-2">
-        <Stepper value={currentStep}>
-          {steps.map(({ step, title, description }) => (
-            <StepperItem
-              key={step}
-              step={step}
-              className="relative flex-1 flex-col!"
-            >
-              <StepperTrigger className="flex-col gap-3 rounded">
-                <StepperIndicator />
-                <div className="space-y-0.5 px-2">
-                  <StepperTitle>{title}</StepperTitle>
-                  <StepperDescription className="max-sm:hidden">
-                    {description}
-                  </StepperDescription>
-                </div>
-              </StepperTrigger>
-              {step < steps.length && (
-                <StepperSeparator className="absolute inset-x-0 top-3 left-[calc(50%+0.75rem+0.125rem)] -order-1 m-0 -translate-y-1/2 group-data-[orientation=horizontal]/stepper:w-[calc(100%-1.5rem-0.25rem)] group-data-[orientation=horizontal]/stepper:flex-none" />
-              )}
-            </StepperItem>
-          ))}
-        </Stepper>
-
-        {currentStep === 1 && (
-          <div className="px-6 mt-5">
-            <PullOutItemsTable />
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} id="bidder-payment-form">
-          {currentStep === 2 && (
-            <div className="px-6 mt-5">
-              <PaymentBreakdownDetails />
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div className="px-6 mt-5">
-              <ConfirmPayment />
-            </div>
-          )}
-        </form>
-      </div>
-    );
+    setIsLoading(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="min-w-[800px]">
-        <DialogHeader>
-          <DialogTitle>Pull Out</DialogTitle>
-        </DialogHeader>
+        <form id="bidder-payment-form" onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Pull Out</DialogTitle>
+          </DialogHeader>
 
-        <PullOutSteps />
+          <div className="space-y-2">
+            <Stepper value={currentStep}>
+              {steps.map(({ step, title, description }) => (
+                <StepperItem
+                  key={step}
+                  step={step}
+                  className="relative flex-1 flex-col!"
+                >
+                  <StepperTrigger className="flex-col gap-3 rounded">
+                    <StepperIndicator />
+                    <div className="space-y-0.5 px-2">
+                      <StepperTitle>{title}</StepperTitle>
+                      <StepperDescription className="max-sm:hidden">
+                        {description}
+                      </StepperDescription>
+                    </div>
+                  </StepperTrigger>
 
-        <DialogFooter className="flex sm:justify-center">
-          <Button
-            variant="outline"
-            className="w-40"
-            onClick={() => setCurrentStep((prev) => prev - 1)}
-            disabled={currentStep === 1}
-          >
-            Prev step
-          </Button>
+                  {step < steps.length && (
+                    <StepperSeparator className="absolute inset-x-0 top-3 left-[calc(50%+0.75rem+0.125rem)]" />
+                  )}
+                </StepperItem>
+              ))}
+            </Stepper>
 
-          {currentStep === 3 ? (
+            {currentStep === 1 && (
+              <div className="px-6 mt-5">
+                <PullOutItemsTable />
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="px-6 mt-5">
+                <PaymentBreakdownDetails />
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="px-6 mt-5">
+                <ConfirmPayment />
+              </div>
+            )}
+          </div>
+
+          <AlertDialog open={openAlertDialog} onOpenChange={setOpenAlertDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  <div className="flex mx-auto gap-2">
+                    <OctagonAlert className="h-7 w-7 text-destructive" />
+                    BIDDER {bidderPaymentDetails?.bidder.bidder_number} PULL OUT{" "}
+                    {params.auction_date
+                      ? `(${formatDate(
+                          new Date(params.auction_date.toString()),
+                          "MMMM dd, yyyy"
+                        )})`
+                      : null}
+                  </div>
+                </AlertDialogTitle>
+
+                <AlertDialogDescription>
+                  Confirming will complete the payment and cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                <AlertDialogAction asChild>
+                  <Button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => {
+                      const form = document.getElementById(
+                        "bidder-payment-form"
+                      ) as HTMLFormElement;
+
+                      form.requestSubmit();
+                    }}
+                  >
+                    {isLoading && <Loader2Icon className="animate-spin" />}
+                    Confirm
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <DialogFooter className="flex sm:justify-center mt-4">
             <Button
-              type="submit"
-              form="bidder-payment-form"
-              className="w-40"
-              disabled={isLoading}
-            >
-              {isLoading && <Loader2Icon className="animate-spin" />}
-              Submit
-            </Button>
-          ) : (
-            <Button
+              type="button"
               variant="outline"
               className="w-40"
-              onClick={() => setCurrentStep((prev) => prev + 1)}
-              disabled={currentStep >= steps.length}
+              onClick={() => setCurrentStep((prev) => prev - 1)}
+              disabled={currentStep === 1}
             >
-              Next step
+              Prev step
             </Button>
-          )}
-        </DialogFooter>
+
+            {currentStep === 3 ? (
+              <Button
+                type="button"
+                className="w-40"
+                onClick={() => setOpenAlertDialog(true)}
+                disabled={isLoading}
+              >
+                Submit
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-40"
+                onClick={() => setCurrentStep((prev) => prev + 1)}
+                disabled={currentStep >= steps.length}
+              >
+                Next step
+              </Button>
+            )}
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
