@@ -105,7 +105,7 @@ export const StatisticsRepository: IStatisticsRepository = {
         ORDER BY a.created_at DESC
       `;
 
-      return auctions as AuctionsStatisticsSchema;
+      return auctions as AuctionsStatisticsSchema[];
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting auction statistics!", {
