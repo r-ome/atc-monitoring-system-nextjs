@@ -76,30 +76,11 @@ export const columns: ColumnDef<BiddersWithBirthdatesAndRecentAuctionSchema>[] =
       },
       cell: ({ row }) => {
         const bidder = row.original;
-        return <div className="flex justify-center">{bidder.birthdate}</div>;
-      },
-    },
-    {
-      accessorKey: "age",
-      header: ({ column }) => {
         return (
           <div className="flex justify-center">
-            <Button
-              variant="ghost"
-              className="cursor-pointer"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Age
-              <ArrowUpDown />
-            </Button>
+            {bidder.birthdate} ({bidder.age} y/o)
           </div>
         );
-      },
-      cell: ({ row }) => {
-        const bidder = row.original;
-        return <div className="flex justify-center">{bidder.age}</div>;
       },
     },
     {

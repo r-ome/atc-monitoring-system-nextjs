@@ -3,7 +3,7 @@ import { BirthdatesTable } from "@/app/(protected)/home/components/BidderBirthda
 const Page = async () => {
   return (
     <div className="">
-      <div className="w-3/4">
+      <div className="w-1/2">
         <BirthdatesTable />
       </div>
     </div>
