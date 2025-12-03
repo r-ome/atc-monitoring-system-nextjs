@@ -24,7 +24,7 @@ function presenter(payments: PaymentSchema[]) {
       payment.receipt.auction_bidder.auctions.created_at,
       "yyyy-MM-dd"
     ),
-    created_at: formatDate(payment.created_at, "hh:mm a"),
+    created_at: formatDate(payment.created_at, "MMMM dd, yyyy hh:mm a"),
     receipt: {
       receipt_id: payment.receipt.receipt_id,
       receipt_number: payment.receipt.receipt_number,

@@ -5,6 +5,7 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Expense } from "src/entities/models/Expense";
 import { Badge } from "@/app/components/ui/badge";
+import { cn, formatDate } from "@/app/lib/utils";
 
 export const columns: ColumnDef<Expense>[] = [
   {
@@ -40,6 +41,7 @@ export const columns: ColumnDef<Expense>[] = [
   },
   {
     accessorKey: "amount",
+    size: 80,
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
@@ -56,9 +58,15 @@ export const columns: ColumnDef<Expense>[] = [
     },
     cell: ({ row }) => {
       const expense = row.original;
+      const amount = expense.amount.toLocaleString();
       return (
-        <div className="flex justify-center">
-          {expense.amount.toLocaleString()}
+        <div
+          className={cn(
+            "flex justify-center",
+            expense.purpose === "EXPENSE" ? "text-red-500" : "text-green-500"
+          )}
+        >
+          {expense.purpose === "EXPENSE" ? `(${amount})` : amount}
         </div>
       );
     },
@@ -101,7 +109,12 @@ export const columns: ColumnDef<Expense>[] = [
     },
     cell: ({ row }) => {
       const payment = row.original;
-      return <div className="flex justify-center">{payment.created_at}</div>;
+      const created_at = new Date(payment.created_at);
+      return (
+        <div className="flex justify-center">
+          {formatDate(created_at, "hh:mm a")}
+        </div>
+      );
     },
   },
 ];

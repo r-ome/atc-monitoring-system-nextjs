@@ -40,10 +40,12 @@ export const AddExpenseModal: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
+    // setIsLoading(true);
     const currentTime = formatDate(new Date(), "HH:mm:ss");
     const formData = new FormData(event.currentTarget);
     formData.append("created_at", `${transaction_date}T${currentTime}`);
+    const remarks = formData.get("remarks") as string;
+    formData.set("remarks", remarks.toUpperCase());
     const res = await addExpense(formData);
 
     if (res) {
@@ -80,7 +82,7 @@ export const AddExpenseModal: React.FC = () => {
               <Label htmlFor="purpose" className="w-40">
                 Purpose
               </Label>
-              <Select required name="purpose">
+              <Select required name="purpose" defaultValue="EXPENSE">
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Payment Type"></SelectValue>
                 </SelectTrigger>

@@ -9,11 +9,11 @@ function presenter(expenses: ExpenseSchema[]) {
   return {
     expenses: expenses.map((expense) => ({
       expense_id: expense.expense_id,
-      balance: expense.balance,
-      amount: expense.amount,
+      balance: expense.balance.toNumber(),
+      amount: expense.amount.toNumber(),
       purpose: expense.purpose,
       remarks: expense.remarks,
-      created_at: formatDate(expense.created_at, "hh:mm a"),
+      created_at: formatDate(expense.created_at, "MMMM dd, yyyy hh:mm a"),
     })),
   };
 }

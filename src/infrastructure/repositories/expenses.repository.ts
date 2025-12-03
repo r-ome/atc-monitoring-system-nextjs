@@ -30,29 +30,17 @@ export const ExpensesRepository: IExpenseRepository = {
       throw error;
     }
   },
-  addExpense: async (input) => {
+  getPettyCashBalance: async (date: Date) => {
     try {
-      return await prisma.$transaction(async (tx) => {
-        const latest_balance = (await tx.expenses.findFirst({
-          select: { balance: true },
-          orderBy: { created_at: "desc" },
-        })) || { balance: 0 };
-
-        const created = await tx.expenses.create({
-          data: {
-            balance:
-              input.purpose === "EXPENSE"
-                ? latest_balance.balance - input.amount
-                : latest_balance.balance + input.amount,
-            amount: input.amount,
-            purpose: input.purpose,
-            remarks: input.remarks,
-            created_at: input.created_at,
-          },
-        });
-
-        return created;
+      /**
+       * get the balance of the last transaction less than current date
+       */
+      const petty_cash_balance = await prisma.expenses.findFirst({
+        where: { created_at: { lt: date } },
+        orderBy: { created_at: "desc" },
       });
+
+      return petty_cash_balance;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error adding expense", {
@@ -63,17 +51,35 @@ export const ExpensesRepository: IExpenseRepository = {
       throw error;
     }
   },
-  getPettyCashBalance: async (date: Date) => {
+  addExpense: async (input) => {
     try {
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
+      return await prisma.$transaction(async (tx) => {
+        let last_balance = 0;
+        const last_expense_transaction = await tx.expenses.findFirst({
+          where: { created_at: { lt: input.created_at } },
+          orderBy: { created_at: "desc" },
+        });
 
-      const petty_cash_balance = await prisma.expenses.findFirst({
-        where: { created_at: { lte: nextDay } },
-        orderBy: { created_at: "desc" },
+        if (last_expense_transaction) {
+          last_balance = last_expense_transaction.balance.toNumber();
+        }
+
+        const created = await tx.expenses.create({
+          data: {
+            amount: input.amount,
+            purpose: input.purpose,
+            balance:
+              input.purpose === "ADD_PETTY_CASH"
+                ? last_balance + input.amount
+                : last_balance - input.amount,
+            remarks: input.remarks,
+            created_at: input.created_at,
+          },
+        });
+
+        // throw new Error("woops");
+        return created;
       });
-
-      return petty_cash_balance;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error adding expense", {

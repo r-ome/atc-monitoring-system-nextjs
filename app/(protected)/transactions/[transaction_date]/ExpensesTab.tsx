@@ -56,10 +56,10 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     setExpenseTypesTotal((prev) => ({
       ...prev,
       TOTAL_EXPENSES: total,
-      CASH_ON_HAND_FOR_PETTY_CASH: cashOnHand,
-      PETTY_CASH_BALANCE: pettyCashBalance,
+      CASH_ON_HAND_FOR_PETTY_CASH: cashOnHand - total,
+      PETTY_CASH_BALANCE: pettyCashBalance + cashOnHand,
     }));
-  }, [expenses, setExpenseTypesTotal, pettyCashBalance]);
+  }, [expenses, setExpenseTypesTotal]);
 
   const globalFilterFn = (
     row: CoreRow<Expense>,

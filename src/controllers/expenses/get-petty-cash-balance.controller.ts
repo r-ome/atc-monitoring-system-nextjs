@@ -5,7 +5,7 @@ import { ok, err } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
 
 function presenter(petty_cash_balance: ExpenseSchema | null) {
-  if (petty_cash_balance) return petty_cash_balance.balance;
+  if (petty_cash_balance) return petty_cash_balance.balance.toNumber();
   else return 0;
 }
 

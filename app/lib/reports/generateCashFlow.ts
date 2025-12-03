@@ -80,6 +80,13 @@ const generateCashFlow = ({
     return acc;
   }, {} as Record<string, string>);
 
+  const total_petty_cash = expenses.reduce((acc, item) => {
+    if (item.purpose === "ADD_PETTY_CASH") {
+      return (acc += item.amount);
+    }
+    return acc;
+  }, 0);
+
   const totalRefund = refundAmount * -1;
   const totalInward = payments
     .filter((item) => item.receipt.purpose !== "REFUNDED")
@@ -128,12 +135,8 @@ const generateCashFlow = ({
       e: { r: inward_total_cash_row_merge, c: 3 },
     },
     { s: { r: 0, c: 4 }, e: { r: 0, c: 7 } }, // E1:H1
-    { s: { r: 1, c: 4 }, e: { r: 1, c: 5 } }, // E2:F2
-    { s: { r: 1, c: 6 }, e: { r: 1, c: 7 } }, // G2:H2
-    { s: { r: 2, c: 4 }, e: { r: 2, c: 5 } }, // E3:F3
-    { s: { r: 2, c: 6 }, e: { r: 2, c: 7 } }, // G3:H3
-    { s: { r: 3, c: 4 }, e: { r: 3, c: 5 } }, // E4:F4
-    { s: { r: 3, c: 6 }, e: { r: 3, c: 7 } }, // G3:H3
+    { s: { r: 1, c: 4 }, e: { r: 1, c: 6 } }, // E2:G2
+    { s: { r: 2, c: 4 }, e: { r: 2, c: 6 } }, // E3:G3
   ];
 
   sheet["!rows"] = [{ hpt: 40 }];
@@ -145,6 +148,9 @@ const generateCashFlow = ({
     { wch: 20 },
     { wch: 25 },
     { wch: 25 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
     { wch: 20 },
   ];
   sheet["!autofilter"] = {
@@ -417,7 +423,7 @@ const generateCashFlow = ({
 
   sheet["A1"] = {
     v: `ATC JAPAN AUCTION DAILY CASH FLOW ${formatDate(
-      new Date(),
+      new Date(date),
       "MMMM dd, yyyy"
     ).toUpperCase()}`,
     t: "s",
@@ -435,7 +441,7 @@ const generateCashFlow = ({
   };
   sheet["E1"] = {
     v: `ATC JAPAN AUCTION DAILY CASH FLOW ${formatDate(
-      new Date(),
+      new Date(date),
       "MMMM dd, yyyy"
     ).toUpperCase()}`,
     t: "s",
@@ -472,9 +478,9 @@ const generateCashFlow = ({
     t: "s",
     s: {
       font: { name: "Calibri", sz: 10 },
-      fill: { fgColor: { rgb: "DDEBF7" } },
+      fill: { fgColor: { rgb: "9BC2E6" } },
       alignment: {
-        horizontal: "right",
+        horizontal: "center",
         vertical: "center",
         wrapText: true,
       },
@@ -490,24 +496,23 @@ const generateCashFlow = ({
     t: "s",
     s: {
       font: { name: "Calibri", sz: 10 },
-      fill: { fgColor: { rgb: "DDEBF7" } },
       alignment: {
-        horizontal: "right",
+        horizontal: "center",
         vertical: "center",
         wrapText: true,
       },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
       },
     },
   };
 
-  sheet["E4"] = {
+  sheet["G4"] = {
     v: "TOTAL EXPENSES",
     t: "s",
     s: {
       font: { name: "Calibri", sz: 10 },
-      fill: { fgColor: { rgb: "DDEBF7" } },
       alignment: {
         horizontal: "right",
         vertical: "center",
@@ -515,6 +520,7 @@ const generateCashFlow = ({
       },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
         bottom: { style: "thin", color: { rgb: "000000" } },
       },
     },
@@ -528,13 +534,13 @@ const generateCashFlow = ({
     },
   };
 
-  sheet["G2"] = {
-    f: "G3-G4",
+  sheet["H2"] = {
+    f: "H3-H4",
     t: "n",
     z: '"₱" #,##0.00;"₱" [Red]-#,##0.00',
     s: {
-      font: { name: "Calibri", sz: 14 },
-      fill: { fgColor: { rgb: "DDEBF7" } },
+      font: { name: "Calibri", sz: 14, color: { rgb: "F00000" } },
+      fill: { fgColor: { rgb: "9BC2E6" } },
       alignment: {
         horizontal: "center",
         vertical: "center",
@@ -542,19 +548,20 @@ const generateCashFlow = ({
       },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
         left: { style: "thin", color: { rgb: "000000" } },
         bottom: { style: "thin", color: { rgb: "000000" } },
       },
     },
   };
 
-  sheet["G3"] = {
-    v: yesterdayBalance,
+  sheet["H3"] = {
+    f: "K6",
     t: "n",
     z: '"₱" #,##0.00',
     s: {
       font: { name: "Calibri", sz: 14 },
-      fill: { fgColor: { rgb: "DDEBF7" } },
+      fill: { fgColor: { rgb: "9BC2E6" } },
       alignment: {
         horizontal: "center",
         vertical: "center",
@@ -562,19 +569,20 @@ const generateCashFlow = ({
       },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
         left: { style: "thin", color: { rgb: "000000" } },
         bottom: { style: "thin", color: { rgb: "000000" } },
       },
     },
   };
 
-  sheet["G4"] = {
-    f: `SUM(G13:G${outward.length + 13})`,
+  sheet["H4"] = {
+    f: `SUM(G14:G${outward.length + 13})`,
     t: "n",
     z: '"₱" #,##0.00;"₱" [Red]-#,##0.00',
     s: {
       font: { name: "Calibri", sz: 14 },
-      fill: { fgColor: { rgb: "DDEBF7" } },
+      fill: { fgColor: { rgb: "9BC2E6" } },
       alignment: {
         horizontal: "center",
         vertical: "center",
@@ -582,13 +590,14 @@ const generateCashFlow = ({
       },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
         left: { style: "thin", color: { rgb: "000000" } },
         bottom: { style: "thin", color: { rgb: "000000" } },
       },
     },
   };
 
-  ["B2", "C2", "D2", "F4", "F2", "F3", "H3", "H2", "H4"].forEach((cell) => {
+  ["B2", "C2", "D2", "F2", "F3", "G2", "G3"].forEach((cell) => {
     sheet[cell] = {
       v: "",
       t: "s",
@@ -906,7 +915,7 @@ const generateCashFlow = ({
   };
 
   sheet["K5"] = {
-    v: `0`,
+    v: total_petty_cash,
     t: "n",
     z: '"₱" #,##0.00;"₱" [Red]-#,##0.00',
     s: {

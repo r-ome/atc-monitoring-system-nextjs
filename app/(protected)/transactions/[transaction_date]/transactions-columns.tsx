@@ -6,6 +6,7 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Payment } from "src/entities/models/Payment";
 import { Badge } from "@/app/components/ui/badge";
+import { formatDate } from "@/app/lib/utils";
 
 const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
   const payment = row.original;
@@ -167,7 +168,12 @@ export const columns: ColumnDef<Payment>[] = [
     },
     cell: ({ row }) => {
       const payment = row.original;
-      return <div className="flex justify-center">{payment.created_at}</div>;
+      const created_at = new Date(payment.created_at);
+      return (
+        <div className="flex justify-center">
+          {formatDate(created_at, "hh:mm a")}
+        </div>
+      );
     },
   },
 ];
