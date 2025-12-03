@@ -152,7 +152,6 @@ export const columns: ColumnDef<AuctionsStatistics>[] = [
     },
     cell: ({ row }) => {
       const auction = row.original;
-      console.log(auction.container_barcodes);
       return (
         <div className="flex justify-center">
           <Tooltip>

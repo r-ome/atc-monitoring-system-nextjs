@@ -6,7 +6,6 @@ import { UnpaidAuctionsBiddersSchema } from "src/entities/models/Bidder";
 import { getUnpaidBiddersUseCase } from "src/application/use-cases/statistics/get-unpaid-bidders.use-case";
 
 function presenter(bidders: UnpaidAuctionsBiddersSchema[]) {
-  console.log(bidders);
   const date_format = "MMM d, yyyy";
   return bidders.map((bidder) => ({
     bidder_id: bidder.bidder_id,
