@@ -4,6 +4,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { BiddersWithBirthdatesAndRecentAuctionSchema } from "src/entities/models/Bidder";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 export const columns: ColumnDef<BiddersWithBirthdatesAndRecentAuctionSchema>[] =
   [
@@ -38,7 +43,7 @@ export const columns: ColumnDef<BiddersWithBirthdatesAndRecentAuctionSchema>[] =
       size: 120,
       header: ({ column }) => {
         return (
-          <div className="flex justify-start">
+          <div className="flex justify-center">
             <Button
               variant="ghost"
               className="cursor-pointer"
@@ -55,7 +60,18 @@ export const columns: ColumnDef<BiddersWithBirthdatesAndRecentAuctionSchema>[] =
       cell: ({ row }) => {
         const bidder = row.original;
 
-        return <div className="flex justify-start">{bidder.first_name}</div>;
+        return (
+          <div className="flex justify-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block">{bidder.first_name}</span>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {bidder.first_name} {bidder.last_name}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        );
       },
     },
     {

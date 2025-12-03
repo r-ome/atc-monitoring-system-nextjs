@@ -50,4 +50,24 @@ export const StatisticsRepository: IStatisticsRepository = {
       throw error;
     }
   },
+  getContainersDueDate: async () => {
+    try {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+
+      const something = await prisma.containers.findMany({
+        where: { due_date: { not: null, gte: now } },
+        orderBy: { due_date: "asc" },
+      });
+
+      return something;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting bidders!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
 };

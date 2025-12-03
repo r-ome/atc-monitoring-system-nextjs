@@ -1,13 +1,9 @@
 import { formatDate } from "@/app/lib/utils";
-import { ReceiptRecordsSchema } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Response";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { getBidderBirthdates } from "src/application/use-cases/statistics/get-bidder-birthdates.use-case";
-import {
-  BidderSchema,
-  BiddersWithBirthdatesAndRecentAuctionSchema,
-} from "src/entities/models/Bidder";
+import { BiddersWithBirthdatesAndRecentAuctionSchema } from "src/entities/models/Bidder";
 
 function presenter(bidders: BiddersWithBirthdatesAndRecentAuctionSchema[]) {
   const date_format = "MMM d";

@@ -60,80 +60,12 @@ export const ContainerInsertSchema = z.object({
 });
 
 export type ContainerInsertSchema = z.infer<typeof ContainerInsertSchema>;
-// export type ContainerInsertSchema = Omit<
-//   ContainerSchema,
-//   | "container_id"
-//   | "created_at"
-//   | "updated_at"
-//   | "deleted_at"
-//   | "status"
-//   | "auction_or_sell"
-// >;
 
-// export type BaseContainer = Override<
-//   ContainerSchema,
-//   {
-//     eta_to_ph: string | null;
-//     departure_date: string | null;
-//     arrival_date: string | null;
-//     auction_start_date: string | null;
-//     auction_end_date: string | null;
-//     due_date: string | null;
-//     created_at: string;
-//     updated_at: string;
-//     deleted_at: string | null;
-//   }
-// >;
-
-// export type ContainerListSchema = ContainerSchema & {
-//   total_inventories: number;
-//   total_sold_inventories: number;
-//   inventories: InventorySchema[];
-//   supplier: {
-//     supplier_id: string;
-//     name: string;
-//     supplier_code: string;
-//   };
-// };
-
-// export type ContainerList = BaseContainer & {
-//   total_inventories: number;
-//   total_sold_inventories: number;
-//   supplier: {
-//     supplier_id: string;
-//     name: string;
-//     supplier_code: string;
-//   };
-// };
-
-// export type ContainerWithRelationsSchema = ContainerSchema & {
-//   _count: {
-//     inventories: number;
-//   };
-//   total_sold_inventories: number;
-//   branch: {
-//     branch_id: string;
-//     name: string;
-//   };
-//   supplier: {
-//     supplier_id: string;
-//     name: string;
-//     supplier_code: string;
-//   };
-// };
-
-// export type ContainerWithRelations = BaseContainer & {
-//   _count: {
-//     inventories: number;
-//   };
-//   total_sold_inventories: number;
-//   branch: {
-//     branch_id: string;
-//     name: string;
-//   };
-//   supplier: {
-//     supplier_id: string;
-//     name: string;
-//     supplier_code: string;
-//   };
-// };
+export type ContainerDueDate = {
+  container_id: string;
+  barcode: string;
+  bill_of_lading_number: string;
+  container_number: string;
+  arrival_date: string;
+  due_date: string;
+};
