@@ -1,5 +1,5 @@
 import { StatisticsRepository } from "src/infrastructure/repositories/statistics.repository";
 
-export const getContainersDueDate = async () => {
+export const getContainersDueDateUseCase = async () => {
   return StatisticsRepository.getContainersDueDate();
 };

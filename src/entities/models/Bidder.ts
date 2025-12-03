@@ -142,3 +142,7 @@ export type BiddersWithBirthdatesAndRecentAuctionSchema = {
   age: string;
   last_auction_date: string;
 };
+
+export type UnpaidAuctionsBiddersSchema = Prisma.auctions_biddersGetPayload<{
+  include: { auctions_inventories: true; bidder: true };
+}>;

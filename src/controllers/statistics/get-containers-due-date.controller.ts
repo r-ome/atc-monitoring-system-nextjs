@@ -3,7 +3,7 @@ import { ok, err } from "src/entities/models/Response";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { ContainerSchema } from "src/entities/models/Container";
-import { getContainersDueDate } from "src/application/use-cases/statistics/get-containers-due-date.use-case";
+import { getContainersDueDateUseCase } from "src/application/use-cases/statistics/get-containers-due-date.use-case";
 
 function presenter(
   containers: Omit<ContainerSchema, "branch" | "supplier" | "inventories">[]
@@ -23,12 +23,12 @@ function presenter(
   }));
 }
 
-export const GetContainersDueDate = async () => {
+export const GetContainersDueDateController = async () => {
   try {
-    const containers = await getContainersDueDate();
+    const containers = await getContainersDueDateUseCase();
     return ok(presenter(containers));
   } catch (error) {
-    logger("GetBidderBirthdatesController", error);
+    logger("GetContainersDueDateController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

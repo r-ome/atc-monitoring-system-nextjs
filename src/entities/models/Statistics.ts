@@ -9,12 +9,12 @@ export type BidderBirthdates = {
   birthdate: string | null;
 };
 
-export type AuctionWithUnpaidBidders = {
-  auction_id: string;
-  created_at: string;
-  unpaid_bidders: {
-    bidder_id: string;
-    bidder_number: string;
-    amount: string;
-  }[];
+export type UnpaidBidders = {
+  bidder_id: string;
+  bidder_number: string;
+  first_name: string;
+  last_name: string;
+  auction_date: string;
+  balance: number;
+  items: number;
 };

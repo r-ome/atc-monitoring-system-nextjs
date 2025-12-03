@@ -107,7 +107,7 @@ export const DataTable = <TData, TValue>({
   return (
     <div className="rounded-md border p-4 overflow-auto">
       {title ? <div>{title}</div> : null}
-      <div className="flex items-center justify-between gap-4 py-4">
+      <div className="flex items-center justify-between gap-4 py-2">
         {searchFilter?.globalFilterFn && (
           <SearchComponent
             value={globalFilter}

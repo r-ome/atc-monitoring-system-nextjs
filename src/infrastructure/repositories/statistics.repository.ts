@@ -3,15 +3,9 @@ import {
   isPrismaError,
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
-import {
-  DatabaseOperationError,
-  NotFoundError,
-} from "src/entities/errors/common";
+import { DatabaseOperationError } from "src/entities/errors/common";
 import { IStatisticsRepository } from "src/application/repositories/statistics.repository.interface";
-import {
-  BidderSchema,
-  BiddersWithBirthdatesAndRecentAuctionSchema,
-} from "src/entities/models/Bidder";
+import { BiddersWithBirthdatesAndRecentAuctionSchema } from "src/entities/models/Bidder";
 
 export const StatisticsRepository: IStatisticsRepository = {
   getBidderBirthdates: async () => {
@@ -53,17 +47,33 @@ export const StatisticsRepository: IStatisticsRepository = {
   getContainersDueDate: async () => {
     try {
       const now = new Date();
-      const month = now.getMonth() + 1;
-
-      const something = await prisma.containers.findMany({
+      const containers = await prisma.containers.findMany({
         where: { due_date: { not: null, gte: now } },
         orderBy: { due_date: "asc" },
       });
 
-      return something;
+      return containers;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error getting bidders!", {
+        throw new DatabaseOperationError("Error getting containers!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  getUnpaidBidders: async () => {
+    try {
+      const unpaid_bidders = await prisma.auctions_bidders.findMany({
+        where: { balance: { gt: 0 } },
+        include: { bidder: true, auctions_inventories: true },
+        orderBy: { created_at: "asc" },
+      });
+
+      return unpaid_bidders;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting unpaid bidders!", {
           cause: error.message,
         });
       }
