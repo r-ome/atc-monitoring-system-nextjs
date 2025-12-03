@@ -5,6 +5,7 @@ import {
 import { Separator } from "@/app/components/ui/separator";
 import { Container } from "src/entities/models/Container";
 import { UpdateContainerModal } from "./UpdateContainerModal";
+import { DeleteContainerModal } from "./DeleteContainerModal";
 
 type Field =
   | "bill_of_lading_number"
@@ -19,7 +20,12 @@ type Field =
   | "supplier";
 
 interface ContainerProfileProps {
-  container: Omit<Container, "inventories">;
+  container: Omit<Container, "inventories"> & {
+    inventories: Omit<
+      Container["inventories"][number],
+      "histories" | "auctions_inventories"
+    >[];
+  };
 }
 
 export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
@@ -82,7 +88,10 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
       <ResizablePanel defaultSize={15}>
         <div className="flex h-full items-center justify-between gap-4 p-6">
           <span className="font-semibold">Container: {container.barcode}</span>
-          <UpdateContainerModal container={container} />
+          <div className="flex gap-2">
+            <UpdateContainerModal container={container} />
+            <DeleteContainerModal container={container} />
+          </div>
         </div>
       </ResizablePanel>
 

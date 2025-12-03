@@ -186,4 +186,21 @@ export const ContainerRepository: IContainerRepository = {
       throw error;
     }
   },
+  deleteContainer: async (container_id) => {
+    try {
+      const deleted = await prisma.containers.delete({
+        where: { container_id },
+      });
+      throw new Error("woops");
+      return deleted;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error deleting container!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
 };

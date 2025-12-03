@@ -5,6 +5,7 @@ import { GetContainersController } from "src/controllers/containers/get-containe
 import { UpdateContainerController } from "src/controllers/containers/update-container.controller";
 import { GetContainerByBarcodeController } from "src/controllers/containers/get-container-by-barcode.controller";
 import { UploadInventoryFileController } from "src/controllers/containers/upload-inventory-file.controller";
+import { DeleteContainerController } from "src/controllers/containers/delete-container.controller";
 
 export const getContainerByBarcode = async (barcode: string) => {
   return await GetContainerByBarcodeController(barcode);
@@ -30,4 +31,8 @@ export const uploadInventoryFile = async (
 ) => {
   const file = form_data.get("file");
   return await UploadInventoryFileController(barcode, file as File);
+};
+
+export const deleteContainer = async (container_id: string) => {
+  return await DeleteContainerController(container_id);
 };

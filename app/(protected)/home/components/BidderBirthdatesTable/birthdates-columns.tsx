@@ -9,6 +9,7 @@ export const columns: ColumnDef<BiddersWithBirthdatesAndRecentAuctionSchema>[] =
   [
     {
       accessorKey: "bidder_number",
+      size: 80,
       header: ({ column }) => {
         return (
           <div className="flex justify-center">
@@ -34,6 +35,7 @@ export const columns: ColumnDef<BiddersWithBirthdatesAndRecentAuctionSchema>[] =
     },
     {
       accessorKey: "full_name",
+      size: 120,
       header: ({ column }) => {
         return (
           <div className="flex justify-start">

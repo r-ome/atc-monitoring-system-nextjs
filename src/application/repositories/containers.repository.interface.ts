@@ -30,4 +30,7 @@ export interface IContainerRepository {
   uploadInventoryFile: (
     rows: InventoryInsertSchema[]
   ) => Promise<{ count: number }>;
+  deleteContainer: (
+    container_id: string
+  ) => Promise<Omit<ContainerSchema, "inventories" | "branch" | "supplier">>;
 }
