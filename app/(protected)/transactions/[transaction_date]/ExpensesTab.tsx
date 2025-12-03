@@ -59,7 +59,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
       CASH_ON_HAND_FOR_PETTY_CASH: pettyCashBalance + cashOnHand - total,
       PETTY_CASH_BALANCE: pettyCashBalance + cashOnHand,
     }));
-  }, [expenses, setExpenseTypesTotal]);
+  }, [expenses, setExpenseTypesTotal, pettyCashBalance]);
 
   const globalFilterFn = (
     row: CoreRow<Expense>,

@@ -6,6 +6,7 @@ import {
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { IStatisticsRepository } from "src/application/repositories/statistics.repository.interface";
 import { BiddersWithBirthdatesAndRecentAuctionSchema } from "src/entities/models/Bidder";
+import { AuctionsStatisticsSchema } from "src/entities/models/Statistics";
 
 export const StatisticsRepository: IStatisticsRepository = {
   getBidderBirthdates: async () => {
@@ -74,6 +75,40 @@ export const StatisticsRepository: IStatisticsRepository = {
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting unpaid bidders!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  getAuctionsStatistics: async () => {
+    try {
+      const auctions = await prisma.$queryRaw`
+        SELECT
+          a.auction_id,
+          a.created_at AS auction_date,
+          CAST(COUNT(DISTINCT ab.auction_bidder_id) AS SIGNED) AS total_registered_bidders,
+          CAST(COUNT(ai.auction_inventory_id) AS SIGNED) AS total_items,
+          CAST(SUM(CASE WHEN ai.status = 'CANCELLED' THEN 1 ELSE 0 END) AS SIGNED) AS total_cancelled_items,
+          CAST(SUM(CASE WHEN ai.status = 'REFUNDED' THEN 1 ELSE 0 END) AS SIGNED) AS total_refunded_items,
+          CAST(COUNT(DISTINCT CASE 
+              WHEN ab.balance > 0 THEN ab.auction_bidder_id 
+              ELSE NULL 
+          END) AS SIGNED) AS total_bidders_with_balance,
+          GROUP_CONCAT(DISTINCT c.barcode ORDER BY c.barcode SEPARATOR ', ') AS container_barcodes
+        FROM auctions a
+        LEFT JOIN auctions_bidders ab ON ab.auction_id = a.auction_id
+        LEFT JOIN auctions_inventories ai ON ai.auction_bidder_id = ab.auction_bidder_id
+        LEFT JOIN inventories i ON i.inventory_id = ai.inventory_id
+        LEFT JOIN containers c ON c.container_id = i.container_id
+        GROUP BY a.auction_id, a.created_at
+        ORDER BY a.created_at DESC
+      `;
+
+      return auctions as AuctionsStatisticsSchema;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting auction statistics!", {
           cause: error.message,
         });
       }

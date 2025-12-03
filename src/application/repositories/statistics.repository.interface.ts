@@ -1,9 +1,9 @@
 import {
-  BidderSchema,
   UnpaidAuctionsBiddersSchema,
   BiddersWithBirthdatesAndRecentAuctionSchema,
 } from "src/entities/models/Bidder";
 import { ContainerSchema } from "src/entities/models/Container";
+import { AuctionsStatisticsSchema } from "src/entities/models/Statistics";
 
 export interface IStatisticsRepository {
   getBidderBirthdates: () => Promise<
@@ -13,4 +13,5 @@ export interface IStatisticsRepository {
     Omit<ContainerSchema, "branch" | "supplier" | "inventories">[]
   >;
   getUnpaidBidders: () => Promise<UnpaidAuctionsBiddersSchema[]>;
+  getAuctionsStatistics: () => Promise<AuctionsStatisticsSchema[]>;
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { GetAuctionsStatisticsController } from "src/controllers/statistics/get-auction-statistics.controller";
 import { GetBidderBirthdatesController } from "src/controllers/statistics/get-bidder-birthdates.controller";
 import { GetContainersDueDateController } from "src/controllers/statistics/get-containers-due-date.controller";
 import { GetUnpaidBiddersController } from "src/controllers/statistics/get-unpaid-bidders.controller";
@@ -14,4 +15,8 @@ export const getContainersDueDate = async () => {
 
 export const getUnpaidBidders = async () => {
   return GetUnpaidBiddersController();
+};
+
+export const getAuctionsStatistics = async () => {
+  return GetAuctionsStatisticsController();
 };

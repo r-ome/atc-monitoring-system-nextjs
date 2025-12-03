@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2Icon } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { SetStateAction, useEffect, useState } from "react";
 import {
   Dialog,
@@ -25,7 +25,6 @@ import {
 import { Textarea } from "@/app/components/ui/textarea";
 import { updateExpense } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { toast } from "sonner";
-import { formatDate } from "@/app/lib/utils";
 
 // NOTES
 // BALANCE PETTY CASH: Balance from yesterday

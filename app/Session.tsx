@@ -8,7 +8,7 @@ export function Session({ children }: { children: React.ReactNode }) {
   return (
     <AppThemeProvider>
       <Toaster richColors position="top-center" />
-      <SessionProvider>{children}</SessionProvider>;
+      <SessionProvider>{children}</SessionProvider>
     </AppThemeProvider>
   );
 }

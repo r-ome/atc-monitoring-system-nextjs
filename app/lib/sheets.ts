@@ -114,7 +114,7 @@ export const getSheetData = (
 export const validateEmptyFields = (
   data: ManifestSheetRecord[]
 ): ManifestInsertSchema[] => {
-  return data.map((item, i, acc) => {
+  return data.map((item) => {
     const required = ["BARCODE", "BIDDER", "PRICE"] as const;
     const empty_fields = required.filter((field) => !item[field]);
     item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";

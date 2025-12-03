@@ -18,16 +18,6 @@ function presenter(bidders: UnpaidAuctionsBiddersSchema[]) {
     items: bidder.auctions_inventories.filter(
       (item) => item.status === "UNPAID"
     ).length,
-    // container_id: container.container_id,
-    // barcode: container.barcode,
-    // bill_of_lading_number: container.bill_of_lading_number ?? "",
-    // container_number: container.container_number ?? "",
-    // arrival_date: container.arrival_date
-    //   ? formatDate(new Date(container.arrival_date), date_format)
-    //   : "N/A",
-    // due_date: container.due_date
-    //   ? formatDate(new Date(container.due_date), date_format)
-    //   : "N/A",
   }));
 }
 

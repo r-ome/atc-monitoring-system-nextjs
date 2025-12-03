@@ -32,7 +32,6 @@ export const DeleteContainerModal: React.FC<DeleteContainerModalProps> = ({
   const router = useRouter();
   const [open, setOpenDialog] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [errors, setErrors] = useState<Record<string, string[]>>();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -51,7 +50,7 @@ export const DeleteContainerModal: React.FC<DeleteContainerModalProps> = ({
           typeof res.error?.cause === "string" ? res.error?.cause : null;
         toast.error(res.error.message, { description });
         if (res.error.message === "Invalid Data!") {
-          setErrors(res.error.cause as Record<string, string[]>);
+          toast.error("Error!");
         }
       }
     }
