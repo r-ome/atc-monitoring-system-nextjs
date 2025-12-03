@@ -56,7 +56,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     setExpenseTypesTotal((prev) => ({
       ...prev,
       TOTAL_EXPENSES: total,
-      CASH_ON_HAND_FOR_PETTY_CASH: cashOnHand - total,
+      CASH_ON_HAND_FOR_PETTY_CASH: pettyCashBalance + cashOnHand - total,
       PETTY_CASH_BALANCE: pettyCashBalance + cashOnHand,
     }));
   }, [expenses, setExpenseTypesTotal]);
