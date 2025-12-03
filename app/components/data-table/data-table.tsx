@@ -45,6 +45,7 @@ export const DataTable = <TData, TValue>({
   columnFilter,
   onRowClick,
   filterColumns = false,
+  title,
 }: DataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -105,6 +106,7 @@ export const DataTable = <TData, TValue>({
 
   return (
     <div className="rounded-md border p-4 overflow-auto">
+      {title ? <div>{title}</div> : null}
       <div className="flex items-center justify-between gap-4 py-4">
         {searchFilter?.globalFilterFn && (
           <SearchComponent

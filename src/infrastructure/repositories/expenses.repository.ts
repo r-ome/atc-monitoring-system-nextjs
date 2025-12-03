@@ -77,7 +77,6 @@ export const ExpensesRepository: IExpenseRepository = {
           },
         });
 
-        // throw new Error("woops");
         return created;
       });
     } catch (error) {

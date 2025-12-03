@@ -29,4 +29,5 @@ export interface DataTableProps<TData, TValue> {
   };
   filterColumns?: boolean;
   onRowClick?: (row: TData) => void;
+  title?: string | React.ReactNode;
 }

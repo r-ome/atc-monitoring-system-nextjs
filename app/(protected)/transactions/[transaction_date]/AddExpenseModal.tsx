@@ -40,7 +40,7 @@ export const AddExpenseModal: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // setIsLoading(true);
+    setIsLoading(true);
     const currentTime = formatDate(new Date(), "HH:mm:ss");
     const formData = new FormData(event.currentTarget);
     formData.append("created_at", `${transaction_date}T${currentTime}`);

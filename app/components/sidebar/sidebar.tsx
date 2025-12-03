@@ -8,6 +8,7 @@ import {
   Container,
   ShieldUser,
   Gavel,
+  Home,
   UsersRound,
   HandCoins,
   Cog,
@@ -28,11 +29,12 @@ import { redirect } from "next/navigation";
 import { cn } from "@/app/lib/utils";
 
 const items = [
-  // {
-  //   title: "Home",
-  //   url: "/",
-  //   icon: Home,
-  // },
+  {
+    title: "Home",
+    url: "/",
+    icon: Home,
+    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "ENCODER"],
+  },
   {
     title: "Auctions",
     url: "/auctions",

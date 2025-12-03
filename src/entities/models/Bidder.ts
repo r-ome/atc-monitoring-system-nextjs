@@ -132,3 +132,13 @@ export type AuctionBidderSchema = {
   created_at: Date;
   bidder: BidderSchema;
 };
+
+export type BiddersWithBirthdatesAndRecentAuctionSchema = {
+  bidder_id: string;
+  bidder_number: string;
+  first_name: string;
+  last_name: string;
+  birthdate: string;
+  age: string;
+  last_auction_date: string;
+};

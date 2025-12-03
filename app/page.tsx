@@ -8,6 +8,6 @@ export default async function Home() {
   if (!session) {
     redirect("/login");
   } else {
-    redirect("/auctions");
+    redirect("/home");
   }
 }
