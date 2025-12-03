@@ -132,10 +132,7 @@ model containers {
   barcode               String                     @unique
   bill_of_lading_number String?                    @db.VarChar(255)
   container_number      String?
-  eta_to_ph             DateTime?                  @db.DateTime(0)
-  departure_date        DateTime?                  @db.DateTime(0)
   arrival_date          DateTime?                  @db.DateTime(0)
-  auction_start_date    DateTime?                  @db.DateTime(0)
   auction_end_date      DateTime?                  @db.DateTime(0)
   due_date              DateTime?                  @db.DateTime(0)
   gross_weight          String?                    @db.VarChar(255)

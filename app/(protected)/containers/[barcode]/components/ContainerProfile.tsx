@@ -11,11 +11,8 @@ type Field =
   | "bill_of_lading_number"
   | "container_number"
   | "auction_or_sell"
-  | "eta_to_ph"
   | "arrival_date"
-  | "departure_date"
   | "due_date"
-  | "auction_start_date"
   | "auction_end_date"
   | "supplier";
 
@@ -40,11 +37,8 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
       "bill_of_lading_number",
       "container_number",
       "auction_or_sell",
-      "eta_to_ph",
       "arrival_date",
-      "departure_date",
       "due_date",
-      "auction_start_date",
       "auction_end_date",
       "supplier",
     ];

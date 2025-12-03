@@ -20,15 +20,8 @@ export const UpdateContainerController = async (
   input: Partial<ContainerInsertSchema>
 ) => {
   try {
-    input.eta_to_ph = input.eta_to_ph ? new Date(input.eta_to_ph) : null;
-    input.departure_date = input.departure_date
-      ? new Date(input.departure_date)
-      : null;
     input.arrival_date = input.arrival_date
       ? new Date(input.arrival_date)
-      : null;
-    input.auction_start_date = input.auction_start_date
-      ? new Date(input.auction_start_date)
       : null;
     input.auction_end_date = input.auction_end_date
       ? new Date(input.auction_end_date)

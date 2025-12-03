@@ -41,13 +41,6 @@ export default function Page() {
   const [selectedSupplier, setSelectedSupplier] = useState<option | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<option | null>(null);
   const [weightInTons, setWeightInTons] = useState<number>(0);
-  const [departureDate, setDepartureDate] = useState<Date | undefined>(
-    undefined
-  );
-  const [etaToPh, setEtaToPh] = useState<Date | undefined>(undefined);
-  const [auctionStartDate, setAuctionStartDate] = useState<Date | undefined>(
-    undefined
-  );
   const [arrivalDate, setArrivalDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
@@ -73,11 +66,6 @@ export default function Page() {
     const formData = new FormData(event.currentTarget);
     formData.append("supplier_id", selectedSupplier.value as string);
     formData.append("branch_id", selectedBranch.value as string);
-    formData.append(
-      "departure_date",
-      departureDate ? departureDate.toISOString() : ""
-    );
-    formData.append("eta_to_ph", etaToPh ? etaToPh.toISOString() : "");
     formData.append(
       "arrival_date",
       arrivalDate ? arrivalDate.toISOString() : ""
@@ -208,30 +196,6 @@ export default function Page() {
 
               <div className="flex gap-4">
                 <div className="flex flex-col gap-2 w-1/2">
-                  <Label htmlFor="departure_date">
-                    Departure date from Japan:{" "}
-                  </Label>
-                  <DatePicker
-                    id="departure_date"
-                    date={departureDate}
-                    name="departure_date"
-                    onChange={setDepartureDate}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2 w-1/2">
-                  <Label htmlFor="birthdate">ETA to PH: </Label>
-                  <DatePicker
-                    id="eta_to_ph"
-                    name="eta_to_ph"
-                    date={etaToPh}
-                    onChange={setEtaToPh}
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex flex-col gap-2 w-1/2">
                   <Label htmlFor="birthdate">Arrival Date: </Label>
                   <DatePicker
                     id="arrival_date"
@@ -250,18 +214,6 @@ export default function Page() {
                         ? formatDate(addDays(arrivalDate, 40), "MMM dd, yyyy")
                         : ""
                     }
-                  />
-                </div>
-              </div>
-
-              <div className="flex">
-                <div className="flex flex-col gap-2 w-1/2">
-                  <Label htmlFor="birthdate">Auction Start Date: </Label>
-                  <DatePicker
-                    id="auction_start_date"
-                    name="auction_start_date"
-                    date={auctionStartDate}
-                    onChange={setAuctionStartDate}
                   />
                 </div>
               </div>

@@ -35,10 +35,7 @@ export type Container = {
   bill_of_lading_number: string;
   container_number: string;
   gross_weight: string;
-  eta_to_ph?: string;
-  departure_date?: string;
   arrival_date?: string;
-  auction_start_date?: string;
   auction_end_date?: string;
   due_date?: string;
   auction_or_sell: "AUCTION" | "SELL";
@@ -55,10 +52,7 @@ export const ContainerInsertSchema = z.object({
   barcode: z.string(),
   bill_of_lading_number: z.string().optional().nullable(),
   container_number: z.string().optional().nullable(),
-  eta_to_ph: z.date().optional().nullable(),
-  departure_date: z.date().optional().nullable(),
   arrival_date: z.date().optional().nullable(),
-  auction_start_date: z.date().optional().nullable(),
   auction_end_date: z.date().optional().nullable(),
   due_date: z.date().optional().nullable(),
   gross_weight: z.string().optional().nullable(),

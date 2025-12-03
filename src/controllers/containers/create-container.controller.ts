@@ -19,17 +19,8 @@ const presenter = (
   const date_format = "MMM dd, yyyy";
   return {
     ...container,
-    eta_to_ph: container.eta_to_ph
-      ? formatDate(container.eta_to_ph, date_format)
-      : null,
-    departure_date: container.departure_date
-      ? formatDate(container.departure_date, date_format)
-      : null,
     arrival_date: container.arrival_date
       ? formatDate(container.arrival_date, date_format)
-      : null,
-    auction_start_date: container.auction_start_date
-      ? formatDate(container.auction_start_date, date_format)
       : null,
     auction_end_date: container.auction_end_date
       ? formatDate(container.auction_end_date, date_format)
@@ -51,14 +42,7 @@ export const CreateContainerController = async (
   try {
     input = {
       ...input,
-      eta_to_ph: input.eta_to_ph ? new Date(input.eta_to_ph) : null,
-      departure_date: input.departure_date
-        ? new Date(input?.departure_date)
-        : null,
       arrival_date: input.arrival_date ? new Date(input?.arrival_date) : null,
-      auction_start_date: input.auction_start_date
-        ? new Date(input?.auction_start_date)
-        : null,
       auction_end_date: input.auction_end_date
         ? new Date(input?.auction_end_date)
         : null,

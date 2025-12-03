@@ -37,17 +37,8 @@ const presenter = (
     due_date: container.due_date
       ? formatDate(container.due_date, date_format)
       : undefined,
-    auction_start_date: container.auction_start_date
-      ? formatDate(container.auction_start_date, date_format)
-      : undefined,
     auction_end_date: container.auction_end_date
       ? formatDate(container.auction_end_date, date_format)
-      : undefined,
-    departure_date: container.departure_date
-      ? formatDate(container.departure_date, date_format)
-      : undefined,
-    eta_to_ph: container.eta_to_ph
-      ? formatDate(container.eta_to_ph, date_format)
       : undefined,
     created_at: formatDate(container.created_at, date_format),
     updated_at: formatDate(container.updated_at, date_format),

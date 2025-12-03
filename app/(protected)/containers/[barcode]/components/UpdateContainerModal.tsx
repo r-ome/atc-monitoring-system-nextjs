@@ -39,11 +39,8 @@ type ContainerUpdateForm = {
   gross_weight?: string;
   container_number?: string;
   auction_or_sell?: "AUCTION" | "SELL";
-  eta_to_ph?: Date;
   arrival_date?: Date;
-  departure_date?: Date;
   due_date?: Date;
-  auction_start_date?: Date;
   auction_end_date?: Date;
 };
 
@@ -86,9 +83,6 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
       gross_weight: container.gross_weight,
       auction_or_sell: container.auction_or_sell,
       due_date: container.due_date ? new Date(container.due_date) : undefined,
-      auction_start_date: container.auction_start_date
-        ? new Date(container.auction_start_date)
-        : undefined,
       auction_end_date: container.auction_end_date
         ? new Date(container.auction_end_date)
         : undefined,
@@ -96,18 +90,6 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
 
     if (container.arrival_date) {
       setArrivalDate(new Date(container.arrival_date));
-    }
-
-    if (container.eta_to_ph) {
-      setEtaToPh(new Date(container.eta_to_ph));
-    }
-
-    if (container.departure_date) {
-      setDepartureDate(new Date(container.departure_date));
-    }
-
-    if (container.auction_start_date) {
-      setAuctionStartDate(new Date(container.auction_start_date));
     }
 
     if (container.auction_end_date) {
@@ -295,33 +277,6 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 name="arrival_date"
                 date={arrivalDate}
                 onChange={setArrivalDate}
-              />
-            </div>
-            <div className="flex gap-4">
-              <Label className="w-40">ETA to PH</Label>
-              <DatePicker
-                id="eta_to_ph"
-                name="eta_to_ph"
-                date={etaToPh}
-                onChange={setEtaToPh}
-              />
-            </div>
-            <div className="flex gap-4">
-              <Label className="w-40">Departure Date</Label>
-              <DatePicker
-                id="departure_date"
-                name="departure_date"
-                date={departureDate}
-                onChange={setDepartureDate}
-              />
-            </div>
-            <div className="flex gap-4">
-              <Label className="w-40">Auction Start Date</Label>
-              <DatePicker
-                id="auction_start_date"
-                name="auction_start_date"
-                date={auctionStartDate}
-                onChange={setAuctionStartDate}
               />
             </div>
             <div className="flex gap-4">
