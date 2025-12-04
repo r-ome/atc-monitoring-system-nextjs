@@ -11,12 +11,12 @@ import {
 export const columns: ColumnDef<ContainerDueDate>[] = [
   {
     accessorKey: "barcode",
+    size: 80,
     header: () => {
       return <div className="flex justify-center">BARCODE</div>;
     },
     cell: ({ row }) => {
       const container = row.original;
-
       return (
         <div className="flex justify-center">
           <Tooltip>
@@ -38,7 +38,22 @@ export const columns: ColumnDef<ContainerDueDate>[] = [
     },
   },
   {
+    accessorKey: "arrival_date",
+    size: 80,
+    header: () => {
+      return <div className="flex justify-center">ARRIVAL</div>;
+    },
+    cell: ({ row }) => {
+      const container = row.original;
+
+      return (
+        <div className="flex justify-center">{container.arrival_date}</div>
+      );
+    },
+  },
+  {
     accessorKey: "due_date",
+    size: 80,
     header: () => {
       return <div className="flex justify-center">DUE DATE</div>;
     },

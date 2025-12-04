@@ -8,7 +8,7 @@ import { getContainersDueDateUseCase } from "src/application/use-cases/statistic
 function presenter(
   containers: Omit<ContainerSchema, "branch" | "supplier" | "inventories">[]
 ) {
-  const date_format = "MMM d, yyyy";
+  const date_format = "MMM d";
   return containers.map((container) => ({
     container_id: container.container_id,
     barcode: container.barcode,
