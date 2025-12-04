@@ -22,6 +22,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Button } from "@/app/components/ui/button";
 import { UpdateRegistrationPaymentMethodModal } from "./UpdateRegistrationPaymentMethodModal/UpdateRegistrationPaymentMethodModal";
+import { UndoPaymentButton } from "./UndoReceiptButton";
 
 export default async function Page({
   params,
@@ -55,11 +56,17 @@ export default async function Page({
               {receipt.receipt_number} {receipt.bidder.full_name}
             </div>
 
-            {!["REGISTRATION"].includes(receipt.purpose) ? (
-              <Link href={`${receipt_number}/receipt`}>
-                <Button>View Receipt</Button>
-              </Link>
-            ) : null}
+            <div className="flex gap-2">
+              {receipt.purpose === "PULL_OUT" ? (
+                <UndoPaymentButton receipt_id={receipt.receipt_id} />
+              ) : null}
+
+              {!["REGISTRATION"].includes(receipt.purpose) ? (
+                <Link href={`${receipt_number}/receipt`}>
+                  <Button>View Receipt</Button>
+                </Link>
+              ) : null}
+            </div>
           </div>
         </CardTitle>
         <CardDescription>

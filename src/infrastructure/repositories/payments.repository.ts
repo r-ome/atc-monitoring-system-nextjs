@@ -354,4 +354,63 @@ export const PaymentRepository: IPaymentRepository = {
       throw error;
     }
   },
+  undoPayment: async (receipt_id) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const receipt = await tx.receipt_records.findFirst({
+          where: { receipt_id },
+          include: {
+            payments: true,
+            auctions_inventories: true,
+            auction_bidder: true,
+          },
+        });
+
+        const total_payment = receipt?.payments.reduce(
+          (acc, item) => (acc += item.amount_paid),
+          0
+        );
+
+        // to check if bidder already consumed his registration fee
+        const bidder_receipt_records = await tx.receipt_records.findMany({
+          where: {
+            auction_bidder_id: receipt?.auction_bidder.auction_bidder_id,
+            purpose: "PULL_OUT",
+          },
+          select: { receipt_number: true },
+        });
+
+        // check if already has dash two
+        const has_dash_two = bidder_receipt_records.filter((item) =>
+          item.receipt_number.includes("-2")
+        ).length;
+
+        await tx.auctions_bidders.update({
+          where: {
+            auction_bidder_id: receipt?.auction_bidder.auction_bidder_id,
+          },
+          data: {
+            balance: { increment: total_payment },
+            already_consumed: !!has_dash_two ? 1 : 0,
+          },
+        });
+
+        await tx.auctions_inventories.updateMany({
+          where: { receipt_id },
+          data: { status: "UNPAID", receipt_id: null },
+        });
+
+        await tx.payments.deleteMany({ where: { receipt_id } });
+        await tx.receipt_records.delete({ where: { receipt_id } });
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error handling bidder pullout!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
 };

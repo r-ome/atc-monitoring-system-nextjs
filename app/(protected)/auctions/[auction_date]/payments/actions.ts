@@ -10,6 +10,7 @@ import { GetBidderReceiptsController } from "src/controllers/payments/get-bidder
 import { UpdateRegistrationPaymentController } from "src/controllers/payments/update-registration-payment.controller";
 import { GetPettyCashBalanceController } from "src/controllers/expenses/get-petty-cash-balance.controller";
 import { UpdateExpenseController } from "src/controllers/payments/update-expense.controller";
+import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
 
 export const getPaymentsByDate = async (date: string) => {
   const input = new Date(date);
@@ -62,4 +63,8 @@ export const getPettyCashBalance = async (date: string) => {
 export const updateExpense = async (expense_id: string, formData: FormData) => {
   const data = Object.fromEntries(formData.entries());
   return await UpdateExpenseController(expense_id, data);
+};
+
+export const undoPayment = async (receipt_id: string) => {
+  return await UndoPaymentController(receipt_id);
 };

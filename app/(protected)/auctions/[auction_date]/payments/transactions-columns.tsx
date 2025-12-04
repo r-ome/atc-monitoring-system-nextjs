@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { AuctionTransaction } from "src/entities/models/Payment";
+import { Badge } from "@/app/components/ui/badge";
 import { redirect } from "next/navigation";
 
 export const columns: ColumnDef<AuctionTransaction>[] = [
@@ -134,7 +135,13 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
       const receipt = row.original;
       return (
         <div className="flex justify-center">
-          {receipt.purpose.replace(/_/g, " ")}
+          <Badge
+            variant={
+              ["REFUNDED"].includes(receipt.purpose) ? "destructive" : "success"
+            }
+          >
+            {receipt.purpose.replace(/_/g, " ")}
+          </Badge>
         </div>
       );
     },

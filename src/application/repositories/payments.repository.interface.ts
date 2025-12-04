@@ -36,4 +36,5 @@ export interface IPaymentRepository {
     payment_id: string,
     data: RegistrationPaymentUpdateSchema
   ) => Promise<void>;
+  undoPayment: (receipt_id: string) => Promise<void>;
 }
