@@ -42,7 +42,6 @@ export const DeleteContainerModal: React.FC<DeleteContainerModalProps> = ({
       setIsLoading(false);
       if (res.ok) {
         toast.success("Successfully deleted Container!");
-        router.refresh();
         setOpenDialog(false);
         redirect(`/containers`);
       } else {

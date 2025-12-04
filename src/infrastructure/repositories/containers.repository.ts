@@ -185,7 +185,6 @@ export const ContainerRepository: IContainerRepository = {
       const deleted = await prisma.containers.delete({
         where: { container_id },
       });
-      throw new Error("woops");
       return deleted;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
