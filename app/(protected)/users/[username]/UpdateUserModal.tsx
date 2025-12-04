@@ -147,7 +147,7 @@ export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ user }) => {
                 <Select
                   required
                   name="branch_id"
-                  defaultValue={user.branch?.branch_id}
+                  defaultValue={user.branch?.branch_id ?? ""}
                   disabled={
                     !["OWNER", "SUPER_ADMIN"].includes(loggedInUser?.user.role)
                   }
