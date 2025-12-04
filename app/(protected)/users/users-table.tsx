@@ -1,6 +1,7 @@
 "use client";
 
 import { User } from "src/entities/models/User";
+import { useRouter } from "next/navigation";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./users-columns";
@@ -10,9 +11,10 @@ interface UsersTableProps {
 }
 
 export const UsersTable = ({ users }: UsersTableProps) => {
+  const router = useRouter();
   const globalFilterFn = (
     row: CoreRow<User>,
-    columnId?: string,
+    _?: string,
     filterValue?: string
   ) => {
     const name = (row.original as User).name.toLowerCase();
@@ -26,10 +28,11 @@ export const UsersTable = ({ users }: UsersTableProps) => {
     <DataTable
       columns={columns}
       data={users}
+      onRowClick={(user) => router.push(`users/${user.username}`)}
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {
-          placeholder: "Search By Name or Bidder Number",
+          placeholder: "Search By Name or Username",
         },
       }}
     />

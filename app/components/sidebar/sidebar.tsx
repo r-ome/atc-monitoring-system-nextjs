@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import {
-  Box,
+  // Box,
   Users,
   Warehouse,
   Container,
@@ -45,7 +45,7 @@ const items = [
     title: "Monitoring",
     url: "/monitoring-all",
     icon: List,
-    allowed_roles: ["OWNER", "SUPER_ADMIN"],
+    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "ENCODER"],
   },
   {
     title: "Bidders",
@@ -53,12 +53,12 @@ const items = [
     icon: Users,
     allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
   },
-  {
-    title: "Bought Items",
-    url: "/bought-items",
-    icon: Box,
-    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
-  },
+  // {
+  //   title: "Bought Items",
+  //   url: "/bought-items",
+  //   icon: Box,
+  //   allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
+  // },
   {
     title: "Branches",
     url: "/branches",
@@ -93,7 +93,7 @@ const items = [
     title: "Configurations",
     url: "/configurations",
     icon: Cog,
-    allowed_roles: ["OWNER", "SUPER_ADMIN"],
+    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
   },
 ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Loader2Icon, Trash, TriangleAlert } from "lucide-react";
@@ -43,7 +43,7 @@ export const DeleteContainerModal: React.FC<DeleteContainerModalProps> = ({
       if (res.ok) {
         toast.success("Successfully deleted Container!");
         setOpenDialog(false);
-        redirect(`/containers`);
+        router.push(`/containers`);
       } else {
         const description =
           typeof res.error?.cause === "string" ? res.error?.cause : null;

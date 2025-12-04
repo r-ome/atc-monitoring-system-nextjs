@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -24,6 +24,8 @@ import { Button } from "@/app/components/ui/button";
 import { PasswordInput } from "@/app/components/ui/input-password";
 import { registerUser } from "@/app/(protected)/users/actions";
 import { toast } from "sonner";
+import { getBranches } from "@/app/(protected)/branches/actions";
+import { Branch } from "src/entities/models/Branch";
 
 export default function Page() {
   const router = useRouter();
@@ -33,6 +35,18 @@ export default function Page() {
   const [errors, setErrors] = useState<Record<string, string[]> | undefined>(
     undefined
   );
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const res = await getBranches();
+      if (!res.ok) return;
+
+      setBranches(res.value);
+    };
+
+    fetchInitialData();
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -89,14 +103,24 @@ export default function Page() {
                 </div>
 
                 <div className="flex flex-col gap-2 w-1/2">
-                  <Label htmlFor="name">Employee Name:</Label>
-                  <Input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    error={errors}
-                  />
+                  <Label htmlFor="branch">Branch:</Label>
+                  <Select required name="branch_id">
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Branch"></SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {branches.map((item) => (
+                          <SelectItem
+                            key={item.branch_id}
+                            value={item.branch_id}
+                          >
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -107,6 +131,17 @@ export default function Page() {
                     type="text"
                     id="username"
                     name="username"
+                    error={errors}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2 w-1/2">
+                  <Label htmlFor="name">Employee Name:</Label>
+                  <Input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
                     error={errors}
                   />
                 </div>
