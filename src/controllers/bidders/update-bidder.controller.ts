@@ -30,7 +30,6 @@ function presenter(
       : null,
     registration_fee: bidder.registration_fee,
     service_charge: bidder.service_charge,
-    registered_at: bidder.registered_at,
     payment_term: bidder.payment_term,
   };
 }

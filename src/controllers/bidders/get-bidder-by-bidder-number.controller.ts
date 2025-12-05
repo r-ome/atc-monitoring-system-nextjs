@@ -41,10 +41,19 @@ const presenter = (bidder: BidderSchema) => {
 };
 
 export const GetBidderByBidderNumberController = async (
-  bidderNumber: string
+  bidder_number: string,
+  branch_name: string
 ) => {
   try {
-    const bidder = await getBidderByBidderNumberUseCase(bidderNumber);
+    const bidder = await getBidderByBidderNumberUseCase(
+      bidder_number,
+      branch_name
+    );
+
+    if (!bidder) {
+      return err({ message: "Server Error", cause: "BIDDER NOT FOUND!" });
+    }
+
     return ok(presenter(bidder));
   } catch (error) {
     logger("GetBidderByBidderNumberController", error);

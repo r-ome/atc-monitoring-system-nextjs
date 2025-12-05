@@ -16,11 +16,13 @@ import {
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
 import AuctionsJoined from "./components/AuctionsJoinedTable";
+import { redirect } from "next/navigation";
 
 export default async function Page({
   params,
 }: Readonly<{ params: Promise<{ bidder_number: string }> }>) {
   const { bidder_number } = await params;
+
   const res = await getBidderByBidderNumber(bidder_number);
 
   if (!res.ok) {
@@ -61,6 +63,10 @@ export default async function Page({
       </div>
     );
   };
+
+  if (!bidder) {
+    return redirect("/bidders");
+  }
 
   return (
     <div className="h-full flex flex-col gap-4 p-4">

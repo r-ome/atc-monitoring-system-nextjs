@@ -1,11 +1,18 @@
 "use client";
 
 import { Loader2Icon } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bidder, BIDDER_STATUS } from "src/entities/models/Bidder";
 import { toast } from "sonner";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Button } from "@/app/components/ui/button";
+import { Label } from "@/app/components/ui/label";
+import { Input } from "@/app/components/ui/input";
+import { updateBidder } from "@/app/(protected)/bidders/actions";
+import { InputNumber } from "@/app/components/ui/InputNumber";
+import { DatePicker } from "@/app/components/ui/datepicker";
 import {
   Dialog,
   DialogContent,
@@ -15,16 +22,20 @@ import {
   DialogClose,
   DialogFooter,
 } from "@/app/components/ui/dialog";
-import { Label } from "@/app/components/ui/label";
-import { Input } from "@/app/components/ui/input";
-import { updateBidder } from "@/app/(protected)/bidders/actions";
-import { InputNumber } from "@/app/components/ui/InputNumber";
-import { DatePicker } from "@/app/components/ui/datepicker";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+import { Branch } from "src/entities/models/Branch";
+import { getBranches } from "../../branches/actions";
 
 type UpdateBidderForm = {
   bidder_number?: string;
@@ -36,21 +47,34 @@ type UpdateBidderForm = {
   service_charge?: number;
   status?: BIDDER_STATUS;
   payment_term?: number;
+  branch_id?: string | null;
 };
 
 interface UpdateBidderModalProps {
-  bidder: Omit<Bidder, "auctions_joined" | "branch">;
+  bidder: Omit<Bidder, "auctions_joined">;
 }
 
 export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
   bidder,
 }) => {
   const router = useRouter();
+  const session = useSession();
   const [open, setOpenDialog] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [newBidder, setNewBidder] = useState<UpdateBidderForm>();
   const [birthdate, setBirthdate] = useState<Date | undefined>();
   const [errors, setErrors] = useState<Record<string, string[]>>();
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const res = await getBranches();
+      if (!res.ok) return;
+      setBranches(res.value);
+    };
+
+    fetchInitialData();
+  }, []);
 
   useEffect(() => {
     setNewBidder({
@@ -63,6 +87,7 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
       service_charge: bidder.service_charge,
       status: bidder.status,
       payment_term: bidder.payment_term,
+      branch_id: bidder.branch.branch_id,
     });
 
     if (bidder.birthdate) {
@@ -74,7 +99,6 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
     event.preventDefault();
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
-    formData.append("registered_at", "BIÑAN");
     formData.append("status", "ACTIVE");
     const formatted_payment_term = formData.get("payment_term");
     if (typeof formatted_payment_term === "string") {
@@ -112,6 +136,12 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
     const name = e.target.name;
     setNewBidder((prev) => ({ ...prev, [name]: value }));
   };
+
+  if (!session) {
+    return <div></div>;
+  }
+
+  const user = session.data?.user;
 
   return (
     <>
@@ -243,13 +273,45 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
                 />
               </div>
             </div>
+
+            {["OWNER", "SUPER_ADMIN"].includes(user?.role ?? "") ? (
+              <div className="flex gap-4">
+                <Label htmlFor="branch_id" className="w-40">
+                  Branch:
+                </Label>
+                {branches.length ? (
+                  <div className="w-full">
+                    <Select defaultValue="BIÑAN" name="branch_id">
+                      <SelectTrigger
+                        className="w-full"
+                        defaultValue={newBidder?.branch_id ?? ""}
+                      >
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {branches.map((branch) => (
+                          <SelectItem
+                            value={branch.branch_id}
+                            key={branch.branch_id}
+                          >
+                            {branch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <Skeleton className="w-[180px] h-10" />
+                )}
+              </div>
+            ) : null}
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline" onClick={() => setOpenDialog(false)}>
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>

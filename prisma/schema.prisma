@@ -91,11 +91,10 @@ model bidders {
   service_charge   Int                    @default(0)
   status           bidder_status
   remarks          String?                @db.Text
-  registered_at    String                 @default("BIÑAN")
   address          String?
   tin_number       String?
   store_name       String?
-  branch_id        String?
+  branch_id        String
   payment_term     Int                    @default(7)
   created_at       DateTime               @default(now()) @db.Timestamp(0)
   updated_at       DateTime               @default(now()) @updatedAt @db.DateTime(0)
@@ -103,7 +102,7 @@ model bidders {
   auctions_joined  auctions_bidders[]
   requirements     bidder_requirements[]
   ban_histories    bidder_ban_histories[]
-  branch           branches?              @relation(fields: [branch_id], references: [branch_id])
+  branch           branches               @relation(fields: [branch_id], references: [branch_id])
 }
 
 model bidder_ban_histories {

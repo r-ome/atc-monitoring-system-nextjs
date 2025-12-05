@@ -30,13 +30,12 @@ export type Bidder = {
   service_charge: number;
   status: BIDDER_STATUS;
   remarks?: string;
-  registered_at: string;
   created_at: string;
   updated_at: string;
   payment_term: number;
   branch: {
-    branch_id?: string | null;
-    name?: string | null;
+    branch_id: string | null;
+    name: string | null;
   };
   auctions_joined: {
     auction_bidder_id: string;
@@ -55,6 +54,7 @@ export const BidderInsertSchema = z.object({
   middle_name: z.string().optional().nullable(),
   last_name: z.string(),
   birthdate: z.date().optional().nullable(),
+  branch_id: z.string(),
   contact_number: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   tin_number: z.string().optional().nullable(),
@@ -62,7 +62,6 @@ export const BidderInsertSchema = z.object({
   registration_fee: z.coerce.number(),
   service_charge: z.coerce.number(),
   status: z.enum(BIDDER_STATUS),
-  registered_at: z.string(),
   payment_term: z.coerce.number(),
 });
 

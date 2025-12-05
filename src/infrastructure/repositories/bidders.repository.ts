@@ -37,10 +37,10 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
-  getBidderByBidderNumber: async (bidder_number) => {
+  getBidderByBidderNumber: async (bidder_number, branch_name) => {
     try {
       const bidder = await prisma.bidders.findFirst({
-        where: { bidder_number },
+        where: { bidder_number, branch: { name: branch_name } },
         include: {
           branch: true,
           auctions_joined: { include: { auctions_inventories: true } },
@@ -75,20 +75,21 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
-  createBidder: async (bidder) => {
+  createBidder: async (data) => {
     try {
       const created = await prisma.bidders.create({
         data: {
-          bidder_number: bidder.bidder_number,
-          first_name: bidder.first_name,
-          middle_name: bidder.middle_name ?? null,
-          last_name: bidder.last_name,
-          address: bidder.address,
-          tin_number: bidder.tin_number,
-          store_name: bidder.store_name,
-          service_charge: bidder.service_charge,
-          registration_fee: bidder.registration_fee,
-          contact_number: bidder.contact_number,
+          bidder_number: data.bidder_number,
+          first_name: data.first_name,
+          middle_name: data.middle_name ?? null,
+          last_name: data.last_name,
+          address: data.address,
+          tin_number: data.tin_number,
+          store_name: data.store_name,
+          service_charge: data.service_charge,
+          registration_fee: data.registration_fee,
+          contact_number: data.contact_number,
+          branch_id: data.branch_id,
           status: "ACTIVE",
         },
       });
@@ -117,7 +118,7 @@ export const BidderRepository: IBidderRepository = {
           contact_number: data.contact_number,
           registration_fee: data.registration_fee,
           service_charge: data.service_charge,
-          registered_at: data.registered_at,
+          branch_id: data.branch_id,
           payment_term: data.payment_term,
         },
       });

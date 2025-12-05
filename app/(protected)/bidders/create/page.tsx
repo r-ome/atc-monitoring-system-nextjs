@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/app/components/ui/button";
 import {
   Card,
@@ -30,6 +31,7 @@ import { Branch } from "src/entities/models/Branch";
 
 export default function Page() {
   const router = useRouter();
+  const session = useSession();
   const [birthdate, setBirthdate] = useState<Date>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]> | undefined>(
@@ -72,7 +74,6 @@ export default function Page() {
       formData.set("birthdate", birthdate.toISOString());
     }
 
-    setIsLoading(false);
     const res = await createBidder(formData);
 
     if (res) {
@@ -91,6 +92,12 @@ export default function Page() {
       }
     }
   };
+
+  if (!session) {
+    return <div></div>;
+  }
+
+  const user = session.data?.user;
 
   return (
     <>
@@ -227,28 +234,30 @@ export default function Page() {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2 w-1/3">
-                    <Label htmlFor="registered_at">Registered At:</Label>
-                    {branches.length ? (
-                      <Select defaultValue="BIÑAN" name="registered_at">
-                        <SelectTrigger className="w-[180px] text-foreground">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent defaultValue={"ACTIVE"}>
-                          {branches.map((branch) => (
-                            <SelectItem
-                              value={branch.name}
-                              key={branch.branch_id}
-                            >
-                              {branch.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Skeleton className="w-[180px] h-10" />
-                    )}
-                  </div>
+                  {["OWNER", "SUPER_ADMIN"].includes(user?.role ?? "") ? (
+                    <div className="flex flex-col gap-2 w-1/3">
+                      <Label htmlFor="branch_id">Branch:</Label>
+                      {branches.length ? (
+                        <Select defaultValue="BIÑAN" name="branch_id">
+                          <SelectTrigger className="w-[180px] text-foreground">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {branches.map((branch) => (
+                              <SelectItem
+                                value={branch.branch_id}
+                                key={branch.branch_id}
+                              >
+                                {branch.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Skeleton className="w-[180px] h-10" />
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </CardContent>

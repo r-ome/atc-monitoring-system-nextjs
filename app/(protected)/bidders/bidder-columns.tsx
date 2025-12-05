@@ -1,6 +1,5 @@
 "use client";
 
-import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
@@ -9,8 +8,30 @@ import { BidderRowType } from "./bidders-table";
 
 export const columns: ColumnDef<BidderRowType>[] = [
   {
+    accessorKey: "branch.name",
+    size: 80,
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Branch
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const bidder = row.original;
+      return <div className="flex justify-center">{bidder.branch.name}</div>;
+    },
+  },
+  {
     accessorKey: "bidder_number",
-    size: 100,
+    size: 80,
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
@@ -27,14 +48,7 @@ export const columns: ColumnDef<BidderRowType>[] = [
     },
     cell: ({ row }) => {
       const bidder = row.original;
-      return (
-        <div
-          className="flex justify-center hover:underline hover:cursor-pointer"
-          onClick={() => redirect(`/bidders/${bidder.bidder_number}`)}
-        >
-          {bidder.bidder_number}
-        </div>
-      );
+      return <div className="flex justify-center">{bidder.bidder_number}</div>;
     },
   },
   {
@@ -54,27 +68,7 @@ export const columns: ColumnDef<BidderRowType>[] = [
       );
     },
   },
-  {
-    accessorKey: "branch.name",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Branch
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const bidder = row.original;
-      return <div className="flex justify-center">{bidder.branch?.name}</div>;
-    },
-  },
+
   {
     accessorKey: "birthdate",
     size: 100,

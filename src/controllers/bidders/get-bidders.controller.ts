@@ -12,8 +12,8 @@ const presenter = (
   return bidders.map((item) => ({
     ...item,
     branch: {
-      branch_id: item.branch?.branch_id,
-      name: item.branch?.name,
+      branch_id: item.branch.branch_id,
+      name: item.branch.name,
     },
     remarks: item.remarks || undefined,
     full_name: `${item.first_name} ${item.last_name}`,

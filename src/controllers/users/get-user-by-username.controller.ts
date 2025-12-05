@@ -12,8 +12,8 @@ function presenter(user: UserSchema) {
   return {
     ...user,
     branch: {
-      branch_id: user.branch?.branch_id,
-      name: user.branch?.name,
+      branch_id: user.branch.branch_id,
+      name: user.branch.name,
     },
     created_at: formatDate(user.created_at, "MMMM dd, yyyy"),
     updated_at: formatDate(user.updated_at, "MMMM dd, yyyy"),

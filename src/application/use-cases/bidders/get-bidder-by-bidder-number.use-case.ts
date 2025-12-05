@@ -1,12 +1,13 @@
-import { NotFoundError } from "src/entities/errors/common";
 import { BidderRepository } from "src/infrastructure/repositories/bidders.repository";
 
-export const getBidderByBidderNumberUseCase = async (bidderNumber: string) => {
-  const bidder = await BidderRepository.getBidderByBidderNumber(bidderNumber);
-
-  if (!bidder) {
-    throw new NotFoundError("Bidder Not Found");
-  }
+export const getBidderByBidderNumberUseCase = async (
+  bidder_number: string,
+  branch_name: string
+) => {
+  const bidder = await BidderRepository.getBidderByBidderNumber(
+    bidder_number,
+    branch_name
+  );
 
   return bidder;
 };
