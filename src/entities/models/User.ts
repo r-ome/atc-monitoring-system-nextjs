@@ -18,7 +18,7 @@ export type USER_ROLES =
 
 export type UserSchema = Prisma.usersGetPayload<{
   include: {
-    branches: true;
+    branch: true;
   };
 }>;
 
@@ -30,7 +30,7 @@ export type User = {
   branch: {
     branch_id?: string | null;
     name?: string | null;
-  };
+  } | null;
   created_at: string;
   updated_at: string;
 };

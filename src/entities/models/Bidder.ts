@@ -8,6 +8,7 @@ export type BIDDER_STATUS = "BANNED" | "ACTIVE" | "INACTIVE";
 
 export type BidderSchema = Prisma.biddersGetPayload<{
   include: {
+    branch: true;
     auctions_joined: { include: { auctions_inventories: true } };
     requirements: true;
   };
@@ -33,6 +34,10 @@ export type Bidder = {
   created_at: string;
   updated_at: string;
   payment_term: number;
+  branch: {
+    branch_id?: string | null;
+    name?: string | null;
+  };
   auctions_joined: {
     auction_bidder_id: string;
     auction_id: string;

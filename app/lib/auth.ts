@@ -45,6 +45,10 @@ export const authOptions: NextAuthOptions = {
         token.name = user.username;
         token.username = user.username;
         token.role = user.role;
+        token.branch = {
+          branch_id: user.branch?.branch_id,
+          name: user.branch?.name,
+        };
       }
       return token;
     },
@@ -56,11 +60,11 @@ export const authOptions: NextAuthOptions = {
       token: JWT;
     }): Promise<Session> {
       session.user = {
-        ...session.user,
         id: token.id,
         name: token.name,
         username: token.username,
         role: token.role,
+        branch: token.branch,
       } as Session["user"];
       return session;
     },

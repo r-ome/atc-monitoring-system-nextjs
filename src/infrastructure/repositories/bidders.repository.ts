@@ -16,6 +16,7 @@ export const BidderRepository: IBidderRepository = {
       const bidder = await prisma.bidders.findFirst({
         where: { bidder_id },
         include: {
+          branch: true,
           auctions_joined: { include: { auctions_inventories: true } },
           requirements: true,
         },
@@ -41,6 +42,7 @@ export const BidderRepository: IBidderRepository = {
       const bidder = await prisma.bidders.findFirst({
         where: { bidder_number },
         include: {
+          branch: true,
           auctions_joined: { include: { auctions_inventories: true } },
           requirements: true,
         },
@@ -60,6 +62,7 @@ export const BidderRepository: IBidderRepository = {
   getBidders: async () => {
     try {
       return await prisma.bidders.findMany({
+        include: { branch: true },
         orderBy: { bidder_number: "asc" },
       });
     } catch (error) {

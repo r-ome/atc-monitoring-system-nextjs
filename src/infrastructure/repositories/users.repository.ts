@@ -1,9 +1,6 @@
 import { IUserRepository } from "src/application/repositories/users.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
-import {
-  DatabaseOperationError,
-  NotFoundError,
-} from "src/entities/errors/common";
+import { DatabaseOperationError } from "src/entities/errors/common";
 import {
   isPrismaError,
   isPrismaValidationError,
@@ -14,12 +11,8 @@ export const UserRepository: IUserRepository = {
     try {
       const user = await prisma.users.findFirst({
         where: { username },
-        include: { branches: true },
+        include: { branch: true },
       });
-
-      if (!user) {
-        throw new NotFoundError("User doesn't exist.");
-      }
 
       return user;
     } catch (error) {
@@ -35,7 +28,7 @@ export const UserRepository: IUserRepository = {
   getUsers: async () => {
     try {
       return await prisma.users.findMany({
-        include: { branches: true },
+        include: { branch: true },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -50,7 +43,7 @@ export const UserRepository: IUserRepository = {
   registerUser: async (data) => {
     try {
       return await prisma.users.create({
-        include: { branches: true },
+        include: { branch: true },
         data: {
           name: data.name,
           username: data.username,
@@ -71,7 +64,7 @@ export const UserRepository: IUserRepository = {
   updateUser: async (user_id, data) => {
     try {
       return await prisma.users.update({
-        include: { branches: true },
+        include: { branch: true },
         where: { user_id },
         data: {
           name: data.name,
@@ -93,7 +86,7 @@ export const UserRepository: IUserRepository = {
     try {
       console.log(data.password);
       return await prisma.users.update({
-        include: { branches: true },
+        include: { branch: true },
         where: { user_id },
         data: { password: data.password },
       });

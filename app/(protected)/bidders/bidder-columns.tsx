@@ -55,6 +55,27 @@ export const columns: ColumnDef<BidderRowType>[] = [
     },
   },
   {
+    accessorKey: "branch.name",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Branch
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const bidder = row.original;
+      return <div className="flex justify-center">{bidder.branch?.name}</div>;
+    },
+  },
+  {
     accessorKey: "birthdate",
     size: 100,
     header: ({ column }) => (
@@ -74,63 +95,6 @@ export const columns: ColumnDef<BidderRowType>[] = [
       return <div className="flex justify-center">{bidder.birthdate}</div>;
     },
   },
-  // {
-  //   accessorKey: "service_charge",
-  //   header: ({ column }) => (
-  //     <div className="flex justify-center">
-  //       <Button
-  //         variant="ghost"
-  //         className="cursor-pointer flex justify-center"
-  //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-  //       >
-  //         Service Charge (%)
-  //         <ArrowUpDown />
-  //       </Button>
-  //     </div>
-  //   ),
-  //   size: 130,
-  //   cell: ({ row }) => {
-  //     const bidder = row.original;
-  //     return (
-  //       <div className="flex justify-center">{bidder.service_charge}%</div>
-  //     );
-  //   },
-  // },
-  // {
-  //   accessorKey: "contact_number",
-  //   header: "Contact",
-  //   size: 100,
-  //   cell: ({ row }) => {
-  //     const bidder = row.original;
-  //     return <div>{bidder.contact_number}</div>;
-  //   },
-  // },
-  // {
-  //   accessorKey: "registration_fee",
-  //   header: ({ column }) => {
-  //     return (
-  //       <div className="flex justify-center">
-  //         <Button
-  //           variant="ghost"
-  //           className="cursor-pointer flex justify-center"
-  //           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-  //         >
-  //           Registration Fee
-  //           <ArrowUpDown />
-  //         </Button>
-  //       </div>
-  //     );
-  //   },
-  //   size: 100,
-  //   cell: ({ row }) => {
-  //     const bidder = row.original;
-  //     return (
-  //       <div className="flex justify-center">
-  //         {bidder.registration_fee.toLocaleString()}
-  //       </div>
-  //     );
-  //   },
-  // },
   {
     accessorKey: "status",
     header: ({ column }) => {

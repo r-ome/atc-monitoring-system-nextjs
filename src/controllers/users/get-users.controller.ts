@@ -15,7 +15,7 @@ function presenter(users: UserSchema[]) {
       role: user.role,
       branch: {
         branch_id: user.branch_id,
-        name: user.branches?.name,
+        name: user.branch?.name,
       },
       created_at: formatDate(user.created_at, "MMMM dd, yyyy"),
       updated_at: formatDate(user.updated_at, "MMMM dd, yyyy"),

@@ -10,7 +10,11 @@ import {
 } from "@/app/components/ui/breadcrumb";
 import { usePathname } from "next/navigation";
 
-export const AppBreadcrumb = () => {
+interface AppBreadcrumbProps {
+  branch: string | null;
+}
+
+export const AppBreadcrumb: React.FC<AppBreadcrumbProps> = ({ branch }) => {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
 
@@ -18,6 +22,7 @@ export const AppBreadcrumb = () => {
     <div>
       <Breadcrumb>
         <BreadcrumbList>
+          ({branch ? branch : "ADMIN"})
           {segments.map((segment, index) => {
             const href = "/" + segments.slice(0, index + 1).join("/");
             const isLast = index === segments.length - 1;
