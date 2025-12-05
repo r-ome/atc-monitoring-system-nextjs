@@ -47,7 +47,7 @@ export const updateBidder = async (bidder_id: string, formData: FormData) => {
   if (!user) redirect("/login");
 
   const data = Object.fromEntries(formData.entries());
-  data.branch_id = user?.branch.branch_id;
+  data.branch_id = data.branch_id ? data.branch_id : user.branch.branch_id;
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },

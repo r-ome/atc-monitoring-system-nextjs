@@ -13,7 +13,7 @@ import { err, ok } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
 
 const presenter = (
-  bidder: Omit<BidderSchema, "auctions_joined" | "requirements" | "branch">
+  bidder: Omit<BidderSchema, "auctions_joined" | "requirements">
 ) => {
   const date_format = "MMM dd, yyyy";
   return {

@@ -78,6 +78,7 @@ export const BidderRepository: IBidderRepository = {
   createBidder: async (data) => {
     try {
       const created = await prisma.bidders.create({
+        include: { branch: true },
         data: {
           bidder_number: data.bidder_number,
           first_name: data.first_name,
@@ -108,6 +109,7 @@ export const BidderRepository: IBidderRepository = {
   updateBidder: async (bidder_id, data: BidderInsertSchema) => {
     try {
       const updated = await prisma.bidders.update({
+        include: { branch: true },
         where: { bidder_id },
         data: {
           bidder_number: data.bidder_number,

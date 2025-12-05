@@ -113,8 +113,13 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
       setIsLoading(false);
       if (res.ok) {
         toast.success("Successfully updated Bidder!");
-        if (res.value.bidder_number !== bidder.bidder_number) {
-          router.push(`/bidders/${res.value.bidder_number}`);
+        if (
+          `${res.value.bidder_number}-${res.value.branch.name}` !==
+          `${bidder.bidder_number}-${bidder.branch.name}`
+        ) {
+          router.push(
+            `/bidders/${res.value.bidder_number}-${res.value.branch.name}`
+          );
         } else {
           router.refresh();
         }
@@ -281,18 +286,18 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
                 </Label>
                 {branches.length ? (
                   <div className="w-full">
-                    <Select defaultValue="BIÑAN" name="branch_id">
-                      <SelectTrigger
-                        className="w-full"
-                        defaultValue={newBidder?.branch_id ?? ""}
-                      >
+                    <Select
+                      defaultValue={newBidder?.branch_id || ""}
+                      name="branch_id"
+                    >
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
                         {branches.map((branch) => (
                           <SelectItem
-                            value={branch.branch_id}
                             key={branch.branch_id}
+                            value={branch.branch_id}
                           >
                             {branch.name}
                           </SelectItem>

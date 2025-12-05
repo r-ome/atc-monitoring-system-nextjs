@@ -80,7 +80,9 @@ export default function Page() {
       setIsLoading(false);
       if (res.ok) {
         toast.success("Successfully created Bidder!");
-        router.push(`/bidders/${res.value.bidder_number}`);
+        router.push(
+          `/bidders/${res.value.bidder_number}-${res.value.branch.name}`
+        );
       }
       if (!res.ok) {
         const description =
@@ -238,7 +240,10 @@ export default function Page() {
                     <div className="flex flex-col gap-2 w-1/3">
                       <Label htmlFor="branch_id">Branch:</Label>
                       {branches.length ? (
-                        <Select defaultValue="BIÑAN" name="branch_id">
+                        <Select
+                          defaultValue={branches[1].branch_id}
+                          name="branch_id"
+                        >
                           <SelectTrigger className="w-[180px] text-foreground">
                             <SelectValue placeholder="Status" />
                           </SelectTrigger>

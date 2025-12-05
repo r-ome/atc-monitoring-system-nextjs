@@ -101,8 +101,6 @@ export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ user }) => {
     setNewUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  console.log(["OWNER", "SUPER_ADMIN"].includes(loggedInUser?.user.role));
-
   return (
     <>
       <Button onClick={() => setOpenDialog(true)}>Edit User</Button>

@@ -14,9 +14,9 @@ export interface IBidderRepository {
   >;
   createBidder(
     bidder: BidderInsertSchema
-  ): Promise<Omit<BidderSchema, "auctions_joined" | "requirements" | "branch">>;
+  ): Promise<Omit<BidderSchema, "auctions_joined" | "requirements">>;
   updateBidder(
     bidder_id: string,
     data: BidderInsertSchema
-  ): Promise<Omit<BidderSchema, "auctions_joined" | "requirements" | "branch">>;
+  ): Promise<Omit<BidderSchema, "auctions_joined" | "requirements">>;
 }

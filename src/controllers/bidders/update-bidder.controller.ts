@@ -14,7 +14,7 @@ import { updateBidderUseCase } from "src/application/use-cases/bidders/update-bi
 import { logger } from "@/app/lib/logger";
 
 function presenter(
-  bidder: Omit<BidderSchema, "auctions_joined" | "requirements" | "branch">
+  bidder: Omit<BidderSchema, "auctions_joined" | "requirements">
 ) {
   const date_format = "MMMM dd, yyyy";
   return {
@@ -25,6 +25,10 @@ function presenter(
     last_name: bidder.last_name,
     full_name: `${bidder.first_name} ${bidder.last_name}`,
     contact_number: bidder.contact_number,
+    branch: {
+      branch_id: bidder.branch_id,
+      name: bidder.branch.name,
+    },
     birthdate: bidder.birthdate
       ? formatDate(bidder.birthdate, date_format)
       : null,

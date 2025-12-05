@@ -84,7 +84,6 @@ export const UserRepository: IUserRepository = {
   },
   updateUserPassword: async (user_id, data) => {
     try {
-      console.log(data.password);
       return await prisma.users.update({
         include: { branch: true },
         where: { user_id },

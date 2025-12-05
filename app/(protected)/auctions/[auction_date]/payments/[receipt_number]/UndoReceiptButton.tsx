@@ -33,7 +33,6 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
   const [disableConfirm, setDisableConfirm] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log({ password });
     if (password === "helloworld") {
       setDisableConfirm(false);
     }
