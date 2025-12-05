@@ -11,7 +11,7 @@ import {
 import { usePathname } from "next/navigation";
 
 interface AppBreadcrumbProps {
-  branch: string | null;
+  branch?: string | null;
 }
 
 export const AppBreadcrumb: React.FC<AppBreadcrumbProps> = ({ branch }) => {

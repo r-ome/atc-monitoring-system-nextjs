@@ -17,9 +17,7 @@ export type USER_ROLES =
   | "ENCODER";
 
 export type UserSchema = Prisma.usersGetPayload<{
-  include: {
-    branch: true;
-  };
+  include: { branch: true };
 }>;
 
 export type User = {

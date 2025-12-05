@@ -12,8 +12,8 @@ function presenter(user: UserSchema) {
   return {
     ...user,
     branch: {
-      branch_id: user.branches?.branch_id,
-      name: user.branches?.name,
+      branch_id: user.branch?.branch_id,
+      name: user.branch?.name,
     },
     created_at: formatDate(user.created_at, "MMMM dd, yyyy"),
     updated_at: formatDate(user.updated_at, "MMMM dd, yyyy"),
@@ -23,6 +23,11 @@ function presenter(user: UserSchema) {
 export const GetUserByUsernameController = async (username: string) => {
   try {
     const user = await getUserByUsernameUseCase(username);
+
+    if (!user) {
+      return err({ message: "Server Error", cause: "User Not Found" });
+    }
+
     return ok(presenter(user));
   } catch (error) {
     logger("GetUserByUsernameController", error);

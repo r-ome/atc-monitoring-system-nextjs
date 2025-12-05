@@ -39,7 +39,7 @@ type UpdateBidderForm = {
 };
 
 interface UpdateBidderModalProps {
-  bidder: Omit<Bidder, "auctions_joined">;
+  bidder: Omit<Bidder, "auctions_joined" | "branch">;
 }
 
 export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({

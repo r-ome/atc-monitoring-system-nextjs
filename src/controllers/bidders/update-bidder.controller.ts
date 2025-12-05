@@ -14,7 +14,7 @@ import { updateBidderUseCase } from "src/application/use-cases/bidders/update-bi
 import { logger } from "@/app/lib/logger";
 
 function presenter(
-  bidder: Omit<BidderSchema, "auctions_joined" | "requirements">
+  bidder: Omit<BidderSchema, "auctions_joined" | "requirements" | "branch">
 ) {
   const date_format = "MMMM dd, yyyy";
   return {

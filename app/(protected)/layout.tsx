@@ -34,7 +34,7 @@ export default async function RootLayout({
           <div className="flex items-center">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <AppBreadcrumb branch={session.user.branch.name} />
+            <AppBreadcrumb branch={session.user.branch?.name} />
           </div>
 
           <div className="flex gap-4 h-10 items-center">
