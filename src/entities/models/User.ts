@@ -26,9 +26,9 @@ export type User = {
   username: string;
   role: USER_ROLES;
   branch: {
-    branch_id?: string | null;
-    name?: string | null;
-  } | null;
+    branch_id: string;
+    name: string;
+  };
   created_at: string;
   updated_at: string;
 };

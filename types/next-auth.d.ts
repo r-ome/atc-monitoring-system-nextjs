@@ -9,9 +9,9 @@ declare module "next-auth" {
       username?: string;
       role: USER_ROLES;
       branch: {
-        branch_id: string | null;
-        name: string | null;
-      } | null;
+        branch_id: string;
+        name: string;
+      };
     } & DefaultSession["user"];
   }
 
@@ -20,9 +20,9 @@ declare module "next-auth" {
     username?: string;
     role: USER_ROLES;
     branch: {
-      branch_id: string | null;
-      name: string | null;
-    } | null;
+      branch_id: string;
+      name: string;
+    };
   }
 }
 

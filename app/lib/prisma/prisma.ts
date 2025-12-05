@@ -44,7 +44,10 @@ const prisma = base.$extends({
             AND.push(currentWhere);
           }
 
-          if (branch_id !== null && MODELS_WITH_BRANCH.has(model)) {
+          if (
+            branch_id !== "31d71536-2a70-4087-ab7e-155ce3e23815" &&
+            MODELS_WITH_BRANCH.has(model)
+          ) {
             AND.push({ branch_id });
           }
 

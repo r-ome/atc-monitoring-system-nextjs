@@ -7,14 +7,16 @@ import { logger } from "@/app/lib/logger";
 
 const presenter = (branches: BranchSchema[]) => {
   const date_format = "MMM dd, yyyy";
-  return branches.map((branch) => ({
-    ...branch,
-    created_at: formatDate(branch.created_at, date_format),
-    updated_at: formatDate(branch.updated_at, date_format),
-    deleted_at: branch.deleted_at
-      ? formatDate(branch.deleted_at, date_format)
-      : null,
-  }));
+  return branches
+    .filter((item) => item.name !== "ALL")
+    .map((branch) => ({
+      ...branch,
+      created_at: formatDate(branch.created_at, date_format),
+      updated_at: formatDate(branch.updated_at, date_format),
+      deleted_at: branch.deleted_at
+        ? formatDate(branch.deleted_at, date_format)
+        : null,
+    }));
 };
 
 export const GetBranchesController = async () => {

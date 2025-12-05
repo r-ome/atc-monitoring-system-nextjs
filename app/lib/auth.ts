@@ -46,8 +46,8 @@ export const authOptions: NextAuthOptions = {
         token.username = user.username;
         token.role = user.role;
         token.branch = {
-          branch_id: user.branch?.branch_id,
-          name: user.branch?.name,
+          branch_id: user.branch.branch_id,
+          name: user.branch.name,
         };
       }
       return token;

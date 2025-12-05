@@ -22,7 +22,7 @@ export const AppBreadcrumb: React.FC<AppBreadcrumbProps> = ({ branch }) => {
     <div>
       <Breadcrumb>
         <BreadcrumbList>
-          ({branch ? branch : "ADMIN"})
+          ({branch === "ALL" ? "ADMIN" : branch})
           {segments.map((segment, index) => {
             const href = "/" + segments.slice(0, index + 1).join("/");
             const isLast = index === segments.length - 1;
