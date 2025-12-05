@@ -1,5 +1,9 @@
 "use server";
 
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/app/lib/auth";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { CreateContainerController } from "src/controllers/containers/create-container.controller";
 import { GetContainersController } from "src/controllers/containers/get-containers.controller";
 import { UpdateContainerController } from "src/controllers/containers/update-container.controller";
@@ -12,7 +16,15 @@ export const getContainerByBarcode = async (barcode: string) => {
 };
 
 export const getContainers = async () => {
-  return await GetContainersController();
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+
+  if (!user) redirect("/login");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetContainersController()
+  );
 };
 
 export const createContainer = async (form_data: FormData) => {

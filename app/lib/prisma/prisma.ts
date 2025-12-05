@@ -18,7 +18,7 @@ const base =
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = base;
 
-const MODELS_WITH_BRANCH = new Set(["bidders"]);
+const MODELS_WITH_BRANCH = new Set(["bidders", "containers"]);
 
 const prisma = base.$extends({
   query: {
