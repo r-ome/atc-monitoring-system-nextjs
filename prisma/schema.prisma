@@ -42,7 +42,7 @@ model auctions_bidders {
 model auctions_inventories {
   auction_inventory_id String                   @id @default(uuid())
   auction_bidder_id    String
-  inventory_id         String
+  inventory_id         String                   @unique
   receipt_id           String?
   description          String
   status               auction_inventory_status @default(UNPAID)
@@ -153,21 +153,21 @@ model containers {
 }
 
 model inventories {
-  inventory_id         String                 @id @default(uuid())
-  container_id         String
-  barcode              String
-  control              String?
-  description          String
-  status               inventories_status     @default(UNSOLD)
-  is_bought_item       Int?
-  url                  String?
-  auction_date         DateTime?
-  created_at           DateTime               @default(now()) @db.Timestamp(0)
-  updated_at           DateTime               @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at           DateTime?              @db.DateTime(0)
-  container            containers             @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_inventories_container_id")
-  auctions_inventories auctions_inventories[] @relation("InventoryToAuctionInventories")
-  histories            inventory_histories[]
+  inventory_id       String                @id @default(uuid())
+  container_id       String
+  barcode            String
+  control            String?
+  description        String
+  status             inventories_status    @default(UNSOLD)
+  is_bought_item     Int?
+  url                String?
+  auction_date       DateTime?
+  created_at         DateTime              @default(now()) @db.Timestamp(0)
+  updated_at         DateTime              @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at         DateTime?             @db.DateTime(0)
+  container          containers            @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_inventories_container_id")
+  auctions_inventory auctions_inventories? @relation("InventoryToAuctionInventories")
+  histories          inventory_histories[]
 
   @@index([container_id], map: "fk_inventories_container_id")
 }
