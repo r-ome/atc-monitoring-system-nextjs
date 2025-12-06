@@ -254,7 +254,7 @@ export const columns = (
   ...(isMasterList
     ? [
         {
-          accessorKey: "created_at",
+          accessorKey: "auction_date",
           header: ({ column }) => {
             return (
               <div className="justify-center flex">
@@ -275,7 +275,7 @@ export const columns = (
             const auction_inventory = row.original;
             return (
               <div className="flex justify-center">
-                {auction_inventory.created_at}
+                {auction_inventory.auction_date}
               </div>
             );
           },

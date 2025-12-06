@@ -17,6 +17,7 @@ function presenter(monitoring: AuctionsInventorySchema[]) {
     qty: item.qty,
     manifest_number: item.manifest_number,
     is_slash_item: item.is_slash_item,
+    auction_date: formatDate(item.auction_date, "MMMM dd, yyyy"),
     created_at: formatDate(item.created_at, "MMMM dd, yyyy"),
     updated_at: formatDate(item.updated_at, "MMMM dd, yyyy"),
     inventory: {

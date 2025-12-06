@@ -66,6 +66,7 @@ export type AuctionsInventory = {
   is_slash_item: string | null;
   created_at: string;
   updated_at: string;
+  auction_date: string;
   inventory: {
     inventory_id: string;
     barcode: string;

@@ -219,7 +219,7 @@ export const columns = (
             className="cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Uploaded Date
+            Time
             <ArrowUpDown />
           </Button>
         </div>
@@ -229,7 +229,7 @@ export const columns = (
       const manifest = row.original;
       return (
         <div className="flex justify-center">
-          {formatDate(new Date(manifest.created_at), "MMM dd hh:mm a")}
+          {formatDate(new Date(manifest.created_at), "hh:mm a")}
         </div>
       );
     },

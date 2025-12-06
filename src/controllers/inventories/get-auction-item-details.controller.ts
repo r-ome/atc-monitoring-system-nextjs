@@ -20,6 +20,7 @@ const presenter = (auction_inventory: AuctionsInventorySchema) => {
     price: auction_inventory.price,
     qty: auction_inventory.qty,
     manifest_number: auction_inventory.manifest_number,
+    auction_date: formatDate(auction_inventory.auction_date, date_format),
     created_at: formatDate(auction_inventory.created_at, date_format),
     updated_at: formatDate(auction_inventory.updated_at, date_format),
     is_slash_item: auction_inventory.is_slash_item,

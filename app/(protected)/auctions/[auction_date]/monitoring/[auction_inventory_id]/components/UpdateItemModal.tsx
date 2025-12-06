@@ -63,7 +63,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
     label: string;
     value: string;
   }>();
-  const [auction, setAuction] = useState<Auction>();
+  const [auctionId, setAuctionId] = useState<string>("");
   const [newAuctionInventory, setNewAuctionInventory] =
     useState<UpdateItemForm>({});
   const [inventories, setInventories] = useState<
@@ -105,7 +105,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
       );
       if (!registered_bidders_res.ok) return;
 
-      setAuction(auction);
+      setAuctionId(auction.auction_id);
       setInventories(inventories_res.value);
 
       const registered_bidders = registered_bidders_res.value;
@@ -131,8 +131,8 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
     event.preventDefault();
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
-    if (!auctionInventory || !auction) return;
-    formData.append("auction_id", auction.auction_id);
+    if (!auctionInventory || !auctionId) return;
+    formData.append("auction_id", auctionId);
     formData.append(
       "auction_inventory_id",
       auctionInventory.auction_inventory_id

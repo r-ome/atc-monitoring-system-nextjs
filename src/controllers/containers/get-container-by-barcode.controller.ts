@@ -74,6 +74,7 @@ const presenter = (container: ContainerSchema) => {
         qty: item.qty,
         manifest_number: item.manifest_number,
         is_slash_item: item.is_slash_item,
+        auction_date: formatDate(item.auction_date, date_format),
         created_at: formatDate(item.created_at, date_format),
         updated_at: formatDate(item.updated_at, date_format),
         bidder: {
