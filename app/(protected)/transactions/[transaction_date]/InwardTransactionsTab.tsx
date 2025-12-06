@@ -56,6 +56,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
 
       if (item.receipt.purpose === "REFUNDED") {
         acc["REFUND"] += item.amount_paid;
+        acc["CASH"] += item.amount_paid;
         acc["INWARD_TOTAL_CASH"] -= item.amount_paid;
       }
       return acc;
