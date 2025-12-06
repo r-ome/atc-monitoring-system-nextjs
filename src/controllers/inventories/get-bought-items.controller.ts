@@ -12,14 +12,11 @@ function presenter(
       inventory_id: item.inventory_id,
       barcode: item.barcode,
       control: item.control || "NC",
-      description: item.auctions_inventories[0].description,
-      old_price: item.auctions_inventories[0].price,
-      qty: item.auctions_inventories[0].qty,
+      description: item.auctions_inventory?.description,
+      old_price: item.auctions_inventory?.price,
+      qty: item.auctions_inventory?.qty ?? null,
       bidder_number: "ATC",
-      new_price:
-        item.auctions_inventories.length > 1
-          ? item.auctions_inventories?.[1].price
-          : 0,
+      new_price: item.auctions_inventory?.price,
     };
   });
 }

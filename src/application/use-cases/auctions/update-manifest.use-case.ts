@@ -84,7 +84,7 @@ const formatExistingInventories = (
   data: ManifestUpdateSchema[],
   existing_inventories: Omit<
     InventorySchema,
-    "histories" | "container" | "auctions_inventories"
+    "histories" | "container" | "auctions_inventory"
   >[]
 ): ManifestUpdateSchema[] => {
   return data.map((item) => {

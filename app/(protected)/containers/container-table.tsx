@@ -7,7 +7,7 @@ import { columns } from "./container-columns";
 import { Inventory } from "src/entities/models/Inventory";
 
 export type ContainerRowType = Omit<Container, "inventories"> & {
-  inventories: Omit<Inventory, "histories" | "auctions_inventories">[];
+  inventories: Omit<Inventory, "histories" | "auctions_inventory">[];
 };
 
 interface ContainersTableProps {

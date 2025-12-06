@@ -10,7 +10,7 @@ export type ContainerSchema = Prisma.containersGetPayload<{
     branch: true;
     inventories: {
       include: {
-        auctions_inventories: {
+        auctions_inventory: {
           include: { auction_bidder: { include: { bidder: true } } };
         };
       };

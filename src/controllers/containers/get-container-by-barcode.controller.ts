@@ -63,30 +63,43 @@ const presenter = (container: ContainerSchema) => {
       deleted_at: item.deleted_at
         ? formatDate(item.deleted_at, date_format)
         : null,
-      auctions_inventories: item.auctions_inventories.map((item) => ({
-        auction_inventory_id: item.auction_inventory_id,
-        auction_bidder_id: item.auction_bidder_id,
-        inventory_id: item.inventory_id,
-        receipt_id: item.receipt_id,
-        description: item.description,
-        status: item.status,
-        price: item.price,
-        qty: item.qty,
-        manifest_number: item.manifest_number,
-        is_slash_item: item.is_slash_item,
-        auction_date: formatDate(item.auction_date, date_format),
-        created_at: formatDate(item.created_at, date_format),
-        updated_at: formatDate(item.updated_at, date_format),
-        bidder: {
-          bidder_id: item.auction_bidder.bidder.bidder_id,
-          bidder_number: item.auction_bidder.bidder.bidder_number,
-          full_name: `${item.auction_bidder.bidder.first_name} ${item.auction_bidder.bidder.last_name}`,
-          service_charge: item.auction_bidder.service_charge,
-          registration_fee: item.auction_bidder.registration_fee,
-          already_consumed: item.auction_bidder.already_consumed,
-          balance: item.auction_bidder.balance,
-        },
-      })),
+      auctions_inventory: item.auctions_inventory
+        ? {
+            auction_inventory_id: item.auctions_inventory?.auction_inventory_id,
+            auction_bidder_id: item.auctions_inventory?.auction_bidder_id,
+            inventory_id: item.auctions_inventory?.inventory_id,
+            receipt_id: item.auctions_inventory?.receipt_id,
+            description: item.auctions_inventory?.description,
+            status: item.auctions_inventory?.status,
+            price: item.auctions_inventory?.price,
+            qty: item.auctions_inventory?.qty,
+            manifest_number: item.auctions_inventory?.manifest_number,
+            is_slash_item: item.auctions_inventory?.is_slash_item,
+            auction_date: item.auctions_inventory
+              ? formatDate(item.auctions_inventory?.auction_date, date_format)
+              : "",
+            created_at: item.auctions_inventory
+              ? formatDate(item.auctions_inventory?.created_at, date_format)
+              : "",
+            updated_at: item.auctions_inventory
+              ? formatDate(item.auctions_inventory?.updated_at, date_format)
+              : "",
+            bidder: {
+              bidder_id:
+                item.auctions_inventory?.auction_bidder.bidder.bidder_id,
+              bidder_number:
+                item.auctions_inventory?.auction_bidder.bidder.bidder_number,
+              full_name: `${item.auctions_inventory?.auction_bidder.bidder.first_name} ${item.auctions_inventory?.auction_bidder.bidder.last_name}`,
+              service_charge:
+                item.auctions_inventory?.auction_bidder.service_charge,
+              registration_fee:
+                item.auctions_inventory?.auction_bidder.registration_fee,
+              already_consumed:
+                item.auctions_inventory?.auction_bidder.already_consumed,
+              balance: item.auctions_inventory?.auction_bidder.balance,
+            },
+          }
+        : null,
     })),
   };
 };

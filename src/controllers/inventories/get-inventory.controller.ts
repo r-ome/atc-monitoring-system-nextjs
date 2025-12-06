@@ -38,16 +38,18 @@ function presenter(inventory: InventorySchema) {
       remarks: history.remarks,
       created_at: formatDate(history.created_at, date_format),
     })),
-    auctions_inventories: inventory.auctions_inventories.map((item) => ({
-      auction_inventory_id: item.auction_inventory_id,
-      auction_bidder_id: item.auction_bidder_id,
-      description: item.description,
-      price: item.price,
-      qty: item.qty,
-      status: item.status,
-      manifest_number: item.manifest_number,
-      created_at: formatDate(item.created_at, date_format),
-    })),
+    auctions_inventories: {
+      auction_inventory_id: inventory.auctions_inventory?.auction_inventory_id,
+      auction_bidder_id: inventory.auctions_inventory?.auction_bidder_id,
+      description: inventory.auctions_inventory?.description,
+      price: inventory.auctions_inventory?.price,
+      qty: inventory.auctions_inventory?.qty,
+      status: inventory.auctions_inventory?.status,
+      manifest_number: inventory.auctions_inventory?.manifest_number,
+      created_at: inventory.auctions_inventory?.created_at
+        ? formatDate(inventory.auctions_inventory?.created_at, date_format)
+        : "",
+    },
   };
 }
 export const GetInventoryController = async (inventory_id: string) => {

@@ -93,7 +93,7 @@ export const columns: ColumnDef<BoughtItems>[] = [
       const boughtItem = row.original;
       return (
         <div className="flex justify-center">
-          {boughtItem.old_price.toLocaleString()}
+          {boughtItem.old_price?.toLocaleString()}
         </div>
       );
     },
@@ -121,12 +121,14 @@ export const columns: ColumnDef<BoughtItems>[] = [
         <div
           className={cn(
             "flex justify-center",
-            boughtItem.new_price < boughtItem.old_price
-              ? "text-red-500"
-              : "text-green-500"
+            boughtItem.new_price && boughtItem.old_price
+              ? boughtItem.new_price < boughtItem.old_price
+                ? "text-red-500"
+                : "text-green-500"
+              : ""
           )}
         >
-          {boughtItem.new_price.toLocaleString()}
+          {boughtItem.new_price?.toLocaleString()}
         </div>
       );
     },

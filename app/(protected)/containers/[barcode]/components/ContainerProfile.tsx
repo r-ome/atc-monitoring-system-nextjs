@@ -20,7 +20,7 @@ interface ContainerProfileProps {
   container: Omit<Container, "inventories"> & {
     inventories: Omit<
       Container["inventories"][number],
-      "histories" | "auctions_inventories"
+      "histories" | "auctions_inventory"
     >[];
   };
 }

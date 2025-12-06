@@ -200,6 +200,8 @@ export const PaymentRepository: IPaymentRepository = {
           { new_price: 0, prev_price: 0 }
         );
 
+        console.log(prices);
+
         const receipt = await tx.receipt_records.create({
           data: {
             receipt_number: `${auction_bidder.bidder.bidder_number}REF${
@@ -264,6 +266,8 @@ export const PaymentRepository: IPaymentRepository = {
                 },
               },
             });
+
+            throw new Error("woops");
 
             return { auction_inventories };
           })

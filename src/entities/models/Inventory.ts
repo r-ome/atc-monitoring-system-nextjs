@@ -14,7 +14,7 @@ export type BaseInventorySchema = Prisma.inventoriesGetPayload<object>;
 export type InventorySchema = Prisma.inventoriesGetPayload<{
   include: {
     histories: { include: { receipt: true } };
-    auctions_inventories: true;
+    auctions_inventory: true;
     container: true;
   };
 }>;
@@ -33,8 +33,7 @@ export type Inventory = {
   updated_at: string;
   deleted_at: string | null;
   histories: InventoryHistorySchema[];
-  auctions_inventories: Omit<AuctionsInventory, "inventory" | "histories">[];
-  // histories: InventoryHistorySchema[];
+  auctions_inventory: Omit<AuctionsInventory, "inventory" | "histories"> | null;
 };
 
 export type InventoryHistorySchema = Prisma.inventory_historiesGetPayload<{
@@ -95,10 +94,10 @@ export type AuctionInventoryUpdateSchema = z.infer<
 export type BoughtItems = {
   inventory_id: string;
   barcode: string;
-  description: string;
+  description?: string;
   control: string;
-  new_price: number;
-  old_price: number;
+  new_price?: number;
+  old_price?: number;
   bidder_number: string | null;
   qty: string | null;
 };

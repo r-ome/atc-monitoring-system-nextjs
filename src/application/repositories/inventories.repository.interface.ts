@@ -13,7 +13,7 @@ export interface IInventoryRepository {
     auction_inventory_id: string
   ) => Promise<AuctionsInventorySchema | null>;
   getUnsoldInventories: () => Promise<
-    Omit<InventorySchema, "histories" | "container" | "auctions_inventories">[]
+    Omit<InventorySchema, "histories" | "container" | "auctions_inventory">[]
   >;
   voidItems: (data: {
     auction_inventories: {
@@ -32,12 +32,12 @@ export interface IInventoryRepository {
     inventory_id: string,
     data: InventoryInsertSchema
   ) => Promise<
-    Omit<InventorySchema, "container" | "histories" | "auctions_inventories">
+    Omit<InventorySchema, "container" | "histories" | "auctions_inventory">
   >;
   getAllInventories: (
     status?: INVENTORY_STATUS[]
   ) => Promise<
-    Omit<InventorySchema, "histories" | "auctions_inventories" | "container">[]
+    Omit<InventorySchema, "histories" | "auctions_inventory" | "container">[]
   >;
   updateBulkInventoryStatus: (
     status: INVENTORY_STATUS,

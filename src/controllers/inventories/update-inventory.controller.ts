@@ -15,7 +15,7 @@ import { ok, err } from "src/entities/models/Response";
 function presenter(
   inventory: Omit<
     InventorySchema,
-    "container" | "histories" | "auctions_inventories"
+    "container" | "histories" | "auctions_inventory"
   >
 ) {
   return inventory;

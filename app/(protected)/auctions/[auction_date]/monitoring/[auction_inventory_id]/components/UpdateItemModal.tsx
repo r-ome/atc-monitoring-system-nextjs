@@ -24,7 +24,6 @@ import { toast } from "sonner";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { InputNumber } from "@/app/components/ui/InputNumber";
-import { Auction } from "src/entities/models/Auction";
 import {
   getAuction,
   getRegisteredBidders,

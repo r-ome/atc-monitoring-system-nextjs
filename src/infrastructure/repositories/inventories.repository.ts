@@ -283,9 +283,8 @@ export const InventoryRepository: IInventoryRepository = {
             orderBy: { created_at: "desc" },
           },
           container: true,
-          auctions_inventories: {
+          auctions_inventory: {
             include: { receipt: true, auction_bidder: true },
-            orderBy: { created_at: "desc" },
           },
         },
       });
@@ -363,7 +362,7 @@ export const InventoryRepository: IInventoryRepository = {
     try {
       return await prisma.inventories.findMany({
         where: { status: "BOUGHT_ITEM" },
-        include: { auctions_inventories: true },
+        include: { auctions_inventory: true },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -377,8 +376,8 @@ export const InventoryRepository: IInventoryRepository = {
   getInventoryWithNoAuctionInventory: async () => {
     try {
       return await prisma.inventories.findMany({
-        include: { auctions_inventories: true },
-        where: { auctions_inventories: { none: {} }, status: { not: "VOID" } },
+        include: { auctions_inventory: true },
+        where: { auctions_inventory: { is: null }, status: { not: "VOID" } },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

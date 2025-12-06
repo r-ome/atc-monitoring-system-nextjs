@@ -11,12 +11,12 @@ import { GenerateContainerReportModal } from "./GenerateContainerReportModal";
 
 export type InventoryRowType = Omit<
   Inventory,
-  "histories" | "auctions_inventories"
+  "histories" | "auctions_inventory"
 > & {
-  auctions_inventories: Omit<
+  auctions_inventory: Omit<
     AuctionsInventory,
     "inventory" | "receipt" | "histories"
-  >[];
+  > | null;
 };
 
 interface ContainerInventoriesProps {

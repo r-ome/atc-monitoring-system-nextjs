@@ -48,7 +48,7 @@ export const GenerateContainerReportModal = ({
   };
 
   const auction_inventories = inventories.filter(
-    (item) => item.auctions_inventories.length
+    (item) => item.auctions_inventory
   );
 
   const auction_dates = auction_inventories.reduce<Record<string, number>>(
@@ -64,13 +64,13 @@ export const GenerateContainerReportModal = ({
   const for_monitoring_report = inventories
     .filter((item) => item.status !== "VOID")
     .filter((item) => {
-      if (!item.auctions_inventories.length) return false;
-      const auction_status = item.auctions_inventories[0].status;
+      if (!item.auctions_inventory) return false;
+      const auction_status = item.auctions_inventory.status;
       return !["CANCELLED", "REFUND"].includes(auction_status);
     })
     .filter((item) => selectedDates.includes(item?.auction_date || ""))
     .map((item) => {
-      const auction_inventory = item.auctions_inventories[0];
+      const auction_inventory = item.auctions_inventory;
       return {
         barcode: item.barcode,
         control: item.control,
