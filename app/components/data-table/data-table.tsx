@@ -46,13 +46,14 @@ export const DataTable = <TData, TValue>({
   onRowClick,
   filterColumns = false,
   title,
+  pageSize = 10,
 }: DataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize,
   });
 
   const table = useReactTable({

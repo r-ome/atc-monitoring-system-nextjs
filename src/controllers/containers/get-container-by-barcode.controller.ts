@@ -8,6 +8,18 @@ import { logger } from "@/app/lib/logger";
 const presenter = (container: ContainerSchema) => {
   const date_format = "MMM dd, yyyy";
 
+  const timestamps = container.inventories
+    .map((i) => i.auction_date)
+    .flatMap((d) => {
+      if (!d) return [];
+
+      const t = d instanceof Date ? d.getTime() : new Date(d).getTime();
+      return isNaN(t) ? [] : [t];
+    });
+
+  const auction_start_date =
+    timestamps.length === 0 ? null : new Date(Math.min(...timestamps));
+
   return {
     container_id: container.container_id,
     barcode: container.barcode,
@@ -34,9 +46,9 @@ const presenter = (container: ContainerSchema) => {
     due_date: container.due_date
       ? formatDate(container.due_date, date_format)
       : undefined,
-    auction_end_date: container.auction_end_date
-      ? formatDate(container.auction_end_date, date_format)
-      : undefined,
+    auction_start_date: auction_start_date
+      ? formatDate(new Date(auction_start_date), date_format)
+      : "N/A",
     created_at: formatDate(container.created_at, date_format),
     updated_at: formatDate(container.updated_at, date_format),
     deleted_at: container.deleted_at

@@ -39,7 +39,7 @@ export const ContainerRepository: IContainerRepository = {
   },
   getContainerByBarcode: async (barcode: string) => {
     try {
-      return await prisma.containers.findFirst({
+      const container = await prisma.containers.findFirst({
         where: { barcode },
         include: {
           branch: true,
@@ -53,6 +53,8 @@ export const ContainerRepository: IContainerRepository = {
           supplier: true,
         },
       });
+
+      return container;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting Container!", {
@@ -88,7 +90,6 @@ export const ContainerRepository: IContainerRepository = {
           bill_of_lading_number: container.bill_of_lading_number,
           container_number: container.container_number,
           arrival_date: container.arrival_date,
-          auction_end_date: container.auction_end_date,
           due_date: container.due_date,
           gross_weight: container.gross_weight,
           auction_or_sell: "AUCTION",
@@ -161,7 +162,6 @@ export const ContainerRepository: IContainerRepository = {
           bill_of_lading_number: data.bill_of_lading_number,
           container_number: data.container_number,
           arrival_date: data.arrival_date,
-          auction_end_date: data.auction_end_date,
           due_date: data.due_date,
           gross_weight: data.gross_weight,
           auction_or_sell: data.auction_or_sell,

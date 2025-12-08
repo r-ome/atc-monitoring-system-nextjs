@@ -41,7 +41,6 @@ type ContainerUpdateForm = {
   auction_or_sell?: "AUCTION" | "SELL";
   arrival_date?: Date;
   due_date?: Date;
-  auction_end_date?: Date;
 };
 
 type Option = Record<string, string | number | boolean>;
@@ -53,7 +52,6 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
   const [open, setOpenDialog] = useState<boolean>(false);
   const [newContainer, setNewContainer] = useState<ContainerUpdateForm>({});
   const [arrivalDate, setArrivalDate] = useState<Date | undefined>();
-  const [auctionEndDate, setAuctionEndDate] = useState<Date | undefined>();
   const [weightInTons, setWeightInTons] = useState<number>(0);
   const [suppliers, setSuppliers] = useState<Omit<Supplier, "containers">[]>(
     []
@@ -80,17 +78,10 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
       gross_weight: container.gross_weight,
       auction_or_sell: container.auction_or_sell,
       due_date: container.due_date ? new Date(container.due_date) : undefined,
-      auction_end_date: container.auction_end_date
-        ? new Date(container.auction_end_date)
-        : undefined,
     });
 
     if (container.arrival_date) {
       setArrivalDate(new Date(container.arrival_date));
-    }
-
-    if (container.auction_end_date) {
-      setAuctionEndDate(new Date(container.auction_end_date));
     }
   }, [container]);
 
@@ -274,15 +265,6 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 name="arrival_date"
                 date={arrivalDate}
                 onChange={setArrivalDate}
-              />
-            </div>
-            <div className="flex gap-4">
-              <Label className="w-40">Auction End Date</Label>
-              <DatePicker
-                id="auction_end_date"
-                name="auction_end_date"
-                date={auctionEndDate}
-                onChange={setAuctionEndDate}
               />
             </div>
 

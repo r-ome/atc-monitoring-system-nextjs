@@ -48,6 +48,7 @@ export const MonitoringTable = ({
 
   return (
     <DataTable
+      pageSize={isMasterList ? 20 : 10}
       columns={columns(groupIndexMap, isMasterList)}
       data={monitoring}
       columnFilter={{

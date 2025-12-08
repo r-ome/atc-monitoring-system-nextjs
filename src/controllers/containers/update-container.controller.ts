@@ -23,9 +23,6 @@ export const UpdateContainerController = async (
     input.arrival_date = input.arrival_date
       ? new Date(input.arrival_date)
       : null;
-    input.auction_end_date = input.auction_end_date
-      ? new Date(input.auction_end_date)
-      : null;
 
     const { data, error: inputParseError } =
       ContainerInsertSchema.safeParse(input);

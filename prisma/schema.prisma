@@ -136,7 +136,6 @@ model containers {
   bill_of_lading_number String?                    @db.VarChar(255)
   container_number      String?
   arrival_date          DateTime?                  @db.DateTime(0)
-  auction_end_date      DateTime?                  @db.DateTime(0)
   due_date              DateTime?                  @db.DateTime(0)
   gross_weight          String?                    @db.VarChar(255)
   auction_or_sell       containers_auction_or_sell @default(SELL)

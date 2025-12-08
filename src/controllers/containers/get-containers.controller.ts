@@ -12,62 +12,77 @@ const presenter = (
   })[]
 ) => {
   const date_format = "MMM dd, yyyy";
-  return containers.map((container) => ({
-    container_id: container.container_id,
-    barcode: container.barcode,
-    supplier_id: container.supplier_id,
-    branch_id: container.branch_id,
-    bill_of_lading_number: container.bill_of_lading_number ?? "",
-    container_number: container.container_number ?? "",
-    gross_weight: container.gross_weight ?? "",
-    auction_or_sell: container.auction_or_sell ?? "",
-    status: container.status ?? "",
-    branch: {
-      branch_id: container.branch.branch_id,
-      name: container.branch.name,
-    },
-    supplier: {
+
+  return containers.map((container) => {
+    const timestamps = container.inventories
+      .map((i) => i.auction_date)
+      .flatMap((d) => {
+        if (!d) return [];
+
+        const t = d instanceof Date ? d.getTime() : new Date(d).getTime();
+        return isNaN(t) ? [] : [t];
+      });
+
+    const auction_start_date =
+      timestamps.length === 0 ? null : new Date(Math.min(...timestamps));
+
+    return {
+      container_id: container.container_id,
+      barcode: container.barcode,
       supplier_id: container.supplier_id,
-      supplier_code: container.supplier.supplier_code,
-      name: container.supplier.name,
-    },
-    arrival_date: container.arrival_date
-      ? formatDate(container.arrival_date, date_format)
-      : undefined,
-    due_date: container.due_date
-      ? formatDate(container.due_date, date_format)
-      : undefined,
-    auction_end_date: container.auction_end_date
-      ? formatDate(container.auction_end_date, date_format)
-      : undefined,
-    created_at: formatDate(container.created_at, date_format),
-    updated_at: formatDate(container.updated_at, date_format),
-    deleted_at: container.deleted_at
-      ? formatDate(container.deleted_at, date_format)
-      : null,
-    inventories: container.inventories.map((item) => ({
-      inventory_id: item.inventory_id,
-      container_id: item.container_id,
-      container: {
-        container_id: item.container_id,
-        barcode: container.barcode,
+      branch_id: container.branch_id,
+      bill_of_lading_number: container.bill_of_lading_number ?? "",
+      container_number: container.container_number ?? "",
+      gross_weight: container.gross_weight ?? "",
+      auction_or_sell: container.auction_or_sell ?? "",
+      status: container.status ?? "",
+      branch: {
+        branch_id: container.branch.branch_id,
+        name: container.branch.name,
       },
-      barcode: item.barcode,
-      control: item.control ?? "NC",
-      description: item.description,
-      status: item.status,
-      is_bought_item: item.is_bought_item ?? 0,
-      url: item.url,
-      auction_date: item.auction_date
-        ? formatDate(item.auction_date, date_format)
+      supplier: {
+        supplier_id: container.supplier_id,
+        supplier_code: container.supplier.supplier_code,
+        name: container.supplier.name,
+      },
+      arrival_date: container.arrival_date
+        ? formatDate(container.arrival_date, date_format)
+        : undefined,
+      due_date: container.due_date
+        ? formatDate(container.due_date, date_format)
+        : undefined,
+      auction_start_date: auction_start_date
+        ? formatDate(new Date(auction_start_date), date_format)
         : "N/A",
-      created_at: formatDate(item.created_at, date_format),
-      updated_at: formatDate(item.updated_at, date_format),
-      deleted_at: item.deleted_at
-        ? formatDate(item.deleted_at, date_format)
+      created_at: formatDate(container.created_at, date_format),
+      updated_at: formatDate(container.updated_at, date_format),
+      deleted_at: container.deleted_at
+        ? formatDate(container.deleted_at, date_format)
         : null,
-    })),
-  }));
+      inventories: container.inventories.map((item) => ({
+        inventory_id: item.inventory_id,
+        container_id: item.container_id,
+        container: {
+          container_id: item.container_id,
+          barcode: container.barcode,
+        },
+        barcode: item.barcode,
+        control: item.control ?? "NC",
+        description: item.description,
+        status: item.status,
+        is_bought_item: item.is_bought_item ?? 0,
+        url: item.url,
+        auction_date: item.auction_date
+          ? formatDate(item.auction_date, date_format)
+          : "N/A",
+        created_at: formatDate(item.created_at, date_format),
+        updated_at: formatDate(item.updated_at, date_format),
+        deleted_at: item.deleted_at
+          ? formatDate(item.deleted_at, date_format)
+          : null,
+      })),
+    };
+  });
 };
 
 export const GetContainersController = async () => {

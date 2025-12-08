@@ -63,6 +63,7 @@ export const ManifestRecordsTable = ({
     <>
       <UpdateManifestModal open={open} setOpen={setOpen} selected={selected} />
       <DataTable
+        pageSize={15}
         columns={columns(setOpen, setSelected, groupIndexMap)}
         data={manifestRecords.filter(
           (item) => item.barcode && !item.barcode?.match(/barcode/gi)

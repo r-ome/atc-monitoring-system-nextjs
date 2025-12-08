@@ -13,7 +13,7 @@ type Field =
   | "auction_or_sell"
   | "arrival_date"
   | "due_date"
-  | "auction_end_date"
+  | "auction_start_date"
   | "supplier";
 
 interface ContainerProfileProps {
@@ -39,7 +39,7 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
       "auction_or_sell",
       "arrival_date",
       "due_date",
-      "auction_end_date",
+      "auction_start_date",
       "supplier",
     ];
 

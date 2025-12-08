@@ -373,9 +373,12 @@ export const PaymentRepository: IPaymentRepository = {
       }
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error handling bidder pullout!", {
-          cause: error.message,
-        });
+        throw new DatabaseOperationError(
+          "Error handling bidder registration update!",
+          {
+            cause: error.message,
+          }
+        );
       }
 
       throw error;

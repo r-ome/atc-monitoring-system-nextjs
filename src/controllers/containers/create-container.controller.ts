@@ -22,9 +22,6 @@ const presenter = (
     arrival_date: container.arrival_date
       ? formatDate(container.arrival_date, date_format)
       : null,
-    auction_end_date: container.auction_end_date
-      ? formatDate(container.auction_end_date, date_format)
-      : null,
     due_date: container.due_date
       ? formatDate(container.due_date, date_format)
       : null,
@@ -43,9 +40,6 @@ export const CreateContainerController = async (
     input = {
       ...input,
       arrival_date: input.arrival_date ? new Date(input?.arrival_date) : null,
-      auction_end_date: input.auction_end_date
-        ? new Date(input?.auction_end_date)
-        : null,
       due_date: input.due_date ? new Date(input?.due_date) : null,
     };
 

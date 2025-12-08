@@ -36,7 +36,7 @@ export type Container = {
   container_number: string;
   gross_weight: string;
   arrival_date?: string;
-  auction_end_date?: string;
+  auction_start_date?: string;
   due_date?: string;
   auction_or_sell: "AUCTION" | "SELL";
   status: "PAID" | "UNPAID";
@@ -53,7 +53,6 @@ export const ContainerInsertSchema = z.object({
   bill_of_lading_number: z.string().optional().nullable(),
   container_number: z.string().optional().nullable(),
   arrival_date: z.date().optional().nullable(),
-  auction_end_date: z.date().optional().nullable(),
   due_date: z.date().optional().nullable(),
   gross_weight: z.string().optional().nullable(),
   auction_or_sell: z.enum(["AUCTION", "SELL"]),
