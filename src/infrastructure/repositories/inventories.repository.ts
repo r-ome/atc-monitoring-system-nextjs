@@ -8,6 +8,7 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
+import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 
 export const InventoryRepository: IInventoryRepository = {
   getAuctionItemDetails: async (auction_inventory_id) => {
@@ -176,7 +177,10 @@ export const InventoryRepository: IInventoryRepository = {
 
           if (is_item_reassigned) {
             const new_bidder_service_charge_amount =
-              (data.price * selected_bidder.service_charge) / 100;
+              getItemPriceWithServiceChargeAmount(
+                data.price,
+                selected_bidder.service_charge
+              );
             const new_bidder_computed_price =
               new_bidder_service_charge_amount + data.price;
 
@@ -197,8 +201,10 @@ export const InventoryRepository: IInventoryRepository = {
               data: { balance: { decrement: prev_bidder_computed_price } },
             });
           } else {
-            const item_new_price =
-              data.price + (data.price * previous_bidder.service_charge) / 100;
+            const item_new_price = getItemPriceWithServiceChargeAmount(
+              data.price,
+              previous_bidder.service_charge
+            );
 
             const item_current_price =
               prev_bidder_service_charge_amount + auction_inventory.price;

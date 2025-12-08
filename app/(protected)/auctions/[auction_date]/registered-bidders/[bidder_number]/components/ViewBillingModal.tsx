@@ -17,7 +17,10 @@ import {
 } from "@/app/components/ui/dialog";
 import { useBidderPullOutModalContext } from "../context/BidderPullOutModalContext";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { buildGroupIndexMap } from "@/app/lib/utils";
+import {
+  buildGroupIndexMap,
+  getItemPriceWithServiceChargeAmount,
+} from "@/app/lib/utils";
 
 interface ViewBillingModalProps {
   open: boolean;
@@ -129,9 +132,10 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
       const number_of_items = receipt.auctions_inventories?.length || 0;
 
       const grandTotal =
-        total_item_price +
-        (total_item_price * receipt.bidder.service_charge) / 100 -
-        less;
+        getItemPriceWithServiceChargeAmount(
+          total_item_price,
+          receipt.bidder.service_charge
+        ) - less;
       return (
         <BidderInvoiceDocument
           receipt={receipt}

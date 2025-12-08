@@ -75,3 +75,10 @@ export function createGroupSortingFn<TData, TValue>(
     return compare(valueA, valueB); // TanStack flips sign for desc
   };
 }
+
+export function getItemPriceWithServiceChargeAmount(
+  price: number,
+  service_charge: number
+) {
+  return price + (price * service_charge) / 100;
+}

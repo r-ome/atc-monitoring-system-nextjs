@@ -10,7 +10,10 @@ import BidderInvoiceDocument from "../OfficialReceiptPage/BidderInvoiceDocument"
 import RefundDocument from "../RefundReceipt/RefundDocument";
 import { Button } from "@/app/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { buildGroupIndexMap } from "@/app/lib/utils";
+import {
+  buildGroupIndexMap,
+  getItemPriceWithServiceChargeAmount,
+} from "@/app/lib/utils";
 
 export default function ReceiptViewer() {
   const params: { auction_date: string; receipt_number: string } = useParams();
@@ -60,9 +63,10 @@ export default function ReceiptViewer() {
       const number_of_items = receipt.auctions_inventories?.length || 0;
 
       const grandTotal =
-        total_item_price +
-        (total_item_price * receipt.bidder.service_charge) / 100 -
-        less;
+        getItemPriceWithServiceChargeAmount(
+          total_item_price,
+          receipt.bidder.service_charge
+        ) - less;
 
       const groupIndexMap = buildGroupIndexMap(
         receipt.auctions_inventories,

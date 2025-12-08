@@ -23,6 +23,7 @@ import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Button } from "@/app/components/ui/button";
 import { UpdateRegistrationPaymentMethodModal } from "./UpdateRegistrationPaymentMethodModal/UpdateRegistrationPaymentMethodModal";
 import { UndoPaymentButton } from "./UndoReceiptButton";
+import { cn } from "@/app/lib/utils";
 
 export default async function Page({
   params,
@@ -97,12 +98,12 @@ export default async function Page({
                 </div>
               ) : null}
 
-              <div className="flex flex-col items-center">
+              {/* <div className="flex flex-col items-center">
                 <p className="leading-7 text-md w-fit">
                   TOTAL AMOUNT PAID: ₱
                   {receipt.total_amount_paid.toLocaleString()}
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
         </CardDescription>
@@ -114,11 +115,13 @@ export default async function Page({
               <TableRow>
                 <TableHead>Date & Time</TableHead>
                 <TableHead>Payment Method</TableHead>
-                <TableHead>Amount Paid</TableHead>
-                {receipt.purpose === "REGISTRATION" ? (
+                <TableHead>
+                  Amount Paid{" "}
+                  {receipt.purpose === "REFUNDED" ? "to Bidder" : ""}
+                </TableHead>
+                {["REFUNDED"].includes(receipt.purpose) ? (
                   <>
-                    <TableHead className="w-20">Remarks</TableHead>
-                    <TableHead className="w-20"></TableHead>
+                    <TableHead className="w-20">Reason</TableHead>
                   </>
                 ) : null}
               </TableRow>
@@ -128,10 +131,17 @@ export default async function Page({
                 <TableRow key={item.payment_id}>
                   <TableCell>{item.created_at}</TableCell>
                   <TableCell>{item.payment_method.name}</TableCell>
-                  <TableCell>₱ {item.amount_paid.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <div
+                      className={cn(
+                        receipt.purpose === "REFUNDED" ? "text-red-500" : ""
+                      )}
+                    >
+                      ₱ {item.amount_paid.toLocaleString()}
+                    </div>
+                  </TableCell>
                   {receipt.purpose === "REGISTRATION" ? (
                     <>
-                      <TableCell>{item?.remarks}</TableCell>
                       <TableCell className="flex justify-end">
                         <UpdateRegistrationPaymentMethodModal
                           receipt={receipt}
@@ -142,7 +152,7 @@ export default async function Page({
                   ) : null}
                   {receipt.purpose === "REFUNDED" ? (
                     <>
-                      <TableCell>{item?.remarks}</TableCell>
+                      <TableCell>{receipt?.remarks}</TableCell>
                     </>
                   ) : null}
                 </TableRow>
@@ -155,14 +165,23 @@ export default async function Page({
                   Total Amount Paid
                 </TableCell>
                 <TableCell className="font-bold">
-                  ₱ {receipt.total_amount_paid.toLocaleString()}
+                  <div
+                    className={cn(
+                      receipt.purpose === "REFUNDED" ? "text-red-500" : ""
+                    )}
+                  >
+                    ₱ {receipt.total_amount_paid.toLocaleString()}
+                  </div>
                 </TableCell>
+                {receipt.purpose === "REFUNDED" ? (
+                  <TableCell></TableCell>
+                ) : null}
               </TableRow>
             </TableFooter>
           </Table>
 
           {receipt.purpose !== "REGISTRATION" ? (
-            <div className="max-h-[300px] overflow-y-auto relative">
+            <div className="max-h-[400px] overflow-y-auto relative">
               <Table>
                 <TableCaption>
                   A list of all items under this receipt.

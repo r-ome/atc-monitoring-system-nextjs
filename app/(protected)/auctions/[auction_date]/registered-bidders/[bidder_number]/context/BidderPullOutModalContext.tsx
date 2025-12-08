@@ -2,8 +2,10 @@
 
 import { createContext, useState, useContext } from "react";
 import { RegisteredBidder } from "src/entities/models/Bidder";
+import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 
 type BidderPullOutModalContextType = {
+  serviceCharge: number;
   selectedItems: RegisteredBidder["auction_inventories"];
   setSelectedItems: (a: RegisteredBidder["auction_inventories"]) => void;
   registeredBidder: RegisteredBidder | undefined;
@@ -41,7 +43,10 @@ export const BidderPullOutModalProvider = ({
   if (registeredBidder) {
     const { service_charge, already_consumed, registration_fee } =
       registeredBidder;
-    serviceChargeAmount = (totalItemPrice * service_charge) / 100;
+    serviceChargeAmount = getItemPriceWithServiceChargeAmount(
+      totalItemPrice,
+      service_charge
+    );
     registrationFeeAmount = already_consumed ? 0 : registration_fee;
     grandTotal = totalItemPrice + serviceChargeAmount - registrationFeeAmount;
   }
@@ -49,6 +54,7 @@ export const BidderPullOutModalProvider = ({
   return (
     <BidderPullOutModalContext.Provider
       value={{
+        serviceCharge: registeredBidder?.service_charge ?? 0,
         serviceChargeAmount,
         registrationFeeAmount,
         totalItemPrice,

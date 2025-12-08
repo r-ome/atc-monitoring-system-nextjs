@@ -2,7 +2,7 @@
 
 import { SetStateAction, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, TriangleAlert } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
   Dialog,
@@ -36,7 +36,12 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
   const { selectedItems, registeredBidder } = useBidderPullOutModalContext();
   const [newSelectedItems, setNewSelectedItems] = useState<{
     [auction_inventory_id: string]: number;
-  }>();
+  }>(
+    selectedItems.reduce<Record<string, number>>((acc, item) => {
+      acc[item.auction_inventory_id] = item.price;
+      return acc;
+    }, {})
+  );
 
   useEffect(() => {
     if (!selectedItems.length) return;
@@ -58,7 +63,10 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
       auction_inventory_id: item.auction_inventory_id,
       inventory_id: item.inventory_id,
       prev_price: item.price,
-      new_price: newSelectedItems?.[item.auction_inventory_id],
+      new_price:
+        newSelectedItems?.[item.auction_inventory_id] >= item.price
+          ? item.price
+          : newSelectedItems?.[item.auction_inventory_id],
     }));
     if (!registeredBidder) return;
 
@@ -67,6 +75,8 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
       "auction_inventories",
       JSON.stringify(auctions_inventories)
     );
+    const reason = formData.get("reason") as string;
+    formData.set("reason", reason?.toUpperCase());
 
     const res = await refundAuctionsInventories(formData);
 
@@ -108,7 +118,16 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
           <DialogTitle>Refund Items</DialogTitle>
         </DialogHeader>
         <DialogDescription className="font-bold uppercase">
-          You are about to refund {selectedItems.length} items. Are you sure?
+          <div className="flex flex-col gap-2">
+            You are about to refund {selectedItems.length} items. Are you sure?
+            <div className="flex gap-2 items-center">
+              <TriangleAlert color="orange" />
+              <div>
+                If an item is declared to be FULL REFUND, DO NOT change the NEW
+                PRICE
+              </div>
+            </div>
+          </div>
         </DialogDescription>
 
         <form onSubmit={handleSubmit} id="cancel-items-modal">

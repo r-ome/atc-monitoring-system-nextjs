@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./transactions-columns";
@@ -12,6 +13,7 @@ interface AuctionTransactionsTableProps {
 export const AuctionTransactionsTable = ({
   transactions,
 }: AuctionTransactionsTableProps) => {
+  const router = useRouter();
   const globalFilterFn = (
     row: CoreRow<AuctionTransaction>,
     _columnId?: string,
@@ -30,6 +32,9 @@ export const AuctionTransactionsTable = ({
     <DataTable
       columns={columns}
       data={transactions}
+      onRowClick={(receipt) =>
+        router.push(`payments/${receipt.receipt_number}`)
+      }
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {

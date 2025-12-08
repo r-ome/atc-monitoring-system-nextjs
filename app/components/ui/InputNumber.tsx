@@ -111,17 +111,30 @@ export const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
       }
     };
 
+    // const handleBlur = () => {
+    //   if (value !== undefined) {
+    //     if (value < min) {
+    //       setValue(min);
+    //       (ref as React.RefObject<HTMLInputElement>).current!.value =
+    //         String(min);
+    //     } else if (value > max) {
+    //       setValue(max);
+    //       (ref as React.RefObject<HTMLInputElement>).current!.value =
+    //         String(max);
+    //     }
+    //   }
+    // };
+
     const handleBlur = () => {
-      if (value !== undefined) {
-        if (value < min) {
-          setValue(min);
-          (ref as React.RefObject<HTMLInputElement>).current!.value =
-            String(min);
-        } else if (value > max) {
-          setValue(max);
-          (ref as React.RefObject<HTMLInputElement>).current!.value =
-            String(max);
-        }
+      if (value === undefined) return;
+
+      let next = value;
+      if (value < min) next = min;
+      if (value > max) next = max;
+
+      if (next !== value) {
+        setValue(next);
+        onValueChange?.(next);
       }
     };
 

@@ -5,7 +5,7 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { AuctionTransaction } from "src/entities/models/Payment";
 import { Badge } from "@/app/components/ui/badge";
-import { redirect } from "next/navigation";
+import { cn } from "@/app/lib/utils";
 
 export const columns: ColumnDef<AuctionTransaction>[] = [
   {
@@ -56,7 +56,12 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
     cell: ({ row }) => {
       const receipt = row.original;
       return (
-        <div className="flex justify-center">
+        <div
+          className={cn(
+            "flex justify-center",
+            receipt.purpose === "REFUNDED" ? "text-red-500" : "text-green-500"
+          )}
+        >
           ₱ {receipt.total_amount_paid.toLocaleString()}
         </div>
       );
@@ -81,12 +86,7 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
     cell: ({ row }) => {
       const receipt = row.original;
       return (
-        <div
-          className="flex justify-center hover:cursor-pointer hover:underline"
-          onClick={() => redirect(`payments/${receipt.receipt_number}`)}
-        >
-          {receipt.receipt_number}
-        </div>
+        <div className="flex justify-center">{receipt.receipt_number}</div>
       );
     },
   },

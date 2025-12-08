@@ -8,6 +8,7 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
+import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 
 export const PaymentRepository: IPaymentRepository = {
   getPaymentsByDate: async (date) => {
@@ -161,6 +162,33 @@ export const PaymentRepository: IPaymentRepository = {
   },
   refundAuctionInventories: async (data) => {
     try {
+      /**
+       * amount_paid in payments should be positive
+       * only deduct at final UI when receipt_records.purpose is "REFUNDED"
+       *
+       * FULL REFUND SCENARIO
+       * Condition:
+       * prev_price SHOULD BE EQUAL to new_price
+       * Computation:
+       * amount_paid = getServiceChargeAmount(prev_price, service_charge);
+       * set auction_inventory.status = "REFUNDED"
+       * set auction_inventory.auction_bidder_id = "5013"/ATC ACCOUNT
+       * set inventory.status = "UNSOLD"
+       *
+       * (PARTIAL REFUND)/LESS SCENARIO
+       * Condition:
+       * prev_price SHOULD BE GREATER THAN to new_price
+       * Computation:
+       * Item(s) Total Price: P1,000
+       * item_1: P1000 (prev_price)
+       * new_price = P100
+       * refund/difference amount: P900
+       * amount_paid = getServiceChargeAmount(difference, service_charge)
+       * set auction_inventory.status = "PAID"
+       * set inventory.status = "SOLD"
+       * add inventory_history
+       */
+
       await prisma.$transaction(async (tx) => {
         const auction_bidder = await tx.auctions_bidders.findFirst({
           where: { auction_bidder_id: data.auction_bidder_id },
@@ -191,16 +219,22 @@ export const PaymentRepository: IPaymentRepository = {
         });
         const current_refunded_receipt_count = refunded_receipts.length;
 
-        const prices = data.auction_inventories.reduce(
+        const total_amount_paid = data.auction_inventories.reduce(
           (acc, item) => {
-            acc.new_price += item.new_price;
-            acc.prev_price += item.prev_price;
-            return acc;
+            return (acc +=
+              item.prev_price === item.new_price
+                ? item.prev_price
+                : item.prev_price - item.new_price);
           },
-          { new_price: 0, prev_price: 0 }
+          0
         );
 
-        console.log(prices);
+        console.log(
+          getItemPriceWithServiceChargeAmount(
+            total_amount_paid,
+            auction_bidder.service_charge
+          )
+        );
 
         const receipt = await tx.receipt_records.create({
           data: {
@@ -212,12 +246,10 @@ export const PaymentRepository: IPaymentRepository = {
             remarks: data.reason,
             payments: {
               create: {
-                amount_paid:
-                  prices.prev_price -
-                  prices.new_price +
-                  ((prices.prev_price - prices.new_price) *
-                    auction_bidder.service_charge) /
-                    100,
+                amount_paid: getItemPriceWithServiceChargeAmount(
+                  total_amount_paid,
+                  auction_bidder.service_charge
+                ),
                 payment_method_id: cash_payment_method?.payment_method_id,
               },
             },
@@ -234,7 +266,7 @@ export const PaymentRepository: IPaymentRepository = {
             }. ${
               is_full_refund
                 ? ""
-                : `From ${item.prev_price} to ${item.new_price}`
+                : `(LESS) From ${item.prev_price} to ${item.new_price}`
             }`;
 
             const auction_inventories = await tx.auctions_inventories.update({
@@ -266,8 +298,6 @@ export const PaymentRepository: IPaymentRepository = {
                 },
               },
             });
-
-            throw new Error("woops");
 
             return { auction_inventories };
           })
