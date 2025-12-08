@@ -176,14 +176,11 @@ export const InventoryRepository: IInventoryRepository = {
             (auction_inventory?.price * previous_bidder.service_charge) / 100;
 
           if (is_item_reassigned) {
-            const new_bidder_service_charge_amount =
+            const new_bidder_computed_price =
               getItemPriceWithServiceChargeAmount(
                 data.price,
                 selected_bidder.service_charge
               );
-            const new_bidder_computed_price =
-              new_bidder_service_charge_amount + data.price;
-
             // update new bidder's balance (add new price)
             await tx.auctions_bidders.update({
               where: { auction_bidder_id: selected_bidder?.auction_bidder_id },

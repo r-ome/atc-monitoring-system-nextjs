@@ -62,7 +62,10 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
             receipt.purpose === "REFUNDED" ? "text-red-500" : "text-green-500"
           )}
         >
-          ₱ {receipt.total_amount_paid.toLocaleString()}
+          ₱{" "}
+          {receipt.purpose === "REFUNDED"
+            ? `(${receipt.total_amount_paid.toLocaleString()})`
+            : receipt.total_amount_paid.toLocaleString()}
         </div>
       );
     },

@@ -30,7 +30,7 @@ export const AuctionItemActionButtons: React.FC<
   setOpenCancelDialog,
   setOpenVoidDialog,
   setOpenUpdateDialog,
-  setOpenRefundDialog,
+  // setOpenRefundDialog,
 }) => {
   const { setAuctionInventory, setAuctionBidderId } = useAuctionItemContext();
 
@@ -65,12 +65,12 @@ export const AuctionItemActionButtons: React.FC<
           Void Item
         </DropdownMenuItem>
         {/* <DropdownMenuItem>Reassign Item</DropdownMenuItem> */}
-        <DropdownMenuItem
+        {/* <DropdownMenuItem
           onClick={() => setOpenRefundDialog(true)}
           disabled={!["PAID"].includes(auctionInventory.status)}
         >
           Refund Item
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem onClick={() => setOpenUpdateDialog(true)}>
           Edit Item
         </DropdownMenuItem>

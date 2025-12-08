@@ -6,7 +6,7 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Payment } from "src/entities/models/Payment";
 import { Badge } from "@/app/components/ui/badge";
-import { formatDate } from "@/app/lib/utils";
+import { cn, formatDate } from "@/app/lib/utils";
 
 const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
   const payment = row.original;
@@ -102,9 +102,18 @@ export const columns: ColumnDef<Payment>[] = [
     },
     cell: ({ row }) => {
       const payment = row.original;
+      const amountPaid = payment.amount_paid.toLocaleString();
       return (
-        <div className="flex justify-center">
-          {payment.amount_paid.toLocaleString()}
+        <div
+          className={cn(
+            "flex justify-center",
+            payment.receipt.purpose === "REFUNDED" ? "text-red-500" : ""
+          )}
+        >
+          {payment.receipt.purpose === "REFUNDED"
+            ? `(${amountPaid})`
+            : amountPaid}
+          {}
         </div>
       );
     },
@@ -129,6 +138,7 @@ export const columns: ColumnDef<Payment>[] = [
   },
   {
     id: "payment_method.name",
+    accessorFn: (row) => row.payment_method.name,
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
@@ -152,6 +162,11 @@ export const columns: ColumnDef<Payment>[] = [
   },
   {
     accessorKey: "created_at",
+    sortingFn: (rowA, rowB, columnId) => {
+      const a = new Date(rowA.getValue<string>(columnId)).getTime();
+      const b = new Date(rowB.getValue<string>(columnId)).getTime();
+      return a - b;
+    },
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

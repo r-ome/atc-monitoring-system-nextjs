@@ -229,13 +229,6 @@ export const PaymentRepository: IPaymentRepository = {
           0
         );
 
-        console.log(
-          getItemPriceWithServiceChargeAmount(
-            total_amount_paid,
-            auction_bidder.service_charge
-          )
-        );
-
         const receipt = await tx.receipt_records.create({
           data: {
             receipt_number: `${auction_bidder.bidder.bidder_number}REF${

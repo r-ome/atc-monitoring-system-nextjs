@@ -1,6 +1,5 @@
 "use client";
 
-import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import type { RegisteredBidder } from "src/entities/models/Bidder";
 import { Button } from "@/app/components/ui/button";
@@ -30,18 +29,7 @@ export const columns: ColumnDef<RegisteredBidder>[] = [
         registeredBidder.bidder.bidder_number === "5013"
           ? "CANCELLED ITEMS"
           : `${registeredBidder.bidder.bidder_number} - ${registeredBidder.bidder.full_name}`;
-      return (
-        <div
-          className="flex justify-start hover:underline hover:cursor-pointer"
-          onClick={() => {
-            redirect(
-              `registered-bidders/${registeredBidder.bidder.bidder_number}`
-            );
-          }}
-        >
-          {name}
-        </div>
-      );
+      return <div className="flex justify-start">{name}</div>;
     },
   },
   {

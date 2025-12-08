@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import {
   Table,
   TableHead,
@@ -17,10 +17,14 @@ import { Badge } from "@/app/components/ui/badge";
 
 interface RefundItemsTableProps {
   handlePriceUpdate: (auctionInventoryId: string, newPrice: number) => void;
+  totalRefundAmount: number;
+  setTotalRefundAmount: React.Dispatch<SetStateAction<number>>;
 }
 
 export const RefundItemsTable: React.FC<RefundItemsTableProps> = ({
   handlePriceUpdate,
+  totalRefundAmount,
+  setTotalRefundAmount,
 }) => {
   const { selectedItems, serviceCharge } = useBidderPullOutModalContext();
   const [refundAmount, setRefundAmount] = useState<Record<string, number>>(
@@ -29,7 +33,7 @@ export const RefundItemsTable: React.FC<RefundItemsTableProps> = ({
       return acc;
     }, {})
   );
-  const [totalRefundAmount, setTotalRefundAmount] = useState<number>(0);
+
   const tableHeaders = [
     "Barcode",
     "Control",
@@ -47,7 +51,7 @@ export const RefundItemsTable: React.FC<RefundItemsTableProps> = ({
       0
     );
     setTotalRefundAmount(totalRefund);
-  }, [refundAmount]);
+  }, [refundAmount, setTotalRefundAmount]);
 
   return (
     <div className="mx-auto relative overflow-auto max-h-[300px]">

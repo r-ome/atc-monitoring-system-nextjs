@@ -43,10 +43,9 @@ export const BidderPullOutModalProvider = ({
   if (registeredBidder) {
     const { service_charge, already_consumed, registration_fee } =
       registeredBidder;
-    serviceChargeAmount = getItemPriceWithServiceChargeAmount(
-      totalItemPrice,
-      service_charge
-    );
+    serviceChargeAmount =
+      getItemPriceWithServiceChargeAmount(totalItemPrice, service_charge) -
+      totalItemPrice;
     registrationFeeAmount = already_consumed ? 0 : registration_fee;
     grandTotal = totalItemPrice + serviceChargeAmount - registrationFeeAmount;
   }

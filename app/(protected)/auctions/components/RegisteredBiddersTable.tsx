@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/registered-bidders-columns";
@@ -12,6 +13,7 @@ interface RegisteredBiddersProps {
 export const RegisteredBiddersTable = ({
   registeredBidders,
 }: RegisteredBiddersProps) => {
+  const router = useRouter();
   const globalFilterFn = (
     row: CoreRow<RegisteredBidder>,
     columnId?: string,
@@ -32,6 +34,11 @@ export const RegisteredBiddersTable = ({
     <DataTable
       columns={columns}
       data={registeredBidders}
+      onRowClick={(registeredBidder) =>
+        router.push(
+          `registered-bidders/${registeredBidder.bidder.bidder_number}`
+        )
+      }
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {

@@ -2,7 +2,7 @@
 
 import { SetStateAction, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Loader2Icon, TriangleAlert } from "lucide-react";
+import { Loader2Icon, TriangleAlert, OctagonAlert } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
   Dialog,
@@ -12,6 +12,16 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/app/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/components/ui/alert-dialog";
 import { RefundItemsTable } from "./RefundItemsTable";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useBidderPullOutModalContext } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/context/BidderPullOutModalContext";
@@ -20,6 +30,7 @@ import { Label } from "@/app/components/ui/label";
 import { toast } from "sonner";
 import { getRegisteredBidderByBidderNumber } from "@/app/(protected)/auctions/actions";
 import { refundAuctionsInventories } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
+import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 
 interface RefundItemsModalProps {
   open: boolean;
@@ -33,7 +44,9 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
   const { auction_date }: { auction_date: string } = useParams();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [totalRefundAmount, setTotalRefundAmount] = useState<number>(0);
   const { selectedItems, registeredBidder } = useBidderPullOutModalContext();
+  const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
   const [newSelectedItems, setNewSelectedItems] = useState<{
     [auction_inventory_id: string]: number;
   }>(
@@ -111,6 +124,8 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
     }));
   };
 
+  if (!registeredBidder) return;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="min-w-[700px]">
@@ -119,7 +134,8 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
         </DialogHeader>
         <DialogDescription className="font-bold uppercase">
           <div className="flex flex-col gap-2">
-            You are about to refund {selectedItems.length} items. Are you sure?
+            You are about to refund {selectedItems.length} item(s). Are you
+            sure?
             <div className="flex gap-2 items-center">
               <TriangleAlert color="orange" />
               <div>
@@ -130,8 +146,12 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
           </div>
         </DialogDescription>
 
-        <form onSubmit={handleSubmit} id="cancel-items-modal">
-          <RefundItemsTable handlePriceUpdate={handlePriceUpdate} />
+        <form onSubmit={handleSubmit} id="bidder-refund-form">
+          <RefundItemsTable
+            handlePriceUpdate={handlePriceUpdate}
+            totalRefundAmount={totalRefundAmount}
+            setTotalRefundAmount={setTotalRefundAmount}
+          />
 
           <div className="mx-auto flex flex-col gap-2 mt-4">
             <Label>Reason:</Label>
@@ -141,14 +161,70 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
               required
             />
           </div>
+
+          <AlertDialog open={openAlertDialog} onOpenChange={setOpenAlertDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  <div className="flex mx-auto gap-2">
+                    <OctagonAlert className="h-7 w-7 text-destructive" />
+                    BIDDER {registeredBidder?.bidder.bidder_number} REFUND
+                  </div>
+                </AlertDialogTitle>
+
+                <AlertDialogDescription>
+                  <div className="text-black">
+                    You are about to refund{" "}
+                    <span className="text-red-500">
+                      ₱
+                      {getItemPriceWithServiceChargeAmount(
+                        totalRefundAmount,
+                        registeredBidder?.bidder.service_charge
+                      ).toLocaleString()}
+                    </span>{" "}
+                    for {selectedItems.length} items associated with BIDDER{" "}
+                    {registeredBidder?.bidder.bidder_number}. Please confirm
+                    before proceeding. This action cannot be undone.
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                <AlertDialogAction asChild>
+                  <Button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => {
+                      const form = document.getElementById(
+                        "bidder-refund-form"
+                      ) as HTMLFormElement;
+
+                      form.requestSubmit();
+                    }}
+                  >
+                    {isLoading && <Loader2Icon className="animate-spin" />}
+                    Confirm
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </form>
 
         <DialogFooter className="flex sm:justify-center">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
           </DialogClose>
 
-          <Button type="submit" form="cancel-items-modal" disabled={isLoading}>
+          <Button
+            type="button"
+            onClick={() => setOpenAlertDialog(true)}
+            disabled={isLoading}
+          >
             {isLoading && <Loader2Icon className="animate-spin" />}
             Submit
           </Button>
