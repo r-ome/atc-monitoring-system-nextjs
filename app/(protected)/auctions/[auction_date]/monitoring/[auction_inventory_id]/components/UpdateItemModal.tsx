@@ -129,6 +129,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
+    setErrors(undefined);
     const formData = new FormData(event.currentTarget);
     if (!auctionInventory || !auctionId) return;
     formData.append("auction_id", auctionId);

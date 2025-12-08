@@ -247,13 +247,19 @@ export const InventoryRepository: IInventoryRepository = {
             price: data.price,
             description: data.description,
             status: auction_inventory_status,
-
             manifest_number: data.manifest_number
               ? data?.manifest_number
               : undefined,
             inventory: {
               connect: { inventory_id: data.inventory_id },
-              update: { barcode: data.barcode, control: data.control },
+              update: {
+                container_id:
+                  data.container_id !== auction_inventory.inventory.container_id
+                    ? data.container_id!
+                    : auction_inventory.inventory.container_id,
+                barcode: data.barcode,
+                control: data.control,
+              },
             },
             histories: {
               create: {

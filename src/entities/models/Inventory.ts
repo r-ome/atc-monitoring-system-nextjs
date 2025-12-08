@@ -85,6 +85,7 @@ export const AuctionInventoryUpdateSchema = z.object({
   qty: z.string(),
   manifest_number: z.string().optional().nullable(),
   bidder_number: z.string(),
+  container_id: z.string().optional().nullable(),
 });
 
 export type AuctionInventoryUpdateSchema = z.infer<
