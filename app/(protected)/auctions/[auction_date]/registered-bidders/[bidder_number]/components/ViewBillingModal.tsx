@@ -9,7 +9,6 @@ import BidderInvoiceDocument from "@/app/(protected)/auctions/[auction_date]/pay
 import RefundDocument from "@/app/(protected)/auctions/[auction_date]/payments/[receipt_number]/RefundReceipt/RefundDocument";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -154,6 +153,15 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
   };
 
   async function printPdf() {
+    if (!registeredBidder || !receipt) return;
+
+    localStorage.setItem(
+      registeredBidder.auction_bidder_id,
+      JSON.stringify(
+        receipt.auctions_inventories.map((item) => item.auction_inventory_id)
+      )
+    );
+
     const blob = await pdf(<ReceiptDocument />).toBlob();
     const url = URL.createObjectURL(blob);
     const iframe = document.createElement("iframe");
@@ -179,7 +187,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
 
         {open && receipt.auctions_inventories.length ? (
           <div className="flex-1 overflow-hidden min-h-[500px]">
-            <PDFViewer className="w-full h-full" showToolbar={false}>
+            <PDFViewer className="w-full h-full" showToolbar={true}>
               <ReceiptDocument />
             </PDFViewer>
           </div>
@@ -189,16 +197,13 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
           </div>
         )}
 
-        <DialogFooter className="pt-4">
-          <DialogClose asChild>
-            <Button onClick={() => onOpenChange(false)} variant="outline">
-              Close
+        <DialogFooter className="flex ">
+          <div className="flex justify-center w-full">
+            <Button type="button" className="" onClick={printPdf}>
+              PRINT RECEIPT
             </Button>
-          </DialogClose>
+          </div>
 
-          <Button className="w-full" onClick={printPdf}>
-            PRINT RECEIPT
-          </Button>
           {/* <PDFDownloadLink
             fileName={receipt.receipt_number}
             document={<ReceiptDocument />}

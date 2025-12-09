@@ -20,11 +20,13 @@ import { ViewBillingModal } from "./ViewBillingModal";
 interface ProfileActionButtonsProps {
   selectedItems: RegisteredBidder["auction_inventories"];
   registeredBidder: RegisteredBidder;
+  selectLastPrintedReceipt: () => void;
 }
 
 export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
   registeredBidder,
   selectedItems,
+  selectLastPrintedReceipt,
 }) => {
   const [openRefundModal, setOpenRefundModal] = useState<boolean>(false);
   const [openPullOutModal, setOpenPullOutModal] = useState<boolean>(false);
@@ -40,8 +42,6 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
     setSelectedItems(selectedItems);
   }, [selectedItems, registeredBidder, setRegisteredBidder, setSelectedItems]);
 
-  // TO DO: RESET TABLE SELECTION
-
   return (
     <>
       <DropdownMenu>
@@ -51,6 +51,12 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
         <DropdownMenuContent>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {localStorage.getItem(registeredBidder.auction_bidder_id) ? (
+            <DropdownMenuItem onClick={() => selectLastPrintedReceipt()}>
+              Select Last Printed Receipt
+            </DropdownMenuItem>
+          ) : null}
+
           <DropdownMenuItem
             onClick={() => setOpenPullOutModal(true)}
             disabled={

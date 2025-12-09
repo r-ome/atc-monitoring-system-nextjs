@@ -32,6 +32,19 @@ export function BidderItemsTable({
     );
   }, [selectedRows, auctionInventories]);
 
+  const selectLastPrintedReceipt = () => {
+    const raw = localStorage.getItem(registeredBidder?.auction_bidder_id);
+    const lastPrinted = raw ? JSON.parse(raw) : [];
+    const selection: RowSelectionState = {};
+    auctionInventories.forEach((item) => {
+      if (lastPrinted.includes(item.auction_inventory_id)) {
+        selection[item.auction_inventory_id] = true;
+      }
+    });
+
+    setSelectedRows(selection);
+  };
+
   const globalFilterFn = (
     row: CoreRow<AuctionInventory>,
     _columnId?: string,
@@ -60,6 +73,7 @@ export function BidderItemsTable({
           <ProfileActionButtons
             selectedItems={selectedItems}
             registeredBidder={registeredBidder}
+            selectLastPrintedReceipt={selectLastPrintedReceipt}
           />
         }
         searchFilter={{

@@ -80,6 +80,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (!bidderPaymentDetails) return;
     if (!openAlertDialog) {
       setOpenAlertDialog(true);
       return;
@@ -87,12 +88,10 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
 
     const formData = new FormData(event.currentTarget);
     setIsLoading(true);
-    if (bidderPaymentDetails) {
-      formData.append(
-        "auction_bidder_id",
-        bidderPaymentDetails.auction_bidder_id
-      );
-    }
+    formData.append(
+      "auction_bidder_id",
+      bidderPaymentDetails.auction_bidder_id
+    );
 
     formData.append(
       "auction_inventory_ids",
@@ -119,6 +118,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
 
     if (res) {
       if (res.ok) {
+        localStorage.removeItem(bidderPaymentDetails.auction_bidder_id);
         toast.success("Success!", {
           description: `Successfully paid ${grandTotal.toLocaleString()} from Bidder ${
             bidderPaymentDetails?.bidder.bidder_number

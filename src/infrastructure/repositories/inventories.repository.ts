@@ -246,6 +246,7 @@ export const InventoryRepository: IInventoryRepository = {
             },
             price: data.price,
             description: data.description,
+            qty: data.qty,
             status: auction_inventory_status,
             manifest_number: data.manifest_number
               ? data?.manifest_number
