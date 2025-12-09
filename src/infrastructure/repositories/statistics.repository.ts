@@ -1,4 +1,4 @@
-import prisma from "@/app/lib/prisma/prisma";
+import prisma, { tenantQuery } from "@/app/lib/prisma/prisma";
 import {
   isPrismaError,
   isPrismaValidationError,
@@ -14,7 +14,7 @@ export const StatisticsRepository: IStatisticsRepository = {
       const now = new Date();
       const month = now.getMonth() + 1;
 
-      const bidder_with_birthdates = await prisma.$queryRaw`
+      const bidder_with_birthdates = await tenantQuery`
           SELECT 
             b.bidder_id,
             b.first_name,
@@ -83,7 +83,7 @@ export const StatisticsRepository: IStatisticsRepository = {
   },
   getAuctionsStatistics: async () => {
     try {
-      const auctions = await prisma.$queryRaw`
+      const auctions = await tenantQuery`
         SELECT
           a.auction_id,
           a.created_at AS auction_date,

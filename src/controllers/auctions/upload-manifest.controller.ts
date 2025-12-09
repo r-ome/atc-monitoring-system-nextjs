@@ -60,6 +60,7 @@ export const UploadManifestController = async (
 
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
+    console.log(error);
     logger("UploadManifestController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });

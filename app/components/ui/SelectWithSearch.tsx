@@ -28,6 +28,7 @@ interface SelectWithSearch {
   modal?: boolean;
   side?: "bottom" | "top" | "right" | "left";
   defaultValue?: { label: string; value: string };
+  disabled?: boolean;
 }
 
 export const SelectWithSearch: React.FC<SelectWithSearch> = ({
@@ -37,6 +38,7 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
   defaultValue = null,
   modal = false,
   side = "bottom",
+  disabled = false,
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
@@ -54,6 +56,7 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
         <Button
           variant="outline"
           className={cn("justify-between", !search && "text-muted-foreground")}
+          disabled={disabled}
         >
           {search
             ? options.find((option) =>

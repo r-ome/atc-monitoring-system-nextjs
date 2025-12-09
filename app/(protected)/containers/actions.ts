@@ -28,8 +28,16 @@ export const getContainers = async () => {
 };
 
 export const createContainer = async (form_data: FormData) => {
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
   const data = Object.fromEntries(form_data.entries());
-  return await CreateContainerController(data);
+
+  if (!user) redirect("/login");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await CreateContainerController(data)
+  );
 };
 
 export const updateContainer = async (containerId: string, input: FormData) => {

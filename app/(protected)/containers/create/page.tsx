@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/app/components/ui/button";
 import {
   Card,
@@ -30,6 +31,7 @@ type option = Record<string, string | number | boolean>;
 
 export default function Page() {
   const router = useRouter();
+  const session = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]> | undefined>(
     undefined
@@ -39,9 +41,18 @@ export default function Page() {
     []
   );
   const [selectedSupplier, setSelectedSupplier] = useState<option | null>(null);
-  const [selectedBranch, setSelectedBranch] = useState<option | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<option | undefined>();
   const [weightInTons, setWeightInTons] = useState<number>(0);
   const [arrivalDate, setArrivalDate] = useState<Date | undefined>(undefined);
+  const user = session.data?.user;
+
+  useEffect(() => {
+    if (!user) return;
+    setSelectedBranch({
+      label: user.branch.name,
+      value: user.branch.branch_id,
+    });
+  }, [user]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -130,6 +141,12 @@ export default function Page() {
                         value: branch.branch_id,
                       }))}
                       setSelected={setSelectedBranch}
+                      defaultValue={
+                        selectedBranch as { label: string; value: string }
+                      }
+                      disabled={
+                        !["OWNER", "SUPER_ADMIN"].includes(user?.role ?? "")
+                      }
                     />
                   ) : (
                     <Skeleton className="w-full h-[36px]" />

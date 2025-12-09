@@ -16,9 +16,51 @@ const base =
     ],
   });
 
+// base.$on("query", (e) => {
+//   console.log("Query: " + e.query);
+//   console.log("Params: " + e.params);
+//   console.log("Duration: " + e.duration + "ms");
+// });
+
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = base;
 
-const MODELS_WITH_BRANCH = new Set(["bidders", "containers"]);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BRANCH_FILTERS: Record<string, any> = {
+  bidders: { branch_id: undefined },
+  containers: { branch_id: undefined },
+  auctions: { branch_id: undefined },
+  auctions_bidders: { auctions: { branch_id: undefined } },
+  auctions_inventories: {
+    auction_bidder: {
+      auctions: { branch_id: undefined },
+    },
+  },
+  inventories: { container: { branch_id: undefined } },
+  receipt_records: {
+    auction_bidder: { auctions: { branch_id: undefined } },
+  },
+  payments: {
+    receipt: {
+      auction_bidder: { auctions: { branch_id: undefined } },
+    },
+  },
+  manifest_records: { auction: { branch_id: undefined } },
+};
+
+function buildBranchWhere(model: string, branch_id: string) {
+  const template = BRANCH_FILTERS[model];
+  if (!template) return {};
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deepClone = (obj: any) =>
+    JSON.parse(
+      JSON.stringify(obj, (_, v) => (v === undefined ? branch_id : v))
+    );
+
+  return deepClone(template);
+}
+
+const SUPER_ADMIN_BRANCH = "31d71536-2a70-4087-ab7e-155ce3e23815";
 
 const prisma = base.$extends({
   query: {
@@ -29,59 +71,98 @@ const prisma = base.$extends({
 
         const { branch_id } = ctx;
 
-        const opsWithWhere: Array<typeof operation> = ["findMany", "findFirst"];
+        // super admin bypass
+        if (branch_id === SUPER_ADMIN_BRANCH) return query(args);
 
-        if (opsWithWhere.includes(operation)) {
+        const modelHasBranch = BRANCH_FILTERS[model] !== undefined;
+        const branchWhere = modelHasBranch
+          ? buildBranchWhere(model, branch_id)
+          : {};
+
+        if (operation === "findMany" || operation === "findFirst") {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const currentWhere = (args as any).where ?? {};
-
-          const hasExistingWhere =
-            currentWhere && Object.keys(currentWhere).length > 0;
-
-          const AND: Record<string, string>[] = [];
-
-          if (hasExistingWhere) {
-            AND.push(currentWhere);
-          }
-
-          if (
-            branch_id !== "31d71536-2a70-4087-ab7e-155ce3e23815" &&
-            MODELS_WITH_BRANCH.has(model)
-          ) {
-            AND.push({ branch_id });
-          }
-
-          if (AND.length > 0) {
-            return query({
-              ...args,
-              where: { AND },
-            });
-          }
+          const where = (args as any).where ?? {};
+          return query({
+            ...args,
+            where: { AND: [where, branchWhere] },
+          });
         }
 
-        // const opsWithData = [
-        //   "create",
-        //   "createMany",
-        //   "update",
-        //   "updateMany",
-        //   "upsert",
-        // ];
-        // if (opsWithData.includes(operation)) {
-        //   if ("data" in args && args.data) {
-        //     if (
-        //       branch_id !== null &&
-        //       MODELS_WITH_BRANCH.has(model) &&
-        //       !("branch_id" in args.data)
-        //     ) {
-        //       (args.data as any).branch_id = branch_id;
-        //     }
-        //   }
-        // }
+        if (operation === "findUnique") {
+          return query({
+            ...args,
+            where: {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              AND: [(args as any).where, branchWhere],
+            },
+          });
+        }
+
+        if (operation === "update" || operation === "delete") {
+          return query({
+            ...args,
+            where: {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              AND: [(args as any).where, branchWhere],
+            },
+          });
+        }
+
+        if (operation === "updateMany" || operation === "deleteMany") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const where = (args as any).where ?? {};
+          return query({
+            ...args,
+            where: {
+              AND: [where, branchWhere],
+            },
+          });
+        }
+
+        if (operation === "create") {
+          return query({
+            ...args,
+            data: {
+              ...args.data,
+              ...(BRANCH_FILTERS[model].branch_id !== undefined
+                ? { branch_id }
+                : {}),
+            },
+          });
+        }
+
+        if (operation === "createMany") {
+          const dataArray = Array.isArray(args.data) ? args.data : [];
+          return query({
+            ...args,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data: dataArray.map((d: any) => ({
+              ...d,
+              ...(BRANCH_FILTERS[model].branch_id !== undefined
+                ? { branch_id }
+                : {}),
+            })),
+          });
+        }
 
         return query(args);
       },
     },
   },
 });
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function tenantQuery(sql: TemplateStringsArray, ...params: any[]) {
+  const ctx = RequestContext.getStore();
+  if (!ctx) return;
+  const branch_id = ctx.branch_id;
+
+  const sqlStr = sql.join("?");
+  const secured = sqlStr.includes("WHERE")
+    ? sqlStr.replace(/WHERE/i, `WHERE a.branch_id = '${branch_id}' AND `)
+    : sqlStr + ` WHERE a.branch_id = '${branch_id}'`;
+
+  return prisma.$queryRawUnsafe(secured, ...params);
+}
 
 export default prisma;

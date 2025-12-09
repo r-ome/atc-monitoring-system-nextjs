@@ -13,6 +13,8 @@ model auctions {
   created_at         DateTime           @default(now()) @db.Timestamp(0)
   updated_at         DateTime           @default(now()) @updatedAt @db.DateTime(0)
   deleted_at         DateTime?          @db.DateTime(0)
+  branch_id          String             @default("bd163cce-98e5-4513-b69e-875bd89c5f5c")
+  branch             branches           @relation(fields: [branch_id], references: [branch_id])
   registered_bidders auctions_bidders[]
   manifest_records   manifest_records[]
   counter_check      counter_check[]
@@ -126,6 +128,7 @@ model branches {
   containers containers[]
   users      users[]
   bidders    bidders[]
+  auctions   auctions[]
 }
 
 model containers {

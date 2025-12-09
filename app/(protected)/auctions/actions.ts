@@ -1,5 +1,9 @@
 "use server";
 
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/app/lib/auth";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { GetAuctionController } from "src/controllers/auctions/get-auction.controller";
 import { StartAuctionController } from "src/controllers/auctions/start-auction.controller";
 import { RegisterBidderController } from "src/controllers/auctions/register-bidder.controller";
@@ -19,11 +23,27 @@ import { UpdateBidderRegistrationController } from "src/controllers/auctions/upd
 import { UnregisterBidderController } from "src/controllers/auctions/unregister-bidder.controller";
 
 export const startAuction = async (auctionDate: string) => {
-  return await StartAuctionController(auctionDate);
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+
+  if (!user) redirect("/login");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await StartAuctionController(auctionDate)
+  );
 };
 
 export const getAuction = async (auctionDate: string) => {
-  return await GetAuctionController(new Date(auctionDate));
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+
+  if (!user) redirect("/login");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetAuctionController(new Date(auctionDate))
+  );
 };
 
 export const registerBidder = async (input: FormData) => {
@@ -38,12 +58,28 @@ export const getRegisteredBidders = async (auctionId: string) => {
 };
 
 export const getMonitoring = async (auctionId: string) => {
-  return await GetMonitoringController(auctionId);
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+
+  if (!user) redirect("/login");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetMonitoringController(auctionId)
+  );
 };
 
 export const uploadManifest = async (auctionId: string, formData: FormData) => {
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
   const file = formData.get("file");
-  return await UploadManifestController(auctionId, file as File);
+
+  if (!user) redirect("/login");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => UploadManifestController(auctionId, file as File)
+  );
 };
 
 export const getManifestRecords = async (auctionId: string) => {

@@ -1,5 +1,9 @@
 "use server";
 
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/app/lib/auth";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { GetExpensesByDateController } from "src/controllers/expenses/get-expenses-by-date.controller";
 import { RefundAuctionsInventoriesController } from "src/controllers/inventories/refund-auctions-inventories.controller";
 import { GetAuctionTransactionsController } from "src/controllers/payments/get-auction-transactions.controller";
@@ -13,8 +17,15 @@ import { UpdateExpenseController } from "src/controllers/payments/update-expense
 import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
 
 export const getPaymentsByDate = async (date: string) => {
-  const input = new Date(date);
-  return await GetPaymentsByDateController(input);
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+
+  if (!user) redirect("/login");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetPaymentsByDateController(new Date(date))
+  );
 };
 
 export const getAuctionTransactions = async (auction_id: string) => {
