@@ -14,7 +14,8 @@ export const StatisticsRepository: IStatisticsRepository = {
       const now = new Date();
       const month = now.getMonth() + 1;
 
-      const bidder_with_birthdates = await tenantQuery`
+      const bidder_with_birthdates = await tenantQuery({
+        sql: `
           SELECT 
             b.bidder_id,
             b.first_name,
@@ -33,7 +34,9 @@ export const StatisticsRepository: IStatisticsRepository = {
             )
           WHERE MONTH(b.birthdate) = ${month}
           ORDER BY DAY(b.birthdate);
-        `;
+        `,
+        table: "b",
+      });
 
       return bidder_with_birthdates as BiddersWithBirthdatesAndRecentAuctionSchema[];
     } catch (error) {
@@ -83,7 +86,8 @@ export const StatisticsRepository: IStatisticsRepository = {
   },
   getAuctionsStatistics: async () => {
     try {
-      const auctions = await tenantQuery`
+      const auctions = await tenantQuery({
+        sql: `
         SELECT
           a.auction_id,
           a.created_at AS auction_date,
@@ -103,7 +107,9 @@ export const StatisticsRepository: IStatisticsRepository = {
         LEFT JOIN containers c ON c.container_id = i.container_id
         GROUP BY a.auction_id, a.created_at
         ORDER BY a.created_at DESC
-      `;
+      `,
+        table: "a",
+      });
 
       return auctions as AuctionsStatisticsSchema[];
     } catch (error) {

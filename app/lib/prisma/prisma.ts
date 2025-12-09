@@ -152,17 +152,50 @@ const prisma = base.$extends({
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function tenantQuery(sql: TemplateStringsArray, ...params: any[]) {
+export async function tenantQuery({
+  sql,
+  table,
+  params = [],
+}: {
+  sql: string;
+  table: string;
+  params?: any[];
+}) {
   const ctx = RequestContext.getStore();
-  if (!ctx) return;
-  const branch_id = ctx.branch_id;
+  if (!ctx) throw new Error("Missing tenant context");
 
-  const sqlStr = sql.join("?");
-  const secured = sqlStr.includes("WHERE")
-    ? sqlStr.replace(/WHERE/i, `WHERE a.branch_id = '${branch_id}' AND `)
-    : sqlStr + ` WHERE a.branch_id = '${branch_id}'`;
+  const { branch_id } = ctx;
+  if (branch_id === SUPER_ADMIN_BRANCH) {
+    return prisma.$queryRawUnsafe(sql, ...params);
+  }
 
-  return prisma.$queryRawUnsafe(secured, ...params);
+  const branchClause = `${table}.branch_id = '${branch_id}'`;
+
+  const upperSQL = sql.toUpperCase();
+  let finalSQL = sql;
+  if (upperSQL.includes("WHERE")) {
+    finalSQL = sql.replace(/WHERE/i, `WHERE ${branchClause} AND `);
+
+    return prisma.$queryRawUnsafe(finalSQL, ...params);
+  }
+
+  const keywords = ["GROUP BY", "HAVING", "ORDER BY", "LIMIT"];
+  let inserted = false;
+
+  for (const keyword of keywords) {
+    const idx = upperSQL.indexOf(keyword);
+    if (idx !== -1) {
+      finalSQL = sql.slice(0, idx) + `WHERE ${branchClause}\n` + sql.slice(idx);
+      inserted = true;
+      break;
+    }
+  }
+
+  if (inserted) {
+    return prisma.$queryRawUnsafe(finalSQL, ...params);
+  }
+  finalSQL = `${sql}\nWHERE ${branchClause}`;
+  return prisma.$queryRawUnsafe(finalSQL, ...params);
 }
 
 export default prisma;
