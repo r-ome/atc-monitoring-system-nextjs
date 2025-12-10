@@ -8,6 +8,7 @@ import {
   generateCashFlow,
   generateBillReport,
   generateMonthlyCommission,
+  generateUnpaidBidders,
 } from ".";
 
 export type Monitoring = {
@@ -27,7 +28,8 @@ type ReportTypes =
   | "bill"
   | "bought_items"
   | "cash_flow"
-  | "monthly_commission";
+  | "monthly_commission"
+  | "unpaid_bidders";
 
 const generateReport = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,6 +113,14 @@ const generateReport = (
     xlsx.utils.book_append_sheet(
       workbook,
       generateMonthlyCommission(data, workbook),
+      "FINAL COMPUTATION"
+    );
+  }
+
+  if (reports.includes("unpaid_bidders")) {
+    xlsx.utils.book_append_sheet(
+      workbook,
+      generateUnpaidBidders(data),
       "FINAL COMPUTATION"
     );
   }

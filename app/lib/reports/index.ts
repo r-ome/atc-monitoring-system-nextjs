@@ -8,6 +8,7 @@ import generateReport from "./generateReport";
 import generateCashFlow from "./generateCashFlow";
 import generateBillReport from "./generateBillReport";
 import generateMonthlyCommission from "./generateMonthlyCommission";
+import generateUnpaidBidders from "./generateUnpaidBidders";
 
 export {
   generateReport,
@@ -20,4 +21,5 @@ export {
   generateCashFlow,
   generateBillReport,
   generateMonthlyCommission,
+  generateUnpaidBidders,
 };

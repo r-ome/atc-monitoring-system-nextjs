@@ -151,7 +151,6 @@ const prisma = base.$extends({
   },
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function tenantQuery({
   sql,
   table,
@@ -159,6 +158,7 @@ export async function tenantQuery({
 }: {
   sql: string;
   table: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: any[];
 }) {
   const ctx = RequestContext.getStore();
