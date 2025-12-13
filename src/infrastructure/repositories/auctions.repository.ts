@@ -168,7 +168,6 @@ export const AuctionRepository: IAuctionRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        console.error(error);
         throw new DatabaseOperationError("Error registering bidder", {
           cause: error.message,
         });
@@ -889,7 +888,6 @@ export const AuctionRepository: IAuctionRepository = {
         { maxWait: 10000, timeout: 30000 }
       );
     } catch (error) {
-      console.log(error);
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError(error.message, {
           cause: error.message,
@@ -920,7 +918,6 @@ export const AuctionRepository: IAuctionRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        console.error(error);
         throw new DatabaseOperationError("Error registering bidder", {
           cause: error.message,
         });

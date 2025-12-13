@@ -271,7 +271,15 @@ export const removeManifestDuplicates = (
 
   return data.map((item) => {
     if (!item.isValid) return item;
-    const key = `${item.BARCODE}-${item.CONTROL}`;
+    let key = item.BARCODE;
+    if (item.BARCODE.split("-").length === 3) {
+      key = item.BARCODE;
+    }
+
+    if (item.BARCODE.split("-").length === 2) {
+      key = `${item.BARCODE}-${item.CONTROL}`;
+    }
+
     if (seen.has(key)) {
       return { ...item, isValid: false, error: "DUPLICATE MANIFEST" };
     } else {
