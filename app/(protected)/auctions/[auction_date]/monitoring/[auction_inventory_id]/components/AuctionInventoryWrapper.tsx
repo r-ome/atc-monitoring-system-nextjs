@@ -68,28 +68,30 @@ export const AuctionInventoryWrapper: React.FC<
     </div>
   );
 
-  const StatusBadgeComponent = () => (
-    <>
-      <Badge
-        variant={
-          ["UNPAID", "CANCELLED"].includes(auctionInventory.status)
-            ? "destructive"
-            : "success"
-        }
-      >
-        {auctionInventory.status}
-      </Badge>
-      <Badge
-        variant={
-          ["UNSOLD", "VOID"].includes(auctionInventory.inventory.status)
-            ? "destructive"
-            : "success"
-        }
-      >
-        {auctionInventory.inventory.status}
-      </Badge>
-    </>
-  );
+  const StatusBadgeComponent = () => {
+    const auctionInventoryStatusVariant =
+      auctionInventory.status === "PARTIAL"
+        ? "warning"
+        : ["UNPAID", "CANCELLED"].includes(auctionInventory.status)
+        ? "destructive"
+        : "success";
+    return (
+      <>
+        <Badge variant={auctionInventoryStatusVariant}>
+          {auctionInventory.status}
+        </Badge>
+        <Badge
+          variant={
+            ["UNSOLD", "VOID"].includes(auctionInventory.inventory.status)
+              ? "destructive"
+              : "success"
+          }
+        >
+          {auctionInventory.inventory.status}
+        </Badge>
+      </>
+    );
+  };
 
   return (
     <AuctionItemProvider>

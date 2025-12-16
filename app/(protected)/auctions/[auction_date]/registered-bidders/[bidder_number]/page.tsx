@@ -31,7 +31,23 @@ export default async function Page({
   const bidder = res.value;
 
   const totalUnpaidItemsPrice = bidder.auction_inventories
-    .filter((item) => item.status === "UNPAID")
+    .filter((item) => ["UNPAID", "PARTIAL"].includes(item.status))
+    .map((item) => {
+      if (item.status === "UNPAID") return item;
+      const historyWithUpdatedPrice = item.histories.find((history) =>
+        history.remarks?.includes("Updated price:")
+      );
+      if (historyWithUpdatedPrice && historyWithUpdatedPrice.remarks) {
+        const prices = historyWithUpdatedPrice.remarks
+          .match(/\d+/g)
+          ?.map(Number);
+
+        if (prices) {
+          item.price = prices[1] - prices[0];
+        }
+      }
+      return item;
+    })
     .reduce((acc, item) => (acc += item.price), 0);
 
   const serviceChargeAmount =

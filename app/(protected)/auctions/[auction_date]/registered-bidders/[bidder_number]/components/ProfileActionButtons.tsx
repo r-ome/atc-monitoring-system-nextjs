@@ -60,9 +60,9 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
           <DropdownMenuItem
             onClick={() => setOpenPullOutModal(true)}
             disabled={
-              selectedItems.some((item) =>
-                ["PAID", "CANCELLED"].includes(item.status)
-              ) || !selectedItems.length
+              !selectedItems.length ||
+              new Set(selectedItems.map((i) => i.status)).size !== 1 ||
+              ["PAID", "CANCELLED"].includes(selectedItems[0]?.status)
             }
           >
             Pull Out

@@ -65,19 +65,6 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
   const [auctionId, setAuctionId] = useState<string>("");
   const [newAuctionInventory, setNewAuctionInventory] =
     useState<UpdateItemForm>({});
-  const [inventories, setInventories] = useState<
-    {
-      inventory_id: string;
-      barcode: string;
-      control: string;
-      created_at: string;
-    }[]
-  >([]);
-  const [selectedInventory, setSelectedInventory] = useState<{
-    label: string;
-    value: string;
-  }>();
-
   useEffect(() => {
     setNewAuctionInventory({
       barcode: auctionInventory?.inventory.barcode,
@@ -105,7 +92,6 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
       if (!registered_bidders_res.ok) return;
 
       setAuctionId(auction.auction_id);
-      setInventories(inventories_res.value);
 
       const registered_bidders = registered_bidders_res.value;
       setRegisteredBidders(registered_bidders);
@@ -138,9 +124,6 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
       auctionInventory.auction_inventory_id
     );
     formData.append("inventory_id", auctionInventory.inventory_id);
-    if (selectedInventory) {
-      formData.set("inventory_id", selectedInventory.value);
-    }
     if (selectedBidder) {
       formData.append("bidder_number", selectedBidder.value);
     }
@@ -271,24 +254,6 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                       label: item.bidder.bidder_number,
                       value: item.bidder.bidder_number,
                     }))}
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Label className="w-30">Inventory:</Label>
-              <div className="w-full">
-                <SelectWithSearch
-                  defaultValue={selectedBidder}
-                  placeholder="Select a inventory"
-                  setSelected={(selected) =>
-                    setSelectedInventory(
-                      selected as { label: string; value: string }
-                    )
-                  }
-                  options={inventories.map((item) => ({
-                    label: `${item.barcode} (${item.control}) (${item.created_at})`,
-                    value: item.inventory_id,
-                  }))}
                 />
               </div>
             </div>

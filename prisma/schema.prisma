@@ -334,6 +334,7 @@ enum payments_purpose {
   PULL_OUT
   REFUNDED
   LESS
+  ADD_ON
 }
 
 enum inventories_status {
@@ -344,6 +345,7 @@ enum inventories_status {
 }
 
 enum auction_inventory_status {
+  PARTIAL
   PAID
   UNPAID
   CANCELLED

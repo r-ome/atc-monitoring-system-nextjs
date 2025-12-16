@@ -219,6 +219,24 @@ export const InventoryRepository: IInventoryRepository = {
           }
         }
 
+        // if item that is updated has a higher price compared to previous price
+        if (
+          auction_inventory_status === "PAID" &&
+          data.price > auction_inventory.price
+        ) {
+          auction_inventory_status = "PARTIAL";
+          const new_computed_price = getItemPriceWithServiceChargeAmount(
+            data.price - auction_inventory.price,
+            selected_bidder.service_charge
+          );
+
+          // update new bidder's balance (add new price)
+          await tx.auctions_bidders.update({
+            where: { auction_bidder_id: selected_bidder?.auction_bidder_id },
+            data: { balance: { increment: new_computed_price } },
+          });
+        }
+
         const previous_values: Record<string, string | number | null> = {
           barcode: auction_inventory.inventory.barcode,
           control: auction_inventory.inventory.control,
@@ -237,6 +255,8 @@ export const InventoryRepository: IInventoryRepository = {
 
           return false;
         });
+
+        console.log({ auction_inventory_status });
 
         await tx.auctions_inventories.update({
           where: { auction_inventory_id: data.auction_inventory_id },

@@ -66,17 +66,16 @@ export const columns: ColumnDef<AuctionInventory>[] = [
     },
     cell: ({ getValue }) => {
       const status = getValue<string>();
+      const variant =
+        status === "PARTIAL"
+          ? "warning"
+          : ["CANCELLED", "UNPAID", "REFUNDED"].includes(status)
+          ? "destructive"
+          : "success";
+
       return (
         <div className="flex justify-center">
-          <Badge
-            variant={
-              ["CANCELLED", "UNPAID", "REFUNDED"].includes(status)
-                ? "destructive"
-                : "success"
-            }
-          >
-            {status}
-          </Badge>
+          <Badge variant={variant}>{status}</Badge>
         </div>
       );
     },

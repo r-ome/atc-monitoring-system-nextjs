@@ -11,6 +11,8 @@ const badgeVariants = cva(
       variant: {
         default:
           "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+        warning:
+          "border-transparent bg-amber-500 text-white [a&]:hover:bg-amber/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-amber/40 dark:bg-amber/60",
         success:
           "border-transparent bg-green-500 text-white [a&]:hover:bg-green-500/90 focus-visible:ring-green-500/20 dark:focus-visible:ring-destructive/40 dark:bg-green-500/60",
         secondary:

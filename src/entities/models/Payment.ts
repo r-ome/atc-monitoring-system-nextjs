@@ -9,9 +9,15 @@ export const PAYMENT_PURPOSE = [
   "PULL_OUT",
   "REFUNDED",
   "LESS",
+  "ADD_ON",
 ] as const;
 
-export type PAYMENT_PURPOSE = "REGISTRATION" | "PULL_OUT" | "REFUNDED" | "LESS";
+export type PAYMENT_PURPOSE =
+  | "REGISTRATION"
+  | "PULL_OUT"
+  | "REFUNDED"
+  | "LESS"
+  | "ADD_ON";
 export type PaymentSchema = Prisma.paymentsGetPayload<{
   include: {
     payment_method: true;

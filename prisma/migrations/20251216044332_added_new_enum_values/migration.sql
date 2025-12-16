@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE `auctions_inventories` MODIFY `status` ENUM('PARTIAL', 'PAID', 'UNPAID', 'CANCELLED', 'REFUNDED', 'DISCREPANCY') NOT NULL DEFAULT 'UNPAID';
+
+-- AlterTable
+ALTER TABLE `inventory_histories` MODIFY `auction_status` ENUM('PARTIAL', 'PAID', 'UNPAID', 'CANCELLED', 'REFUNDED', 'DISCREPANCY') NOT NULL;
+
+-- AlterTable
+ALTER TABLE `receipt_records` MODIFY `purpose` ENUM('REGISTRATION', 'PULL_OUT', 'REFUNDED', 'LESS', 'ADD_ON') NOT NULL DEFAULT 'REGISTRATION';

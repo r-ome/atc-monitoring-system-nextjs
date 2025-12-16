@@ -77,10 +77,21 @@ export const PaymentRepository: IPaymentRepository = {
           });
         }
 
+        // get status if PARTIAL or UNPAID
+        const auction_item = await tx.auctions_inventories.findFirst({
+          select: { status: true },
+          where: { auction_inventory_id: data.auction_inventory_ids[0] },
+        });
+
+        let status = "UNPAID";
+        if (auction_item) {
+          status = auction_item.status;
+        }
+
         const receipt = await tx.receipt_records.findFirst({
           where: {
             auction_bidder_id: data.auction_bidder_id,
-            purpose: "PULL_OUT",
+            purpose: status === "UNPAID" ? "PULL_OUT" : "ADD_ON",
           },
         });
 
@@ -89,9 +100,12 @@ export const PaymentRepository: IPaymentRepository = {
           pull_out_number = parseInt(receipt.receipt_number.split("-")[1], 10);
         }
 
-        const receipt_number = `${registered_bidder.bidder.bidder_number}-${
-          pull_out_number + 1
-        }`;
+        const receipt_number =
+          status === "UNPAID"
+            ? `${registered_bidder.bidder.bidder_number}-${pull_out_number + 1}`
+            : `${registered_bidder.bidder.bidder_number}(AO)-${
+                pull_out_number + 1
+              }`;
 
         const auction_inventories = await tx.auctions_inventories.findMany({
           where: { auction_inventory_id: { in: data.auction_inventory_ids } },
@@ -100,7 +114,7 @@ export const PaymentRepository: IPaymentRepository = {
         const created_receipt = await tx.receipt_records.create({
           data: {
             receipt_number,
-            purpose: "PULL_OUT",
+            purpose: status === "UNPAID" ? "PULL_OUT" : "ADD_ON",
             auction_bidder_id: data.auction_bidder_id,
             inventory_histories: {
               create: auction_inventories.map((auction_inventory) => ({

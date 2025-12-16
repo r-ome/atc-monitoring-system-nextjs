@@ -891,7 +891,6 @@ export const AuctionRepository: IAuctionRepository = {
             )
           );
 
-          throw new Error("wwops");
           return manifest;
         },
         { maxWait: 10000, timeout: 30000 }

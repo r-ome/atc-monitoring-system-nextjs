@@ -9,6 +9,7 @@ export const AUCTION_ITEM_STATUS = [
   "CANCELLED",
   "REFUNDED",
   "DISCREPANCY",
+  "PARTIAL",
 ] as const;
 
 export type AUCTION_ITEM_STATUS =
@@ -16,7 +17,8 @@ export type AUCTION_ITEM_STATUS =
   | "UNPAID"
   | "CANCELLED"
   | "REFUNDED"
-  | "DISCREPANCY";
+  | "DISCREPANCY"
+  | "PARTIAL";
 
 export type AuctionSchema = Prisma.auctionsGetPayload<{
   include: {
