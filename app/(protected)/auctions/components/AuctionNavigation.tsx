@@ -48,11 +48,11 @@ export const AuctionNavigation = () => {
   ];
 
   return (
-    <div className="flex w-full gap-4 mt-4">
+    <div className="flex flex-col gap-y-2 md:flex-row md:gap-2 mt-4 w-full">
       {auctionNavigation.map((item, i) => (
         <Card
           className={cn(
-            "w-full cursor-pointer shadow-sm hover:shadow-md",
+            "w-full cursor-pointer shadow-sm hover:shadow-lg",
             item.not_allowed_roles?.includes(
               session.data?.user.role as string
             ) && "hidden"
