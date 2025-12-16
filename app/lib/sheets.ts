@@ -10,11 +10,6 @@ import {
 } from "src/entities/models/Inventory";
 import { ContainerSchema } from "src/entities/models/Container";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
-import {
-  CounterCheckRecord,
-  CounterCheckInsertSchema,
-  CounterCheckSchema,
-} from "src/entities/models/CounterCheck";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { InputParseError } from "src/entities/errors/common";
 import { logger } from "./logger";
@@ -49,20 +44,28 @@ export const getSheetData = (
       data = data
         .slice(1)
         .map<Record<string, string>>((item) =>
-          headers.reduce(
-            (acc, header, headerIndex) => ({
+          headers.reduce((acc) => {
+            const cleaned = Object.fromEntries(
+              Object.entries(item).filter(([key]) => !key.startsWith("__EMPTY"))
+            );
+
+            return {
               ...acc,
-              [header]: Object.values(item)[headerIndex],
-            }),
-            {}
-          )
+              CONTROL: Object.values(cleaned)[3], // CONTROL
+              PAGE: Object.values(cleaned)[0], // PAGE#,
+              BIDDER: Object.values(cleaned)[4], // BIDDER,
+              PRICE: Object.values(cleaned)[5], // PRICE,
+            };
+          }, {})
         )
-        .map((item1) => ({
-          PAGE: item1["PAGE#"].toString(),
-          CONTROL: item1.CONTROL,
-          PRICE: item1["TOTAL SALES"].toString(),
-          BIDDER: item1.BIDDER,
-        }));
+        .map((item1) => {
+          return {
+            PAGE: item1["PAGE"] ? item1["PAGE"].toString() : "",
+            CONTROL: formatNumberPadding(item1.CONTROL, 4) ?? "",
+            PRICE: item1["PRICE"] ? item1["PRICE"].toString() : "",
+            BIDDER: formatNumberPadding(item1.BIDDER, 4) ?? "",
+          };
+        });
     }
 
     if (type === "manifest") {
@@ -434,34 +437,5 @@ export const removeMonitoringDuplicates = (
     }
 
     return sheet_item;
-  });
-};
-
-export const removeCounterCheckDuplicates = (
-  data: CounterCheckInsertSchema[],
-  counterCheck: CounterCheckSchema[]
-) => {
-  const something2 = counterCheck.map((item) =>
-    JSON.stringify({
-      PAGE: item.page,
-      CONTROL: item.control,
-      PRICE: item.price,
-      BIDDER: item.bidder_number,
-    })
-  );
-
-  return data.map((item) => {
-    const fields = JSON.stringify({
-      PAGE: item.PAGE,
-      CONTROL: item.CONTROL,
-      PRICE: item.PRICE,
-      BIDDER: item.BIDDER,
-    });
-
-    if (something2.includes(fields)) {
-      item.isValid = false;
-    }
-
-    return item;
   });
 };

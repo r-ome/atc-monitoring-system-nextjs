@@ -6,15 +6,18 @@ import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./monitoring-columns";
 import { buildGroupIndexMap } from "@/app/lib/utils";
+import { CounterCheck } from "src/entities/models/CounterCheck";
 
 interface MonitoringTableProps {
   monitoring: AuctionsInventory[];
   isMasterList?: boolean;
+  counterCheck?: CounterCheck[];
 }
 
 export const MonitoringTable = ({
   monitoring,
   isMasterList = false,
+  counterCheck = [],
 }: MonitoringTableProps) => {
   const globalFilterFn = (
     row: CoreRow<AuctionsInventory>,
@@ -49,7 +52,7 @@ export const MonitoringTable = ({
   return (
     <DataTable
       pageSize={isMasterList ? 20 : 10}
-      columns={columns(groupIndexMap, isMasterList)}
+      columns={columns(groupIndexMap, isMasterList, counterCheck)}
       data={monitoring}
       columnFilter={{
         column: "status",

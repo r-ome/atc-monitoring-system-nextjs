@@ -694,16 +694,16 @@ export const AuctionRepository: IAuctionRepository = {
   },
   uploadCounterCheck: async (auction_id, data) => {
     try {
-      const valid_rows_in_sheet = data.filter((item) => item.isValid);
+      // const valid_rows_in_sheet = data.filter((item) => item.isValid);
 
       const counter_check_records = await prisma.counter_check.createMany({
-        data: valid_rows_in_sheet.map((item) => ({
+        data: data.map((item) => ({
           auction_id,
           control: item.CONTROL,
           price: item.PRICE.toString(),
           page: item.PAGE,
           bidder_number: item.BIDDER,
-          error: item.error,
+          // error: item.error,
         })),
       });
 
@@ -810,9 +810,16 @@ export const AuctionRepository: IAuctionRepository = {
           });
 
           const auction_inventories = valid_rows_in_sheet.map((item) => {
-            const match = newly_created_inventories.find(
-              (inventory) => inventory.barcode === item.barcode
-            );
+            const match = newly_created_inventories.find((inventory) => {
+              if (item.barcode.length === 3) {
+                return item.barcode === inventory.barcode;
+              } else {
+                return (
+                  item.barcode === inventory.barcode &&
+                  item.control === inventory.control
+                );
+              }
+            });
             if (!item.auction_bidder_id) {
               throw new Error("Auction Bidder ID does not exist");
             }
@@ -843,6 +850,7 @@ export const AuctionRepository: IAuctionRepository = {
               })
             )
           );
+
           const auctions_inventories = await tx.auctions_inventories.findMany({
             include: { histories: true },
             where: {
@@ -883,6 +891,7 @@ export const AuctionRepository: IAuctionRepository = {
             )
           );
 
+          throw new Error("wwops");
           return manifest;
         },
         { maxWait: 10000, timeout: 30000 }

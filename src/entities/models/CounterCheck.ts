@@ -22,8 +22,8 @@ export const CounterCheckInsertSchema = z.object({
   BIDDER: z.string(),
   PRICE: z.coerce.string(),
   PAGE: z.coerce.string(),
-  error: z.string(),
-  isValid: z.boolean(),
+  // error: z.string(),
+  // isValid: z.boolean(),
 });
 
 export type CounterCheckInsertSchema = z.infer<typeof CounterCheckInsertSchema>;

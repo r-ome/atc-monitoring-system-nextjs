@@ -36,8 +36,12 @@ export const CounterCheckTable = ({ counterCheck }: CounterCheckTableProps) => {
       />
 
       <DataTable
-        columns={columns(setOpen, setSelected)}
+        columns={columns()}
         data={counterCheck}
+        onRowClick={(row) => {
+          setOpen(true);
+          setSelected(row);
+        }}
         searchFilter={{
           globalFilterFn,
           searchComponentProps: {

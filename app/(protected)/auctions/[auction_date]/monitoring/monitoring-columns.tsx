@@ -8,6 +8,22 @@ import { Badge } from "@/app/components/ui/badge";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { createGroupSortingFn } from "@/app/lib/utils";
 import { cn } from "@/app/lib/utils";
+import { CounterCheck } from "src/entities/models/CounterCheck";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/components/ui/popover";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/app/components/ui/table";
 
 const controlGroupSortingFn = createGroupSortingFn<AuctionsInventory, string>(
   (row) => row.is_slash_item ?? row.auction_inventory_id,
@@ -17,7 +33,8 @@ const controlGroupSortingFn = createGroupSortingFn<AuctionsInventory, string>(
 
 export const columns = (
   slashGroupMap: Record<string, number>,
-  isMasterList = false
+  isMasterList = false,
+  counterCheck: CounterCheck[] = []
 ): ColumnDef<AuctionsInventory>[] => [
   {
     accessorKey: "inventory.barcode",
@@ -79,11 +96,52 @@ export const columns = (
       const is_slash_item = auction_inventory.is_slash_item;
       const idx = is_slash_item ? slashGroupMap[is_slash_item] : undefined;
 
-      return (
+      const counterChecks = counterCheck.filter(
+        (item) =>
+          item.control === auction_inventory.inventory.control &&
+          item.bidder_number === auction_inventory.bidder.bidder_number
+      );
+
+      return isMasterList || !counterChecks.length ? (
         <div className="flex justify-center">
           {auction_inventory.inventory.control}
           {idx ? `(A${idx})` : ""}
         </div>
+      ) : (
+        <Popover>
+          <PopoverTrigger asChild>
+            <div className="flex justify-center cursor-pointer">
+              {auction_inventory.inventory.control}
+              {idx ? `(A${idx})` : ""}
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Table className="border">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-center font-bold">
+                    CONTROL
+                  </TableHead>
+                  <TableHead className="text-center font-bold">PRICE</TableHead>
+                  <TableHead className="text-center font-bold">PAGE</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {counterChecks.map((item) => (
+                  <TableRow key={item.counter_check_id}>
+                    <TableCell className="text-center">
+                      {item.control}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {parseInt(item.price ?? "", 10)?.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-center">{item.page}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </PopoverContent>
+        </Popover>
       );
     },
   },
