@@ -122,7 +122,7 @@ export default async function Page({
           session.user.role === "ENCODER" && "hidden"
         )}
       >
-        <div className="grid grid-cols-3 gap-4">
+        <div className="flex flex-col gap-2 md:flex-row">
           <Card className="w-full shadow-none">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold">
