@@ -76,7 +76,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
+      <div className="flex flex-col md:flex-row gap-2">
         {Object.keys(expenseTypesTotal).map((item) => (
           <Card key={item} className="flex-1 py-3 px-4">
             <CardTitle className="text-lg">

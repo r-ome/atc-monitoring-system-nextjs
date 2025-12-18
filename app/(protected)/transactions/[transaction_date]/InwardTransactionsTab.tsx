@@ -68,7 +68,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
+      <div className="flex flex-col md:flex-row gap-2">
         {Object.keys(payment_method_summary)
           .filter((item) => payment_method_summary[item] !== 0)
           .map((item) => (
