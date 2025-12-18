@@ -67,9 +67,15 @@ const generateCashFlow = ({
 
   const getTotal = (paymentType: PaymentMethod["name"]) =>
     payments
-      .filter((item) => item.receipt.purpose !== "REFUNDED")
       .filter((item) => item.payment_method.name === paymentType)
-      .reduce((acc, item) => (acc += item.amount_paid), 0);
+      .reduce((acc, item) => {
+        if (item.receipt.purpose === "REFUNDED") {
+          acc -= item.amount_paid;
+        } else {
+          acc += item.amount_paid;
+        }
+        return acc;
+      }, 0);
 
   const refundAmount = payments
     .filter((item) => item.receipt.purpose === "REFUNDED")

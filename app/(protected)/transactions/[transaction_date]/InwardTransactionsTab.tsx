@@ -50,8 +50,8 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
 
   const payment_method_summary = transactions.reduce<typeof payment_methods>(
     (acc, item) => {
-      acc["INWARD_TOTAL_CASH"] += item.amount_paid;
       if (item.receipt.purpose === "PULL_OUT") {
+        acc["INWARD_TOTAL_CASH"] += item.amount_paid;
         acc[item.payment_method?.name] += item.amount_paid;
       }
 
