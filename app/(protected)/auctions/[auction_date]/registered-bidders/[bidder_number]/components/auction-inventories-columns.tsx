@@ -8,6 +8,11 @@ import { Badge } from "@/app/components/ui/badge";
 import { cn, formatDate } from "@/app/lib/utils";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { redirect } from "next/navigation";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/components/ui/popover";
 
 export type AuctionInventory = RegisteredBidder["auction_inventories"][number];
 
@@ -64,7 +69,8 @@ export const columns: ColumnDef<AuctionInventory>[] = [
         </div>
       );
     },
-    cell: ({ getValue }) => {
+    cell: ({ getValue, row }) => {
+      const auctionInventory = row.original;
       const status = getValue<string>();
       const variant =
         status === "PARTIAL"
@@ -74,9 +80,26 @@ export const columns: ColumnDef<AuctionInventory>[] = [
           : "success";
 
       return (
-        <div className="flex justify-center">
-          <Badge variant={variant}>{status}</Badge>
-        </div>
+        <>
+          {["UNPAID", "CANCELLED"].includes(status) ? (
+            <div className="flex justify-center">
+              <Badge variant={variant}>{status}</Badge>
+            </div>
+          ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="flex justify-center hover:cursor-pointer">
+                  <Badge variant={variant}>{status}</Badge>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-full">
+                <div>
+                  Receipt Number: {auctionInventory.receipt?.receipt_number}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+        </>
       );
     },
   },

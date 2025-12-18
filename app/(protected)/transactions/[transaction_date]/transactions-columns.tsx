@@ -107,7 +107,9 @@ export const columns: ColumnDef<Payment>[] = [
         <div
           className={cn(
             "flex justify-center",
-            payment.receipt.purpose === "REFUNDED" ? "text-red-500" : ""
+            payment.receipt.purpose === "REFUNDED"
+              ? "text-red-500"
+              : "text-green-500"
           )}
         >
           {payment.receipt.purpose === "REFUNDED"
