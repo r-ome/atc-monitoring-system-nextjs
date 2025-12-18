@@ -60,7 +60,7 @@ export default async function Page({
     totalUnpaidItemsPrice + serviceChargeAmount - registrationFeeAmount;
 
   const BidderProfile = () => (
-    <div className="space-y-2 border-t px-6 pt-6 flex">
+    <div className="flex-col items-center md:flex-row space-y-2 border-t px-6 pt-6 flex">
       {[
         {
           label: "Auction Date",

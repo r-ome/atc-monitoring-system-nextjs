@@ -18,7 +18,7 @@ export const AppTimer = () => {
 
   return (
     <div className="flex flex-col justify-end">
-      <div>
+      <div className="hidden md:flex">
         {formatDate(new Date(), "eeee, MMMM dd, yyyy").toLocaleString()}
       </div>
       <div className="flex justify-end">{currentTime}</div>

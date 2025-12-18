@@ -52,23 +52,25 @@ export function FullScreenCalendarHeader({
         <div className="inline-flex w-full -space-x-px rounded-lg shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
           <Button
             onClick={previousMonth}
-            className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+            className="shrink-0 rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
             variant="outline"
             size="icon"
             aria-label="Navigate to previous month"
           >
             <ChevronLeftIcon size={16} strokeWidth={2} aria-hidden="true" />
           </Button>
+
           <Button
             onClick={goToToday}
-            className="w-full rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 md:w-auto"
+            className="min-w-0 flex-1 rounded-none shadow-none focus-visible:z-10 md:flex-none md:w-auto"
             variant="outline"
           >
             Today
           </Button>
+
           <Button
             onClick={nextMonth}
-            className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+            className="shrink-0 rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
             variant="outline"
             size="icon"
             aria-label="Navigate to next month"

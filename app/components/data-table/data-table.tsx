@@ -108,21 +108,25 @@ export const DataTable = <TData, TValue>({
   return (
     <div className="rounded-md border p-4 overflow-auto">
       {title ? <div>{title}</div> : null}
-      <div className="flex items-center justify-between gap-4 py-2">
+      <div className="flex flex-col gap-2 md:flex-row md:justify-between md:py-2">
         {searchFilter?.globalFilterFn && (
-          <SearchComponent
-            value={globalFilter}
-            onChangeEvent={(value) => setGlobalFilter?.(value)}
-            {...searchFilter.searchComponentProps}
-          />
+          <div className="w-full md:w-3/6">
+            <SearchComponent
+              value={globalFilter}
+              onChangeEvent={(value) => setGlobalFilter?.(value)}
+              {...searchFilter.searchComponentProps}
+            />
+          </div>
         )}
 
         {columnFilter?.options && (
-          <FilterColumnComponent
-            options={columnFilter?.options}
-            onChangeEvent={onChangeFilter}
-            {...columnFilter.filterComponentProps}
-          />
+          <div className="w-full md:w-3/6">
+            <FilterColumnComponent
+              options={columnFilter?.options}
+              onChangeEvent={onChangeFilter}
+              {...columnFilter.filterComponentProps}
+            />
+          </div>
         )}
 
         <div className="flex gap-4">

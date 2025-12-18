@@ -58,7 +58,7 @@ export default async function Page({
       <Card>
         <CardHeader>
           <CardTitle>
-            <div className="flex justify-between">
+            <div className="flex justify-between flex-col md:flex-row gap-2">
               <h1 className="uppercase text-xl">
                 {formatDate(new Date(transaction_date), "MMMM dd, yyyy")} Cash
                 Book
@@ -78,7 +78,7 @@ export default async function Page({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="inward">
-            <TabsList>
+            <TabsList className="w-full md:w-[230px]">
               <TabsTrigger value="inward">Inward Transactions</TabsTrigger>
               <TabsTrigger value="expense">Expenses</TabsTrigger>
             </TabsList>

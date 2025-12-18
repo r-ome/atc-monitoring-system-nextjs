@@ -9,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import { Badge } from "@/app/components/ui/badge";
 
 export const columns: ColumnDef<AuctionsStatistics>[] = [
   {
@@ -52,21 +53,27 @@ export const columns: ColumnDef<AuctionsStatistics>[] = [
     },
     cell: ({ row }) => {
       const auction = row.original;
+      const registeredBidders = auction.total_registered_bidders - 1;
 
       return (
         <div className="flex justify-center">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="inline-block justify-center ">
-                {auction.total_bidders_with_balance} /{" "}
-                {auction.total_registered_bidders}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              {auction.total_bidders_with_balance} UNPAID bidders out of{" "}
-              {auction.total_registered_bidders}
-            </TooltipContent>
-          </Tooltip>
+          {auction.total_bidders_with_balance === 0 ? (
+            <Badge variant="success">FULLY PAID ({registeredBidders})</Badge>
+          ) : (
+            <div className="flex justify-center">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-block justify-center ">
+                    {auction.total_bidders_with_balance} / {registeredBidders}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  {auction.total_bidders_with_balance} UNPAID bidders out of{" "}
+                  {registeredBidders}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
         </div>
       );
     },

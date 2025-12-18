@@ -38,8 +38,9 @@ export default async function RootLayout({
           </div>
 
           <div className="flex gap-4 h-10 items-center">
-            <div>
-              {session.user.name} | {session.user.role}
+            <div className="flex">
+              {session.user.name}
+              <span className="hidden md:flex"> ({session.user.role})</span>
             </div>
             <Separator
               orientation="vertical"

@@ -9,11 +9,11 @@ function presenter(auctions: AuctionsStatisticsSchema[]) {
   return auctions.map((auction) => ({
     auction_id: auction.auction_id,
     auction_date: formatDate(auction.auction_date, "MMM dd, yyyy"),
-    total_registered_bidders: auction.total_registered_bidders,
+    total_registered_bidders: Number(auction.total_registered_bidders),
     total_items: auction.total_items,
     total_cancelled_items: auction.total_cancelled_items,
     total_refunded_items: auction.total_refunded_items,
-    total_bidders_with_balance: auction.total_bidders_with_balance,
+    total_bidders_with_balance: Number(auction.total_bidders_with_balance),
     container_barcodes: auction.container_barcodes,
   }));
 }

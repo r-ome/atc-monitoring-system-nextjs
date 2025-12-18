@@ -16,7 +16,7 @@ export const SearchComponent: React.FC<SearchComponentProps> = ({
   <Input
     value={value}
     placeholder={placeholder}
-    className="w-3/6"
+    className="w-full"
     onChange={(event) => onChangeEvent(event.target.value)}
   />
 );
