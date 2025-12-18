@@ -94,9 +94,14 @@ const generateCashFlow = ({
   }, 0);
 
   const totalRefund = refundAmount * -1;
-  const totalInward = payments
-    .filter((item) => item.receipt.purpose !== "REFUNDED")
-    .reduce((acc, item) => (acc += item.amount_paid), 0);
+  const totalInward = payments.reduce((acc, item) => {
+    if (item.receipt.purpose === "REFUNDED") {
+      acc -= item.amount_paid;
+    } else {
+      acc += item.amount_paid;
+    }
+    return acc;
+  }, 0);
 
   const inwardHeaders = ["DATE", "PARTICULAR", "AMOUNT", "PAYMENT TYPE"];
 
