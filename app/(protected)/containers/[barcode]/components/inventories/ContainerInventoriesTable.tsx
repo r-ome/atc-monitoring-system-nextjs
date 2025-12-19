@@ -8,6 +8,7 @@ import { Inventory } from "src/entities/models/Inventory";
 import { CoreRow } from "@tanstack/react-table";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { GenerateContainerReportModal } from "./GenerateContainerReportModal";
+import { CreateInventoryModal } from "../../inventories/[inventory_id]/CreateInventoryModal";
 
 export type InventoryRowType = Omit<
   Inventory,
@@ -48,6 +49,7 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
       <div className="w-full flex flex-col gap-4">
         <div className="flex gap-4 w-full">
           <UploadInventoryModal />
+          <CreateInventoryModal container={container} />
           <GenerateContainerReportModal
             inventories={inventories}
             container={container}

@@ -136,6 +136,7 @@ export const validateEmptyFields = (
         ...item,
         isValid: true,
         error: "",
+        forInventoryUpdate: false,
         forUpdating: false,
         isSlashItem: "",
       };
@@ -145,6 +146,7 @@ export const validateEmptyFields = (
       ...item,
       isValid: false,
       forUpdating: false,
+      forInventoryUpdate: false,
       isSlashItem: "",
       error: `Required Fields: ${empty_fields.join(", ")}`,
     };
@@ -340,7 +342,11 @@ export const formatExistingInventories = (
       if (["SOLD"].includes(existing_inventory.status)) {
         item.isValid = false;
         item.error = "Item already exists and SOLD in inventories";
-      } else item.inventory_id = existing_inventory.inventory_id;
+      } else {
+        item.forUpdating = true;
+        item.inventory_id = existing_inventory.inventory_id;
+        item.container_id = existing_inventory.container_id;
+      }
 
     return item;
   });

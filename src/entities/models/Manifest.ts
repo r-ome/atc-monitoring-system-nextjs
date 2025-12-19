@@ -44,6 +44,7 @@ export const ManifestInsertSchema = z.object({
   inventory_id: z.string().optional().nullable(),
   isValid: z.boolean(),
   forUpdating: z.boolean(),
+  status: z.string().optional(),
   isSlashItem: z.string().nullable(),
   auction_inventory_id: z.string().optional().nullable(),
   error: z.string(),

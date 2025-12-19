@@ -421,4 +421,27 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
+  createInventory: async (input) => {
+    try {
+      return await prisma.inventories.create({
+        data: {
+          container_id: input.container_id,
+          barcode: input.barcode,
+          control: input.control,
+          description: input.description,
+          status: "UNSOLD",
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(
+          "Error getting inventories with no auction inventories",
+          {
+            cause: error.message,
+          }
+        );
+      }
+      throw error;
+    }
+  },
 };

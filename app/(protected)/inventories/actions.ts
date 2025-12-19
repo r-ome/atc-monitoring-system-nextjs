@@ -4,6 +4,7 @@ import { GetInventoryController } from "src/controllers/inventories/get-inventor
 import { GetAuctionItemDetailsController } from "src/controllers/inventories/get-auction-item-details.controller";
 import { UpdateAuctionItemController } from "src/controllers/inventories/update-auction-item.controller";
 import { UpdateInventoryController } from "src/controllers/inventories/update-inventory.controller";
+import { CreateInventoryController } from "src/controllers/inventories/create-inventory.controller";
 import { VoidItemsController } from "src/controllers/inventories/void-items.controller";
 import { formatNumberPadding } from "@/app/lib/utils";
 import { UploadBoughtItemsController } from "src/controllers/inventories/upload-bought-items.controller";
@@ -41,6 +42,20 @@ export const updateInventory = async (
   const data = Object.fromEntries(formData.entries());
   data.control = formatNumberPadding(data.control as string, 4);
   return await UpdateInventoryController(inventory_id, data);
+};
+
+export const createInventory = async (formData: FormData) => {
+  const data = Object.fromEntries(formData.entries());
+  const container_barcode = data.barcode.toString().split("-");
+
+  if (container_barcode.length === 3) {
+    data.barcode = `${container_barcode[0]}-${
+      container_barcode[1]
+    }-${formatNumberPadding(container_barcode[2], 3)}`.replace(",", "-");
+  }
+  data.control = formatNumberPadding(data.control as string, 4);
+  data.description = data.description.toString().toUpperCase();
+  return await CreateInventoryController(data);
 };
 
 export const uploadBoughtItems = async (formData: FormData) => {

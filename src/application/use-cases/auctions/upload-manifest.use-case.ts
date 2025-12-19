@@ -41,6 +41,7 @@ export const uploadManifestUseCase = async (
     something4,
     existing_inventories
   );
+
   const something6 = addContainerIdForNewInventories(something5, containers);
   const something7 = removeMonitoringDuplicates(something6, monitoring);
 

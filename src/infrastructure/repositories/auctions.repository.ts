@@ -278,6 +278,7 @@ export const AuctionRepository: IAuctionRepository = {
 
         const newly_created_inventories = await tx.inventories.findMany({
           where: {
+            auctions_inventory: null,
             barcode: {
               in: new_inventories.map((item) => item.BARCODE),
             },
@@ -317,7 +318,7 @@ export const AuctionRepository: IAuctionRepository = {
         // insert data in auctions_inventories table
         const created_auctions_inventories = await Promise.all(
           auction_inventories
-            .filter((item) => !item.forUpdating)
+            .filter((item) => !item.auction_inventory_id)
             .map((item) =>
               tx.auctions_inventories.create({
                 data: {
@@ -340,9 +341,9 @@ export const AuctionRepository: IAuctionRepository = {
           include: { histories: true },
           where: {
             auction_inventory_id: {
-              in: [...created_auctions_inventories, ...for_updating].map(
-                (item) => item.auction_inventory_id as string
-              ),
+              in: [...created_auctions_inventories, ...for_updating]
+                .filter((item) => item.auction_inventory_id)
+                .map((item) => item.auction_inventory_id as string),
             },
           },
         });
@@ -356,6 +357,18 @@ export const AuctionRepository: IAuctionRepository = {
             remarks: item.histories.length ? "REASSIGNED" : "ENCODED",
           })),
         });
+
+        const for_updating_with_auction_inventories = for_updating.map(
+          (item) => {
+            const match = auctions_inventories.find(
+              (auction_inventory) =>
+                auction_inventory.inventory_id === item.inventory_id
+            );
+            item.auction_inventory_id = match?.auction_inventory_id;
+            item.status = match?.status;
+            return item;
+          }
+        );
 
         /**
          * If item is CANCELLED but was encoded again:
@@ -374,7 +387,7 @@ export const AuctionRepository: IAuctionRepository = {
 
           // update CANCELLED ITEM
           await Promise.all(
-            for_updating.map((item) =>
+            for_updating_with_auction_inventories.map((item) =>
               tx.auctions_inventories.update({
                 data: {
                   auction_bidder_id: item.auction_bidder_id as string,
@@ -391,18 +404,22 @@ export const AuctionRepository: IAuctionRepository = {
           );
 
           await Promise.all(
-            for_updating.map((item) =>
+            for_updating_with_auction_inventories.map((item) => {
+              let remarks =
+                "Updated item from CANCELLED to UNPAID. ITEM ENCODED AGAIN";
+              if (item.status !== "CANCELLED") {
+                remarks = "item encoded";
+              }
               tx.inventory_histories.create({
                 data: {
                   auction_inventory_id: item.auction_inventory_id,
                   inventory_id: item.inventory_id!,
                   auction_status: "UNPAID",
                   inventory_status: "SOLD",
-                  remarks:
-                    "Updated item from CANCELLED to UNPAID. ITEM ENCODED AGAIN",
+                  remarks,
                 },
-              })
-            )
+              });
+            })
           );
         }
 

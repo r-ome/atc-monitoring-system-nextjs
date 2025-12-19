@@ -49,4 +49,9 @@ export interface IInventoryRepository {
   getInventoryWithNoAuctionInventory: () => Promise<
     Omit<InventorySchema, "histories" | "container">[]
   >;
+  createInventory: (
+    data: InventoryInsertSchema
+  ) => Promise<
+    Omit<InventorySchema, "histories" | "auctions_inventory" | "container">
+  >;
 }

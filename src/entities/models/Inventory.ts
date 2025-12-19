@@ -54,7 +54,7 @@ export type InventoryHistory = {
 export const InventoryInsertSchema = z.object({
   container_id: z.string(),
   barcode: z.string(),
-  control: z.string().optional().nullable(),
+  control: z.string(),
   description: z.string(),
 });
 
