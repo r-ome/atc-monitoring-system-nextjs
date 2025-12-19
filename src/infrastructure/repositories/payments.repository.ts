@@ -93,19 +93,19 @@ export const PaymentRepository: IPaymentRepository = {
             auction_bidder_id: data.auction_bidder_id,
             purpose: status === "UNPAID" ? "PULL_OUT" : "ADD_ON",
           },
+          orderBy: { created_at: "desc" },
         });
 
-        let pull_out_number = 0;
+        let pull_out_number = 1;
         if (receipt) {
-          pull_out_number = parseInt(receipt.receipt_number.split("-")[1], 10);
+          pull_out_number =
+            parseInt(receipt.receipt_number.split("-")[1], 10) + 1;
         }
 
         const receipt_number =
           status === "UNPAID"
-            ? `${registered_bidder.bidder.bidder_number}-${pull_out_number + 1}`
-            : `${registered_bidder.bidder.bidder_number}(AO)-${
-                pull_out_number + 1
-              }`;
+            ? `${registered_bidder.bidder.bidder_number}-${pull_out_number}`
+            : `${registered_bidder.bidder.bidder_number}(AO)-${pull_out_number}`;
 
         const auction_inventories = await tx.auctions_inventories.findMany({
           where: { auction_inventory_id: { in: data.auction_inventory_ids } },
