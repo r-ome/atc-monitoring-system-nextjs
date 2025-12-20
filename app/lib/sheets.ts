@@ -118,7 +118,7 @@ export const validateEmptyFields = (
   data: ManifestSheetRecord[]
 ): ManifestInsertSchema[] => {
   return data.map((item) => {
-    const required = ["BARCODE", "BIDDER", "PRICE"] as const;
+    const required = ["BARCODE", "BIDDER"] as const;
     const empty_fields = required.filter((field) => !item[field]);
     item.CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
     if (item.QTY) {
@@ -130,6 +130,7 @@ export const validateEmptyFields = (
 
     item.BIDDER = formatNumberPadding((item.BIDDER || "").toString(), 4);
     item.MANIFEST = item.MANIFEST ? item.MANIFEST.toString().trim() : "";
+    item.PRICE = item.PRICE ? item.PRICE : "0";
 
     if (!empty_fields.length) {
       return {
