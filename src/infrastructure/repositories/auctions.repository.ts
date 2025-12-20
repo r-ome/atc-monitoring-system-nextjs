@@ -815,6 +815,7 @@ export const AuctionRepository: IAuctionRepository = {
               barcode: item.barcode,
               description: item.description,
               status: "SOLD",
+              auction_date: auction.created_at,
             })),
           });
 
