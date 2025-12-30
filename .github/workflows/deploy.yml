@@ -89,4 +89,4 @@ jobs:
 
             # Cleanup old releases (keep last 5)
             cd "$APP_DIR/releases"
-            ls -1dt */ | tail -n +6 | xargs -r rm -rf
+            (ls -1dt */ 2>/dev/null | tail -n +6 | xargs -r rm -rf) || true
