@@ -23,7 +23,20 @@ export const authOptions: NextAuthOptions = {
             cause: "Credentials is required!",
           });
         }
+
+        console.log("AUTH email:", credentials?.username);
+        console.log(
+          "DB:",
+          process.env.DATABASE_URL?.split("@")[1]?.split("?")[0]
+        ); // host/db only
+
+        console.log(
+          "HASH meta:",
+          credentials?.password?.slice(0, 7),
+          credentials?.password?.length
+        );
         const res = await LoginController(credentials);
+        console.log("USER found:", res);
         if (res.ok) {
           return { id: res.value.user_id, ...res.value };
         } else {
