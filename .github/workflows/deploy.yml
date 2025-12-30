@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 concurrency:
   group: deploy-main
@@ -28,7 +28,6 @@ jobs:
       - name: Build (standalone)
         run: npm run build
 
-      # Package only what EC2 needs for runtime
       - name: Package artifacts
         run: |
           mkdir -p deploy_bundle
@@ -53,7 +52,7 @@ jobs:
           source: "deploy.tar.gz"
           target: "/tmp"
 
-      - name: Deploy on EC2 (extract, activate, reload pm2)
+      - name: Deploy on EC2 (extract, activate, restart pm2)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -61,7 +60,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT || 22 }}
           script: |
-            set -e
+            set -euo pipefail
 
             APP_DIR=/var/www/atc-monitoring-system
             RELEASE_ID=$(date +%Y%m%d%H%M%S)
@@ -70,20 +69,34 @@ jobs:
             mkdir -p "$RELEASE_DIR"
             tar -xzf /tmp/deploy.tar.gz -C "$RELEASE_DIR"
 
-            # Arrange final structure expected by pm2 config:
-            # /var/www/atc-monitoring-syste/current/.next/standalone/server.js
+            # Arrange runtime layout under the release dir
             mkdir -p "$RELEASE_DIR/.next"
             mv "$RELEASE_DIR/deploy_bundle/standalone" "$RELEASE_DIR/.next/standalone"
             mv "$RELEASE_DIR/deploy_bundle/static" "$RELEASE_DIR/.next/static"
+
             if [ -d "$RELEASE_DIR/deploy_bundle/public" ]; then
               mv "$RELEASE_DIR/deploy_bundle/public" "$RELEASE_DIR/public"
             fi
+
             rm -rf "$RELEASE_DIR/deploy_bundle"
+
+            # Standalone server expects:
+            #   .next/standalone/server.js
+            #   .next/standalone/.next/static  (copied from .next/static)
+            #   .next/standalone/public        (copied from public)
+            mkdir -p "$RELEASE_DIR/.next/standalone/.next"
+            rm -rf "$RELEASE_DIR/.next/standalone/.next/static"
+            cp -a "$RELEASE_DIR/.next/static" "$RELEASE_DIR/.next/standalone/.next/static"
+
+            if [ -d "$RELEASE_DIR/public" ]; then
+              rm -rf "$RELEASE_DIR/.next/standalone/public"
+              cp -a "$RELEASE_DIR/public" "$RELEASE_DIR/.next/standalone/public"
+            fi
 
             # Atomic symlink switch
             ln -sfn "$RELEASE_DIR" "$APP_DIR/current"
 
-            # Reload app
+            # Restart app (start.sh already cd's to current and loads shared/.env)
             pm2 startOrReload "$APP_DIR/shared/ecosystem.config.js"
             pm2 save
 
