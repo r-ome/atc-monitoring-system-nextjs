@@ -2,7 +2,7 @@
 
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { uploadManifest } from "@/app/(protected)/auctions/actions";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import {
 } from "@/app/components/ui/dialog";
 import { Input } from "@/app/components/ui/input";
 import { toast } from "sonner";
+import { compareDesc } from "date-fns";
 
 interface UploadManifestModalProps {
   auction_id: string;
@@ -26,9 +27,12 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
   auction_id,
 }) => {
   const router = useRouter();
+  const { auction_date } = useParams();
+  const auctionDate = new Date(auction_date as string);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]>>();
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
@@ -80,10 +84,14 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
               className="cursor-pointer"
               required
               error={errors}
+              disabled={!!compareDesc(new Date(), auctionDate)}
             />
             <DialogFooter>
               <DialogClose className="cursor-pointer">Cancel</DialogClose>
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={isLoading || !!compareDesc(new Date(), auctionDate)}
+              >
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>
