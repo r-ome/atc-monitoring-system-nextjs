@@ -71,7 +71,7 @@ jobs:
             tar -xzf /tmp/deploy.tar.gz -C "$RELEASE_DIR"
 
             # Arrange final structure expected by pm2 config:
-            # /var/www/myapp/current/.next/standalone/server.js
+            # /var/www/atc-monitoring-syste/current/.next/standalone/server.js
             mkdir -p "$RELEASE_DIR/.next"
             mv "$RELEASE_DIR/deploy_bundle/standalone" "$RELEASE_DIR/.next/standalone"
             mv "$RELEASE_DIR/deploy_bundle/static" "$RELEASE_DIR/.next/static"
