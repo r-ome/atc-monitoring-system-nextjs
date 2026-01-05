@@ -26,7 +26,15 @@ export const columns: ColumnDef<BidderRowType>[] = [
     },
     cell: ({ row }) => {
       const bidder = row.original;
-      return <div className="flex justify-center">{bidder.branch.name}</div>;
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={bidder.branch.name === "TARLAC" ? "success" : "warning"}
+          >
+            {bidder.branch.name}
+          </Badge>
+        </div>
+      );
     },
   },
   {

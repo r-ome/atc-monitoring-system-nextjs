@@ -150,3 +150,36 @@ export type BiddersWithBirthdatesAndRecentAuctionSchema = {
 export type UnpaidAuctionsBiddersSchema = Prisma.auctions_biddersGetPayload<{
   include: { auctions_inventories: true; bidder: true };
 }>;
+
+export type BidderSheetRecord = Record<
+  | "BIDDER_NUMBER"
+  | "FIRST_NAME"
+  | "MIDDLE_NAME"
+  | "LAST_NAME"
+  | "SERVICE_CHARGE"
+  | "REGISTRATION_FEE"
+  | "CONTACT_NUMBER"
+  | "BIRTHDATE"
+  | "ADDRESS"
+  | "TIN_NUMBER",
+  string
+>;
+
+export const BulkBidderInsertSchema = z.object({
+  BIDDER_NUMBER: z.string(),
+  FIRST_NAME: z.string(),
+  MIDDLE_NAME: z.string(),
+  LAST_NAME: z.string(),
+  SERVICE_CHARGE: z.string(),
+  REGISTRATION_FEE: z.string(),
+  BIRTHDATE: z.string().optional().nullable(),
+  ADDRESS: z.string().optional().nullable(),
+  TIN_NUMBER: z.string().optional().nullable(),
+  CONTACT_NUMBER: z.string().optional().nullable(),
+  branch_id: z.string(),
+  isValid: z.boolean(),
+  status: z.string().optional(),
+  error: z.string(),
+});
+
+export type BulkBidderInsertSchema = z.infer<typeof BulkBidderInsertSchema>;

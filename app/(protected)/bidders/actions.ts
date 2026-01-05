@@ -4,8 +4,9 @@ import { CreateBidderController } from "src/controllers/bidders/create-bidders.c
 import { UpdateBidderController } from "src/controllers/bidders/update-bidder.controller";
 import { GetBiddersController } from "src/controllers/bidders/get-bidders.controller";
 import { GetBidderByBidderNumberController } from "src/controllers/bidders/get-bidder-by-bidder-number.controller";
-import { getServerSession } from "next-auth";
+import { UploadBiddersController } from "src/controllers/bidders/upload-bidders.controller";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 
@@ -53,4 +54,11 @@ export const updateBidder = async (bidder_id: string, formData: FormData) => {
     { branch_id: user.branch.branch_id },
     async () => await UpdateBidderController(bidder_id, data)
   );
+};
+
+export const uploadBidders = async (formData: FormData) => {
+  const branch_id = formData.get("branch_id") as string;
+  const file = formData.get("file");
+
+  return await UploadBiddersController(branch_id, file as File);
 };
