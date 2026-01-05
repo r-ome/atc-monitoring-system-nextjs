@@ -23,7 +23,7 @@ export const VALID_FILE_TYPES = [
 
 export const getSheetData = (
   file: ArrayBuffer,
-  type: "manifest" | "inventory" | "counter_check" = "inventory"
+  type: "bidders" | "manifest" | "inventory" | "counter_check" = "inventory"
 ): { data: Record<string, string>[]; headers: string[] } => {
   try {
     const workbook = xlsx.read(file, { type: "array" });
@@ -84,14 +84,14 @@ export const getSheetData = (
             {}
           )
         )
-        .map((item1) => ({
-          BARCODE: item1.BARCODE,
-          CONTROL: item1["CONTROL #"],
-          DESCRIPTION: item1.DESCRIPTION,
-          BIDDER: item1["BIDDER #"],
-          PRICE: item1.PRICE,
-          QTY: item1.QTY,
-          MANIFEST: item1["MANIFEST NUMBER"],
+        .map((item) => ({
+          BARCODE: item.BARCODE,
+          CONTROL: item["CONTROL #"],
+          DESCRIPTION: item.DESCRIPTION,
+          BIDDER: item["BIDDER #"],
+          PRICE: item.PRICE,
+          QTY: item.QTY,
+          MANIFEST: item["MANIFEST NUMBER"],
         }))
         .filter((item) => {
           return (
@@ -103,6 +103,35 @@ export const getSheetData = (
 
     if (type === "inventory") {
       headers = data.length ? Object.keys(data[0]) : [];
+    }
+
+    if (type === "bidders") {
+      headers = Object.values(data[0]).map((item) =>
+        item.trim().replace(/\ /g, "_")
+      );
+      data = data
+        .slice(1)
+        .map<Record<string, string>>((item) =>
+          headers.reduce(
+            (acc, header, headerIndex) => ({
+              ...acc,
+              [header]: Object.values(item)[headerIndex],
+            }),
+            {}
+          )
+        )
+        .map((item) => ({
+          BIDDER_NUMBER: item.NEW_NUMBER,
+          FIRST_NAME: item.FIRST_NAME,
+          MIDDLE_NAME: item.MIDDLE_NAME,
+          LAST_NAME: item.LAST_NAME,
+          SERVICE_CHARGE: item["%"],
+          REGISTRATION_FEE: item.REG_FEE,
+          BIRTHDATE: item.BIRTH_DATE,
+          CONTACT_NUMBER: item.CELLPHONE_NUMBER,
+          ADDRESS: item.ADDRESS,
+          TIN: item.TIN_NUMBER,
+        }));
     }
 
     return { data, headers };

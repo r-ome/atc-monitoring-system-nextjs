@@ -1,6 +1,8 @@
+import { Prisma } from "@prisma/client";
 import type {
   BidderSchema,
   BidderInsertSchema,
+  BulkBidderInsertSchema,
 } from "src/entities/models/Bidder";
 
 export interface IBidderRepository {
@@ -19,4 +21,5 @@ export interface IBidderRepository {
     bidder_id: string,
     data: BidderInsertSchema
   ): Promise<Omit<BidderSchema, "auctions_joined" | "requirements">>;
+  uploadBidders(data: BulkBidderInsertSchema[]): Promise<Prisma.BatchPayload>;
 }

@@ -135,4 +135,35 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
+  uploadBidders: async (data) => {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const valid_bidders = data.filter((item) => item.isValid);
+
+        return await tx.bidders.createMany({
+          data: valid_bidders.map((item) => ({
+            bidder_number: item.BIDDER_NUMBER,
+            first_name: item.FIRST_NAME,
+            middle_name: item.MIDDLE_NAME,
+            last_name: item.LAST_NAME,
+            registration_fee: parseInt(item.REGISTRATION_FEE, 10),
+            service_charge: parseInt(item.SERVICE_CHARGE, 10),
+            birthdate: item.BIRTHDATE === "" ? null : item.BIRTHDATE,
+            contact_number: item.CONTACT_NUMBER,
+            status: "ACTIVE",
+            address: item.ADDRESS,
+            tin_number: item.TIN_NUMBER,
+            branch_id: item.branch_id,
+          })),
+        });
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error uploading bidders!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
 };
