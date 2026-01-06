@@ -11,7 +11,7 @@ import {
   useSidebar,
 } from "@/app/components/ui/sidebar";
 import {
-  // Box,
+  Box,
   Users,
   Warehouse,
   Container,
@@ -50,12 +50,12 @@ const items = [
     icon: Users,
     allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
   },
-  // {
-  //   title: "Bought Items",
-  //   url: "/bought-items",
-  //   icon: Box,
-  //   allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
-  // },
+  {
+    title: "Bought Items",
+    url: "/bought-items",
+    icon: Box,
+    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
+  },
   {
     title: "Branches",
     url: "/branches",

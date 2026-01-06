@@ -57,8 +57,15 @@ export const updateBidder = async (bidder_id: string, formData: FormData) => {
 };
 
 export const uploadBidders = async (formData: FormData) => {
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
   const branch_id = formData.get("branch_id") as string;
   const file = formData.get("file");
 
-  return await UploadBiddersController(branch_id, file as File);
+  if (!user) redirect("/login");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await UploadBiddersController(branch_id, file as File)
+  );
 };
