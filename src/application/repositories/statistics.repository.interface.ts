@@ -10,7 +10,7 @@ export interface IStatisticsRepository {
     BiddersWithBirthdatesAndRecentAuctionSchema[]
   >;
   getContainersDueDate: () => Promise<
-    Omit<ContainerSchema, "branch" | "supplier" | "inventories">[]
+    Omit<ContainerSchema, "supplier" | "inventories">[]
   >;
   getUnpaidBidders: () => Promise<UnpaidAuctionsBiddersSchema[]>;
   getAuctionsStatistics: () => Promise<AuctionsStatisticsSchema[]>;

@@ -14,7 +14,9 @@ export const SupplierRepository: ISupplierRepository = {
     try {
       return await prisma.suppliers.findFirst({
         where: { supplier_id },
-        include: { containers: { include: { inventories: true } } },
+        include: {
+          containers: { include: { inventories: true, branch: true } },
+        },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -29,7 +31,9 @@ export const SupplierRepository: ISupplierRepository = {
     try {
       return await prisma.suppliers.findFirst({
         where: { supplier_code },
-        include: { containers: { include: { inventories: true } } },
+        include: {
+          containers: { include: { inventories: true, branch: true } },
+        },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -83,7 +87,9 @@ export const SupplierRepository: ISupplierRepository = {
     try {
       return await prisma.suppliers.findFirst({
         where: { supplier_id },
-        include: { containers: { include: { inventories: true } } },
+        include: {
+          containers: { include: { inventories: true, branch: true } },
+        },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

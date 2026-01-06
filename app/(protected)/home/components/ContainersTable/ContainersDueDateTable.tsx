@@ -15,7 +15,7 @@ export const ContainersDueDateTable = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       const result = await getContainersDueDate();
-      if (!result.ok) return "what";
+      if (!result.ok) return "error";
 
       setContainers(result.value);
     };

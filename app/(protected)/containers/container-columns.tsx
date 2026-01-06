@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
+import { Badge } from "@/app/components/ui/badge";
 import { ArrowUpDown } from "lucide-react";
 import { ContainerRowType } from "./container-table";
 
@@ -85,7 +86,7 @@ export const columns: ColumnDef<ContainerRowType>[] = [
     },
   },
   {
-    accessorKey: "branch",
+    accessorKey: "branch.name",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
@@ -102,7 +103,15 @@ export const columns: ColumnDef<ContainerRowType>[] = [
     },
     cell: ({ row }) => {
       const container = row.original;
-      return <div className="flex justify-center">{container.branch.name}</div>;
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={container.branch.name === "TARLAC" ? "success" : "warning"}
+          >
+            {container.branch.name}
+          </Badge>
+        </div>
+      );
     },
   },
   // {

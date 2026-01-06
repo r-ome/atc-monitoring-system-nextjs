@@ -103,11 +103,6 @@ export const columns: ColumnDef<BiddersWithBirthdatesAndRecentAuctionSchema>[] =
     },
     {
       accessorKey: "last_auction_date",
-      sortingFn: (rowA, rowB, columnId) => {
-        const a = new Date(rowA.getValue<string>(columnId)).getTime();
-        const b = new Date(rowB.getValue<string>(columnId)).getTime();
-        return a - b;
-      },
       header: ({ column }) => {
         return (
           <div className="flex justify-center">

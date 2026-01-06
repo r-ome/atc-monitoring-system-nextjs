@@ -6,7 +6,7 @@ import { ContainerSchema } from "src/entities/models/Container";
 import { getContainersDueDateUseCase } from "src/application/use-cases/statistics/get-containers-due-date.use-case";
 
 function presenter(
-  containers: Omit<ContainerSchema, "branch" | "supplier" | "inventories">[]
+  containers: Omit<ContainerSchema, "supplier" | "inventories">[]
 ) {
   const date_format = "MMM d";
   return containers.map((container) => ({
@@ -20,6 +20,14 @@ function presenter(
     due_date: container.due_date
       ? formatDate(new Date(container.due_date), date_format)
       : "N/A",
+    branch: {
+      ...container.branch,
+      created_at: formatDate(container.branch.created_at, date_format),
+      updated_at: formatDate(container.branch.updated_at, date_format),
+      deleted_at: container.branch.deleted_at
+        ? formatDate(container.branch.deleted_at, date_format)
+        : null,
+    },
   }));
 }
 

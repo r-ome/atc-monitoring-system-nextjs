@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { Inventory } from "./Inventory";
+import { Branch } from "./Branch";
 
 export type BaseContainerSchema = Prisma.containersGetPayload<{
   include: { branch: true; inventories: true; supplier: true };
@@ -67,4 +68,5 @@ export type ContainerDueDate = {
   container_number: string;
   arrival_date: string;
   due_date: string;
+  branch: Branch;
 };

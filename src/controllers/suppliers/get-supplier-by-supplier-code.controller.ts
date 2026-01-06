@@ -38,6 +38,9 @@ function presenter(supplier: SupplierSchema) {
         inventories: container.inventories,
         unsold_items: unsold_items.length,
         sold_items: sold_items.length,
+        branch: container.branch,
+        due_date: container.due_date,
+        arrival_date: container.arrival_date,
       };
     }),
   };
