@@ -1,17 +1,8 @@
 "use client";
 
-import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/app/components/ui/dropdown-menu";
+import { ArrowUpDown } from "lucide-react";
 import { SupplierRowType } from "./suppliers-table";
 
 export const columns: ColumnDef<SupplierRowType>[] = [
@@ -55,33 +46,6 @@ export const columns: ColumnDef<SupplierRowType>[] = [
           Japanese Name
           <ArrowUpDown />
         </Button>
-      );
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    size: 50,
-    cell: ({ row }) => {
-      const supplier = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="cursor-pointer">
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => redirect(`/suppliers/${supplier.supplier_code}`)}
-            >
-              View Supplier Profile
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       );
     },
   },

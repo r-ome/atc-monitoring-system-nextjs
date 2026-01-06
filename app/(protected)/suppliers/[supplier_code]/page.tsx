@@ -16,6 +16,8 @@ import {
 } from "@/app/components/ui/table";
 import { UpdateSupplierModal } from "./UpdateSupplierModal";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { Badge } from "@/app/components/ui/badge";
+import { formatDate } from "@/app/lib/utils";
 
 export default async function Page({
   params,
@@ -59,17 +61,43 @@ export default async function Page({
               <TableHead>Number of Items</TableHead>
               <TableHead>SOLD items</TableHead>
               <TableHead>UNSOLD items</TableHead>
+              <TableHead>Branch</TableHead>
+              <TableHead>Arrival Date</TableHead>
+              <TableHead>Due Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {supplier.containers.map((container) => (
-              <TableRow key={container.container_id}>
-                <TableCell>{container.barcode}</TableCell>
-                <TableCell>{container.inventories.length}</TableCell>
-                <TableCell>{container.sold_items}</TableCell>
-                <TableCell>{container.unsold_items}</TableCell>
-              </TableRow>
-            ))}
+            {supplier.containers
+              .sort((a, b) => a.barcode.localeCompare(b.barcode))
+              .map((container) => (
+                <TableRow key={container.container_id}>
+                  <TableCell>{container.barcode}</TableCell>
+                  <TableCell>{container.inventories.length}</TableCell>
+                  <TableCell>{container.sold_items}</TableCell>
+                  <TableCell>{container.unsold_items}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        container.branch.name === "TARLAC"
+                          ? "success"
+                          : "warning"
+                      }
+                    >
+                      {container.branch.name}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {container.arrival_date
+                      ? formatDate(container.arrival_date)
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {container.due_date
+                      ? formatDate(container.due_date)
+                      : "N/A"}
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </CardContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Supplier } from "src/entities/models/Supplier";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./suppliers-columns";
@@ -14,6 +15,7 @@ interface SuppliersTableProps {
 export const SuppliersTable: React.FC<SuppliersTableProps> = ({
   suppliers,
 }) => {
+  const router = useRouter();
   const globalFilterFn = (
     row: CoreRow<SupplierRowType>,
     columnId?: string,
@@ -34,6 +36,9 @@ export const SuppliersTable: React.FC<SuppliersTableProps> = ({
         globalFilterFn,
         searchComponentProps: { placeholder: "Search By Name or Code" },
       }}
+      onRowClick={(supplier) =>
+        router.push(`suppliers/${supplier.supplier_code}`)
+      }
     />
   );
 };

@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import { Badge } from "@/app/components/ui/badge";
 
 export const columns: ColumnDef<ContainerDueDate>[] = [
   {
@@ -61,6 +62,25 @@ export const columns: ColumnDef<ContainerDueDate>[] = [
       const container = row.original;
 
       return <div className="flex justify-center">{container.due_date}</div>;
+    },
+  },
+  {
+    size: 80,
+    accessorKey: "branch.name",
+    header: ({ column }) => {
+      return <div className="flex justify-center">BRANCH</div>;
+    },
+    cell: ({ row }) => {
+      const container = row.original;
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={container.branch.name === "TARLAC" ? "success" : "warning"}
+          >
+            {container.branch.name}
+          </Badge>
+        </div>
+      );
     },
   },
 ];

@@ -52,6 +52,7 @@ export const StatisticsRepository: IStatisticsRepository = {
     try {
       const now = new Date();
       const containers = await prisma.containers.findMany({
+        include: { branch: true },
         where: { due_date: { not: null, gte: now } },
         orderBy: { due_date: "asc" },
       });

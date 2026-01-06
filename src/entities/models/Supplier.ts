@@ -4,7 +4,7 @@ import { ContainerSchema } from "./Container";
 import { InventorySchema } from "./Inventory";
 
 export type SupplierSchema = Prisma.suppliersGetPayload<{
-  include: { containers: { include: { inventories: true } } };
+  include: { containers: { include: { inventories: true; branch: true } } };
 }>;
 
 export type Supplier = {
