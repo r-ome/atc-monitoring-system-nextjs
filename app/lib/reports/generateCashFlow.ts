@@ -25,6 +25,10 @@ const generateCashFlow = ({
     amount: item.amount_paid,
     payment_method: item.payment_method.name,
   }));
+  const totalTransactaionsExcludingRefund = payments.filter(
+    (item) => item.receipt.purpose !== "REFUNDED"
+  ).length;
+
   const normalizeAction = (purpose: string) => {
     const p = purpose.trim().toUpperCase();
     if (p === "PULL OUT") return "PULLOUT";
@@ -94,17 +98,14 @@ const generateCashFlow = ({
   }, 0);
 
   const totalRefund = refundAmount * -1;
-  const totalInward = payments.reduce((acc, item) => {
-    if (item.receipt.purpose === "REFUNDED") {
-      acc -= item.amount_paid;
-    } else {
+  const totalInward = payments
+    .filter((item) => item.receipt.purpose !== "REFUNDED")
+    .reduce((acc, item) => {
       acc += item.amount_paid;
-    }
-    return acc;
-  }, 0);
+      return acc;
+    }, 0);
 
   const inwardHeaders = ["DATE", "PARTICULAR", "AMOUNT", "PAYMENT TYPE"];
-
   const sheet = xlsx.utils.aoa_to_sheet([
     ...Array.from({ length: Object.keys(total_payments).length + 7 }, () => [
       ...Array(15).fill(""),
@@ -206,8 +207,11 @@ const generateCashFlow = ({
         };
       });
       sheet[`C${row}`] = {
-        v: total_payments[item],
-        t: "s",
+        f: `SUMIF(D15:D${
+          totalTransactaionsExcludingRefund + 14
+        },"${item}",C15:C${totalTransactaionsExcludingRefund + 14})`,
+        t: "n",
+        z: '"₱" #,##0.00;("₱"[Red]#,##0.00)',
         s: {
           font: { name: "Abadi", sz: 10, bold: true },
           fill: { fgColor: { rgb: "D9E1F2" } },
@@ -349,9 +353,13 @@ const generateCashFlow = ({
       },
     },
   };
+
   sheet[`C${cash_remit_row}`] = {
-    v: total_payments.CASH,
-    t: "s",
+    f: `SUMIF(D15:D${totalTransactaionsExcludingRefund + 14},"CASH",C15:C${
+      totalTransactaionsExcludingRefund + 14
+    })`,
+    t: "n",
+    z: "#,##0.00",
     s: {
       font: { name: "Abadi", sz: 10, bold: true },
       fill: { fgColor: { rgb: "D9E1F2" } },
