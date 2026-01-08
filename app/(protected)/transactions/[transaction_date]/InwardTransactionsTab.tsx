@@ -43,34 +43,53 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
       .some((field) => field.toString()!.toLowerCase().includes(search));
   };
 
-  const payment_methods = paymentMethods.reduce<Record<string, number>>(
-    (acc, item) => ({ ...acc, [item.name]: 0 }),
-    { INWARD_TOTAL_CASH: 0, REFUND: 0 }
-  );
+  const getTotal = (acc: number, item: { amount_paid: number }) => {
+    acc += item.amount_paid;
+    return acc;
+  };
 
-  const payment_method_summary = transactions.reduce<typeof payment_methods>(
-    (acc, item) => {
-      if (item.receipt.purpose === "PULL_OUT") {
-        acc["INWARD_TOTAL_CASH"] += item.amount_paid;
-        acc[item.payment_method?.name] += item.amount_paid;
-      }
+  const totalRefund = transactions
+    .filter((item) => item.receipt.purpose === "REFUNDED")
+    .reduce(getTotal, 0);
+  const totalInwardCash = transactions
+    .filter((item) => item.receipt.purpose !== "REFUNDED")
+    .reduce(getTotal, 0);
 
-      if (item.receipt.purpose === "REFUNDED") {
-        acc["REFUND"] += item.amount_paid;
-        acc["CASH"] -= item.amount_paid;
-        acc["INWARD_TOTAL_CASH"] -= item.amount_paid;
-      }
+  const something = paymentMethods
+    .map((item) => {
+      const aaa = () => {
+        return transactions
+          .filter((item) => item.receipt.purpose !== "REFUNDED")
+          .filter(
+            (tx) =>
+              tx.payment_method.payment_method_id === item.payment_method_id
+          )
+          .reduce(getTotal, 0);
+      };
 
+      return { [item.name]: aaa() };
+    })
+    .reduce<Record<string, number>>((acc, obj) => {
+      const [key, value] = Object.entries(obj)[0];
+      acc[key] = (acc[key] ?? 0) + value; // sums if duplicate keys exist
       return acc;
-    },
-    payment_methods
-  );
+    }, {});
+
+  const something1: Record<string, number> = {
+    INWARD_TOTAL_CASH: totalInwardCash,
+    REFUND: totalRefund,
+    ...something,
+  };
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col md:flex-row gap-2">
-        {Object.keys(payment_method_summary)
-          .filter((item) => payment_method_summary[item] !== 0)
+        {Object.keys({
+          ...something1,
+          INWARD_TOTAL_CASH: totalInwardCash,
+          REFUND: totalRefund,
+        })
+          .filter((item) => something1[item] !== 0)
           .map((item) => (
             <Card key={item} className="flex-1 py-3 px-4">
               <CardTitle
@@ -79,7 +98,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
                   item === "REFUND" && "text-red-500"
                 )}
               >
-                ₱{payment_method_summary[item].toLocaleString()}
+                ₱{something1[item].toLocaleString()}
               </CardTitle>
               <CardDescription className="text-sm -mt-4">
                 {item.replace(/_/g, " ")}
