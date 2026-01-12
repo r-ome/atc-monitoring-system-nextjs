@@ -45,6 +45,7 @@ const BRANCH_FILTERS: Record<string, any> = {
     },
   },
   manifest_records: { auction: { branch_id: undefined } },
+  inventory_histories: { inventories: { branch_id: undefined } },
 };
 
 function buildBranchWhere(model: string, branch_id: string) {
@@ -89,23 +90,27 @@ const prisma = base.$extends({
         }
 
         if (operation === "findUnique") {
-          return query({
-            ...args,
-            where: {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              AND: [(args as any).where, branchWhere],
-            },
-          });
+          return query(args);
+          // original
+          // return query({
+          //   ...args,
+          //   where: {
+          //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          //     AND: [(args as any).where, branchWhere],
+          //   },
+          // });
         }
 
         if (operation === "update" || operation === "delete") {
-          return query({
-            ...args,
-            where: {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              AND: [(args as any).where, branchWhere],
-            },
-          });
+          return query(args);
+
+          // return query({
+          //   ...args,
+          //   where: {
+          //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          //     AND: [(args as any).where, branchWhere],
+          //   },
+          // });
         }
 
         if (operation === "updateMany" || operation === "deleteMany") {
