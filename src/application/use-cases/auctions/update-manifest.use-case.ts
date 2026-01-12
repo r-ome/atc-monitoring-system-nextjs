@@ -134,7 +134,7 @@ const addContainerIdForNewInventories = (
 
     const container = container_barcodes.find(
       (container_barcode) =>
-        container_barcode.barcode === item_container_barcode
+        container_barcode.barcode === item_container_barcode.trim()
     );
 
     if (!container) {
