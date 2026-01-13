@@ -30,6 +30,11 @@ import {
 } from "@/app/(protected)/auctions/actions";
 import { RegisteredBidder } from "src/entities/models/Bidder";
 import { SelectWithSearch } from "@/app/components/ui/SelectWithSearch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 interface UpdateItemModalProps {
   open: boolean;
@@ -240,21 +245,41 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
             <div className="flex gap-2">
               <Label className="w-30">Bidder:</Label>
               <div className="w-full">
-                <SelectWithSearch
-                  defaultValue={selectedBidder}
-                  placeholder="Select a bidder"
-                  setSelected={(selected) =>
-                    setSelectedBidder(
-                      selected as { label: string; value: string }
-                    )
-                  }
-                  options={registeredBidders
-                    .filter((item) => item.bidder.bidder_number !== "5013")
-                    .map((item) => ({
-                      label: item.bidder.bidder_number,
-                      value: item.bidder.bidder_number,
-                    }))}
-                />
+                {auctionInventory?.status === "PAID" ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="w-full">
+                        <Input
+                          type="text"
+                          value={auctionInventory.bidder.bidder_number}
+                          readOnly
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      Item is already <span className="text-red-500">PAID</span>
+                      . Refund the item first before assigning to other bidder.
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <SelectWithSearch
+                    modal={true}
+                    defaultValue={selectedBidder}
+                    placeholder="Select a bidder"
+                    setSelected={(selected) =>
+                      setSelectedBidder(
+                        selected as { label: string; value: string }
+                      )
+                    }
+                    options={registeredBidders
+                      .filter((item) => item.bidder.bidder_number !== "5013")
+                      .map((item) => ({
+                        label: item.bidder.bidder_number,
+                        value: item.bidder.bidder_number,
+                      }))
+                      .sort((a, b) => a.label.localeCompare(b.label))}
+                  />
+                )}
               </div>
             </div>
             <div className="flex gap-2">
@@ -272,6 +297,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel
+              type="button"
               onClick={() => {
                 setErrors(undefined);
                 onOpenChange(false);
