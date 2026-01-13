@@ -29,7 +29,7 @@ export const AuctionRepository: IAuctionRepository = {
           throw new NotFoundError("ATC DEFAULT BIDDER NOT FOUND!");
         }
 
-        const created = await tx.auctions.create({
+        return await tx.auctions.create({
           data: {
             created_at: auction_date,
             registered_bidders: {
@@ -53,8 +53,6 @@ export const AuctionRepository: IAuctionRepository = {
             },
           },
         });
-
-        return created;
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
