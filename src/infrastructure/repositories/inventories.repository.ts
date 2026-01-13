@@ -256,8 +256,6 @@ export const InventoryRepository: IInventoryRepository = {
           return false;
         });
 
-        console.log({ auction_inventory_status });
-
         await tx.auctions_inventories.update({
           where: { auction_inventory_id: data.auction_inventory_id },
           data: {
