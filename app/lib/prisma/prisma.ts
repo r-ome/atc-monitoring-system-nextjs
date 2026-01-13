@@ -129,9 +129,7 @@ const prisma = base.$extends({
             ...args,
             data: {
               ...args.data,
-              ...(BRANCH_FILTERS[model].branch_id !== undefined
-                ? { branch_id }
-                : {}),
+              ...(modelHasBranch ? { branch_id } : {}),
             },
           });
         }

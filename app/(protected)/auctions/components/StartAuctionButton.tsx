@@ -28,7 +28,7 @@ export const StartAuctionButton = () => {
     setIsLoading(true);
     const res = await startAuction(auction_date);
     if (res) {
-      setIsLoading(true);
+      setIsLoading(false);
 
       if (res.ok) {
         toast.success("Successfully created an auction!");
