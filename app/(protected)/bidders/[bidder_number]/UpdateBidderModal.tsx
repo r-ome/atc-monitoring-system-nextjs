@@ -312,7 +312,11 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
             ) : null}
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline" onClick={() => setOpenDialog(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpenDialog(false)}
+                >
                   Cancel
                 </Button>
               </DialogClose>
