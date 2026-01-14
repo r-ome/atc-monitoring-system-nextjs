@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Loader2Icon } from "lucide-react";

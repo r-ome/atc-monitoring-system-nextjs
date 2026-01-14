@@ -55,7 +55,6 @@ export const getExpensesByDate = async (
   const user = session?.user;
 
   if (!user) redirect("/login");
-  const input = new Date(date);
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },

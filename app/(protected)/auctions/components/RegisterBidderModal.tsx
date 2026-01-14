@@ -40,7 +40,6 @@ import { Auction } from "src/entities/models/Auction";
 import { RegisteredBidder } from "src/entities/models/Bidder";
 import { toast } from "sonner";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
 
 interface RegisterBidderModalProps {
   auction: Auction;

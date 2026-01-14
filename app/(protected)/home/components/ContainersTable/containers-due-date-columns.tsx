@@ -67,7 +67,7 @@ export const columns: ColumnDef<ContainerDueDate>[] = [
   {
     size: 80,
     accessorKey: "branch.name",
-    header: ({ column }) => {
+    header: () => {
       return <div className="flex justify-center">BRANCH</div>;
     },
     cell: ({ row }) => {
