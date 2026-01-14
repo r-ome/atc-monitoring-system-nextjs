@@ -33,6 +33,7 @@ export type Container = {
     branch_id: string;
     name: string;
   };
+  duties_and_taxes: number;
   bill_of_lading_number: string;
   container_number: string;
   gross_weight: string;
@@ -57,6 +58,7 @@ export const ContainerInsertSchema = z.object({
   due_date: z.date().optional().nullable(),
   gross_weight: z.string().optional().nullable(),
   auction_or_sell: z.enum(["AUCTION", "SELL"]),
+  duties_and_taxes: z.coerce.number().nullable(),
 });
 
 export type ContainerInsertSchema = z.infer<typeof ContainerInsertSchema>;

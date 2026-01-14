@@ -41,6 +41,7 @@ type ContainerUpdateForm = {
   auction_or_sell?: "AUCTION" | "SELL";
   arrival_date?: Date;
   due_date?: Date;
+  duties_and_taxes?: number;
 };
 
 type Option = Record<string, string | number | boolean>;
@@ -78,6 +79,7 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
       gross_weight: container.gross_weight,
       auction_or_sell: container.auction_or_sell,
       due_date: container.due_date ? new Date(container.due_date) : undefined,
+      duties_and_taxes: container.duties_and_taxes,
     });
 
     if (container.arrival_date) {
@@ -110,7 +112,6 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
         toast.success("Successfully updated Container!");
         router.refresh();
         setOpenDialog(false);
-        redirect(`${res.value.barcode}`);
       } else {
         const description =
           typeof res.error?.cause === "string" ? res.error?.cause : null;
@@ -251,9 +252,23 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 <InputNumber
                   value={weightInTons}
                   decimalScale={4}
-                  disabled
+                  readOnly
                   hasStepper={false}
                   suffix=" tons"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Label className="w-40">Duties and Taxes</Label>
+              <div className="w-full">
+                <InputNumber
+                  name="duties_and_taxes"
+                  value={newContainer.duties_and_taxes}
+                  decimalScale={2}
+                  onChange={handleUpdateChange}
+                  hasStepper={false}
+                  className="w-full"
                 />
               </div>
             </div>
