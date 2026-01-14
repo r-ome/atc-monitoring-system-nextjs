@@ -18,9 +18,12 @@ function presenter(expenses: ExpenseSchema[]) {
   };
 }
 
-export const GetExpensesByDateController = async (date: Date) => {
+export const GetExpensesByDateController = async (
+  date: Date,
+  branch_id: string | undefined
+) => {
   try {
-    const { expenses } = await getExpensesByDateUseCase(date);
+    const { expenses } = await getExpensesByDateUseCase(date, branch_id);
     return ok(presenter(expenses));
   } catch (error) {
     logger("GetExpensesByDateController", error);

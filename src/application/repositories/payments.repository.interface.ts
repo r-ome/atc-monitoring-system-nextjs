@@ -7,7 +7,10 @@ import {
 } from "src/entities/models/Payment";
 
 export interface IPaymentRepository {
-  getPaymentsByDate: (date: Date) => Promise<PaymentSchema[]>;
+  getPaymentsByDate: (
+    date: Date,
+    branch_id: string | undefined
+  ) => Promise<PaymentSchema[]>;
   getReceiptDetails: (
     auction_date: string,
     receipt_number: string

@@ -16,7 +16,10 @@ import { GetPettyCashBalanceController } from "src/controllers/expenses/get-pett
 import { UpdateExpenseController } from "src/controllers/payments/update-expense.controller";
 import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
 
-export const getPaymentsByDate = async (date: string) => {
+export const getPaymentsByDate = async (
+  date: string,
+  branch_id: string | undefined = undefined
+) => {
   const session = await getServerSession(authOptions);
   const user = session?.user;
 
@@ -24,7 +27,7 @@ export const getPaymentsByDate = async (date: string) => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetPaymentsByDateController(new Date(date))
+    async () => await GetPaymentsByDateController(new Date(date), branch_id)
   );
 };
 
@@ -44,9 +47,20 @@ export const getReceiptDetails = async (
   return await GetReceiptDetailsController(auctionId, receiptNumber);
 };
 
-export const getExpensesByDate = async (date: string) => {
+export const getExpensesByDate = async (
+  date: string,
+  branch_id: string | undefined = undefined
+) => {
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+
+  if (!user) redirect("/login");
   const input = new Date(date);
-  return await GetExpensesByDateController(input);
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetExpensesByDateController(new Date(date), branch_id)
+  );
 };
 
 export const addExpense = async (formData: FormData) => {

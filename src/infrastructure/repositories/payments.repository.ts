@@ -11,7 +11,7 @@ import {
 import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 
 export const PaymentRepository: IPaymentRepository = {
-  getPaymentsByDate: async (date) => {
+  getPaymentsByDate: async (date, branch_id) => {
     try {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
@@ -20,7 +20,18 @@ export const PaymentRepository: IPaymentRepository = {
       endOfDay.setHours(23, 59, 59, 999);
 
       const payments = await prisma.payments.findMany({
-        where: { created_at: { gte: startOfDay, lte: endOfDay } },
+        where: {
+          created_at: { gte: startOfDay, lte: endOfDay },
+          ...(branch_id
+            ? {
+                receipt: {
+                  auction_bidder: {
+                    auctions: { branch_id },
+                  },
+                },
+              }
+            : {}),
+        },
         include: {
           payment_method: true,
           receipt: {

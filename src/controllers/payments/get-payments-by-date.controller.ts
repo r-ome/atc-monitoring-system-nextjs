@@ -38,9 +38,12 @@ function presenter(payments: PaymentSchema[]) {
   }));
 }
 
-export const GetPaymentsByDateController = async (date: Date) => {
+export const GetPaymentsByDateController = async (
+  date: Date,
+  branch_id: string | undefined
+) => {
   try {
-    const payments = await getPaymentsByDateUseCase(date);
+    const payments = await getPaymentsByDateUseCase(date, branch_id);
     return ok(presenter(payments));
   } catch (error) {
     logger("GetPaymentsByDateController", error);
