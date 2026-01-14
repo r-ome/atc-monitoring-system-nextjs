@@ -14,7 +14,8 @@ type Field =
   | "arrival_date"
   | "due_date"
   | "auction_start_date"
-  | "supplier";
+  | "supplier"
+  | "duties_and_taxes";
 
 interface ContainerProfileProps {
   container: Omit<Container, "inventories"> & {
@@ -41,6 +42,7 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
       "due_date",
       "auction_start_date",
       "supplier",
+      "duties_and_taxes",
     ];
 
     return profile.map((item, i) => {
@@ -58,6 +60,11 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
         data = `${value.name} (${value.supplier_code})`;
       } else if (value instanceof Date) {
         data = value.toLocaleDateString();
+      } else if (item === "duties_and_taxes") {
+        data = Number(value).toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
       } else {
         data = value as React.ReactNode;
       }

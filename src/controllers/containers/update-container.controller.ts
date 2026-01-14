@@ -12,7 +12,10 @@ import {
 import { err, ok } from "src/entities/models/Response";
 
 function presenter(container: Omit<ContainerSchema, "inventories">) {
-  return container;
+  return {
+    ...container,
+    duties_and_taxes: container.duties_and_taxes.toString(),
+  };
 }
 
 export const UpdateContainerController = async (
