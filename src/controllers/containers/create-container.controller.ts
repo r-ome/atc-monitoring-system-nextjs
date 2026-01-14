@@ -19,6 +19,7 @@ const presenter = (
   const date_format = "MMM dd, yyyy";
   return {
     ...container,
+    duties_and_taxes: Number(container.duties_and_taxes),
     arrival_date: container.arrival_date
       ? formatDate(container.arrival_date, date_format)
       : null,

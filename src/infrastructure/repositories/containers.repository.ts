@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import prisma from "@/app/lib/prisma/prisma";
 import {
   isPrismaError,
@@ -92,6 +93,9 @@ export const ContainerRepository: IContainerRepository = {
           arrival_date: container.arrival_date,
           due_date: container.due_date,
           gross_weight: container.gross_weight,
+          duties_and_taxes: container.duties_and_taxes
+            ? new Prisma.Decimal(container.duties_and_taxes)
+            : 0,
           auction_or_sell: "AUCTION",
           status: "UNPAID",
         },

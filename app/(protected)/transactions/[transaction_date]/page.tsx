@@ -26,7 +26,7 @@ import { InwardTransactionsTab } from "./InwardTransactionsTab";
 import { ExpensesTab } from "./ExpensesTab";
 import { AddExpenseModal } from "./AddExpenseModal";
 import { GenerateExpenseReport } from "./GenerateExpenseReport";
-import { ErrorComponent } from "@/app/components/ErrorComponent";
+// import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
 import { Badge } from "@/app/components/ui/badge";
@@ -94,7 +94,7 @@ export default function Page() {
       // }
     };
     fetchInitialData();
-  }, []);
+  }, [transaction_date]);
 
   useEffect(() => {
     const fetchPaymentsByBranch = async () => {
@@ -110,7 +110,7 @@ export default function Page() {
       if (transaction_res.ok) setTransactions(transaction_res.value);
     };
     fetchPaymentsByBranch();
-  }, [selectedBranch]);
+  }, [selectedBranch, transaction_date]);
 
   return (
     <>

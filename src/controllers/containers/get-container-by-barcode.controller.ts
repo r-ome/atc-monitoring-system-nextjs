@@ -34,7 +34,7 @@ const presenter = (container: ContainerSchema) => {
       branch_id: container.branch.branch_id,
       name: container.branch.name,
     },
-    duties_and_taxes: container.duties_and_taxes.toString(),
+    duties_and_taxes: Number(container.duties_and_taxes),
     supplier: {
       supplier_id: container.supplier_id,
       supplier_code: container.supplier.supplier_code,

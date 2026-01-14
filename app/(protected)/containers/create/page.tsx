@@ -176,6 +176,16 @@ export default function Page() {
                     error={errors}
                   />
                 </div>
+
+                <div className="flex flex-col gap-2 w-1/3">
+                  <Label htmlFor="duties_and_taxes">Duties and Taxes: </Label>
+                  <InputNumber
+                    name="duties_and_taxes"
+                    decimalScale={2}
+                    hasStepper={false}
+                    error={errors}
+                  />
+                </div>
               </div>
 
               <div className="flex gap-4">

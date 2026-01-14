@@ -71,7 +71,7 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
       }
     };
     fetchInitialData();
-  }, []);
+  }, [payment?.payment_method?.payment_method_id]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

@@ -36,6 +36,7 @@ const presenter = (
       gross_weight: container.gross_weight ?? "",
       auction_or_sell: container.auction_or_sell ?? "",
       status: container.status ?? "",
+      duties_and_taxes: Number(container.duties_and_taxes),
       branch: {
         branch_id: container.branch.branch_id,
         name: container.branch.name,
