@@ -15,7 +15,8 @@ type Field =
   | "due_date"
   | "auction_start_date"
   | "supplier"
-  | "duties_and_taxes";
+  | "duties_and_taxes"
+  | "gross_weight";
 
 interface ContainerProfileProps {
   container: Omit<Container, "inventories"> & {
@@ -43,6 +44,7 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
       "auction_start_date",
       "supplier",
       "duties_and_taxes",
+      "gross_weight",
     ];
 
     return profile.map((item, i) => {
@@ -65,6 +67,10 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
+      } else if (item === "gross_weight") {
+        data = `${
+          Number(value?.toString()?.replace(/ kgs/gi, "")) * 0.001
+        } tons`;
       } else {
         data = value as React.ReactNode;
       }
