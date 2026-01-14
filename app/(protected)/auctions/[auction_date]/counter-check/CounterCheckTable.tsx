@@ -27,6 +27,14 @@ export const CounterCheckTable = ({ counterCheck }: CounterCheckTableProps) => {
       .some((field) => field!.toLowerCase().includes(search));
   };
 
+  const totalCounterCheckPrice = counterCheck
+    .reduce((acc, item) => {
+      const price = item.price ? parseInt(item.price, 10) : 0;
+      acc += price;
+      return acc;
+    }, 0)
+    .toLocaleString();
+
   return (
     <>
       <UpdateCounterCheckModal
@@ -34,6 +42,8 @@ export const CounterCheckTable = ({ counterCheck }: CounterCheckTableProps) => {
         setOpen={setOpen}
         selected={selected}
       />
+
+      <div>Total: {totalCounterCheckPrice}</div>
 
       <DataTable
         columns={columns()}

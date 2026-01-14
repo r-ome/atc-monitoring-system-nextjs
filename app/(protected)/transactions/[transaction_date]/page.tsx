@@ -1,3 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   getExpensesByDate,
   getPaymentsByDate,
@@ -22,36 +28,89 @@ import { AddExpenseModal } from "./AddExpenseModal";
 import { GenerateExpenseReport } from "./GenerateExpenseReport";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
+import { PaymentMethod } from "src/entities/models/PaymentMethod";
+import { Badge } from "@/app/components/ui/badge";
 
-export default async function Page({
-  params,
-}: Readonly<{ params: Promise<{ transaction_date: string }> }>) {
-  const { transaction_date } = await params;
-  const transactions_res = await getPaymentsByDate(transaction_date);
-  const expenses_res = await getExpensesByDate(transaction_date);
-  const petty_cash_res = await getPettyCashBalance(transaction_date);
-  const payment_methods_res = await getPaymentMethods();
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+import { getBranches } from "../../branches/actions";
+import { Payment } from "src/entities/models/Payment";
+import { Expense } from "src/entities/models/Expense";
 
-  if (
-    !transactions_res.ok ||
-    !expenses_res.ok ||
-    !petty_cash_res.ok ||
-    !payment_methods_res.ok
-  ) {
-    const err = [
-      transactions_res,
-      expenses_res,
-      petty_cash_res,
-      payment_methods_res,
-    ].find((res) => !res.ok)?.error;
-    if (!err) return;
-    return <ErrorComponent error={err} />;
+export default function Page() {
+  const { transaction_date }: { transaction_date: string } = useParams();
+  const [transactions, setTransactions] = useState<Payment[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [pettyCashBalance, setPettyCashBalance] = useState<number>(0);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<{
+    branch_id: string;
+    name: string;
+  }>();
+  const [branches, setBranches] = useState<
+    { branch_id: string; name: string }[]
+  >([]);
+  const session = useSession();
+  const user = session.data?.user;
+
+  if (!session || !user) {
+    redirect("/");
   }
 
-  const transactions = transactions_res.value;
-  const expenses = expenses_res.value.expenses;
-  const petty_cash_balance = petty_cash_res.value;
-  const payment_methods = payment_methods_res.value;
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const transactions_res = await getPaymentsByDate(transaction_date);
+      const expenses_res = await getExpensesByDate(transaction_date);
+      const petty_cash_res = await getPettyCashBalance(transaction_date);
+      const payment_methods_res = await getPaymentMethods();
+      const branch_res = await getBranches();
+
+      if (transactions_res.ok) setTransactions(transactions_res.value);
+      if (payment_methods_res.ok) setPaymentMethods(payment_methods_res.value);
+      if (petty_cash_res.ok) setPettyCashBalance(petty_cash_res.value);
+      if (expenses_res.ok) setExpenses(expenses_res.value.expenses);
+      if (branch_res.ok) setBranches(branch_res.value);
+
+      // if (
+      //   !transactions_res.ok ||
+      //   !expenses_res.ok ||
+      //   !petty_cash_res.ok ||
+      //   !payment_methods_res.ok
+      // ) {
+      //   const err = [
+      //     transactions_res,
+      //     expenses_res,
+      //     petty_cash_res,
+      //     payment_methods_res,
+      //   ].find((res) => !res.ok)?.error;
+      //   if (!err) return;
+      //   return <ErrorComponent error={err} />;
+      // }
+    };
+    fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    const fetchPaymentsByBranch = async () => {
+      if (!selectedBranch) return;
+
+      const transaction_res = await getPaymentsByDate(
+        transaction_date,
+        selectedBranch.branch_id
+      );
+      const expenses_res = await getExpensesByDate(transaction_date);
+
+      if (expenses_res.ok) setExpenses(expenses_res.value.expenses);
+      if (transaction_res.ok) setTransactions(transaction_res.value);
+    };
+    fetchPaymentsByBranch();
+  }, [selectedBranch]);
 
   return (
     <>
@@ -59,17 +118,56 @@ export default async function Page({
         <CardHeader>
           <CardTitle>
             <div className="flex justify-between flex-col md:flex-row gap-2">
-              <h1 className="uppercase text-xl">
-                {formatDate(new Date(transaction_date), "MMMM dd, yyyy")} Cash
-                Book
-              </h1>
+              <div className="">
+                <h1 className="uppercase text-xl flex items-center gap-2">
+                  {["SUPER_ADMIN", "OWNER"].includes(user.role) ? (
+                    <div className="w-30">
+                      <Select
+                        onValueChange={(value) => {
+                          const branch = branches.find(
+                            (item) => item.branch_id === value
+                          );
+                          setSelectedBranch(branch);
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Branch"></SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {branches.map((item) => (
+                              <SelectItem
+                                key={item.branch_id}
+                                value={item.branch_id}
+                              >
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : null}
+                  {formatDate(new Date(transaction_date), "MMMM dd, yyyy")} Cash
+                  Book{" "}
+                  {selectedBranch ? (
+                    <Badge
+                      variant={
+                        selectedBranch.name === "TARLAC" ? "success" : "warning"
+                      }
+                    >
+                      {selectedBranch.name}
+                    </Badge>
+                  ) : null}
+                </h1>
+              </div>
 
               <div className="flex gap-4">
                 <GenerateExpenseReport
                   transactions={transactions}
                   expenses={expenses}
-                  yesterdayBalance={petty_cash_balance}
-                  paymentMethods={payment_methods}
+                  yesterdayBalance={pettyCashBalance}
+                  paymentMethods={paymentMethods}
                 />
                 <AddExpenseModal />
               </div>
@@ -88,7 +186,7 @@ export default async function Page({
             <TabsContent value="expense">
               <ExpensesTab
                 expenses={expenses}
-                pettyCashBalance={petty_cash_balance}
+                pettyCashBalance={pettyCashBalance}
               />
             </TabsContent>
           </Tabs>
