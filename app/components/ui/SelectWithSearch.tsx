@@ -59,8 +59,8 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
           disabled={disabled}
         >
           {search
-            ? options.find((option) =>
-                option.label.toLowerCase().includes(search.toLowerCase())
+            ? options.find(
+                (option) => option.label.toLowerCase() === search.toLowerCase()
               )?.label
             : `${placeholder}`}
           <ChevronsUpDown className="opacity-50" />
