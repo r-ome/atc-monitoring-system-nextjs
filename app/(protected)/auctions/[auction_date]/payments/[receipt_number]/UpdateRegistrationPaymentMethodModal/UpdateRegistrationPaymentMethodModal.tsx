@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { Loader2Icon } from "lucide-react";
@@ -20,6 +20,7 @@ import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { toast } from "sonner";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
+import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 
 interface UpdateRegistrationPaymentMethodModalProps {
   receipt: {
@@ -28,6 +29,10 @@ interface UpdateRegistrationPaymentMethodModalProps {
       registration_fee: number;
       service_charge: number;
     };
+    payments: {
+      payment_id: string;
+      payment_method: { payment_method_id: string; name: string };
+    }[];
   };
   payment: {
     payment_id: string;
@@ -43,10 +48,30 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<{
     [key: string]: string | undefined;
-  }>({
-    label: payment?.payment_method?.name,
-    value: payment?.payment_method?.payment_method_id,
-  });
+  }>({ label: undefined, value: undefined });
+  const [paymentMethods, setPaymentMethods] = useState<
+    { payment_method_id: string; name: string }[]
+  >([]);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const res = await getPaymentMethods();
+      if (!res.ok) return;
+      setPaymentMethods(res.value);
+      const defaultPaymentMethod = res.value.find(
+        (item) =>
+          item.payment_method_id === payment?.payment_method?.payment_method_id
+      );
+
+      if (defaultPaymentMethod) {
+        setSelectedPaymentMethod({
+          label: defaultPaymentMethod?.name,
+          value: defaultPaymentMethod?.payment_method_id,
+        });
+      }
+    };
+    fetchInitialData();
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -118,15 +143,13 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
                   selectedPaymentMethod as { label: string; value: string }
                 }
                 placeholder="Choose Payment Method"
-                setSelected={(selected) =>
-                  setSelectedPaymentMethod(selected as Record<string, string>)
-                }
-                options={[
-                  { label: "BDO", value: "BDO" },
-                  { label: "BPI", value: "BPI" },
-                  { label: "CASH", value: "CASH" },
-                  { label: "GCASH", value: "GCASH" },
-                ]}
+                setSelected={(selected) => {
+                  setSelectedPaymentMethod(selected as Record<string, string>);
+                }}
+                options={paymentMethods.map((item) => ({
+                  label: item.name,
+                  value: item.payment_method_id,
+                }))}
               />
             </div>
           </div>
