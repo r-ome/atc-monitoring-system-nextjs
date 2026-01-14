@@ -144,6 +144,7 @@ model containers {
   gross_weight          String?                    @db.VarChar(255)
   auction_or_sell       containers_auction_or_sell @default(SELL)
   status                containers_status          @default(UNPAID)
+  duties_and_taxes      Decimal                    @default(0) @db.Decimal(10, 2)
   created_at            DateTime                   @default(now()) @db.Timestamp(0)
   updated_at            DateTime                   @default(now()) @updatedAt @db.DateTime(0)
   deleted_at            DateTime?                  @db.DateTime(0)
