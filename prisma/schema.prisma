@@ -121,15 +121,17 @@ model bidder_ban_histories {
 }
 
 model branches {
-  branch_id  String       @id @default(uuid())
-  name       String
-  created_at DateTime     @default(now()) @db.Timestamp(0)
-  updated_at DateTime     @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at DateTime?
-  containers containers[]
-  users      users[]
-  bidders    bidders[]
-  auctions   auctions[]
+  branch_id   String       @id @default(uuid())
+  name        String
+  created_at  DateTime     @default(now()) @db.Timestamp(0)
+  updated_at  DateTime     @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at  DateTime?
+  containers  containers[]
+  users       users[]
+  bidders     bidders[]
+  auctions    auctions[]
+  expenses    expenses[]
+  pettyCashes petty_cash[]
 }
 
 model containers {
@@ -287,9 +289,22 @@ model expenses {
   amount     Decimal         @default(0) @db.Decimal(10, 2)
   purpose    expense_purpose
   remarks    String
+  branch_id  String          @default("bd163cce-98e5-4513-b69e-875bd89c5f5c")
   created_at DateTime        @default(now()) @db.Timestamp(0)
   updated_at DateTime        @default(now()) @updatedAt @db.DateTime(0)
   deleted_at DateTime?       @db.DateTime(0)
+  branch     branches        @relation(fields: [branch_id], references: [branch_id])
+}
+
+model petty_cash {
+  petty_cash_id String    @id @default(uuid())
+  balance       Decimal   @default(0) @db.Decimal(10, 2)
+  remarks       String
+  branch_id     String
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at    DateTime? @db.DateTime(0)
+  branch        branches  @relation(fields: [branch_id], references: [branch_id])
 }
 
 model counter_check {

@@ -4,6 +4,7 @@ import { Payment } from "src/entities/models/Payment";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Expense } from "src/entities/models/Expense";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
+import { isMonday, subDays } from "date-fns";
 
 type GenerateCashFlowProps = {
   payments: Payment[];
@@ -896,7 +897,9 @@ const generateCashFlow = ({
   };
 
   sheet["L4"] = {
-    v: formatDate(new Date(), "dd-MM-yyyy"),
+    v: isMonday(new Date(date))
+      ? formatDate(subDays(new Date(date), 2), "dd-MM-yyyy")
+      : formatDate(subDays(new Date(date), 1), "dd-MM-yyyy"),
     t: "s",
     s: {
       font: { name: "Calibri", sz: 11 },
@@ -915,7 +918,7 @@ const generateCashFlow = ({
   };
 
   sheet["L5"] = {
-    v: formatDate(new Date(), "dd-MM-yyyy"),
+    v: formatDate(new Date(date), "dd-MM-yyyy"),
     t: "s",
     s: {
       font: { name: "Calibri", sz: 11 },

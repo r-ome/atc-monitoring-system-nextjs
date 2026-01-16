@@ -13,6 +13,10 @@ function presenter(expenses: ExpenseSchema[]) {
       amount: expense.amount.toNumber(),
       purpose: expense.purpose,
       remarks: expense.remarks,
+      branch: {
+        branch_id: expense.branch_id,
+        name: expense.branch.name,
+      },
       created_at: formatDate(expense.created_at, "MMMM dd, yyyy hh:mm a"),
     })),
   };
