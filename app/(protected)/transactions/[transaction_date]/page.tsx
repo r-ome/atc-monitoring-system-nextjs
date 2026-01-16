@@ -88,7 +88,6 @@ export default function Page() {
   useEffect(() => {
     const fetchPaymentsByBranch = async () => {
       if (!selectedBranch) return;
-      if (user === null) return;
 
       const transaction_res = await getPaymentsByDate(
         transaction_date,
