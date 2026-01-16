@@ -92,7 +92,9 @@ export const UpdatePettyCashModal: React.FC<{
       <Dialog open={open}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Petty Cash (Today's Petty Cash)</DialogTitle>
+            <DialogTitle>
+              Update Petty Cash (Today&apos;s Petty Cash)
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-2">
             <div className="flex gap-4">

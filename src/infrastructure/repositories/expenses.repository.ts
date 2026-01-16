@@ -110,7 +110,7 @@ export const ExpensesRepository: IExpenseRepository = {
         });
 
         // update current_petty_cash balance
-        const updated = await tx.petty_cash.update({
+        await tx.petty_cash.update({
           where: { petty_cash_id: current_petty_cash.petty_cash_id },
           data: {
             balance:
