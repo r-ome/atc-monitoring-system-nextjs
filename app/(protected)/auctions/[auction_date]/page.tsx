@@ -24,6 +24,7 @@ import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
+import { AuctionContainerSummaryTable } from "../components/AuctionContainerSummaryTable";
 
 type AuctionItemSchema = Omit<
   AuctionsInventorySchema,
@@ -108,6 +109,23 @@ export default async function Page({
     0
   );
 
+  const auction_container = Object.groupBy(
+    auction.auctions_inventories,
+    (ai) => ai.inventory.container.barcode
+  );
+
+  const container_summary = Object.keys(auction_container)
+    .map((item) => ({
+      barcode: item,
+      total_items: auction_container[item]?.length ?? 0,
+      total_sale:
+        auction_container[item]?.reduce((acc, ac) => {
+          acc += ac.price;
+          return acc;
+        }, 0) ?? 0,
+    }))
+    .sort((a, b) => b.total_sale - a.total_sale);
+
   return (
     <div>
       <h1 className="text-4xl font-extrabold tracking-tight text-balance">
@@ -123,7 +141,7 @@ export default async function Page({
         )}
       >
         <div className="flex flex-col gap-2 md:flex-row">
-          <Card className="w-full shadow-none">
+          <Card className="w-full shadow-md">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold">
                 {total_registered_bidders} Registered Bidders
@@ -132,7 +150,7 @@ export default async function Page({
             </CardHeader>
           </Card>
 
-          <Card className="w-full shadow-none">
+          <Card className="w-full shadow-md">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold">
                 ₱{total_registration_fee.toLocaleString()} Total Registration
@@ -142,7 +160,7 @@ export default async function Page({
             </CardHeader>
           </Card>
 
-          <Card className="w-full shadow-none">
+          <Card className="w-full shadow-md">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold">
                 ₱{total_item_price.toLocaleString()} Total Sales
@@ -155,39 +173,44 @@ export default async function Page({
           </Card>
         </div>
 
-        <div className="flex w-[200px] gap-4">
-          <Table className="border">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-right font-bold">TOTAL</TableHead>
-                <TableHead className="text-right font-bold">
-                  {total_items} ITEMS
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(Object.keys(filtered_items) as (keyof AuctionItems)[]).map(
-                (item) => (
-                  <TableRow key={item}>
-                    <TableCell
-                      className={cn(
-                        "text-right font-semibold",
-                        item === "paid_items" && "text-green-500",
-                        ["cancelled_items", "refunded_items"].includes(item) &&
-                          "text-red-500",
-                        item === "unpaid_items" && "text-orange-500"
-                      )}
-                    >
-                      {item.replace(/_items/g, " ").toLocaleUpperCase()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {filtered_items[item].length} ITEMS
-                    </TableCell>
-                  </TableRow>
-                )
-              )}
-            </TableBody>
-          </Table>
+        <div className="flex gap-4 items-start h-[400px]">
+          <AuctionContainerSummaryTable containerSummary={container_summary} />
+
+          <div className="flex w-[200px] gap-4">
+            <Table className="border">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right font-bold">TOTAL</TableHead>
+                  <TableHead className="text-right font-bold">
+                    {total_items} ITEMS
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(Object.keys(filtered_items) as (keyof AuctionItems)[]).map(
+                  (item) => (
+                    <TableRow key={item}>
+                      <TableCell
+                        className={cn(
+                          "text-right font-semibold",
+                          item === "paid_items" && "text-green-500",
+                          ["cancelled_items", "refunded_items"].includes(
+                            item
+                          ) && "text-red-500",
+                          item === "unpaid_items" && "text-orange-500"
+                        )}
+                      >
+                        {item.replace(/_items/g, " ").toLocaleUpperCase()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {filtered_items[item].length} ITEMS
+                      </TableCell>
+                    </TableRow>
+                  )
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </div>

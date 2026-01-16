@@ -94,7 +94,15 @@ export const columns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => {
       const user = row.original;
-      return <div className="flex justify-center">{user.branch?.name}</div>;
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={user.branch?.name === "TARLAC" ? "success" : "warning"}
+          >
+            {user.branch?.name}
+          </Badge>
+        </div>
+      );
     },
   },
   {
