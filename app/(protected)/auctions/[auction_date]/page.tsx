@@ -173,10 +173,14 @@ export default async function Page({
           </Card>
         </div>
 
-        <div className="flex gap-4 items-start h-[400px]">
-          <AuctionContainerSummaryTable containerSummary={container_summary} />
+        <div className="flex flex-col sm:flex-row gap-4 items-start h-[400px]">
+          <div className="flex w-full sm:w-3/5">
+            <AuctionContainerSummaryTable
+              containerSummary={container_summary}
+            />
+          </div>
 
-          <div className="flex w-[200px] gap-4">
+          <div className="flex w-full sm:w-1/5 gap-4">
             <Table className="border">
               <TableHeader>
                 <TableRow>
