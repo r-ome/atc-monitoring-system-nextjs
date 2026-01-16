@@ -5,6 +5,11 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Badge } from "@/app/components/ui/badge";
 import { BidderRowType } from "./bidders-table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 export const columns: ColumnDef<BidderRowType>[] = [
   {
@@ -95,6 +100,37 @@ export const columns: ColumnDef<BidderRowType>[] = [
     cell: ({ row }) => {
       const bidder = row.original;
       return <div className="flex justify-center">{bidder.birthdate}</div>;
+    },
+  },
+  {
+    accessorKey: "last_active.duration",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer flex justify-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Last Active
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    size: 100,
+    cell: ({ row }) => {
+      const bidder = row.original;
+      return (
+        <div className="flex justify-center">
+          <Tooltip>
+            <TooltipTrigger>{bidder.last_active.duration}</TooltipTrigger>
+            <TooltipContent>
+              Last Auction: {bidder.last_active.auction}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
   },
   {

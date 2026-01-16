@@ -61,10 +61,15 @@ export const BidderRepository: IBidderRepository = {
   },
   getBidders: async () => {
     try {
-      return await prisma.bidders.findMany({
-        include: { branch: true },
+      const bidders = await prisma.bidders.findMany({
+        include: {
+          branch: true,
+          auctions_joined: { orderBy: { created_at: "desc" } },
+        },
         orderBy: { bidder_number: "asc" },
       });
+
+      return bidders;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting bidders!", {
