@@ -31,39 +31,32 @@ export const getSheetData = (
     let data = xlsx.utils.sheet_to_json(worksheet, {
       defval: "",
       raw: true,
+      ...(type === "counter_check" ? { range: 1 } : {}),
     }) as Record<string, string>[];
 
     let headers: string[] = [];
 
     if (type === "counter_check") {
       headers = [];
-      headers = Object.values(data[0])
-        .filter((item) => item)
+      headers = Object.keys(data[0])
+        .filter((item) => !item.startsWith("__EMPTY") && item)
         .map((item) => item.trim());
 
       data = data
-        .slice(1)
         .map<Record<string, string>>((item) =>
-          headers.reduce((acc) => {
-            const cleaned = Object.fromEntries(
-              Object.entries(item).filter(([key]) => !key.startsWith("__EMPTY"))
-            );
-
+          headers.reduce((acc, header) => {
             return {
               ...acc,
-              CONTROL: Object.values(cleaned)[3], // CONTROL
-              PAGE: Object.values(cleaned)[0], // PAGE#,
-              BIDDER: Object.values(cleaned)[4], // BIDDER,
-              PRICE: Object.values(cleaned)[5], // PRICE,
+              [header]: item[header],
             };
           }, {})
         )
-        .map((item1) => {
+        .map((item) => {
           return {
-            PAGE: item1["PAGE"] ? item1["PAGE"].toString() : "",
-            CONTROL: formatNumberPadding(item1.CONTROL, 4) ?? "",
-            PRICE: item1["PRICE"] ? item1["PRICE"].toString() : "",
-            BIDDER: formatNumberPadding(item1.BIDDER, 4) ?? "",
+            PAGE: item["PAGE#"] ? item["PAGE#"].toString() : "",
+            CONTROL: formatNumberPadding(item.CONTROL, 4) ?? "",
+            PRICE: item["TOTAL SALES"] ? item["TOTAL SALES"].toString() : "",
+            BIDDER: formatNumberPadding(item.BIDDER, 4) ?? "",
           };
         });
     }
