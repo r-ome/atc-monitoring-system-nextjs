@@ -1,12 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Bidder } from "src/entities/models/Bidder";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./bidder-columns";
 
-export type BidderRowType = Omit<Bidder, "auctions_joined">;
+export type BidderRowType = {
+  bidder_id: string;
+  bidder_number: string;
+  full_name: string;
+  birthdate: string | null;
+  last_active: {
+    duration: string | null;
+    auction: string | null;
+  };
+  status: string;
+  branch: {
+    branch_id: string;
+    name: string;
+  };
+};
 
 interface BiddersTableProps {
   bidders: BidderRowType[];

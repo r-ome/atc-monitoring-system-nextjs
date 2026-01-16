@@ -12,7 +12,11 @@ export interface IBidderRepository {
     branch_name: string
   ): Promise<BidderSchema | null>;
   getBidders(): Promise<
-    Omit<BidderSchema, "auctions_joined" | "requirements">[]
+    (Omit<BidderSchema, "requirements" | "auctions_joined"> & {
+      auctions_joined: Array<
+        Omit<BidderSchema["auctions_joined"][number], "auctions_inventories">
+      >;
+    })[]
   >;
   createBidder(
     bidder: BidderInsertSchema
