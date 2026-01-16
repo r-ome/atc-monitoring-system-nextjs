@@ -15,10 +15,12 @@ export const AuctionContainerSummaryTable = ({
   containerSummary,
 }: AuctionContainerSummaryTableProps) => {
   return (
-    <DataTable
-      title="Container Summary"
-      columns={columns}
-      data={containerSummary}
-    />
+    <div className="w-full">
+      <DataTable
+        title="Container Summary"
+        columns={columns}
+        data={containerSummary}
+      />
+    </div>
   );
 };
