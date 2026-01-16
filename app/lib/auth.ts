@@ -4,10 +4,12 @@ import {
   type Session,
   type User,
   NextAuthOptions,
+  getServerSession,
 } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { LoginController } from "src/controllers/users/login.controller";
 import { InputParseError } from "src/entities/errors/common";
+import { redirect } from "next/navigation";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -69,4 +71,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+};
+
+export const requireUser = async () => {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/login");
+  return session.user;
 };

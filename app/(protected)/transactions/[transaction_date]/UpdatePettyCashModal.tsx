@@ -24,7 +24,7 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 import { Textarea } from "@/app/components/ui/textarea";
-import { addExpense } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
+import { updatePettyCash } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { toast } from "sonner";
 import { formatDate } from "@/app/lib/utils";
 import { getBranches } from "../../branches/actions";
@@ -36,14 +36,14 @@ import { PettyCash } from "src/entities/models/Expense";
 // PETTY CASH: amount that is added today
 // TOTAL: Total of both
 
-export const AddExpenseModal: React.FC<{ pettyCash: PettyCash | null }> = ({
-  pettyCash,
-}) => {
+export const UpdatePettyCashModal: React.FC<{
+  pettyCash: PettyCash | null;
+}> = ({ pettyCash }) => {
   const router = useRouter();
   const session = useSession();
   const { transaction_date } = useParams();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpenDialog] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [branches, setBranches] = useState<Branch[]>([]);
 
   if (session.data === null) redirect("/login");
@@ -69,17 +69,16 @@ export const AddExpenseModal: React.FC<{ pettyCash: PettyCash | null }> = ({
     if (!["OWNER", "SUPER_ADMIN"].includes(user.role)) {
       formData.append("branch_id", user?.branch.branch_id);
     }
-    const res = await addExpense(
-      pettyCash ? pettyCash.petty_cash_id : "CREATE",
-      formData
-    );
+
+    const pettyCashId = pettyCash ? pettyCash.petty_cash_id : "CREATE";
+    const res = await updatePettyCash(pettyCashId, formData);
 
     if (res) {
       setIsLoading(false);
       if (!res.ok) {
         toast.error("error");
       } else {
-        toast.success("Successfully added expense!");
+        toast.success("Successfully updated petty cash!");
         setOpenDialog(false);
         router.refresh();
       }
@@ -88,41 +87,27 @@ export const AddExpenseModal: React.FC<{ pettyCash: PettyCash | null }> = ({
 
   return (
     <>
-      <Button onClick={() => setOpenDialog(true)}>Add Expense</Button>
+      <Button onClick={() => setOpenDialog(true)}>Update Petty Cash</Button>
 
       <Dialog open={open}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Expense</DialogTitle>
+            <DialogTitle>Update Petty Cash (Today's Petty Cash)</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-2">
             <div className="flex gap-4">
-              <Label htmlFor="amount" className="w-40">
-                Amount
+              <Label htmlFor="balance" className="w-40">
+                Balance
               </Label>
               <div className="w-full">
-                <InputNumber name="amount" min={0} decimalScale={2} required />
+                <InputNumber
+                  name="balance"
+                  defaultValue={pettyCash ? pettyCash.balance : 0}
+                  min={0}
+                  decimalScale={2}
+                  required
+                />
               </div>
-            </div>
-
-            <div className="flex gap-4">
-              <Label htmlFor="purpose" className="w-40">
-                Purpose
-              </Label>
-              <Select required name="purpose" defaultValue="EXPENSE">
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Payment Type"></SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {["EXPENSE", "ADD_PETTY_CASH"].map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item.replace(/_/g, " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="flex gap-4">

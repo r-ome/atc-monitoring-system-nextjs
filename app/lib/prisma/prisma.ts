@@ -46,6 +46,7 @@ const BRANCH_FILTERS: Record<string, any> = {
   },
   manifest_records: { auction: { branch_id: undefined } },
   inventory_histories: { inventories: { branch_id: undefined } },
+  expenses: { branch_id: undefined },
 };
 
 function buildBranchWhere(model: string, branch_id: string) {

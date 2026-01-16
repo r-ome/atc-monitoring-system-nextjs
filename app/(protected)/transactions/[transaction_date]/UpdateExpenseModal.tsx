@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2Icon } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { SetStateAction, useEffect, useState } from "react";
 import {
   Dialog,
@@ -25,6 +25,7 @@ import {
 import { Textarea } from "@/app/components/ui/textarea";
 import { updateExpense } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 // NOTES
 // BALANCE PETTY CASH: Balance from yesterday
@@ -47,10 +48,14 @@ export const UpdateExpenseModal = ({
   onOpenChange,
   expense,
 }: UpdateExpenseModalProps) => {
+  const session = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedExpense, setSelectedExpense] =
     useState<UpdateExpenseModalProps["expense"]>(expense);
+
+  if (session.data === null) redirect("/login");
+  const user = session.data.user;
 
   useEffect(() => {
     setSelectedExpense(expense);
@@ -60,6 +65,11 @@ export const UpdateExpenseModal = ({
     event.preventDefault();
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
+    // question yourself if whether you want to create a context for the branch or not
+    // if (["OWNER", "SUPER_ADMIN"].includes(user.role)) {
+    //   formData.
+    // }
+    formData.append("branch_id", user.branch.branch_id);
     const res = await updateExpense(expense.expense_id, formData);
 
     if (res) {

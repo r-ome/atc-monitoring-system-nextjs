@@ -1,18 +1,34 @@
 import { getPettyCashBalanceUseCase } from "src/application/use-cases/expenses/get-petty-cash-balance.use-case";
-import { ExpenseSchema } from "src/entities/models/Expense";
+import { PettyCashSchema } from "src/entities/models/Expense";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
+import { formatDate } from "@/app/lib/utils";
 
-function presenter(petty_cash_balance: ExpenseSchema | null) {
-  if (petty_cash_balance) return petty_cash_balance.balance.toNumber();
-  else return 0;
+function presenter(petty_cash: PettyCashSchema) {
+  const date_format = "MMM dd, yyyy HH:mm:ss";
+
+  return {
+    petty_cash_id: petty_cash.petty_cash_id,
+    balance: petty_cash.balance.toNumber(),
+    remarks: petty_cash.remarks,
+    branch: {
+      branch_id: petty_cash.branch.branch_id,
+      name: petty_cash.branch.name,
+    },
+    created_at: formatDate(petty_cash.created_at, date_format),
+    updated_at: formatDate(petty_cash.updated_at, date_format),
+  };
 }
 
-export const GetPettyCashBalanceController = async (date: Date) => {
+export const GetPettyCashBalanceController = async (
+  date: Date,
+  branch_id: string
+) => {
   try {
-    const petty_cash_balance = await getPettyCashBalanceUseCase(date);
-    return ok(presenter(petty_cash_balance));
+    const petty_cash = await getPettyCashBalanceUseCase(date, branch_id);
+    if (petty_cash === null) return ok(null);
+    return ok(presenter(petty_cash));
   } catch (error) {
     logger("GetExpensesByDateController", error);
     if (error instanceof DatabaseOperationError) {

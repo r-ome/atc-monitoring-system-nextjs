@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CoreRow } from "@tanstack/react-table";
-import { Expense } from "src/entities/models/Expense";
+import { Expense, PettyCash } from "src/entities/models/Expense";
 import { Card, CardTitle, CardDescription } from "@/app/components/ui/card";
 import { columns } from "./expenses-columns";
 import { DataTable } from "@/app/components/data-table/data-table";
@@ -10,26 +10,31 @@ import { UpdateExpenseModal } from "./UpdateExpenseModal";
 
 interface ExpensesTabProps {
   expenses: Expense[];
-  pettyCashBalance: number;
+  pettyCash: PettyCash | null;
+  pettyCashBalance: PettyCash | null;
 }
 
 type ExpenseTypesTotal = {
   PETTY_CASH_BALANCE: number;
+  YESTERDAY_PETTY_CASH: number;
   CASH_ON_HAND_FOR_PETTY_CASH: number;
   TOTAL_EXPENSES: number;
 };
 
 export const ExpensesTab: React.FC<ExpensesTabProps> = ({
   expenses,
+  pettyCash,
   pettyCashBalance,
 }) => {
   const [expenseTypesTotal, setExpenseTypesTotal] = useState<ExpenseTypesTotal>(
     {
       PETTY_CASH_BALANCE: 0,
+      YESTERDAY_PETTY_CASH: 0,
       CASH_ON_HAND_FOR_PETTY_CASH: 0,
       TOTAL_EXPENSES: 0,
     }
   );
+
   const [selectedExpense, setSelectedExpense] = useState<{
     expense_id: string;
     amount: number;
@@ -49,17 +54,22 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
     const total = expenses
       .filter((item) => item.purpose === "EXPENSE")
       .reduce((acc, item) => (acc += item.amount), 0);
-    const cashOnHand = expenses
+
+    const totalCurrentPettyCash = expenses
       .filter((item) => item.purpose === "ADD_PETTY_CASH")
       .reduce((acc, item) => (acc += item.amount), 0);
+
+    const PETTY_CASH_BALANCE =
+      (pettyCashBalance ? pettyCashBalance.balance : 0) + totalCurrentPettyCash;
 
     setExpenseTypesTotal((prev) => ({
       ...prev,
       TOTAL_EXPENSES: total,
-      CASH_ON_HAND_FOR_PETTY_CASH: pettyCashBalance + cashOnHand - total,
-      PETTY_CASH_BALANCE: pettyCashBalance + cashOnHand,
+      YESTERDAY_PETTY_CASH: pettyCashBalance ? pettyCashBalance.balance : 0,
+      CASH_ON_HAND_FOR_PETTY_CASH: pettyCash ? pettyCash.balance : 0,
+      PETTY_CASH_BALANCE,
     }));
-  }, [expenses, setExpenseTypesTotal, pettyCashBalance]);
+  }, [expenses, setExpenseTypesTotal, pettyCashBalance, pettyCash]);
 
   const globalFilterFn = (
     row: CoreRow<Expense>,

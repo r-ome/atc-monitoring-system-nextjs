@@ -1,8 +1,6 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/app/lib/auth";
+import { requireUser } from "@/app/lib/auth";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { GetExpensesByDateController } from "src/controllers/expenses/get-expenses-by-date.controller";
 import { RefundAuctionsInventoriesController } from "src/controllers/inventories/refund-auctions-inventories.controller";
@@ -15,15 +13,13 @@ import { UpdateRegistrationPaymentController } from "src/controllers/payments/up
 import { GetPettyCashBalanceController } from "src/controllers/expenses/get-petty-cash-balance.controller";
 import { UpdateExpenseController } from "src/controllers/payments/update-expense.controller";
 import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
+import { UpdatePettyCashController } from "src/controllers/expenses/update-petty-cash.controller";
 
 export const getPaymentsByDate = async (
   date: string,
   branch_id: string | undefined = undefined
 ) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-
-  if (!user) redirect("/login");
+  const user = await requireUser();
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
@@ -35,8 +31,8 @@ export const getAuctionTransactions = async (auction_id: string) => {
   return await GetAuctionTransactionsController(auction_id);
 };
 
-export const refundAuctionsInventories = async (formData: FormData) => {
-  const input = Object.fromEntries(formData.entries());
+export const refundAuctionsInventories = async (form_data: FormData) => {
+  const input = Object.fromEntries(form_data.entries());
   return await RefundAuctionsInventoriesController(input);
 };
 
@@ -51,10 +47,7 @@ export const getExpensesByDate = async (
   date: string,
   branch_id: string | undefined = undefined
 ) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-
-  if (!user) redirect("/login");
+  const user = await requireUser();
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
@@ -62,9 +55,17 @@ export const getExpensesByDate = async (
   );
 };
 
-export const addExpense = async (formData: FormData) => {
-  const input = Object.fromEntries(formData.entries());
-  return await AddExpenseController(input);
+export const addExpense = async (
+  petty_cash_id: string,
+  form_data: FormData
+) => {
+  const user = await requireUser();
+  const input = Object.fromEntries(form_data.entries());
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await AddExpenseController(petty_cash_id, input)
+  );
 };
 
 export const getBidderReceipts = async (auction_bidder_id: string) => {
@@ -73,22 +74,43 @@ export const getBidderReceipts = async (auction_bidder_id: string) => {
 
 export const updateRegistrationPayment = async (
   payment_id: string,
-  formData: FormData
+  form_data: FormData
 ) => {
-  const input = Object.fromEntries(formData.entries());
+  const input = Object.fromEntries(form_data.entries());
   return await UpdateRegistrationPaymentController(payment_id, input);
 };
 
-export const getPettyCashBalance = async (date: string) => {
+export const getPettyCashBalance = async (date: string, branch_id: string) => {
+  const user = await requireUser();
   const input = new Date(date);
-  return await GetPettyCashBalanceController(input);
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetPettyCashBalanceController(input, branch_id)
+  );
 };
 
-export const updateExpense = async (expense_id: string, formData: FormData) => {
-  const data = Object.fromEntries(formData.entries());
+export const updateExpense = async (
+  expense_id: string,
+  form_data: FormData
+) => {
+  const data = Object.fromEntries(form_data.entries());
   return await UpdateExpenseController(expense_id, data);
 };
 
 export const undoPayment = async (receipt_id: string) => {
   return await UndoPaymentController(receipt_id);
+};
+
+export const updatePettyCash = async (
+  petty_cash_id: string,
+  form_data: FormData
+) => {
+  const user = await requireUser();
+  const input = Object.fromEntries(form_data.entries());
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await UpdatePettyCashController(petty_cash_id, input)
+  );
 };
