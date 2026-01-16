@@ -114,31 +114,25 @@ export const columns: ColumnDef<ContainerRowType>[] = [
       );
     },
   },
-  // {
-  //   id: "actions",
-  //   enableHiding: false,
-  //   size: 50,
-  //   cell: ({ row }) => {
-  //     const container = row.original;
-  //     return (
-  //       <DropdownMenu>
-  //         <DropdownMenuTrigger asChild className="cursor-pointer">
-  //           <Button variant="ghost" className="h-8 w-8 p-0">
-  //             <span className="sr-only">Open menu</span>
-  //             <MoreHorizontal />
-  //           </Button>
-  //         </DropdownMenuTrigger>
-  //         <DropdownMenuContent align="end">
-  //           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-  //           <DropdownMenuSeparator />
-  //           <DropdownMenuItem
-  //             onClick={() => redirect(`/containers/${container.barcode}`)}
-  //           >
-  //             View Container Profile
-  //           </DropdownMenuItem>
-  //         </DropdownMenuContent>
-  //       </DropdownMenu>
-  //     );
-  //   },
-  // },
+  {
+    accessorKey: "due_date",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Due Date
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const container = row.original;
+      return <div className="flex justify-center">{container.due_date}</div>;
+    },
+  },
 ];

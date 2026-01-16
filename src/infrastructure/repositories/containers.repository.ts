@@ -70,6 +70,7 @@ export const ContainerRepository: IContainerRepository = {
     try {
       return await prisma.containers.findMany({
         include: { branch: true, inventories: true, supplier: true },
+        orderBy: { due_date: "desc" },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
