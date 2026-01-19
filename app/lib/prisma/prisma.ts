@@ -80,6 +80,8 @@ const prisma = base.$extends({
         const branchWhere = modelHasBranch
           ? buildBranchWhere(model, branch_id)
           : {};
+        const shouldInjectBranchId =
+          modelHasBranch && model !== "auctions_inventories";
 
         if (operation === "findMany" || operation === "findFirst") {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -130,7 +132,7 @@ const prisma = base.$extends({
             ...args,
             data: {
               ...args.data,
-              ...(modelHasBranch ? { branch_id } : {}),
+              ...(shouldInjectBranchId && modelHasBranch ? { branch_id } : {}),
             },
           });
         }
