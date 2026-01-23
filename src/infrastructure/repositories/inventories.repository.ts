@@ -17,7 +17,11 @@ export const InventoryRepository: IInventoryRepository = {
         where: { auction_inventory_id },
         include: {
           receipt: { include: { payments: true } },
-          inventory: { include: { container: true } },
+          inventory: {
+            include: {
+              container: { select: { container_id: true, barcode: true } },
+            },
+          },
           auction_bidder: { include: { bidder: true } },
           histories: {
             include: { receipt: true },
@@ -94,8 +98,8 @@ export const InventoryRepository: IInventoryRepository = {
                 },
               },
             });
-          }
-        )
+          },
+        ),
       );
 
       const auction_inventories = await prisma.auctions_inventories.findMany({
@@ -108,7 +112,7 @@ export const InventoryRepository: IInventoryRepository = {
         where: {
           auction_inventory_id: {
             in: data.auction_inventories.map(
-              (item) => item.auction_inventory_id
+              (item) => item.auction_inventory_id,
             ),
           },
         },
@@ -179,7 +183,7 @@ export const InventoryRepository: IInventoryRepository = {
             const new_bidder_computed_price =
               getItemPriceWithServiceChargeAmount(
                 data.price,
-                selected_bidder.service_charge
+                selected_bidder.service_charge,
               );
             // update new bidder's balance (add new price)
             await tx.auctions_bidders.update({
@@ -200,7 +204,7 @@ export const InventoryRepository: IInventoryRepository = {
           } else {
             const item_new_price = getItemPriceWithServiceChargeAmount(
               data.price,
-              previous_bidder.service_charge
+              previous_bidder.service_charge,
             );
 
             const item_current_price =
@@ -227,7 +231,7 @@ export const InventoryRepository: IInventoryRepository = {
           auction_inventory_status = "PARTIAL";
           const new_computed_price = getItemPriceWithServiceChargeAmount(
             data.price - auction_inventory.price,
-            selected_bidder.service_charge
+            selected_bidder.service_charge,
           );
 
           // update new bidder's balance (add new price)
@@ -355,7 +359,7 @@ export const InventoryRepository: IInventoryRepository = {
     }
   },
   getAllInventories: async (
-    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD", "VOID"]
+    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD", "VOID"],
   ) => {
     try {
       return await prisma.inventories.findMany({
@@ -413,7 +417,7 @@ export const InventoryRepository: IInventoryRepository = {
           "Error getting inventories with no auction inventories",
           {
             cause: error.message,
-          }
+          },
         );
       }
       throw error;
@@ -436,7 +440,7 @@ export const InventoryRepository: IInventoryRepository = {
           "Error getting inventories with no auction inventories",
           {
             cause: error.message,
-          }
+          },
         );
       }
       throw error;

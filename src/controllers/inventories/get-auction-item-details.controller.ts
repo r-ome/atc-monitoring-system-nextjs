@@ -55,12 +55,11 @@ const presenter = (auction_inventory: AuctionsInventorySchema) => {
 };
 
 export const GetAuctionItemDetailsController = async (
-  auction_inventory_id: string
+  auction_inventory_id: string,
 ) => {
   try {
-    const auction_inventory = await getAuctionItemDetailsUseCase(
-      auction_inventory_id
-    );
+    const auction_inventory =
+      await getAuctionItemDetailsUseCase(auction_inventory_id);
     return ok(presenter(auction_inventory));
   } catch (error) {
     logger("GetAuctionItemDetailsController", error);

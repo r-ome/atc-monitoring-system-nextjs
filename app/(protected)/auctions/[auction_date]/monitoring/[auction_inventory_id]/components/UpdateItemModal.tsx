@@ -92,7 +92,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
 
       const auction = auction_res.value;
       const registered_bidders_res = await getRegisteredBidders(
-        auction.auction_id
+        auction.auction_id,
       );
       if (!registered_bidders_res.ok) return;
 
@@ -103,7 +103,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
       const selectedBidder = registered_bidders.find(
         (registeredBidder) =>
           registeredBidder.bidder.bidder_number ===
-          auctionInventory?.bidder.bidder_number
+          auctionInventory?.bidder.bidder_number,
       );
 
       if (selectedBidder) {
@@ -113,7 +113,6 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
         });
       }
     };
-
     fetchAuctionData();
   }, [auction_date, auctionInventory]);
 
@@ -126,7 +125,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
     formData.append("auction_id", auctionId);
     formData.append(
       "auction_inventory_id",
-      auctionInventory.auction_inventory_id
+      auctionInventory.auction_inventory_id,
     );
     formData.append("inventory_id", auctionInventory.inventory_id);
     if (selectedBidder) {
@@ -268,7 +267,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                     placeholder="Select a bidder"
                     setSelected={(selected) =>
                       setSelectedBidder(
-                        selected as { label: string; value: string }
+                        selected as { label: string; value: string },
                       )
                     }
                     options={registeredBidders

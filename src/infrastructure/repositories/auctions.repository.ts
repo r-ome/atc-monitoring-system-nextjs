@@ -116,7 +116,15 @@ export const AuctionRepository: IAuctionRepository = {
               bidder: true,
               receipt_records: { include: { payments: true } },
               auctions_inventories: {
-                include: { inventory: { include: { container: true } } },
+                include: {
+                  inventory: {
+                    include: {
+                      container: {
+                        select: { container_id: true, barcode: true },
+                      },
+                    },
+                  },
+                },
               },
             },
             orderBy: { created_at: "desc" },
@@ -176,7 +184,7 @@ export const AuctionRepository: IAuctionRepository = {
   },
   getMonitoring: async (
     auction_id: string,
-    status: AUCTION_ITEM_STATUS[] = []
+    status: AUCTION_ITEM_STATUS[] = [],
   ) => {
     try {
       if (auction_id === "ALL") {
@@ -310,7 +318,7 @@ export const AuctionRepository: IAuctionRepository = {
                 service_charge: number;
               }
             >;
-          }
+          },
         );
 
         // insert data in auctions_inventories table
@@ -330,8 +338,8 @@ export const AuctionRepository: IAuctionRepository = {
                   auction_date: auction?.created_at,
                   is_slash_item: item.isSlashItem,
                 },
-              })
-            )
+              }),
+            ),
         );
 
         // add "encoded" in history
@@ -360,12 +368,12 @@ export const AuctionRepository: IAuctionRepository = {
           (item) => {
             const match = auctions_inventories.find(
               (auction_inventory) =>
-                auction_inventory.inventory_id === item.inventory_id
+                auction_inventory.inventory_id === item.inventory_id,
             );
             item.auction_inventory_id = match?.auction_inventory_id;
             item.status = match?.status;
             return item;
-          }
+          },
         );
 
         /**
@@ -397,8 +405,8 @@ export const AuctionRepository: IAuctionRepository = {
                 where: {
                   auction_inventory_id: item.auction_inventory_id!,
                 },
-              })
-            )
+              }),
+            ),
           );
 
           await Promise.all(
@@ -417,7 +425,7 @@ export const AuctionRepository: IAuctionRepository = {
                   remarks,
                 },
               });
-            })
+            }),
           );
         }
 
@@ -432,7 +440,7 @@ export const AuctionRepository: IAuctionRepository = {
 
             return acc;
           },
-          {}
+          {},
         );
 
         await Promise.all(
@@ -440,8 +448,8 @@ export const AuctionRepository: IAuctionRepository = {
             tx.auctions_bidders.update({
               where: { auction_bidder_id },
               data: { balance: { increment: amount } },
-            })
-          )
+            }),
+          ),
         );
 
         return auctions_inventories;
@@ -480,7 +488,11 @@ export const AuctionRepository: IAuctionRepository = {
           auctions_inventories: {
             include: {
               receipt: true,
-              inventory: { include: { container: true } },
+              inventory: {
+                include: {
+                  container: { select: { container_id: true, barcode: true } },
+                },
+              },
               histories: {
                 include: { receipt: true },
                 orderBy: { created_at: "desc" },
@@ -580,15 +592,15 @@ export const AuctionRepository: IAuctionRepository = {
         });
 
         const paid_items = auction_inventories.filter(
-          (item) => item.status === "PAID"
+          (item) => item.status === "PAID",
         );
         const unpaid_items = auction_inventories.filter(
-          (item) => item.status === "UNPAID"
+          (item) => item.status === "UNPAID",
         );
 
         const computeTotalPrice = (
           acc: number,
-          item: (typeof auction_inventories)[number]
+          item: (typeof auction_inventories)[number],
         ) => {
           const service_charge_amount =
             (item.price * bidder.service_charge) / 100;
@@ -601,7 +613,7 @@ export const AuctionRepository: IAuctionRepository = {
         if (unpaid_items.length) {
           const unpaid_items_total_price = unpaid_items.reduce(
             computeTotalPrice,
-            0
+            0,
           );
           await tx.auctions_bidders.update({
             data: { balance: { decrement: unpaid_items_total_price } },
@@ -612,7 +624,7 @@ export const AuctionRepository: IAuctionRepository = {
         if (paid_items.length) {
           const paid_items_total_price = paid_items.reduce(
             computeTotalPrice,
-            0
+            0,
           );
 
           await tx.receipt_records.create({
@@ -674,8 +686,8 @@ export const AuctionRepository: IAuctionRepository = {
                   inventory_status: "UNSOLD",
                   remarks: data.reason,
                 },
-              })
-            )
+              }),
+            ),
           );
         }
       });
@@ -803,7 +815,7 @@ export const AuctionRepository: IAuctionRepository = {
 
           // insert newly created_inventories
           const for_creating_inventories = valid_rows_in_sheet.filter(
-            (item) => !item.inventory_id && item.container_id
+            (item) => !item.inventory_id && item.container_id,
           );
 
           await tx.inventories.createMany({
@@ -863,8 +875,8 @@ export const AuctionRepository: IAuctionRepository = {
                   manifest_number: item.manifest_number as string,
                   auction_date: auction.created_at,
                 },
-              })
-            )
+              }),
+            ),
           );
 
           const auctions_inventories = await tx.auctions_inventories.findMany({
@@ -872,7 +884,7 @@ export const AuctionRepository: IAuctionRepository = {
             where: {
               auction_inventory_id: {
                 in: created_auctions_inventories.map(
-                  (item) => item.auction_inventory_id as string
+                  (item) => item.auction_inventory_id as string,
                 ),
               },
             },
@@ -896,20 +908,20 @@ export const AuctionRepository: IAuctionRepository = {
                 (acc[item.auction_bidder_id] || 0) + total;
               return acc;
             },
-            {}
+            {},
           );
           await Promise.all(
             Object.entries(update_balance).map(([auction_bidder_id, amount]) =>
               tx.auctions_bidders.update({
                 where: { auction_bidder_id },
                 data: { balance: { increment: amount } },
-              })
-            )
+              }),
+            ),
           );
 
           return manifest;
         },
-        { maxWait: 10000, timeout: 30000 }
+        { maxWait: 10000, timeout: 30000 },
       );
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
