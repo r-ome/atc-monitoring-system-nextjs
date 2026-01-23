@@ -162,7 +162,10 @@ export const InventoryRepository: IInventoryRepository = {
           selected_bidder.auction_bidder_id;
 
         let auction_inventory_status = auction_inventory.status;
-        if (is_item_reassigned && auction_inventory_status === "REFUNDED") {
+        if (
+          is_item_reassigned &&
+          ["REFUNDED", "CANCELLED"].includes(auction_inventory_status)
+        ) {
           auction_inventory_status = "UNPAID";
         }
 
@@ -282,6 +285,7 @@ export const InventoryRepository: IInventoryRepository = {
                     : auction_inventory.inventory.container_id,
                 barcode: data.barcode,
                 control: data.control,
+                status: "SOLD",
               },
             },
             histories: {
