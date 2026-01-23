@@ -16,11 +16,7 @@ const base =
     ],
   });
 
-// base.$on("query", (e) => {
-//   console.log("Query: " + e.query);
-//   console.log("Params: " + e.params);
-//   console.log("Duration: " + e.duration + "ms");
-// });
+// base.$on("query"
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = base;
 
@@ -56,7 +52,7 @@ function buildBranchWhere(model: string, branch_id: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deepClone = (obj: any) =>
     JSON.parse(
-      JSON.stringify(obj, (_, v) => (v === undefined ? branch_id : v))
+      JSON.stringify(obj, (_, v) => (v === undefined ? branch_id : v)),
     );
 
   return deepClone(template);

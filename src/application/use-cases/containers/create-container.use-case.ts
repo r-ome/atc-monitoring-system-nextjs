@@ -3,9 +3,10 @@ import { ContainerRepository } from "src/infrastructure/repositories/containers.
 import { getSupplierContainersUseCase } from "../suppliers/get-supplier-containers.use-case";
 import { InputParseError } from "src/entities/errors/common";
 import { formatNumberPadding } from "@/app/lib/utils";
+import { addDays } from "date-fns";
 
 export const createContainerUseCase = async (
-  container: ContainerInsertSchema
+  container: ContainerInsertSchema,
 ) => {
   // validate if container number is already in supplier
   const supplier = await getSupplierContainersUseCase(container.supplier_id);
@@ -21,6 +22,10 @@ export const createContainerUseCase = async (
         ],
       },
     });
+  }
+
+  if (container.arrival_date) {
+    container.due_date = addDays(container.arrival_date, 40);
   }
 
   return await ContainerRepository.createContainer(container);

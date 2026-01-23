@@ -14,7 +14,7 @@ import { ok, err } from "src/entities/models/Response";
 import { logger } from "@/app/lib/logger";
 
 const presenter = (
-  container: Omit<ContainerSchema, "branch" | "inventories" | "supplier">
+  container: Omit<ContainerSchema, "branch" | "inventories" | "supplier">,
 ) => {
   const date_format = "MMM dd, yyyy";
   return {
@@ -35,7 +35,7 @@ const presenter = (
 };
 
 export const CreateContainerController = async (
-  input: Partial<ContainerInsertSchemaType>
+  input: Partial<ContainerInsertSchemaType>,
 ) => {
   try {
     input = {

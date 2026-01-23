@@ -34,11 +34,11 @@ export default function Page() {
   const session = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]> | undefined>(
-    undefined
+    undefined,
   );
   const [branches, setBranches] = useState<Branch[]>([]);
   const [suppliers, setSuppliers] = useState<Omit<Supplier, "containers">[]>(
-    []
+    [],
   );
   const [selectedSupplier, setSelectedSupplier] = useState<option | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<option | undefined>();
@@ -79,7 +79,7 @@ export default function Page() {
     formData.append("branch_id", selectedBranch.value as string);
     formData.append(
       "arrival_date",
-      arrivalDate ? arrivalDate.toISOString() : ""
+      arrivalDate ? arrivalDate.toISOString() : "",
     );
     formData.append("auction_or_sell", "AUCTION");
     setIsLoading(true);
