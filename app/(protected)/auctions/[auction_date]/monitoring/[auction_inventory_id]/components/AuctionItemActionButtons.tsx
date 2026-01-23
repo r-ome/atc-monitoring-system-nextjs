@@ -17,9 +17,7 @@ interface AuctionItemActionButtonsProps {
   auctionInventory: AuctionsInventory;
   auctionBidderId: string;
   setOpenCancelDialog: React.Dispatch<SetStateAction<boolean>>;
-  setOpenVoidDialog: React.Dispatch<SetStateAction<boolean>>;
   setOpenUpdateDialog: React.Dispatch<SetStateAction<boolean>>;
-  setOpenRefundDialog: React.Dispatch<SetStateAction<boolean>>;
 }
 
 export const AuctionItemActionButtons: React.FC<
@@ -28,9 +26,7 @@ export const AuctionItemActionButtons: React.FC<
   auctionInventory,
   auctionBidderId,
   setOpenCancelDialog,
-  setOpenVoidDialog,
   setOpenUpdateDialog,
-  // setOpenRefundDialog,
 }) => {
   const { setAuctionInventory, setAuctionBidderId } = useAuctionItemContext();
 
@@ -58,19 +54,6 @@ export const AuctionItemActionButtons: React.FC<
         >
           Cancel Item
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setOpenVoidDialog(true)}
-          disabled={["VOID"].includes(auctionInventory.inventory.status)}
-        >
-          Void Item
-        </DropdownMenuItem>
-        {/* <DropdownMenuItem>Reassign Item</DropdownMenuItem> */}
-        {/* <DropdownMenuItem
-          onClick={() => setOpenRefundDialog(true)}
-          disabled={!["PAID"].includes(auctionInventory.status)}
-        >
-          Refund Item
-        </DropdownMenuItem> */}
         <DropdownMenuItem onClick={() => setOpenUpdateDialog(true)}>
           Edit Item
         </DropdownMenuItem>

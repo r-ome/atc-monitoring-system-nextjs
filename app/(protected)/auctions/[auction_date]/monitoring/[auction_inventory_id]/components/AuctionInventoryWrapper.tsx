@@ -13,8 +13,6 @@ import { cn } from "@/app/lib/utils";
 import { Badge } from "@/app/components/ui/badge";
 
 import { CancelItemModal } from "./CancelItemModal";
-import { RefundItemModal } from "./RefundItemModal";
-import { VoidItemModal } from "./VoidItemModal";
 import { AuctionItemProvider } from "../context/AuctionItemContext";
 import { AuctionItemActionButtons } from "./AuctionItemActionButtons";
 import { UpdateItemModal } from "./UpdateItemModal";
@@ -73,8 +71,8 @@ export const AuctionInventoryWrapper: React.FC<
       auctionInventory.status === "PARTIAL"
         ? "warning"
         : ["UNPAID", "CANCELLED"].includes(auctionInventory.status)
-        ? "destructive"
-        : "success";
+          ? "destructive"
+          : "success";
     return (
       <>
         <Badge variant={auctionInventoryStatusVariant}>
@@ -107,9 +105,7 @@ export const AuctionInventoryWrapper: React.FC<
                     auctionInventory={auctionInventory}
                     auctionBidderId={auctionInventory.auction_bidder_id}
                     setOpenCancelDialog={setOpenCancelDialog}
-                    setOpenVoidDialog={setOpenVoidDialog}
                     setOpenUpdateDialog={setOpenUpdateDialog}
-                    setOpenRefundDialog={setOpenRefundDialog}
                   />
                 </div>
               </CardDescription>
@@ -127,16 +123,9 @@ export const AuctionInventoryWrapper: React.FC<
           onOpenChange={setOpenCancelDialog}
         />
 
-        <VoidItemModal open={openVoidDialog} onOpenChange={setOpenVoidDialog} />
-
         <UpdateItemModal
           open={openUpdateDialog}
           onOpenChange={setOpenUpdateDialog}
-        />
-
-        <RefundItemModal
-          open={openRefundDialog}
-          onOpenChange={setOpenRefundDialog}
         />
       </div>
     </AuctionItemProvider>
