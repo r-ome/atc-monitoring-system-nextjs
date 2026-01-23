@@ -163,6 +163,33 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
     }));
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!["ArrowDown", "ArrowUp"].includes(e.key)) return;
+    const FIELD_ORDER = [
+      "barcode",
+      "control",
+      "description",
+      "price",
+      "qty",
+      "manifest_number",
+    ];
+
+    e.preventDefault();
+
+    const currentName = e.currentTarget.name;
+    const currentIndex = FIELD_ORDER.indexOf(currentName);
+    const nextOrder = e.key === "ArrowUp" ? currentIndex - 1 : currentIndex + 1;
+    const nextName = FIELD_ORDER[nextOrder];
+
+    if (!nextName) return;
+
+    const nextInput = document.querySelector<HTMLInputElement>(
+      `input[name="${nextName}"]`,
+    );
+
+    nextInput?.focus();
+  };
+
   return (
     <AlertDialog open={open}>
       <AlertDialogContent>
@@ -185,6 +212,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
               </Label>
               <Input
                 value={newAuctionInventory.barcode}
+                onKeyDown={handleKeyDown}
                 name="barcode"
                 onChange={handleUpdateChange}
                 error={errors}
@@ -198,6 +226,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
               <Input
                 value={newAuctionInventory.control}
                 name="control"
+                onKeyDown={handleKeyDown}
                 onChange={handleUpdateChange}
                 error={errors}
                 required
@@ -210,6 +239,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
               <Input
                 value={newAuctionInventory.description}
                 name="description"
+                onKeyDown={handleKeyDown}
                 onChange={handleUpdateChange}
                 error={errors}
                 required
@@ -223,6 +253,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                 <InputNumber
                   value={newAuctionInventory.price}
                   name="price"
+                  onKeyDown={handleKeyDown}
                   onChange={handleUpdateChange}
                   error={errors}
                   required
@@ -237,6 +268,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                 value={newAuctionInventory.qty}
                 name="qty"
                 onChange={handleUpdateChange}
+                onKeyDown={handleKeyDown}
                 error={errors}
                 required
               />
@@ -289,6 +321,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                 value={newAuctionInventory.manifest_number}
                 name="manifest_number"
                 onChange={handleUpdateChange}
+                onKeyDown={handleKeyDown}
                 error={errors}
                 required
               />
