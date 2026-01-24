@@ -55,7 +55,9 @@ export type ReceiptRecordsSchema = Prisma.receipt_recordsGetPayload<{
     auctions_inventories: true;
     payments: { include: { payment_method: true } };
     inventory_histories: {
-      include: { auction_inventory: { include: { inventory: true } } };
+      include: {
+        auction_inventory: { include: { inventory: true; histories: true } };
+      };
     };
   };
 }>;
@@ -103,7 +105,7 @@ export const PullOutPaymentInsertSchema = z.object({
     z.object({
       payment_method: z.string(),
       amount_paid: z.number(),
-    })
+    }),
   ),
   remarks: z.string().optional().nullable(),
 });
@@ -149,7 +151,7 @@ export const RefundAuctionInventories = z.object({
       inventory_id: z.string(),
       prev_price: z.coerce.number(),
       new_price: z.coerce.number(),
-    })
+    }),
   ),
 });
 
