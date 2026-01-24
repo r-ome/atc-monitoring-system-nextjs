@@ -23,7 +23,7 @@ export const VALID_FILE_TYPES = [
 
 export const getSheetData = (
   file: ArrayBuffer,
-  type: "bidders" | "manifest" | "inventory" | "counter_check" = "inventory"
+  type: "bidders" | "manifest" | "inventory" | "counter_check" = "inventory",
 ): { data: Record<string, string>[]; headers: string[] } => {
   try {
     const workbook = xlsx.read(file, { type: "array" });
@@ -49,7 +49,7 @@ export const getSheetData = (
               ...acc,
               [header]: item[header],
             };
-          }, {})
+          }, {}),
         )
         .map((item) => {
           return {
@@ -74,8 +74,8 @@ export const getSheetData = (
               ...acc,
               [header]: Object.values(item)[headerIndex],
             }),
-            {}
-          )
+            {},
+          ),
         )
         .map((item) => ({
           BARCODE: item.BARCODE,
@@ -100,7 +100,7 @@ export const getSheetData = (
 
     if (type === "bidders") {
       headers = Object.values(data[0]).map((item) =>
-        item.trim().replace(/\ /g, "_")
+        item.trim().replace(/\ /g, "_"),
       );
       data = data
         .slice(1)
@@ -110,8 +110,8 @@ export const getSheetData = (
               ...acc,
               [header]: Object.values(item)[headerIndex],
             }),
-            {}
-          )
+            {},
+          ),
         )
         .map((item) => ({
           BIDDER_NUMBER: item.NEW_NUMBER,
@@ -137,7 +137,7 @@ export const getSheetData = (
 };
 
 export const validateEmptyFields = (
-  data: ManifestSheetRecord[]
+  data: ManifestSheetRecord[],
 ): ManifestInsertSchema[] => {
   return data.map((item) => {
     const required = [
@@ -182,7 +182,7 @@ export const validateEmptyFields = (
 };
 
 export const formatControlDescriptionQty = (
-  data: ManifestInsertSchema[]
+  data: ManifestInsertSchema[],
 ): ManifestInsertSchema[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
@@ -231,7 +231,7 @@ export const divideQuantites = (qty: string | number, parts: number) => {
 };
 
 export const formatSlashedBarcodes = (
-  data: ManifestInsertSchema[]
+  data: ManifestInsertSchema[],
 ): ManifestInsertSchema[] => {
   return data.reduce((acc, item) => {
     const new_barcodes = item.BARCODE.split("/");
@@ -244,7 +244,7 @@ export const formatSlashedBarcodes = (
 
     const new_prices = divideIntoHundreds(
       parseInt(item.PRICE, 10),
-      new_barcodes.length
+      new_barcodes.length,
     );
     const new_quantities = divideQuantites(item.QTY, new_barcodes.length);
     const slashGroupUuid = new_barcodes.length > 1 ? uuidv4() : null;
@@ -274,13 +274,13 @@ export const formatSlashedBarcodes = (
 
 export const validateBidders = (
   data: ManifestInsertSchema[],
-  registeredBidders: RegisteredBidderSchema[]
+  registeredBidders: RegisteredBidderSchema[],
 ) => {
   return data.map((item) => {
     if (!item.isValid) return item;
     const bidder = registeredBidders.find(
       (registered_bidder) =>
-        registered_bidder.bidder.bidder_number === item.BIDDER
+        registered_bidder.bidder.bidder_number === item.BIDDER,
     );
 
     if (!bidder) {
@@ -298,7 +298,7 @@ export const validateBidders = (
 };
 
 export const removeManifestDuplicates = (
-  data: ManifestInsertSchema[]
+  data: ManifestInsertSchema[],
 ): ManifestInsertSchema[] => {
   const seen = new Set<string>();
 
@@ -336,7 +336,7 @@ export const formatExistingInventories = (
   existing_inventories: Omit<
     InventorySchema,
     "histories" | "container" | "auctions_inventory"
-  >[]
+  >[],
 ): ManifestInsertSchema[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
@@ -384,7 +384,7 @@ export const addContainerIdForNewInventories = (
   data: ManifestInsertSchema[],
   containers: (Omit<ContainerSchema, "inventories"> & {
     inventories: BaseInventorySchema[];
-  })[]
+  })[],
 ): ManifestInsertSchema[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
@@ -402,7 +402,7 @@ export const addContainerIdForNewInventories = (
 
     const container = container_barcodes.find(
       (container_barcode) =>
-        container_barcode.barcode === item_container_barcode
+        container_barcode.barcode === item_container_barcode,
     );
 
     if (!container) {
@@ -418,13 +418,13 @@ export const addContainerIdForNewInventories = (
 
 export const removeMonitoringDuplicates = (
   data: ManifestInsertSchema[],
-  monitoring: AuctionsInventorySchema[]
+  monitoring: AuctionsInventorySchema[],
 ) => {
   const existing_monitoring = monitoring.map((item) =>
     JSON.stringify({
       BARCODE: item.inventory.barcode,
       CONTROL: item.inventory.control,
-    })
+    }),
   );
 
   /**
@@ -439,7 +439,7 @@ export const removeMonitoringDuplicates = (
       JSON.stringify({
         BARCODE: item.inventory.barcode,
         CONTROL: item.inventory.control,
-      })
+      }),
     );
 
   return data.map((sheet_item) => {
@@ -454,7 +454,7 @@ export const removeMonitoringDuplicates = (
       const matched_item = monitoring.find(
         (item) =>
           item.inventory.barcode === sheet_item.BARCODE &&
-          item.inventory.control === sheet_item.CONTROL
+          item.inventory.control === sheet_item.CONTROL,
       );
 
       sheet_item.forUpdating = true;

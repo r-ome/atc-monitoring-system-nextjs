@@ -310,6 +310,7 @@ export const AuctionRepository: IAuctionRepository = {
             }
 
             item.inventory_id = item.inventory_id ?? match?.inventory_id;
+            item.auction_inventory_id = item?.auction_inventory_id;
             return item as Override<
               ManifestInsertSchema,
               {
@@ -366,10 +367,9 @@ export const AuctionRepository: IAuctionRepository = {
 
         const for_updating_with_auction_inventories = for_updating.map(
           (item) => {
-            const match = auctions_inventories.find(
-              (auction_inventory) =>
-                auction_inventory.inventory_id === item.inventory_id,
-            );
+            const match = auctions_inventories.find((auction_inventory) => {
+              return auction_inventory.inventory_id === item.inventory_id;
+            });
             item.auction_inventory_id = match?.auction_inventory_id;
             item.status = match?.status;
             return item;
@@ -377,13 +377,13 @@ export const AuctionRepository: IAuctionRepository = {
         );
 
         /**
-         * If item is CANCELLED but was encoded again:
+         * If item is CANCELLED or REFUNDED but was encoded again:
          * update item inventory status to: SOLD
          * update auction inventory status to: UNPAID
          */
         if (for_updating.length) {
           await tx.inventories.updateMany({
-            data: { status: "SOLD" },
+            data: { status: "SOLD", auction_date: auction.created_at },
             where: {
               inventory_id: {
                 in: for_updating.map((item) => item.inventory_id as string),
@@ -391,7 +391,7 @@ export const AuctionRepository: IAuctionRepository = {
             },
           });
 
-          // update CANCELLED ITEM
+          // update CANCELLED OR REFUNDED ITEM
           await Promise.all(
             for_updating_with_auction_inventories.map((item) =>
               tx.auctions_inventories.update({
@@ -401,6 +401,7 @@ export const AuctionRepository: IAuctionRepository = {
                   price: parseInt(item.PRICE, 10),
                   qty: item.QTY,
                   status: "UNPAID",
+                  auction_date: auction.created_at,
                 },
                 where: {
                   auction_inventory_id: item.auction_inventory_id!,
@@ -411,12 +412,8 @@ export const AuctionRepository: IAuctionRepository = {
 
           await Promise.all(
             for_updating_with_auction_inventories.map((item) => {
-              let remarks =
-                "Updated item from CANCELLED to UNPAID. ITEM ENCODED AGAIN";
-              if (item.status !== "CANCELLED") {
-                remarks = "item encoded";
-              }
-              tx.inventory_histories.create({
+              const remarks = `Updated item from ${item.status} to UNPAID. ITEM ENCODED AGAIN`;
+              return tx.inventory_histories.create({
                 data: {
                   auction_inventory_id: item.auction_inventory_id,
                   inventory_id: item.inventory_id!,
