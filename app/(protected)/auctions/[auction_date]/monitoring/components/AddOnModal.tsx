@@ -68,6 +68,33 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!["ArrowDown", "ArrowUp"].includes(e.key)) return;
+    const FIELD_ORDER = [
+      "BARCODE",
+      "CONTROL",
+      "DESCRIPTION",
+      "PRICE",
+      "QTY",
+      "MANIFEST",
+    ];
+
+    e.preventDefault();
+
+    const currentName = e.currentTarget.name;
+    const currentIndex = FIELD_ORDER.indexOf(currentName);
+    const nextOrder = e.key === "ArrowUp" ? currentIndex - 1 : currentIndex + 1;
+    const nextName = FIELD_ORDER[nextOrder];
+
+    if (!nextName) return;
+
+    const nextInput = document.querySelector<HTMLInputElement>(
+      `input[name="${nextName}"]`,
+    );
+
+    nextInput?.focus();
+  };
+
   return (
     <div>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -82,7 +109,13 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="BARCODE">Barcode: </Label>
-              <Input type="text" id="BARCODE" name="BARCODE" required />
+              <Input
+                type="text"
+                id="BARCODE"
+                name="BARCODE"
+                onKeyDown={handleKeyDown}
+                required
+              />
             </div>
 
             <div className="flex flex-col gap-2 w-full">
@@ -92,17 +125,35 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
 
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="DESCRIPTION">Description: </Label>
-              <Input type="text" id="DESCRIPTION" name="DESCRIPTION" required />
+              <Input
+                type="text"
+                id="DESCRIPTION"
+                name="DESCRIPTION"
+                onKeyDown={handleKeyDown}
+                required
+              />
             </div>
 
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="PRICE">Price: </Label>
-              <InputNumber id="PRICE" name="PRICE" min={0} required />
+              <InputNumber
+                id="PRICE"
+                name="PRICE"
+                min={0}
+                onKeyDown={handleKeyDown}
+                required
+              />
             </div>
 
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="QTY">Qty: </Label>
-              <Input type="text" id="QTY" name="QTY" required />
+              <Input
+                type="text"
+                id="QTY"
+                name="QTY"
+                onKeyDown={handleKeyDown}
+                required
+              />
             </div>
 
             <div className="flex flex-col gap-2 w-full">
