@@ -26,9 +26,7 @@ export const AuctionInventoryWrapper: React.FC<
   AuctionInventoryWrapperProps
 > = ({ auctionInventory }) => {
   const [openCancelDialog, setOpenCancelDialog] = useState<boolean>(false);
-  const [openVoidDialog, setOpenVoidDialog] = useState<boolean>(false);
   const [openUpdateDialog, setOpenUpdateDialog] = useState<boolean>(false);
-  const [openRefundDialog, setOpenRefundDialog] = useState<boolean>(false);
 
   const AuctionInventoryDetails = () => (
     <div className="space-y-2 border-t px-6 pt-6 flex">

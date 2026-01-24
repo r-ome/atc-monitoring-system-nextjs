@@ -147,8 +147,8 @@ export const PaymentRepository: IPaymentRepository = {
                 amount_paid: item.amount_paid,
                 payment_method_id: item.payment_method,
               },
-            })
-          )
+            }),
+          ),
         );
 
         await tx.auctions_inventories.updateMany({
@@ -251,7 +251,7 @@ export const PaymentRepository: IPaymentRepository = {
                 ? item.prev_price
                 : item.prev_price - item.new_price);
           },
-          0
+          0,
         );
 
         const receipt = await tx.receipt_records.create({
@@ -266,7 +266,7 @@ export const PaymentRepository: IPaymentRepository = {
               create: {
                 amount_paid: getItemPriceWithServiceChargeAmount(
                   total_amount_paid,
-                  auction_bidder.service_charge
+                  auction_bidder.service_charge,
                 ),
                 payment_method_id: cash_payment_method?.payment_method_id,
               },
@@ -318,7 +318,7 @@ export const PaymentRepository: IPaymentRepository = {
             });
 
             return { auction_inventories };
-          })
+          }),
         );
       });
     } catch (error) {
@@ -341,7 +341,14 @@ export const PaymentRepository: IPaymentRepository = {
         include: {
           auction_bidder: { include: { bidder: true } },
           inventory_histories: {
-            include: { auction_inventory: { include: { inventory: true } } },
+            include: {
+              auction_inventory: {
+                include: {
+                  inventory: true,
+                  histories: { orderBy: { created_at: "desc" } },
+                },
+              },
+            },
           },
           payments: { include: { payment_method: true } },
         },
@@ -402,7 +409,7 @@ export const PaymentRepository: IPaymentRepository = {
           "Error handling bidder registration update!",
           {
             cause: error.message,
-          }
+          },
         );
       }
 
@@ -423,7 +430,7 @@ export const PaymentRepository: IPaymentRepository = {
 
         const total_payment = receipt?.payments.reduce(
           (acc, item) => (acc += item.amount_paid),
-          0
+          0,
         );
 
         // to check if bidder already consumed his registration fee
@@ -437,7 +444,7 @@ export const PaymentRepository: IPaymentRepository = {
 
         // check if already has dash two
         const has_dash_two = bidder_receipt_records.filter((item) =>
-          item.receipt_number.includes("-2")
+          item.receipt_number.includes("-2"),
         ).length;
 
         await tx.auctions_bidders.update({

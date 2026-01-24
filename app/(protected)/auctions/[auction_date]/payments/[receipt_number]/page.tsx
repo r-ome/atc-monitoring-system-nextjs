@@ -39,7 +39,7 @@ export default async function Page({
 
   const receipt_res = await getReceiptDetails(
     auction.auction_id,
-    receipt_number
+    receipt_number,
   );
 
   if (!receipt_res.ok) {
@@ -134,7 +134,7 @@ export default async function Page({
                   <TableCell>
                     <div
                       className={cn(
-                        receipt.purpose === "REFUNDED" ? "text-red-500" : ""
+                        receipt.purpose === "REFUNDED" ? "text-red-500" : "",
                       )}
                     >
                       ₱ {item.amount_paid.toLocaleString()}
@@ -167,7 +167,7 @@ export default async function Page({
                 <TableCell className="font-bold">
                   <div
                     className={cn(
-                      receipt.purpose === "REFUNDED" ? "text-red-500" : ""
+                      receipt.purpose === "REFUNDED" ? "text-red-500" : "",
                     )}
                   >
                     ₱ {receipt.total_amount_paid.toLocaleString()}

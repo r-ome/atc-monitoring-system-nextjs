@@ -27,7 +27,7 @@ export default function ReceiptViewer() {
       if (!res.ok) return;
       const receipt_res = await getReceiptDetails(
         res.value.auction_id,
-        receipt_number
+        receipt_number,
       );
       if (!receipt_res.ok) return;
       setReceipt(receipt_res.value);
@@ -52,7 +52,7 @@ export default function ReceiptViewer() {
         (acc: number, item) => {
           return (acc = acc + (item.price ? item.price : 0));
         },
-        0
+        0,
       );
 
       const receiptNumber = receipt.receipt_number.split("-")[1];
@@ -65,12 +65,12 @@ export default function ReceiptViewer() {
       const grandTotal =
         getItemPriceWithServiceChargeAmount(
           total_item_price,
-          receipt.bidder.service_charge
+          receipt.bidder.service_charge,
         ) - less;
 
       const groupIndexMap = buildGroupIndexMap(
         receipt.auctions_inventories,
-        (r) => r.is_slash_item
+        (r) => r.is_slash_item,
       );
       receipt.auctions_inventories = receipt.auctions_inventories.map(
         (item) => {
@@ -84,7 +84,7 @@ export default function ReceiptViewer() {
             price: item.price || 0,
             control: `${idx ? `(A${idx})` : ""} ${item.control}`,
           };
-        }
+        },
       );
 
       return (

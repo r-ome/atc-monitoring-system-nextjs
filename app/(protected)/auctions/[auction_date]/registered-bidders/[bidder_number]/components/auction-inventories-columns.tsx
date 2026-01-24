@@ -76,8 +76,8 @@ export const columns: ColumnDef<AuctionInventory>[] = [
         status === "PARTIAL"
           ? "warning"
           : ["CANCELLED", "UNPAID", "REFUNDED"].includes(status)
-          ? "destructive"
-          : "success";
+            ? "destructive"
+            : "success";
 
       return (
         <>
@@ -129,9 +129,9 @@ export const columns: ColumnDef<AuctionInventory>[] = [
           onClick={() =>
             redirect(
               `/auctions/${formatDate(
-                new Date(item.created_at),
-                "yyyy-MM-dd"
-              )}/monitoring/${item.auction_inventory_id}`
+                new Date(item.auction_date),
+                "yyyy-MM-dd",
+              )}/monitoring/${item.auction_inventory_id}`,
             )
           }
         >
