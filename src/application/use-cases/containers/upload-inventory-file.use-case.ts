@@ -9,7 +9,7 @@ import { formatNumberPadding } from "@/app/lib/utils";
 
 export const uploadInventoryFileUseCase = async (
   barcode: string,
-  rows: InventorySheetRecord[]
+  rows: InventorySheetRecord[],
 ) => {
   const container = await getContainerByBarcodeUseCase(barcode);
 
@@ -22,11 +22,11 @@ export const uploadInventoryFileUseCase = async (
   })) as InventorySheetFormattedRecords;
 
   const existing_barcode_rows = new Set(
-    container.inventories.map((item) => `${item.barcode}`)
+    container.inventories.map((item) => `${item.barcode}`),
   );
 
   const removed_duplicate_rows = formatted_rows.filter(
-    (item) => !existing_barcode_rows.has(`${item.barcode}`)
+    (item) => !existing_barcode_rows.has(item.barcode),
   );
 
   const removed_invalid_barcode_rows = removed_duplicate_rows.filter((item) => {

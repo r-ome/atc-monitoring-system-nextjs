@@ -96,6 +96,14 @@ export const getSheetData = (
 
     if (type === "inventory") {
       headers = data.length ? Object.keys(data[0]) : [];
+      data = data
+        .filter((item) => item.Barcode)
+        .map((item) => ({
+          BARCODE: item.Barcode,
+          CONTROL: item.Control.toString(),
+          DESCRIPTION: item.Description,
+        }))
+        .slice(0, -1);
     }
 
     if (type === "bidders") {
