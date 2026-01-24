@@ -19,9 +19,9 @@ import { winston_logger } from "@/app/lib/logger";
 export const uploadManifestUseCase = async (
   auction_id: string,
   data: ManifestSheetRecord[],
-  is_bought_items: boolean = false
+  is_bought_items: boolean = false,
 ) => {
-  const monitoring = await getMonitoringUseCase(auction_id, [
+  const monitoring = await getMonitoringUseCase("ALL", [
     "UNPAID",
     "PAID",
     "CANCELLED",
@@ -39,7 +39,7 @@ export const uploadManifestUseCase = async (
   const something4 = validateBidders(something3, registered_bidders);
   const something5 = formatExistingInventories(
     something4,
-    existing_inventories
+    existing_inventories,
   );
 
   const something6 = addContainerIdForNewInventories(something5, containers);
@@ -47,13 +47,13 @@ export const uploadManifestUseCase = async (
 
   winston_logger.info(
     something6.filter((item) =>
-      item.error.includes("Required Fields: BARCODE, BIDDER, PRICE")
-    )
+      item.error.includes("Required Fields: BARCODE, BIDDER, PRICE"),
+    ),
   );
 
   return await AuctionRepository.uploadManifest(
     auction_id,
     something7,
-    is_bought_items
+    is_bought_items,
   );
 };
