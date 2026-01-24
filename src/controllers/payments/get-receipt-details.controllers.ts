@@ -28,7 +28,7 @@ function presenter(
     if (!inventory_histories) return false;
     return (
       inventory_histories.filter((item) =>
-        /price/gi.test(item.remarks as string),
+        /price|partial/gi.test(item.remarks as string),
       ).length > 0
     );
   };
@@ -51,10 +51,11 @@ function presenter(
       auction_inventory?.histories.forEach((history) => {
         if (isBefore(history.created_at, receipt.created_at)) return;
 
-        if (/price/gi.test(history.remarks as string)) {
+        if (/price|partial/gi.test(history.remarks as string)) {
           const price_remarks = (history.remarks ?? "").match(
-            /price:\s*(\d+)\s*to\s*(\d+)/i,
+            /(?:price:|from)\s*(\d+)\s*to\s*(\d+)/i,
           );
+
           if (!price_remarks) return;
 
           const prev = Number(price_remarks[1]);
