@@ -11,7 +11,7 @@ import { err, ok } from "src/entities/models/Response";
 
 export const UploadInventoryFileController = async (
   barcode: string,
-  file: File
+  file: File,
 ) => {
   try {
     if (!file) {
@@ -39,16 +39,11 @@ export const UploadInventoryFileController = async (
       });
     }
 
-    const validInventoryHeaders = JSON.stringify([
-      "BARCODE",
-      "CONTROL",
-      "DESCRIPTION",
-    ]);
+    const validInventoryHeaders = ["Barcode", "Control", "Description"]
+      .map((item) => headers.includes(item))
+      .some((item) => !item);
 
-    if (
-      validInventoryHeaders !==
-      JSON.stringify(headers.filter((item) => !item.includes("EMPTY")))
-    ) {
+    if (validInventoryHeaders) {
       throw new InputParseError("Invalid Data!", {
         cause: { file: ["Sheet has invalid headers."] },
       });
