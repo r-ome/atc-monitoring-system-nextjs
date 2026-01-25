@@ -9,6 +9,7 @@ import {
   generateBillReport,
   generateMonthlyCommission,
   generateUnpaidBidders,
+  generateBidderNumber,
 } from ".";
 
 export type Monitoring = {
@@ -29,13 +30,14 @@ type ReportTypes =
   | "bought_items"
   | "cash_flow"
   | "monthly_commission"
-  | "unpaid_bidders";
+  | "unpaid_bidders"
+  | "bidder_number";
 
 const generateReport = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
   reports: ReportTypes[],
-  filename: string
+  filename: string,
 ) => {
   const workbook = xlsx.utils.book_new();
 
@@ -45,14 +47,14 @@ const generateReport = (
         xlsx.utils.book_append_sheet(
           workbook,
           generateMonitoringReport(item.monitoring),
-          item.filename
+          item.filename,
         );
       });
     } else {
       xlsx.utils.book_append_sheet(
         workbook,
         generateMonitoringReport(data.monitoring),
-        filename
+        filename,
       );
     }
   }
@@ -61,7 +63,7 @@ const generateReport = (
     xlsx.utils.book_append_sheet(
       workbook,
       generateFinalComputation(data.sheetDetails, workbook),
-      "FINAL COMPUTATION"
+      "FINAL COMPUTATION",
     );
   }
 
@@ -69,7 +71,7 @@ const generateReport = (
     xlsx.utils.book_append_sheet(
       workbook,
       generateInventoryList(data.monitoring),
-      "ENCODE"
+      "ENCODE",
     );
   }
 
@@ -77,7 +79,7 @@ const generateReport = (
     xlsx.utils.book_append_sheet(
       workbook,
       generateUnsoldReport(data.monitoring, data.sheetDetails),
-      "UNSOLD"
+      "UNSOLD",
     );
   }
 
@@ -85,7 +87,7 @@ const generateReport = (
     xlsx.utils.book_append_sheet(
       workbook,
       generateBillReport(data.sheetDetails, workbook),
-      "BILL"
+      "BILL",
     );
   }
 
@@ -96,7 +98,7 @@ const generateReport = (
       xlsx.utils.book_append_sheet(
         workbook,
         boughtItemsSheet.sheet,
-        boughtItemsSheet.filename
+        boughtItemsSheet.filename,
       );
     });
   }
@@ -105,7 +107,7 @@ const generateReport = (
     xlsx.utils.book_append_sheet(
       workbook,
       generateCashFlow(data),
-      filename.toUpperCase()
+      filename.toUpperCase(),
     );
   }
 
@@ -113,7 +115,7 @@ const generateReport = (
     xlsx.utils.book_append_sheet(
       workbook,
       generateMonthlyCommission(data, workbook),
-      "FINAL COMPUTATION"
+      "FINAL COMPUTATION",
     );
   }
 
@@ -121,7 +123,15 @@ const generateReport = (
     xlsx.utils.book_append_sheet(
       workbook,
       generateUnpaidBidders(data),
-      "FINAL COMPUTATION"
+      "FINAL COMPUTATION",
+    );
+  }
+
+  if (reports.includes("bidder_number")) {
+    xlsx.utils.book_append_sheet(
+      workbook,
+      generateBidderNumber(data),
+      "Bidder Number",
     );
   }
 

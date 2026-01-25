@@ -50,7 +50,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
           setReceiptNumber(
             `${registeredBidder.bidder.bidder_number}-${
               latest_receipt_number + 1
-            }`
+            }`,
           );
         } else {
           setReceiptNumber(`${registeredBidder.bidder.bidder_number}-1`);
@@ -70,7 +70,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
     const items = selectedItems.length
       ? selectedItems
       : registeredBidder.auction_inventories.filter(
-          (item) => item.status === "UNPAID"
+          (item) => item.status === "UNPAID",
         );
 
     const groupIndexMap = buildGroupIndexMap(items, (r) => r.is_slash_item);
@@ -119,7 +119,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
         (acc: number, item) => {
           return (acc = acc + (item.price ? item.price : 0));
         },
-        0
+        0,
       );
 
       const less =
@@ -133,7 +133,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
       const grandTotal =
         getItemPriceWithServiceChargeAmount(
           total_item_price,
-          receipt.bidder.service_charge
+          receipt.bidder.service_charge,
         ) - less;
       return (
         <BidderInvoiceDocument
@@ -158,8 +158,8 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
     localStorage.setItem(
       registeredBidder.auction_bidder_id,
       JSON.stringify(
-        receipt.auctions_inventories.map((item) => item.auction_inventory_id)
-      )
+        receipt.auctions_inventories.map((item) => item.auction_inventory_id),
+      ),
     );
 
     const blob = await pdf(<ReceiptDocument />).toBlob();
