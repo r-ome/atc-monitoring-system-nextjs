@@ -20,21 +20,6 @@ const RefundReceiptTop: React.FC<RefundReceiptTopProps> = ({
       render={() => receiptNumber}
       fixed
     />
-    {/* <Text
-      style={{
-        position: "absolute",
-        fontSize: 8,
-        bottom: -20,
-        left: 0,
-        right: 0,
-        textAlign: "center",
-        color: "grey",
-      }}
-      render={({ pageNumber, totalPages }) =>
-        `Page ${pageNumber} of ${totalPages}`
-      }
-      fixed
-    /> */}
   </View>
 );
 
