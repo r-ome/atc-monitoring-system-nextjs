@@ -767,6 +767,7 @@ export const AuctionRepository: IAuctionRepository = {
           control: data.control,
           bidder_number: data.bidder_number,
           price: data.price,
+          remarks: data.remarks,
         },
       });
     } catch (error) {

@@ -13,6 +13,7 @@ export const CounterCheckUpdateSchema = z.object({
   bidder_number: z.string(),
   price: z.coerce.string(),
   page: z.coerce.string(),
+  remarks: z.string().optional().nullable(),
 });
 
 export type CounterCheckUpdateSchema = z.infer<typeof CounterCheckUpdateSchema>;
@@ -36,6 +37,7 @@ export type CounterCheck = {
   price?: string | null;
   page?: string | null;
   error?: string | null;
+  remarks?: string | null;
   created_at: string;
   updated_at: string;
 };

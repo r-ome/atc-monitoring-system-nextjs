@@ -12,6 +12,7 @@ function presenter(counter_check: CounterCheckSchema[]) {
     control: item.control,
     bidder_number: item.bidder_number,
     price: item.price,
+    remarks: item.remarks,
     page: item.page,
     created_at: formatDate(item.created_at, "MMMM dd, yyyy"),
     updated_at: formatDate(item.updated_at, "MMMM dd, yyyy"),
@@ -20,9 +21,8 @@ function presenter(counter_check: CounterCheckSchema[]) {
 
 export async function GetCounterCheckController(auction_id: string) {
   try {
-    const counter_check_records = await getCounterCheckRecordsUseCase(
-      auction_id
-    );
+    const counter_check_records =
+      await getCounterCheckRecordsUseCase(auction_id);
     return ok(presenter(counter_check_records));
   } catch (error) {
     logger("GetCounterCheckController", error);

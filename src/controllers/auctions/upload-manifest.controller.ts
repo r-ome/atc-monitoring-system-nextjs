@@ -11,7 +11,7 @@ import { err, ok } from "src/entities/models/Response";
 
 export const UploadManifestController = async (
   auction_id: string,
-  file: File
+  file: File,
 ) => {
   try {
     if (!file) {
@@ -55,12 +55,11 @@ export const UploadManifestController = async (
 
     const res = await uploadManifestUseCase(
       auction_id,
-      data as ManifestSheetRecord[]
+      data as ManifestSheetRecord[],
     );
 
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
-    console.log(error);
     logger("UploadManifestController", error);
     if (error instanceof InputParseError) {
       return err({ message: error.message, cause: error.cause });
