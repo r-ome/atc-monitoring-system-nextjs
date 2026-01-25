@@ -18,12 +18,13 @@ function presenter(counter_check: CounterCheckSchema) {
     control: counter_check.control,
     page: counter_check.page,
     price: counter_check.price,
+    remarks: counter_check.remarks,
   };
 }
 
 export const UpdateCounterCheckController = async (
   counter_check_id: string,
-  input: Partial<CounterCheckUpdateSchema>
+  input: Partial<CounterCheckUpdateSchema>,
 ) => {
   try {
     const { data, error: inputParseError } =

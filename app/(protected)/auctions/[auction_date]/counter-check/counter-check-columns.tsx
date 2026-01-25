@@ -51,7 +51,7 @@ export const columns = (): ColumnDef<CounterCheck>[] => [
         <div
           className={cn(
             "flex justify-center",
-            counter_check.bidder_number === "0000" ? "bg-red-500" : ""
+            counter_check.bidder_number === "0000" ? "bg-red-500" : "",
           )}
         >
           {counter_check.bidder_number === "0000"
@@ -83,7 +83,7 @@ export const columns = (): ColumnDef<CounterCheck>[] => [
         <div
           className={cn(
             "flex justify-center",
-            counter_check.price ? "" : "bg-red-500"
+            counter_check.price ? "" : "bg-red-500",
           )}
         >
           {counter_check.price
@@ -112,6 +112,27 @@ export const columns = (): ColumnDef<CounterCheck>[] => [
     cell: ({ row }) => {
       const counter_check = row.original;
       return <div className="flex justify-center">{counter_check.page}</div>;
+    },
+  },
+  {
+    accessorKey: "remarks",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Remarks
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const counter_check = row.original;
+      return <div className="flex justify-center">{counter_check.remarks}</div>;
     },
   },
 ];

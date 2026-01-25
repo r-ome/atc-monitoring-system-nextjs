@@ -24,6 +24,7 @@ type UpdateCounterCheckForm = {
   control?: string | null;
   page?: string | null;
   price?: string | null;
+  remarks?: string | null;
 };
 
 interface UpdateCounterCheckProps {
@@ -48,6 +49,7 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
       bidder_number: selected?.bidder_number,
       price: selected?.price,
       page: selected?.page,
+      remarks: selected?.remarks,
     });
   }, [selected]);
 
@@ -138,6 +140,18 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
               <Input
                 name="page"
                 value={newSelected?.page || ""}
+                onChange={handleUpdateChange}
+                required
+                error={errors}
+              />
+            </div>
+            <div className="flex gap-4">
+              <Label htmlFor="page" className="w-40">
+                Remarks:
+              </Label>
+              <Input
+                name="remarks"
+                value={newSelected?.remarks || ""}
                 onChange={handleUpdateChange}
                 required
                 error={errors}
