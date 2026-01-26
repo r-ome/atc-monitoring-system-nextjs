@@ -80,6 +80,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
     ];
 
     e.preventDefault();
+    console.log("hello world");
 
     const currentName = e.currentTarget.name;
     const currentIndex = FIELD_ORDER.indexOf(currentName);
@@ -120,7 +121,12 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
 
             <div className="flex flex-col gap-2 w-full">
               <Label htmlFor="CONTROL">Control: </Label>
-              <Input type="text" id="CONTROL" name="CONTROL" />
+              <Input
+                type="text"
+                id="CONTROL"
+                name="CONTROL"
+                onKeyDown={handleKeyDown}
+              />
             </div>
 
             <div className="flex flex-col gap-2 w-full">
