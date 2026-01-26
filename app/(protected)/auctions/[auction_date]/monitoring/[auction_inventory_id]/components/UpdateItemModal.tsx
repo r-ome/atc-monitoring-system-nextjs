@@ -215,6 +215,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                 onKeyDown={handleKeyDown}
                 name="barcode"
                 onChange={handleUpdateChange}
+                autoComplete="off"
                 error={errors}
                 required
               />
@@ -228,6 +229,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                 name="control"
                 onKeyDown={handleKeyDown}
                 onChange={handleUpdateChange}
+                autoComplete="off"
                 error={errors}
                 required
               />
@@ -241,6 +243,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                 name="description"
                 onKeyDown={handleKeyDown}
                 onChange={handleUpdateChange}
+                autoComplete="off"
                 error={errors}
                 required
               />
@@ -255,6 +258,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                   name="price"
                   onKeyDown={handleKeyDown}
                   onChange={handleUpdateChange}
+                  autoComplete="off"
                   error={errors}
                   required
                 />
@@ -269,6 +273,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                 name="qty"
                 onChange={handleUpdateChange}
                 onKeyDown={handleKeyDown}
+                autoComplete="off"
                 error={errors}
                 required
               />
@@ -322,6 +327,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
                 name="manifest_number"
                 onChange={handleUpdateChange}
                 onKeyDown={handleKeyDown}
+                autoComplete="off"
                 error={errors}
                 required
               />
