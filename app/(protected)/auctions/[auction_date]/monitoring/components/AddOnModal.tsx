@@ -116,6 +116,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
                 name="BARCODE"
                 onKeyDown={handleKeyDown}
                 required
+                autoComplete="off"
               />
             </div>
 
@@ -126,6 +127,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
                 id="CONTROL"
                 name="CONTROL"
                 onKeyDown={handleKeyDown}
+                autoComplete="off"
               />
             </div>
 
@@ -136,6 +138,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
                 id="DESCRIPTION"
                 name="DESCRIPTION"
                 onKeyDown={handleKeyDown}
+                autoComplete="off"
                 required
               />
             </div>
@@ -147,6 +150,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
                 name="PRICE"
                 min={0}
                 onKeyDown={handleKeyDown}
+                autoComplete="off"
                 required
               />
             </div>
@@ -158,6 +162,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
                 id="QTY"
                 name="QTY"
                 onKeyDown={handleKeyDown}
+                autoComplete="off"
                 required
               />
             </div>
