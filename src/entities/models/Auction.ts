@@ -20,6 +20,13 @@ export type AUCTION_ITEM_STATUS =
   | "DISCREPANCY"
   | "PARTIAL";
 
+export type AuctionSalesSchema = Prisma.auctionsGetPayload<{
+  include: {
+    branch: true;
+    registered_bidders: { include: { auctions_inventories: true } };
+  };
+}>;
+
 export type AuctionSchema = Prisma.auctionsGetPayload<{
   include: {
     registered_bidders: {
@@ -103,7 +110,7 @@ export const VoidItemsSchema = z.object({
     z.object({
       auction_inventory_id: z.string(),
       inventory_id: z.string(),
-    })
+    }),
   ),
   reason: z.string(),
 });

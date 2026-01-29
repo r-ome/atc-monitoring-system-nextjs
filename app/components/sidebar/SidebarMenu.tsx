@@ -22,6 +22,7 @@ import {
   HandCoins,
   Cog,
   List,
+  ChartPie,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 
@@ -90,6 +91,12 @@ const items = [
     title: "Configurations",
     url: "/configurations",
     icon: Cog,
+    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
+  },
+  {
+    title: "Reports",
+    url: "/reports",
+    icon: ChartPie,
     allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
   },
 ];
