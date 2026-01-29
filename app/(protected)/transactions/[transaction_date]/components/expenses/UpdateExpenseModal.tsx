@@ -1,7 +1,7 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
-import { redirect, useRouter } from "next/navigation";
+import { Loader2Icon, OctagonAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { SetStateAction, useEffect, useState } from "react";
 import {
   Dialog,
@@ -11,6 +11,17 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/app/components/ui/dialog";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/components/ui/alert-dialog";
 import { Button } from "@/app/components/ui/button";
 import { Label } from "@/app/components/ui/label";
 import { InputNumber } from "@/app/components/ui/InputNumber";
@@ -23,9 +34,11 @@ import {
   SelectItem,
 } from "@/app/components/ui/select";
 import { Textarea } from "@/app/components/ui/textarea";
-import { updateExpense } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
+import {
+  updateExpense,
+  deleteExpense,
+} from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
 
 // NOTES
 // BALANCE PETTY CASH: Balance from yesterday
@@ -41,21 +54,20 @@ interface UpdateExpenseModalProps {
     remarks: string;
     purpose: "EXPENSE" | "ADD_PETTY_CASH";
   };
+  user: { role: string; branch: { branch_id: string } };
 }
 
 export const UpdateExpenseModal = ({
   open,
   onOpenChange,
   expense,
+  user,
 }: UpdateExpenseModalProps) => {
-  const session = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedExpense, setSelectedExpense] =
     useState<UpdateExpenseModalProps["expense"]>(expense);
-
-  if (session.data === null) redirect("/login");
-  const user = session.data.user;
+  const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
 
   useEffect(() => {
     setSelectedExpense(expense);
@@ -65,10 +77,6 @@ export const UpdateExpenseModal = ({
     event.preventDefault();
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
-    // question yourself if whether you want to create a context for the branch or not
-    // if (["OWNER", "SUPER_ADMIN"].includes(user.role)) {
-    //   formData.
-    // }
     formData.append("branch_id", user.branch.branch_id);
     const res = await updateExpense(expense.expense_id, formData);
 
@@ -79,6 +87,25 @@ export const UpdateExpenseModal = ({
       } else {
         toast.success("Successfully added expense!");
         onOpenChange(false);
+        router.refresh();
+      }
+    }
+  };
+
+  const handleDelete = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    const res = await deleteExpense(expense.expense_id);
+
+    if (res) {
+      setIsLoading(false);
+      if (!res.ok) {
+        toast.error("");
+      } else {
+        toast.success("Successfully added expense!");
+        onOpenChange(false);
+        setOpenDeleteModal(false);
         router.refresh();
       }
     }
@@ -158,6 +185,15 @@ export const UpdateExpenseModal = ({
             </div>
 
             <DialogFooter>
+              <Button
+                variant="destructive"
+                onClick={() => setOpenDeleteModal(true)}
+                type="button"
+                disabled={isLoading}
+              >
+                {isLoading && <Loader2Icon className="animate-spin" />}
+                DELETE
+              </Button>
               <DialogClose asChild>
                 <Button onClick={() => onOpenChange(false)}>Cancel</Button>
               </DialogClose>
@@ -169,6 +205,31 @@ export const UpdateExpenseModal = ({
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={openDeleteModal} onOpenChange={setOpenDeleteModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <div className="flex mx-auto gap-2">
+                <OctagonAlert className="h-7 w-7 text-destructive" />
+                Delete Expense
+              </div>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to delete this expense. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button type="button" disabled={isLoading} onClick={handleDelete}>
+                {isLoading && <Loader2Icon className="animate-spin" />}
+                Submit
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

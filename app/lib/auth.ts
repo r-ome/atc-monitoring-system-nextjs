@@ -61,13 +61,14 @@ export const authOptions: NextAuthOptions = {
       session: Session;
       token: JWT;
     }): Promise<Session> {
-      session.user = {
-        id: token.id,
-        name: token.name,
-        username: token.username,
-        role: token.role,
-        branch: token.branch,
-      } as Session["user"];
+      if (token.id) session.user.id = token.id;
+
+      if (typeof token.name === "string") session.user.name = token.name;
+      if (token.username) session.user.username = token.username;
+
+      if (token.role) session.user.role = token.role;
+      if (token.branch) session.user.branch = token.branch;
+
       return session;
     },
   },

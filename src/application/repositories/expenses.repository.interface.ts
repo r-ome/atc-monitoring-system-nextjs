@@ -9,22 +9,23 @@ import {
 export interface IExpenseRepository {
   getExpensesByDate: (
     date: Date,
-    branch_id: string | undefined
-  ) => Promise<{ expenses: ExpenseSchema[] }>;
+    branch_id: string | undefined,
+  ) => Promise<ExpenseSchema[]>;
   addExpense: (
     petty_cash_id: string,
-    input: ExpenseInsertSchema
+    input: ExpenseInsertSchema,
   ) => Promise<ExpenseSchema>;
   getPettyCashBalance: (
     date: Date,
-    branch_id: string
+    branch_id: string | undefined,
   ) => Promise<PettyCashSchema | null>;
   updateExpense: (
     expense_id: string,
-    data: UpdateExpenseInputSchema
+    data: UpdateExpenseInputSchema,
   ) => Promise<ExpenseSchema>;
   updatePettyCash: (
     petty_cash_id: string,
-    data: PettyCashInsertSchemaType
+    data: PettyCashInsertSchemaType,
   ) => Promise<PettyCashSchema>;
+  deleteExpense: (expense_id: string) => Promise<void>;
 }

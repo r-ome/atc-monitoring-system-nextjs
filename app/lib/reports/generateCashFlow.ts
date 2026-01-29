@@ -2,21 +2,20 @@ import * as xlsx from "xlsx-js-style";
 import { formatDate } from "@/app/lib/utils";
 import { Payment } from "src/entities/models/Payment";
 import { formatNumberToCurrency } from "@/app/lib/utils";
-import { Expense } from "src/entities/models/Expense";
+import { Expense, PettyCash } from "src/entities/models/Expense";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
-import { isMonday, subDays } from "date-fns";
 
 type GenerateCashFlowProps = {
   payments: Payment[];
   expenses: Expense[];
-  yesterdayBalance: number;
+  yesterdayPettyCash: PettyCash;
   paymentMethods: PaymentMethod[];
 };
 
 const generateCashFlow = ({
   payments,
   expenses,
-  yesterdayBalance,
+  yesterdayPettyCash,
   paymentMethods,
 }: GenerateCashFlowProps) => {
   const rawData = payments.map((item) => ({
@@ -27,7 +26,7 @@ const generateCashFlow = ({
     payment_method: item.payment_method.name,
   }));
   const totalTransactaionsExcludingRefund = payments.filter(
-    (item) => item.receipt.purpose !== "REFUNDED"
+    (item) => item.receipt.purpose !== "REFUNDED",
   ).length;
 
   const normalizeAction = (purpose: string) => {
@@ -86,10 +85,13 @@ const generateCashFlow = ({
     .filter((item) => item.receipt.purpose === "REFUNDED")
     .reduce((acc, item) => (acc += item.amount_paid), 0);
 
-  const total_payments = paymentMethods.reduce((acc, item) => {
-    acc[item.name] = formatNumberToCurrency(getTotal(item.name));
-    return acc;
-  }, {} as Record<string, string>);
+  const total_payments = paymentMethods.reduce(
+    (acc, item) => {
+      acc[item.name] = formatNumberToCurrency(getTotal(item.name));
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   const total_petty_cash = expenses.reduce((acc, item) => {
     if (item.purpose === "ADD_PETTY_CASH") {
@@ -302,9 +304,9 @@ const generateCashFlow = ({
     },
   };
   sheet[`C${petty_cash_row}`] = {
-    f: "G2",
+    f: "H2",
     t: "n",
-    z: "#,##0",
+    z: "#,##0.00",
     s: {
       font: { name: "Abadi", sz: 10, bold: true },
       fill: { fgColor: { rgb: "D9E1F2" } },
@@ -444,7 +446,7 @@ const generateCashFlow = ({
   sheet["A1"] = {
     v: `ATC JAPAN AUCTION DAILY CASH FLOW ${formatDate(
       new Date(date),
-      "MMMM dd, yyyy"
+      "MMMM dd, yyyy",
     ).toUpperCase()}`,
     t: "s",
     s: {
@@ -462,7 +464,7 @@ const generateCashFlow = ({
   sheet["E1"] = {
     v: `ATC JAPAN AUCTION DAILY CASH FLOW ${formatDate(
       new Date(date),
-      "MMMM dd, yyyy"
+      "MMMM dd, yyyy",
     ).toUpperCase()}`,
     t: "s",
     s: {
@@ -878,7 +880,7 @@ const generateCashFlow = ({
   };
 
   sheet[`K4`] = {
-    v: yesterdayBalance,
+    v: yesterdayPettyCash.amount,
     t: "n",
     z: '"₱" #,##0.00',
     s: {
@@ -897,9 +899,7 @@ const generateCashFlow = ({
   };
 
   sheet["L4"] = {
-    v: isMonday(new Date(date))
-      ? formatDate(subDays(new Date(date), 2), "dd-MM-yyyy")
-      : formatDate(subDays(new Date(date), 1), "dd-MM-yyyy"),
+    v: formatDate(new Date(yesterdayPettyCash.created_at), "MMM-dd-yyyy"),
     t: "s",
     s: {
       font: { name: "Calibri", sz: 11 },
@@ -918,7 +918,7 @@ const generateCashFlow = ({
   };
 
   sheet["L5"] = {
-    v: formatDate(new Date(date), "dd-MM-yyyy"),
+    v: formatDate(new Date(date), "MMM-dd-yyyy"),
     t: "s",
     s: {
       font: { name: "Calibri", sz: 11 },

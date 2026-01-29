@@ -10,7 +10,7 @@ function presenter(petty_cash: PettyCashSchema) {
 
   return {
     petty_cash_id: petty_cash.petty_cash_id,
-    balance: petty_cash.balance.toNumber(),
+    amount: petty_cash.amount.toNumber(),
     remarks: petty_cash.remarks,
     branch: {
       branch_id: petty_cash.branch.branch_id,
@@ -23,7 +23,7 @@ function presenter(petty_cash: PettyCashSchema) {
 
 export const GetPettyCashBalanceController = async (
   date: Date,
-  branch_id: string
+  branch_id: string | undefined,
 ) => {
   try {
     const petty_cash = await getPettyCashBalanceUseCase(date, branch_id);
