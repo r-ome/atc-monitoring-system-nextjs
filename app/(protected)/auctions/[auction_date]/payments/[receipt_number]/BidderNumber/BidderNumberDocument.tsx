@@ -47,7 +47,10 @@ const BidderNumberDocument: React.FC<BidderNumberDocumentProps> = ({
   return (
     <Document pageMode="fullScreen">
       <Page size="A4" orientation="landscape" style={styles.page} wrap={true}>
-        <View fixed style={{ display: "flex", width: "100%" }}>
+        <View
+          fixed
+          style={{ display: "flex", width: "100%", paddingRight: "10px" }}
+        >
           <View
             fixed
             style={{ marginBottom: 10, borderBottom: "1px solid black" }}

@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export const formatNumberPadding = (
   num: number | string,
-  padding: number = 3
+  padding: number = 3,
 ): string => num?.toString().padStart(padding, "0");
 
 export const formatNumberToCurrency = (num: string | number): string => {
@@ -39,7 +39,7 @@ export const formatDate = (date: Date, format: string = "MMMM dd, yyyy") => {
 export function buildGroupIndexMap<T>(
   rows: T[],
   getGroupId: (row: T) => string | null | undefined,
-  startIndex = 1
+  startIndex = 1,
 ): Record<string, number> {
   const map: Record<string, number> = {};
   let counter = startIndex;
@@ -57,7 +57,7 @@ export function buildGroupIndexMap<T>(
 export function createGroupSortingFn<TData, TValue>(
   getGroupId: (row: TData) => string,
   getSortValue: (row: TData) => TValue,
-  compare: (a: TValue, b: TValue) => number
+  compare: (a: TValue, b: TValue) => number,
 ): SortingFn<TData> {
   return (rowA, rowB) => {
     const a = rowA.original as TData;
@@ -78,7 +78,7 @@ export function createGroupSortingFn<TData, TValue>(
 
 export function getItemPriceWithServiceChargeAmount(
   price: number,
-  service_charge: number
+  service_charge: number,
 ) {
   return price + (price * service_charge) / 100;
 }

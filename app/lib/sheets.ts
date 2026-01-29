@@ -100,7 +100,7 @@ export const getSheetData = (
         .filter((item) => item.Barcode)
         .map((item) => ({
           BARCODE: item.Barcode,
-          CONTROL: item.Control.toString(),
+          CONTROL: item.Control ? item.Control.toString() : "",
           DESCRIPTION: item.Description,
         }))
         .slice(0, -1);

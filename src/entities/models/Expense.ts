@@ -12,7 +12,6 @@ export type ExpenseSchema = Prisma.expensesGetPayload<{
 }>;
 export type Expense = {
   expense_id: string;
-  balance: number;
   amount: number;
   purpose: EXPENSE_PURPOSE;
   remarks: string;
@@ -44,14 +43,14 @@ export type UpdateExpenseInputSchema = z.infer<typeof UpdateExpenseInput>;
 
 export type PettyCash = {
   petty_cash_id: string;
-  balance: number;
+  amount: number;
   remarks: string;
   created_at: string;
   updated_at: string;
 };
 
 export const PettyCashInsertSchema = z.object({
-  balance: z.coerce.number(),
+  amount: z.coerce.number(),
   remarks: z.string().nullable(),
   created_at: z.date(),
   branch_id: z.string(),

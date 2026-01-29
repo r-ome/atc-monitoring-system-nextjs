@@ -6,28 +6,25 @@ import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(expenses: ExpenseSchema[]) {
-  return {
-    expenses: expenses.map((expense) => ({
-      expense_id: expense.expense_id,
-      balance: expense.balance.toNumber(),
-      amount: expense.amount.toNumber(),
-      purpose: expense.purpose,
-      remarks: expense.remarks,
-      branch: {
-        branch_id: expense.branch_id,
-        name: expense.branch.name,
-      },
-      created_at: formatDate(expense.created_at, "MMMM dd, yyyy hh:mm a"),
-    })),
-  };
+  return expenses.map((expense) => ({
+    expense_id: expense.expense_id,
+    amount: expense.amount.toNumber(),
+    purpose: expense.purpose,
+    remarks: expense.remarks,
+    branch: {
+      branch_id: expense.branch_id,
+      name: expense.branch.name,
+    },
+    created_at: formatDate(expense.created_at, "MMMM dd, yyyy hh:mm a"),
+  }));
 }
 
 export const GetExpensesByDateController = async (
   date: Date,
-  branch_id: string | undefined
+  branch_id: string | undefined,
 ) => {
   try {
-    const { expenses } = await getExpensesByDateUseCase(date, branch_id);
+    const expenses = await getExpensesByDateUseCase(date, branch_id);
     return ok(presenter(expenses));
   } catch (error) {
     logger("GetExpensesByDateController", error);

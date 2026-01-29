@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { generateReport } from "@/app/lib/reports";
-import { Expense } from "src/entities/models/Expense";
+import { Expense, PettyCash } from "src/entities/models/Expense";
 import { Payment } from "src/entities/models/Payment";
 import { formatDate } from "@/app/lib/utils";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
@@ -11,14 +11,14 @@ import { PaymentMethod } from "src/entities/models/PaymentMethod";
 interface GenerateExpenseReportProps {
   transactions: Payment[];
   expenses: Expense[];
-  yesterdayBalance: number;
+  yesterdayPettyCash: PettyCash | null;
   paymentMethods: PaymentMethod[];
 }
 
 export const GenerateExpenseReport: React.FC<GenerateExpenseReportProps> = ({
   transactions,
   expenses,
-  yesterdayBalance,
+  yesterdayPettyCash,
   paymentMethods,
 }) => {
   const { transaction_date }: { transaction_date: string } = useParams();
@@ -29,14 +29,14 @@ export const GenerateExpenseReport: React.FC<GenerateExpenseReportProps> = ({
           {
             payments: transactions,
             expenses,
-            yesterdayBalance,
+            yesterdayPettyCash,
             paymentMethods,
           },
           ["cash_flow"],
           `Daily Cash Flow ${formatDate(
             new Date(transaction_date),
-            "MMM dd, yyyy"
-          )}`
+            "MMM dd, yyyy",
+          )}`,
         );
       }}
     >

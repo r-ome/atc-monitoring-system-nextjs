@@ -4,11 +4,8 @@ import {
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
 import { IExpenseRepository } from "src/application/repositories/expenses.repository.interface";
-import {
-  DatabaseOperationError,
-  InputParseError,
-} from "src/entities/errors/common";
-import { subDays, isMonday } from "date-fns";
+import { DatabaseOperationError } from "src/entities/errors/common";
+import { computePettyCashUseCase } from "../../application/use-cases/expenses/compute-petty-cash.use-case";
 
 export const ExpensesRepository: IExpenseRepository = {
   getExpensesByDate: async (date, branch_id) => {
@@ -27,8 +24,7 @@ export const ExpensesRepository: IExpenseRepository = {
         },
         orderBy: { created_at: "desc" },
       });
-
-      return { expenses };
+      return expenses;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting expenses", {
@@ -46,14 +42,25 @@ export const ExpensesRepository: IExpenseRepository = {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      const petty_cash = await prisma.petty_cash.findFirst({
+      let petty_cash = await prisma.petty_cash.findFirst({
         include: { branch: true },
         where: {
+          branch_id,
           created_at: { gte: startOfDay, lte: endOfDay },
-          ...(branch_id ? { branch_id } : {}),
         },
         orderBy: { created_at: "desc" },
       });
+
+      if (!petty_cash) {
+        petty_cash = await prisma.petty_cash.findFirst({
+          include: { branch: true },
+          where: {
+            branch_id,
+            created_at: { lt: startOfDay },
+          },
+          orderBy: { created_at: "desc" },
+        });
+      }
 
       return petty_cash;
     } catch (error) {
@@ -69,57 +76,20 @@ export const ExpensesRepository: IExpenseRepository = {
   addExpense: async (petty_cash_id, input) => {
     try {
       return await prisma.$transaction(async (tx) => {
-        const previous_working_day = isMonday(input.created_at)
-          ? subDays(input.created_at, 2)
-          : subDays(input.created_at, 1);
-        const previous_petty_cash =
-          await ExpensesRepository.getPettyCashBalance(
-            previous_working_day,
-            input.branch_id
-          );
-
-        let current_petty_cash = await tx.petty_cash.findFirst({
-          where: { petty_cash_id },
-        });
-
-        if (!current_petty_cash) {
-          current_petty_cash = await tx.petty_cash.create({
-            data: {
-              balance: previous_petty_cash ? previous_petty_cash.balance : 0,
-              remarks: "created petty cash",
-              created_at: input.created_at,
-              branch_id: input.branch_id,
-            },
-          });
-        }
-
         // create expense
         const created = await tx.expenses.create({
           include: { branch: true },
           data: {
             amount: input.amount,
             purpose: input.purpose,
-            balance:
-              input.purpose === "ADD_PETTY_CASH"
-                ? current_petty_cash.balance.add(input.amount)
-                : current_petty_cash.balance.sub(input.amount),
             remarks: input.remarks,
             created_at: input.created_at,
             ...(input.branch_id ? { branch_id: input.branch_id } : {}),
           },
         });
 
-        // update current_petty_cash balance
-        await tx.petty_cash.update({
-          where: { petty_cash_id: current_petty_cash.petty_cash_id },
-          data: {
-            balance:
-              input.purpose === "ADD_PETTY_CASH"
-                ? { increment: input.amount }
-                : { decrement: input.amount },
-          },
-        });
-
+        // update petty_cash
+        await computePettyCashUseCase(tx, petty_cash_id, input);
         return created;
       });
     } catch (error) {
@@ -145,27 +115,16 @@ export const ExpensesRepository: IExpenseRepository = {
           },
         });
 
-        // get current petty_cash balance
-        const current_petty_cash = await ExpensesRepository.getPettyCashBalance(
+        const petty_cash = await ExpensesRepository.getPettyCashBalance(
           updated_expense.created_at,
-          data.branch_id
+          updated_expense.branch_id,
         );
 
-        if (!current_petty_cash) {
-          throw new InputParseError("Add Petty Cash first!", {
-            cause: "Petty cash is required!",
-          });
-        }
+        if (!petty_cash) throw new Error("No Petty Cash");
 
-        // update current petty_cash balance
-        await tx.petty_cash.update({
-          where: { petty_cash_id: current_petty_cash.petty_cash_id },
-          data: {
-            balance:
-              data.purpose === "ADD_PETTY_CASH"
-                ? { increment: data.amount }
-                : { decrement: data.amount },
-          },
+        await computePettyCashUseCase(tx, petty_cash?.petty_cash_id, {
+          created_at: updated_expense.created_at,
+          branch_id: updated_expense.branch_id,
         });
 
         return updated_expense;
@@ -185,12 +144,9 @@ export const ExpensesRepository: IExpenseRepository = {
       const updated = await prisma.petty_cash.upsert({
         include: { branch: true },
         where: { petty_cash_id },
-        update: {
-          balance: data.balance,
-          remarks: data.remarks || "",
-        },
+        update: { amount: data.amount, remarks: data.remarks || "" },
         create: {
-          balance: data.balance,
+          amount: data.amount,
           remarks: data.remarks || "",
           branch_id: data.branch_id,
           created_at: data.created_at,
@@ -198,6 +154,44 @@ export const ExpensesRepository: IExpenseRepository = {
       });
 
       return updated;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error updating expense!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  deleteExpense: async (expense_id) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const expense = await tx.expenses.findFirst({ where: { expense_id } });
+
+        if (!expense)
+          throw new DatabaseOperationError("Expense does not exist!");
+
+        const petty_cash = await ExpensesRepository.getPettyCashBalance(
+          expense.created_at,
+          expense.branch_id,
+        );
+
+        if (!petty_cash) throw new Error("No Petty Cash");
+
+        await tx.petty_cash.update({
+          where: { petty_cash_id: petty_cash.petty_cash_id },
+          data: {
+            amount: {
+              ...(expense.purpose === "ADD_PETTY_CASH"
+                ? { decrement: expense.amount }
+                : { increment: expense.amount }),
+            },
+          },
+        });
+
+        await tx.expenses.delete({ where: { expense_id } });
+      });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error updating expense!", {

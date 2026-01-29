@@ -16,7 +16,11 @@ const base =
     ],
   });
 
-// base.$on("query"
+// base.$on("query", (e) => {
+//   console.log("Query: " + e.query);
+//   console.log("Params: " + e.params);
+//   console.log("Duration: " + e.duration + "ms");
+// });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = base;
 
@@ -43,6 +47,7 @@ const BRANCH_FILTERS: Record<string, any> = {
   manifest_records: { auction: { branch_id: undefined } },
   inventory_histories: { inventories: { branch_id: undefined } },
   expenses: { branch_id: undefined },
+  petty_cash: { branch_id: undefined },
 };
 
 function buildBranchWhere(model: string, branch_id: string) {

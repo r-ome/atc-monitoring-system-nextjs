@@ -31,7 +31,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
   const globalFilterFn = (
     row: CoreRow<Payment>,
     _columnId?: string,
-    filterValue?: string
+    filterValue?: string,
   ) => {
     const search = (filterValue ?? "").toLowerCase();
     const { amount_paid, payment_method, receipt, bidder } = row.original;
@@ -62,7 +62,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
           .filter((item) => item.receipt.purpose !== "REFUNDED")
           .filter(
             (tx) =>
-              tx.payment_method.payment_method_id === item.payment_method_id
+              tx.payment_method.payment_method_id === item.payment_method_id,
           )
           .reduce(getTotal, 0);
       };
@@ -95,7 +95,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
               <CardTitle
                 className={cn(
                   "text-lg text-green-500",
-                  item === "REFUND" && "text-red-500"
+                  item === "REFUND" && "text-red-500",
                 )}
               >
                 ₱{something1[item].toLocaleString()}

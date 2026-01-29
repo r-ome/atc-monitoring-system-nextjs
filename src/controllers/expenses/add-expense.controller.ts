@@ -18,7 +18,6 @@ function presenter(expense: ExpenseSchema) {
     amount: expense.amount.toNumber(),
     purpose: expense.purpose,
     remarks: expense.remarks,
-    balance: expense.balance.toNumber(),
     branch: {
       branch_id: expense.branch.branch_id,
       name: expense.branch.name,
@@ -29,7 +28,7 @@ function presenter(expense: ExpenseSchema) {
 
 export const AddExpenseController = async (
   petty_cash_id: string,
-  input: Partial<ExpenseInsertSchemaType>
+  input: Partial<ExpenseInsertSchemaType>,
 ) => {
   try {
     if (input.created_at) {

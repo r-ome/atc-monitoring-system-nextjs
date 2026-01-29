@@ -15,7 +15,6 @@ import { logger } from "@/app/lib/logger";
 function presenter(petty_cash: PettyCashSchema) {
   return {
     petty_cash_id: petty_cash.petty_cash_id,
-    balance: petty_cash.balance.toNumber(),
     remarks: petty_cash.remarks,
     branch: {
       branch_id: petty_cash.branch.branch_id,
@@ -28,7 +27,7 @@ function presenter(petty_cash: PettyCashSchema) {
 
 export const UpdatePettyCashController = async (
   petty_cash_id: string,
-  input: Partial<PettyCashInsertSchemaType>
+  input: Partial<PettyCashInsertSchemaType>,
 ) => {
   try {
     if (input.created_at) {
