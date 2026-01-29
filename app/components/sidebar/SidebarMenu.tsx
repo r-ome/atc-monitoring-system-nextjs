@@ -97,7 +97,7 @@ const items = [
     title: "Reports",
     url: "/reports",
     icon: ChartPie,
-    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
+    allowed_roles: ["OWNER", "SUPER_ADMIN"],
   },
 ];
 
@@ -121,7 +121,7 @@ export const AppSidebarMenu = ({ session }: AppSidebarMenuProps) => {
           key={item.title}
           className={cn(
             "hover:underline",
-            !item.allowed_roles.includes(session.user.role) && "hidden"
+            !item.allowed_roles.includes(session.user.role) && "hidden",
           )}
         >
           <SidebarMenuButton
