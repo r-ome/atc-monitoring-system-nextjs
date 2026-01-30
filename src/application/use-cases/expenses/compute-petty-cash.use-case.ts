@@ -20,6 +20,7 @@ export const computePettyCashUseCase = async (
 
   const today_petty_cash = await tx.expenses.findMany({
     where: {
+      branch_id: input.branch_id,
       created_at: { gte: startOfDay, lte: endOfDay },
       purpose: "ADD_PETTY_CASH",
     },
@@ -31,6 +32,7 @@ export const computePettyCashUseCase = async (
 
   const expenses = await tx.expenses.findMany({
     where: {
+      branch_id: input.branch_id,
       created_at: { gte: startOfDay, lte: endOfDay },
       purpose: "EXPENSE",
     },
