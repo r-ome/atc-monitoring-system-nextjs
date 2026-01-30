@@ -21,7 +21,7 @@ export default async function Page({
   const { bidder_number, auction_date } = await params;
   const res = await getRegisteredBidderByBidderNumber(
     bidder_number,
-    auction_date
+    auction_date,
   );
 
   if (!res.ok) {
@@ -35,7 +35,7 @@ export default async function Page({
     .map((item) => {
       if (item.status === "UNPAID") return item;
       const historyWithUpdatedPrice = item.histories.find((history) =>
-        history.remarks?.includes("Updated price:")
+        history.remarks?.includes("Updated price:"),
       );
       if (historyWithUpdatedPrice && historyWithUpdatedPrice.remarks) {
         const prices = historyWithUpdatedPrice.remarks
@@ -92,7 +92,7 @@ export default async function Page({
           <p
             className={cn(
               "text-card-foreground",
-              detail.label === "Balance" ? "text-red-500" : ""
+              detail.label === "Balance" ? "text-red-500" : "",
             )}
           >
             {detail.value}

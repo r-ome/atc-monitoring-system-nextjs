@@ -942,11 +942,69 @@ export const AuctionRepository: IAuctionRepository = {
       }
 
       return await prisma.$transaction(async (tx) => {
+        const auction_bidder = await tx.auctions_bidders.findFirst({
+          where: { auction_bidder_id },
+          include: {
+            auctions_inventories: {
+              include: { histories: true },
+              where: { status: "UNPAID" },
+            },
+          },
+        });
+
+        if (!auction_bidder) {
+          throw new NotFoundError("Bidder not found!");
+        }
+
+        const registration_receipt = await tx.receipt_records.findFirst({
+          include: { payments: true },
+          where: { auction_bidder_id, receipt_number: { contains: "REG" } },
+        });
+
+        if (!registration_receipt) {
+          throw new NotFoundError("Registration Receipt not found!");
+        }
+
+        await tx.payments.update({
+          where: { payment_id: registration_receipt.payments[0].payment_id },
+          data: { amount_paid: data.registration_fee },
+        });
+
+        const totalUnpaidItemsPrice = auction_bidder.auctions_inventories
+          .filter((item) => ["UNPAID", "PARTIAL"].includes(item.status))
+          .map((item) => {
+            if (item.status === "UNPAID") return item;
+            const historyWithUpdatedPrice = item.histories.find((history) =>
+              history.remarks?.includes("Updated price:"),
+            );
+            if (historyWithUpdatedPrice && historyWithUpdatedPrice.remarks) {
+              const prices = historyWithUpdatedPrice.remarks
+                .match(/\d+/g)
+                ?.map(Number);
+
+              if (prices) {
+                item.price = prices[1] - prices[0];
+              }
+            }
+            return item;
+          })
+          .reduce((acc, item) => (acc += item.price), 0);
+
+        const serviceChargeAmount =
+          (totalUnpaidItemsPrice * bidder.service_charge) / 100;
+        const registrationFeeAmount = bidder.already_consumed
+          ? 0
+          : data.registration_fee;
+
+        const grandTotalBalance =
+          totalUnpaidItemsPrice + serviceChargeAmount - registrationFeeAmount;
+
         return await tx.auctions_bidders.update({
           where: { auction_bidder_id },
           data: {
             service_charge: data.service_charge,
             registration_fee: data.registration_fee,
+            balance: grandTotalBalance,
           },
         });
       });
