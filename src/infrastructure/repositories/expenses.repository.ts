@@ -81,7 +81,7 @@ export const ExpensesRepository: IExpenseRepository = {
             amount: input.amount,
             purpose: input.purpose,
             remarks: input.remarks,
-            created_at: input.created_at,
+            created_at: fromZonedTime(input.created_at, TZ),
             ...(input.branch_id ? { branch_id: input.branch_id } : {}),
           },
         });
