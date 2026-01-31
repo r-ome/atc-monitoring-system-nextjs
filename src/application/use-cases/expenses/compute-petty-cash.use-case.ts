@@ -1,6 +1,7 @@
 import { ExpensesRepository } from "src/infrastructure/repositories/expenses.repository";
 import { subDays } from "date-fns";
 import prisma from "@/app/lib/prisma/prisma";
+import { formatDate } from "@/app/lib/utils";
 
 export const computePettyCashUseCase = async (
   tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
@@ -14,7 +15,7 @@ export const computePettyCashUseCase = async (
   endOfDay.setHours(23, 59, 59, 999);
 
   const last_petty_cash = await ExpensesRepository.getPettyCashBalance(
-    subDays(new Date(input.created_at), 1),
+    formatDate(subDays(new Date(input.created_at), 1), "yyyy-MM-dd"),
     input.branch_id,
   );
 

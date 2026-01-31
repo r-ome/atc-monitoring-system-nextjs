@@ -34,7 +34,7 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
   const globalFilterFn = (
     row: CoreRow<InventoryRowType>,
     columnId?: string,
-    filterValue?: string
+    filterValue?: string,
   ) => {
     const barcode = (row.original as InventoryRowType).barcode.toLowerCase();
     const control =

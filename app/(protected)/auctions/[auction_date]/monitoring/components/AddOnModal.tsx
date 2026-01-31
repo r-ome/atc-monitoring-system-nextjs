@@ -80,7 +80,6 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
     ];
 
     e.preventDefault();
-    console.log("hello world");
 
     const currentName = e.currentTarget.name;
     const currentIndex = FIELD_ORDER.indexOf(currentName);

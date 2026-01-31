@@ -20,6 +20,7 @@ import {
   TabsTrigger,
 } from "@/app/components/ui/tabs";
 import { subDays } from "date-fns";
+import { formatDate } from "@/app/lib/utils";
 
 import { getBranches } from "../../branches/actions";
 import { getServerSession } from "next-auth";
@@ -65,7 +66,10 @@ export default async function Page({
   const selected_branch =
     branches.find((b) => b.branch_id === branchId) ?? fallbackBranch;
 
-  const last_working_day = subDays(transaction_date, 1).toString();
+  const last_working_day = formatDate(
+    subDays(transaction_date, 1),
+    "yyyy-MM-dd",
+  );
 
   const [
     transactions_res,

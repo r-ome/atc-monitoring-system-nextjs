@@ -8,7 +8,7 @@ import {
 
 export interface IExpenseRepository {
   getExpensesByDate: (
-    date: Date,
+    date: string,
     branch_id: string | undefined,
   ) => Promise<ExpenseSchema[]>;
   addExpense: (
@@ -16,7 +16,7 @@ export interface IExpenseRepository {
     input: ExpenseInsertSchema,
   ) => Promise<ExpenseSchema>;
   getPettyCashBalance: (
-    date: Date,
+    date: string,
     branch_id: string | undefined,
   ) => Promise<PettyCashSchema | null>;
   updateExpense: (

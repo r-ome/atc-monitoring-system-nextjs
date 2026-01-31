@@ -1,6 +1,9 @@
 import { getExpensesByDateUseCase } from "src/application/use-cases/expenses/get-expenses-by-date.use-case";
 import { ExpenseSchema } from "src/entities/models/Expense";
-import { DatabaseOperationError } from "src/entities/errors/common";
+import {
+  DatabaseOperationError,
+  InputParseError,
+} from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Response";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
@@ -20,10 +23,14 @@ function presenter(expenses: ExpenseSchema[]) {
 }
 
 export const GetExpensesByDateController = async (
-  date: Date,
+  date: string,
   branch_id: string | undefined,
 ) => {
   try {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new InputParseError("Invalid date param");
+    }
+
     const expenses = await getExpensesByDateUseCase(date, branch_id);
     return ok(presenter(expenses));
   } catch (error) {
