@@ -34,12 +34,12 @@ import { PettyCash } from "src/entities/models/Expense";
 // TOTAL: Total of both
 
 interface AddExpenseModalProps {
-  pettyCash: PettyCash | null;
+  currentPettyCash: PettyCash | null;
   selectedBranch: { branch_id: string };
 }
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
-  pettyCash,
+  currentPettyCash,
   selectedBranch,
 }) => {
   const router = useRouter();
@@ -59,10 +59,15 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
     let pettyCashDate = null;
     let pettyCashId = "CREATE";
-    if (pettyCash) {
-      pettyCashDate = formatDate(new Date(pettyCash.created_at), "yyyy-MM-dd");
+    if (currentPettyCash) {
+      pettyCashDate = formatDate(
+        new Date(currentPettyCash.created_at),
+        "yyyy-MM-dd",
+      );
       pettyCashId =
-        pettyCashDate === transaction_date ? pettyCash.petty_cash_id : "CREATE";
+        pettyCashDate === transaction_date
+          ? currentPettyCash.petty_cash_id
+          : "CREATE";
     }
 
     const res = await addExpense(pettyCashId, formData);

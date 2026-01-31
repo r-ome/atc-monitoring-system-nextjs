@@ -2,17 +2,16 @@ import { ExpensesRepository } from "src/infrastructure/repositories/expenses.rep
 import { subDays } from "date-fns";
 import prisma from "@/app/lib/prisma/prisma";
 import { formatDate } from "@/app/lib/utils";
+import { fromZonedTime } from "date-fns-tz";
+const TZ = "Asia/Manila";
 
 export const computePettyCashUseCase = async (
   tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
   petty_cash_id: string,
-  input: { created_at: Date; branch_id: string },
+  input: { created_at: string; branch_id: string },
 ) => {
-  const startOfDay = new Date(input.created_at);
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const endOfDay = new Date(input.created_at);
-  endOfDay.setHours(23, 59, 59, 999);
+  const startOfDay = fromZonedTime(`${input.created_at} 00:00:00.000`, TZ);
+  const endOfDay = fromZonedTime(`${input.created_at} 23:59:59.999`, TZ);
 
   const last_petty_cash = await ExpensesRepository.getPettyCashBalance(
     formatDate(subDays(new Date(input.created_at), 1), "yyyy-MM-dd"),
@@ -57,7 +56,7 @@ export const computePettyCashUseCase = async (
     create: {
       amount: cash_on_hand,
       remarks: "created petty cash",
-      created_at: input.created_at,
+      created_at: fromZonedTime(input.created_at, TZ),
       branch_id: input.branch_id,
     },
   });

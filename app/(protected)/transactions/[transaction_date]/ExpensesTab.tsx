@@ -27,7 +27,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
         {selectedBranch ? (
           <>
             <AddExpenseModal
-              pettyCash={currentPettyCash}
+              currentPettyCash={currentPettyCash}
               selectedBranch={selectedBranch}
             />
             {["SUPER_ADMIN", "OWNER"].includes(user.role) ? (

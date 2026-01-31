@@ -27,7 +27,7 @@ export const ExpenseInsertSchema = z.object({
   purpose: z.enum(["ADD_PETTY_CASH", "EXPENSE"]),
   remarks: z.string().min(1),
   branch_id: z.string(),
-  created_at: z.date(),
+  created_at: z.string(),
 });
 
 export type ExpenseInsertSchema = z.infer<typeof ExpenseInsertSchema>;
@@ -52,7 +52,7 @@ export type PettyCash = {
 export const PettyCashInsertSchema = z.object({
   amount: z.coerce.number(),
   remarks: z.string().nullable(),
-  created_at: z.date(),
+  created_at: z.string(),
   branch_id: z.string(),
 });
 
