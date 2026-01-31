@@ -30,10 +30,6 @@ export const UpdatePettyCashController = async (
   input: Partial<PettyCashInsertSchemaType>,
 ) => {
   try {
-    if (input.created_at) {
-      input.created_at = new Date(input.created_at);
-    }
-
     const { data, error: inputParseError } =
       PettyCashInsertSchema.safeParse(input);
 
