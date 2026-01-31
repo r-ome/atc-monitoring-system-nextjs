@@ -6,8 +6,8 @@ import {
 import { IExpenseRepository } from "src/application/repositories/expenses.repository.interface";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { computePettyCashUseCase } from "../../application/use-cases/expenses/compute-petty-cash.use-case";
-import { fromZonedTime } from "date-fns-tz";
 import { formatDate } from "@/app/lib/utils";
+import { fromZonedTime } from "date-fns-tz";
 const TZ = "Asia/Manila";
 
 export const ExpensesRepository: IExpenseRepository = {
@@ -113,15 +113,20 @@ export const ExpensesRepository: IExpenseRepository = {
           },
         });
 
+        const formatted_created_at = formatDate(
+          updated_expense.created_at,
+          "yyyy-MM-dd",
+        );
+
         const petty_cash = await ExpensesRepository.getPettyCashBalance(
-          formatDate(updated_expense.created_at, "yyyy-MM-dd"),
+          formatted_created_at,
           updated_expense.branch_id,
         );
 
         if (!petty_cash) throw new Error("No Petty Cash");
 
         await computePettyCashUseCase(tx, petty_cash?.petty_cash_id, {
-          created_at: updated_expense.created_at,
+          created_at: formatted_created_at,
           branch_id: updated_expense.branch_id,
         });
 
