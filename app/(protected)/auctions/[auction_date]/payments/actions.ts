@@ -52,7 +52,7 @@ export const getExpensesByDate = async (
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetExpensesByDateController(new Date(date), branch_id),
+    async () => await GetExpensesByDateController(date, branch_id),
   );
 };
 
@@ -86,11 +86,10 @@ export const getPettyCashBalance = async (
   branch_id: string | undefined,
 ) => {
   const user = await requireUser();
-  const input = new Date(date);
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetPettyCashBalanceController(input, branch_id),
+    async () => await GetPettyCashBalanceController(date, branch_id),
   );
 };
 

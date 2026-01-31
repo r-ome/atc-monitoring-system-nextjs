@@ -6,15 +6,15 @@ import {
 import { IExpenseRepository } from "src/application/repositories/expenses.repository.interface";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { computePettyCashUseCase } from "../../application/use-cases/expenses/compute-petty-cash.use-case";
+import { fromZonedTime } from "date-fns-tz";
+import { formatDate } from "@/app/lib/utils";
+const TZ = "Asia/Manila";
 
 export const ExpensesRepository: IExpenseRepository = {
   getExpensesByDate: async (date, branch_id) => {
     try {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      const startOfDay = fromZonedTime(`${date} 00:00:00.000`, TZ);
+      const endOfDay = fromZonedTime(`${date} 23:59:59.999`, TZ);
 
       const expenses = await prisma.expenses.findMany({
         include: { branch: true },
@@ -24,6 +24,7 @@ export const ExpensesRepository: IExpenseRepository = {
         },
         orderBy: { created_at: "desc" },
       });
+
       return expenses;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -36,11 +37,8 @@ export const ExpensesRepository: IExpenseRepository = {
   },
   getPettyCashBalance: async (date, branch_id) => {
     try {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      const startOfDay = fromZonedTime(`${date} 00:00:00.000`, TZ);
+      const endOfDay = fromZonedTime(`${date} 23:59:59.999`, TZ);
 
       let petty_cash = await prisma.petty_cash.findFirst({
         include: { branch: true },
@@ -65,7 +63,7 @@ export const ExpensesRepository: IExpenseRepository = {
       return petty_cash;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error adding expense", {
+        throw new DatabaseOperationError("Error getting petty cash", {
           cause: error.message,
         });
       }
@@ -116,7 +114,7 @@ export const ExpensesRepository: IExpenseRepository = {
         });
 
         const petty_cash = await ExpensesRepository.getPettyCashBalance(
-          updated_expense.created_at,
+          formatDate(updated_expense.created_at, "yyyy-MM-dd"),
           updated_expense.branch_id,
         );
 
@@ -173,7 +171,7 @@ export const ExpensesRepository: IExpenseRepository = {
           throw new DatabaseOperationError("Expense does not exist!");
 
         const petty_cash = await ExpensesRepository.getPettyCashBalance(
-          expense.created_at,
+          formatDate(expense.created_at, "yyyy-MM-dd"),
           expense.branch_id,
         );
 
