@@ -10,8 +10,14 @@ export const computePettyCashUseCase = async (
   petty_cash_id: string,
   input: { created_at: string; branch_id: string },
 ) => {
-  const startOfDay = fromZonedTime(`${input.created_at} 00:00:00.000`, TZ);
-  const endOfDay = fromZonedTime(`${input.created_at} 23:59:59.999`, TZ);
+  const startOfDay = fromZonedTime(
+    `${formatDate(new Date(input.created_at), "yyyy-MM-dd")} 00:00:00.000`,
+    TZ,
+  );
+  const endOfDay = fromZonedTime(
+    `${formatDate(new Date(input.created_at), "yyyy-MM-dd")} 23:59:59.999`,
+    TZ,
+  );
 
   const last_petty_cash = await ExpensesRepository.getPettyCashBalance(
     formatDate(subDays(new Date(input.created_at), 1), "yyyy-MM-dd"),
