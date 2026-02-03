@@ -11,11 +11,11 @@ type SheetDetails = {
 
 const generateBillReport = (
   sheetDetails: SheetDetails,
-  workbook: xlsx.WorkBook
+  workbook: xlsx.WorkBook,
 ) => {
   const remittanceAccount = sheetDetails.supplier.sales_remittance_account
     .toUpperCase()
-    .includes("MILLENNIUM")
+    .includes("ECORE")
     ? "MILLENIUM"
     : "ATC";
 
