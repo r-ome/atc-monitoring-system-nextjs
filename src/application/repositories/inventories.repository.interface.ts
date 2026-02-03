@@ -56,4 +56,7 @@ export interface IInventoryRepository {
     Omit<InventorySchema, "histories" | "auctions_inventory" | "container">
   >;
   mergeInventories: (data: InventoryMergeSchema) => Promise<void>;
+  appendInventories: (
+    data: { barcode: string; inventory_id: string }[],
+  ) => Promise<void>;
 }

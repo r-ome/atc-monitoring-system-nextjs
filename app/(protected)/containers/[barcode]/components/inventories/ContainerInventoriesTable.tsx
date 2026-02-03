@@ -10,6 +10,7 @@ import { CoreRow } from "@tanstack/react-table";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { GenerateContainerReportModal } from "./GenerateContainerReportModal";
 import { CreateInventoryModal } from "../../inventories/[inventory_id]/CreateInventoryModal";
+import { AppendInventoriesModal } from "./AppendInventoriesModal";
 
 export type InventoryRowType = Omit<
   Inventory,
@@ -56,6 +57,7 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
             container={container}
           />
           <MergeInventoriesModal inventories={inventories} />
+          <AppendInventoriesModal inventories={inventories} />
         </div>
 
         <DataTable

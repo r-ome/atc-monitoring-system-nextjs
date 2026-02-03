@@ -516,4 +516,30 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
+  appendInventories: async (data) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        await Promise.all(
+          data.map((inventory) =>
+            tx.inventories.update({
+              where: { inventory_id: inventory.inventory_id },
+              data: {
+                barcode: inventory.barcode,
+              },
+            }),
+          ),
+        );
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(
+          "Error getting inventories with no auction inventories",
+          {
+            cause: error.message,
+          },
+        );
+      }
+      throw error;
+    }
+  },
 };

@@ -75,7 +75,7 @@ export const MergeInventoriesModal: React.FC<MergeInventoriesModalProps> = ({
       <DialogContent className="min-w-[700px]">
         <form onSubmit={handleSubmit} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>Adjust Inventories</DialogTitle>
+            <DialogTitle>Merge Inventories</DialogTitle>
           </DialogHeader>
           <Input onChange={(e) => setSearch(e.target.value)} />
 
