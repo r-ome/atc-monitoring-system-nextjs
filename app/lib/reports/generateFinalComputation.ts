@@ -2,13 +2,27 @@ import * as xlsx from "xlsx-js-style";
 import { formatDate } from "@/app/lib/utils";
 import { Container } from "src/entities/models/Container";
 
+type ContainerWithSupplierRemittanceAccount = Omit<Container, "supplier"> & {
+  supplier: {
+    supplier_id: string;
+    name: string;
+    sales_remittance_account: string;
+  };
+};
+
 const generateFinalComputation = (
-  container: Container,
-  workbook: xlsx.WorkBook
+  container: ContainerWithSupplierRemittanceAccount,
+  workbook: xlsx.WorkBook,
 ) => {
   const sheet = xlsx.utils.aoa_to_sheet(
-    Array.from({ length: 50 }, () => [...Array(10).fill(null)])
+    Array.from({ length: 50 }, () => [...Array(10).fill(null)]),
   );
+
+  const remittanceAccount = container.supplier.sales_remittance_account
+    .toUpperCase()
+    .includes("ECORE")
+    ? "MILLENIUM"
+    : "ATC";
 
   sheet["!merges"] = [
     { s: { r: 0, c: 1 }, e: { r: 0, c: 3 } }, // B1:D1
@@ -417,7 +431,7 @@ const generateFinalComputation = (
   };
 
   sheet["B13"] = {
-    v: "7111500",
+    v: remittanceAccount === "MILLENIUM" ? "547-11819088" : "7111500",
     t: "s",
     s: { font: { name: "Arial", sz: 9 } },
   };
@@ -429,7 +443,10 @@ const generateFinalComputation = (
   };
 
   sheet["B14"] = {
-    v: "2-16-5 KONAN, MINAMI-KU,TOKYO,JAPAN",
+    v:
+      remittanceAccount === "MILLENIUM"
+        ? "25-1 Matsugae Cho, Minami-ku, Sagamihara-shi, Kanagawa-ken, 252-0313, Japan"
+        : "2-16-5 KONAN, MINAMI-KU,TOKYO,JAPAN",
     t: "s",
     s: { font: { name: "Arial", sz: 9 } },
   };
