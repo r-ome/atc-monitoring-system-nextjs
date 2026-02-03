@@ -6,8 +6,9 @@ const generateInventoryList = (monitoring: UnsoldMonitoring[]) => {
   const data = monitoring.map((item) => [
     item.barcode,
     item.description,
-    item.status === "SOLD" && item.price ? "SOLD" : "UNSOLD",
+    item.status,
   ]);
+
   const sheet = xlsx.utils.aoa_to_sheet([headers, ...data, [null, null]]);
   sheet["!autofilter"] = { ref: "A1:C1" };
   sheet["!cols"] = [{ wch: 15 }, { wch: 40 }, { wch: 30 }];

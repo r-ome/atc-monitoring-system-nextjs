@@ -40,15 +40,16 @@ export const GenerateContainerReportModal = ({
     generateReport(
       {
         monitoring: for_monitoring_report,
+        inventories: inventories,
         sheetDetails: container,
       },
       ["monitoring", "final_computation", "unsold", "encode", "bill"],
-      filename
+      filename,
     );
   };
 
   const auction_inventories = inventories.filter(
-    (item) => item.auctions_inventory
+    (item) => item.auctions_inventory,
   );
 
   const auction_dates = auction_inventories.reduce<Record<string, number>>(
@@ -58,7 +59,7 @@ export const GenerateContainerReportModal = ({
       acc[date] = (acc[date] ?? 0) + 1;
       return acc;
     },
-    {}
+    {},
   );
 
   const for_monitoring_report = inventories
@@ -107,11 +108,11 @@ export const GenerateContainerReportModal = ({
                   onCheckedChange={(checked) => {
                     if (checked === true) {
                       setSelectedDates((prev) =>
-                        prev.includes(item) ? prev : [...prev, item]
+                        prev.includes(item) ? prev : [...prev, item],
                       );
                     } else if (checked === false) {
                       setSelectedDates((prev) =>
-                        prev.filter((selectedDate) => selectedDate !== item)
+                        prev.filter((selectedDate) => selectedDate !== item),
                       );
                     }
                   }}
