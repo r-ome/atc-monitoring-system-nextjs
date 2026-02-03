@@ -102,3 +102,10 @@ export type BoughtItems = {
   bidder_number: string | null;
   qty: string | null;
 };
+
+export const InventoryMergeSchema = z.object({
+  old_inventory_id: z.string(),
+  new_inventory_id: z.string(),
+});
+
+export type InventoryMergeSchema = z.infer<typeof InventoryMergeSchema>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { UploadInventoryModal } from "./UploadInventoryModal";
+import { MergeInventoriesModal } from "./MergeInventoriesModal";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./inventory-columns";
 import { Container } from "src/entities/models/Container";
@@ -36,12 +37,12 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
     columnId?: string,
     filterValue?: string,
   ) => {
-    const barcode = (row.original as InventoryRowType).barcode.toLowerCase();
-    const control =
-      (row.original as InventoryRowType).control?.toLowerCase() ?? "";
     const search = (filterValue ?? "").toLowerCase();
+    const { description, barcode, control } = row.original;
 
-    return barcode.includes(search) || control?.includes(search);
+    return [barcode, control, description]
+      .filter(Boolean)
+      .some((field) => field!.toLowerCase().includes(search));
   };
 
   return (
@@ -54,6 +55,7 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
             inventories={inventories}
             container={container}
           />
+          <MergeInventoriesModal inventories={inventories} />
         </div>
 
         <DataTable

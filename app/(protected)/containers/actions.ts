@@ -10,6 +10,7 @@ import { UpdateContainerController } from "src/controllers/containers/update-con
 import { GetContainerByBarcodeController } from "src/controllers/containers/get-container-by-barcode.controller";
 import { UploadInventoryFileController } from "src/controllers/containers/upload-inventory-file.controller";
 import { DeleteContainerController } from "src/controllers/containers/delete-container.controller";
+import { MergeInventoriesController } from "src/controllers/inventories/merge-inventory.controller";
 
 export const getContainerByBarcode = async (barcode: string) => {
   return await GetContainerByBarcodeController(barcode);
@@ -23,7 +24,7 @@ export const getContainers = async () => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetContainersController()
+    async () => await GetContainersController(),
   );
 };
 
@@ -36,7 +37,7 @@ export const createContainer = async (form_data: FormData) => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await CreateContainerController(data)
+    async () => await CreateContainerController(data),
   );
 };
 
@@ -47,7 +48,7 @@ export const updateContainer = async (containerId: string, input: FormData) => {
 
 export const uploadInventoryFile = async (
   barcode: string,
-  form_data: FormData
+  form_data: FormData,
 ) => {
   const file = form_data.get("file");
   return await UploadInventoryFileController(barcode, file as File);
@@ -55,4 +56,9 @@ export const uploadInventoryFile = async (
 
 export const deleteContainer = async (container_id: string) => {
   return await DeleteContainerController(container_id);
+};
+
+export const mergeInventories = async (input: FormData) => {
+  const data = Object.fromEntries(input.entries());
+  return await MergeInventoriesController(data);
 };
