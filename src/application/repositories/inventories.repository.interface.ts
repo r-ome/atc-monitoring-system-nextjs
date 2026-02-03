@@ -3,6 +3,7 @@ import type {
   InventorySchema,
   AuctionInventoryUpdateSchema,
   InventoryInsertSchema,
+  InventoryMergeSchema,
   INVENTORY_STATUS,
 } from "src/entities/models/Inventory";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
@@ -10,7 +11,7 @@ import { AuctionsInventorySchema } from "src/entities/models/Auction";
 export interface IInventoryRepository {
   getInventory: (inventory_id: string) => Promise<InventorySchema>;
   getAuctionItemDetails: (
-    auction_inventory_id: string
+    auction_inventory_id: string,
   ) => Promise<AuctionsInventorySchema | null>;
   getUnsoldInventories: () => Promise<
     Omit<InventorySchema, "histories" | "container" | "auctions_inventory">[]
@@ -30,18 +31,18 @@ export interface IInventoryRepository {
   updateAuctionItem: (data: AuctionInventoryUpdateSchema) => void;
   updateInventory: (
     inventory_id: string,
-    data: InventoryInsertSchema
+    data: InventoryInsertSchema,
   ) => Promise<
     Omit<InventorySchema, "container" | "histories" | "auctions_inventory">
   >;
   getAllInventories: (
-    status?: INVENTORY_STATUS[]
+    status?: INVENTORY_STATUS[],
   ) => Promise<
     Omit<InventorySchema, "histories" | "auctions_inventory" | "container">[]
   >;
   updateBulkInventoryStatus: (
     status: INVENTORY_STATUS,
-    data: string[]
+    data: string[],
   ) => Promise<Prisma.BatchPayload>;
   getBoughtItems: () => Promise<
     Omit<InventorySchema, "histories" | "container">[]
@@ -50,8 +51,9 @@ export interface IInventoryRepository {
     Omit<InventorySchema, "histories" | "container">[]
   >;
   createInventory: (
-    data: InventoryInsertSchema
+    data: InventoryInsertSchema,
   ) => Promise<
     Omit<InventorySchema, "histories" | "auctions_inventory" | "container">
   >;
+  mergeInventories: (data: InventoryMergeSchema) => Promise<void>;
 }

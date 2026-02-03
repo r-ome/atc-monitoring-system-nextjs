@@ -16,7 +16,7 @@ export const uploadInventoryFileUseCase = async (
   const formatted_rows = rows.map((item) => ({
     container_id: container.container_id,
     barcode: item.BARCODE,
-    control: formatNumberPadding(item.CONTROL.toString()),
+    control: formatNumberPadding(item.CONTROL.toString(), 4),
     description: item.DESCRIPTION,
     status: "UNSOLD",
   })) as InventorySheetFormattedRecords;
