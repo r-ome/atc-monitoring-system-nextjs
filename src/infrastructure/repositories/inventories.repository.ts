@@ -453,31 +453,27 @@ export const InventoryRepository: IInventoryRepository = {
   mergeInventories: async (data) => {
     try {
       await prisma.$transaction(async (tx) => {
+        const [old_inventory, new_inventory, new_auction_inventory] =
+          await Promise.all([
+            tx.inventories.findUnique({
+              where: { inventory_id: data.old_inventory_id },
+            }),
+            tx.inventories.findUnique({
+              where: { inventory_id: data.new_inventory_id },
+            }),
+            tx.auctions_inventories.findUnique({
+              where: { inventory_id: data.new_inventory_id },
+            }),
+          ]);
+
+        if (!old_inventory || !new_inventory || !new_auction_inventory) {
+          throw new NotFoundError("Inventory / Auction inventory not found!");
+        }
+
         await tx.inventory_histories.updateMany({
           where: { inventory_id: data.old_inventory_id },
           data: { inventory_id: data.new_inventory_id },
         });
-
-        await tx.auctions_inventories.updateMany({
-          where: { inventory_id: data.old_inventory_id },
-          data: { inventory_id: data.new_inventory_id },
-        });
-
-        const old_inventory = await tx.inventories.findFirst({
-          where: { inventory_id: data.old_inventory_id },
-        });
-
-        const new_inventory = await tx.inventories.findFirst({
-          where: { inventory_id: data.new_inventory_id },
-        });
-
-        const auction_inventory = await tx.auctions_inventories.findFirst({
-          where: { inventory_id: data.new_inventory_id },
-        });
-
-        if (!auction_inventory || !old_inventory || !new_inventory) {
-          throw new NotFoundError("Auction Inventory not found!");
-        }
 
         await tx.inventories.update({
           where: { inventory_id: data.new_inventory_id },
@@ -486,13 +482,13 @@ export const InventoryRepository: IInventoryRepository = {
             ...(new_inventory.control === "0000"
               ? { control: old_inventory.control }
               : {}),
-            auction_date: auction_inventory.auction_date,
+            auction_date: new_auction_inventory.auction_date,
           },
         });
 
         await tx.inventory_histories.create({
           data: {
-            auction_inventory_id: auction_inventory?.auction_inventory_id,
+            auction_inventory_id: new_auction_inventory.auction_inventory_id,
             inventory_id: data.new_inventory_id,
             auction_status: "DISCREPANCY",
             inventory_status: "SOLD",
@@ -500,12 +496,19 @@ export const InventoryRepository: IInventoryRepository = {
           },
         });
 
+        if (old_inventory) {
+          await tx.auctions_inventories.delete({
+            where: { inventory_id: data.old_inventory_id },
+          });
+        }
+
         await tx.inventories.delete({
           where: { inventory_id: data.old_inventory_id },
         });
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
+        console.log({ error: error.message });
         throw new DatabaseOperationError(
           "Error getting inventories with no auction inventories",
           {
