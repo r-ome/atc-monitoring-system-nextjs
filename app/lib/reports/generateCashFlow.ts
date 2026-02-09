@@ -101,12 +101,6 @@ const generateCashFlow = ({
   }, 0);
 
   const totalRefund = refundAmount * -1;
-  const totalInward = payments
-    .filter((item) => item.receipt.purpose !== "REFUNDED")
-    .reduce((acc, item) => {
-      acc += item.amount_paid;
-      return acc;
-    }, 0);
 
   const inwardHeaders = ["DATE", "PARTICULAR", "AMOUNT", "PAYMENT TYPE"];
   const sheet = xlsx.utils.aoa_to_sheet([
@@ -173,6 +167,10 @@ const generateCashFlow = ({
       Object.keys(total_payments).length + 8
     }`,
   };
+  const refund_row = Object.keys(total_payments).length + 3;
+  const petty_cash_row = refund_row + 1;
+  const cash_remit_row = petty_cash_row + 1;
+  const inward_total_cash_row = cash_remit_row + 2;
 
   Object.keys(total_payments)
     .sort((a, b) => a.localeCompare(b))
@@ -212,7 +210,7 @@ const generateCashFlow = ({
       sheet[`C${row}`] = {
         f: `SUMIF(D15:D${
           totalTransactaionsExcludingRefund + 14
-        },"${item}",C15:C${totalTransactaionsExcludingRefund + 14})`,
+        },"${item}",C15:C${totalTransactaionsExcludingRefund + 14})${item === "CASH" ? `-ABS(C${refund_row})` : ""}`,
         t: "n",
         z: '"₱" #,##0.00;("₱"[Red]#,##0.00)',
         s: {
@@ -232,7 +230,6 @@ const generateCashFlow = ({
       };
     });
 
-  const refund_row = Object.keys(total_payments).length + 3;
   sheet[`A${refund_row}`] = {
     v: "REFUND",
     t: "s",
@@ -284,7 +281,6 @@ const generateCashFlow = ({
     };
   });
 
-  const petty_cash_row = refund_row + 1;
   sheet[`A${petty_cash_row}`] = {
     v: "PETTY CASH ON HAND",
     t: "s",
@@ -337,7 +333,6 @@ const generateCashFlow = ({
     };
   });
 
-  const cash_remit_row = petty_cash_row + 1;
   sheet[`A${cash_remit_row}`] = {
     v: "CASH REMIT",
     t: "s",
@@ -392,7 +387,6 @@ const generateCashFlow = ({
     };
   });
 
-  const inward_total_cash_row = cash_remit_row + 2;
   sheet[`A${inward_total_cash_row}`] = {
     v: "INWARD TOTAL CASH",
     t: "s",
@@ -412,8 +406,9 @@ const generateCashFlow = ({
     },
   };
   sheet[`C${inward_total_cash_row}`] = {
-    v: formatNumberToCurrency(totalInward),
-    t: "s",
+    f: `SUM(C15:C${inward.length + 14})-ABS(C${refund_row})`,
+    t: "n",
+    z: '"₱" #,##0.00;"₱" [Red]-#,##0.00',
     s: {
       font: { name: "Arial", sz: 10, bold: true },
       fill: { fgColor: { rgb: "9BC2E6" } },
