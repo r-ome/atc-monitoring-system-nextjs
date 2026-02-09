@@ -718,16 +718,15 @@ export const AuctionRepository: IAuctionRepository = {
   },
   uploadCounterCheck: async (auction_id, data) => {
     try {
-      // const valid_rows_in_sheet = data.filter((item) => item.isValid);
-
       const counter_check_records = await prisma.counter_check.createMany({
         data: data.map((item) => ({
           auction_id,
           control: item.CONTROL,
           price: item.PRICE.toString(),
           page: item.PAGE,
+          description: item.DESCRIPTION,
+          time: item.TIME,
           bidder_number: item.BIDDER,
-          // error: item.error,
         })),
       });
 

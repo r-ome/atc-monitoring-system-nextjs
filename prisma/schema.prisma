@@ -312,6 +312,8 @@ model counter_check {
   control          String?
   bidder_number    String?
   price            String?
+  description      String?
+  time             String?
   page             String?
   error            String?
   remarks          String?

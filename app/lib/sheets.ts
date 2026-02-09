@@ -21,6 +21,14 @@ export const VALID_FILE_TYPES = [
   "application/vnd.ms-excel",
 ];
 
+function excelTimeToHHMMSS(v: number) {
+  const totalSeconds = Math.round(v * 24 * 60 * 60);
+  const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const ss = String(totalSeconds % 60).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
 export const getSheetData = (
   file: ArrayBuffer,
   type: "bidders" | "manifest" | "inventory" | "counter_check" = "inventory",
@@ -53,10 +61,12 @@ export const getSheetData = (
         )
         .map((item) => {
           return {
+            DESCRIPTION: item["DESCRIPTION"] ? item["DESCRIPTION"] : "",
             PAGE: item["PAGE#"] ? item["PAGE#"].toString() : "",
             CONTROL: formatNumberPadding(item.CONTROL, 4) ?? "",
             PRICE: item["TOTAL SALES"] ? item["TOTAL SALES"].toString() : "",
             BIDDER: formatNumberPadding(item.BIDDER, 4) ?? "",
+            TIME: item.TIME ? excelTimeToHHMMSS(Number(item.TIME)) : "",
           };
         });
     }

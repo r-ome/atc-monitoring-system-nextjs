@@ -9,6 +9,50 @@ import { CounterCheck } from "src/entities/models/CounterCheck";
 
 export const columns = (): ColumnDef<CounterCheck>[] => [
   {
+    accessorKey: "description",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer flex justify-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Description
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const counter_check = row.original;
+      return (
+        <div className="flex justify-center">{counter_check.description}</div>
+      );
+    },
+  },
+  {
+    accessorKey: "time",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer flex justify-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Time
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const counter_check = row.original;
+      return <div className="flex justify-center">{counter_check.time}</div>;
+    },
+  },
+  {
     accessorKey: "control",
     header: ({ column }) => {
       return (

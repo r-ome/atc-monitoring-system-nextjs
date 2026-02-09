@@ -21,6 +21,8 @@ import { CounterCheck } from "src/entities/models/CounterCheck";
 
 type UpdateCounterCheckForm = {
   bidder_number?: string | null;
+  time?: string | null;
+  description?: string | null;
   control?: string | null;
   page?: string | null;
   price?: string | null;
@@ -47,6 +49,8 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
     setNewSelected({
       control: selected?.control,
       bidder_number: selected?.bidder_number,
+      description: selected?.description,
+      time: selected?.time,
       price: selected?.price,
       page: selected?.page,
       remarks: selected?.remarks,
@@ -98,6 +102,28 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex gap-4">
+              <Label htmlFor="description" className="w-40">
+                Description:
+              </Label>
+              <Input
+                name="description"
+                value={newSelected?.description || ""}
+                onChange={handleUpdateChange}
+                error={errors}
+              />
+            </div>
+            <div className="flex gap-4">
+              <Label htmlFor="time" className="w-40">
+                Time:
+              </Label>
+              <Input
+                name="time"
+                value={newSelected?.time || ""}
+                onChange={handleUpdateChange}
+                error={errors}
+              />
+            </div>
+            <div className="flex gap-4">
               <Label htmlFor="control" className="w-40">
                 Control Number:
               </Label>
@@ -105,7 +131,6 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
                 name="control"
                 value={newSelected?.control || ""}
                 onChange={handleUpdateChange}
-                required
                 error={errors}
               />
             </div>
@@ -117,7 +142,6 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
                 name="price"
                 value={newSelected?.price || ""}
                 onChange={handleUpdateChange}
-                required
                 error={errors}
               />
             </div>
@@ -129,7 +153,6 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
                 name="bidder_number"
                 value={newSelected?.bidder_number || ""}
                 onChange={handleUpdateChange}
-                required
                 error={errors}
               />
             </div>
@@ -141,7 +164,6 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
                 name="page"
                 value={newSelected?.page || ""}
                 onChange={handleUpdateChange}
-                required
                 error={errors}
               />
             </div>
@@ -153,7 +175,6 @@ export const UpdateCounterCheckModal: React.FC<UpdateCounterCheckProps> = ({
                 name="remarks"
                 value={newSelected?.remarks || ""}
                 onChange={handleUpdateChange}
-                required
                 error={errors}
               />
             </div>

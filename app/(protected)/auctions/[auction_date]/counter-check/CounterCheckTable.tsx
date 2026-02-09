@@ -17,12 +17,13 @@ export const CounterCheckTable = ({ counterCheck }: CounterCheckTableProps) => {
   const globalFilterFn = (
     row: CoreRow<CounterCheck>,
     _columnId?: string,
-    filterValue?: string
+    filterValue?: string,
   ) => {
     const search = (filterValue ?? "").toLowerCase();
-    const { page, price, bidder_number, control } = row.original;
+    const { page, price, bidder_number, control, description, time } =
+      row.original;
 
-    return [bidder_number, control, price?.toString(), page]
+    return [bidder_number, control, price?.toString(), page, description, time]
       .filter(Boolean)
       .some((field) => field!.toLowerCase().includes(search));
   };
