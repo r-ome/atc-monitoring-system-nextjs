@@ -11,7 +11,7 @@ import { err, ok } from "src/entities/models/Response";
 
 export const UploadCounterCheckController = async (
   auction_id: string,
-  file: File
+  file: File,
 ) => {
   try {
     if (!file) {
@@ -35,7 +35,14 @@ export const UploadCounterCheckController = async (
       });
     }
 
-    const validManifestHeaders = ["PAGE#", "CONTROL", "BIDDER", "TOTAL SALES"]
+    const validManifestHeaders = [
+      "DESCRIPTION",
+      "TIME",
+      "PAGE#",
+      "CONTROL",
+      "BIDDER",
+      "TOTAL SALES",
+    ]
       .map((item) => headers.includes(item))
       .some((item) => !item);
 
@@ -47,7 +54,7 @@ export const UploadCounterCheckController = async (
 
     const res = await uploadCounterCheckUseCase(
       auction_id,
-      data as CounterCheckRecord[]
+      data as CounterCheckRecord[],
     );
 
     return ok(`${res.count} records uploaded!`);

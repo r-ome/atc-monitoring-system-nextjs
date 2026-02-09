@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 export type CounterCheckSchema = Prisma.counter_checkGetPayload<object>;
 
 export type CounterCheckRecord = Record<
-  "CONTROL" | "BIDDER" | "PAGE" | "PRICE",
+  "CONTROL" | "BIDDER" | "PAGE" | "PRICE" | "DESCRIPTION" | "TIME",
   string
 >;
 
@@ -13,6 +13,8 @@ export const CounterCheckUpdateSchema = z.object({
   bidder_number: z.string(),
   price: z.coerce.string(),
   page: z.coerce.string(),
+  time: z.coerce.string(),
+  description: z.coerce.string(),
   remarks: z.string().optional().nullable(),
 });
 
@@ -23,8 +25,8 @@ export const CounterCheckInsertSchema = z.object({
   BIDDER: z.string(),
   PRICE: z.coerce.string(),
   PAGE: z.coerce.string(),
-  // error: z.string(),
-  // isValid: z.boolean(),
+  DESCRIPTION: z.coerce.string(),
+  TIME: z.coerce.string(),
 });
 
 export type CounterCheckInsertSchema = z.infer<typeof CounterCheckInsertSchema>;
@@ -36,6 +38,8 @@ export type CounterCheck = {
   bidder_number?: string | null;
   price?: string | null;
   page?: string | null;
+  time?: string | null;
+  description?: string | null;
   error?: string | null;
   remarks?: string | null;
   created_at: string;

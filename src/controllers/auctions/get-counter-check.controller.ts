@@ -11,6 +11,8 @@ function presenter(counter_check: CounterCheckSchema[]) {
     auction_id: item.auction_id,
     control: item.control,
     bidder_number: item.bidder_number,
+    description: item.description,
+    time: item.time,
     price: item.price,
     remarks: item.remarks,
     page: item.page,
