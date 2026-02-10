@@ -205,4 +205,22 @@ export const ExpensesRepository: IExpenseRepository = {
       throw error;
     }
   },
+  recalculatePettyCash: async (petty_cash) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        await computePettyCashUseCase(tx, petty_cash.petty_cash_id, {
+          created_at: `${formatDate(new Date(petty_cash.created_at), "yyyy-MM-dd")} 00:00:00.000`,
+          branch_id: petty_cash.branch.branch_id,
+        });
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error recalculating petty cash!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
 };

@@ -15,6 +15,8 @@ import { UpdateExpenseController } from "src/controllers/payments/update-expense
 import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
 import { UpdatePettyCashController } from "src/controllers/expenses/update-petty-cash.controller";
 import { DeleteExpenseController } from "src/controllers/expenses/delete-expense.controller";
+import { PettyCash } from "src/entities/models/Expense";
+import { RecalculatePettyCashController } from "src/controllers/payments/recalculate-petty-cash.controller";
 
 export const getPaymentsByDate = async (
   date: string,
@@ -124,5 +126,14 @@ export const deleteExpense = async (expense_id: string) => {
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
     async () => await DeleteExpenseController(expense_id),
+  );
+};
+
+export const recalculatePettyCash = async (petty_cash: PettyCash) => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await RecalculatePettyCashController(petty_cash),
   );
 };

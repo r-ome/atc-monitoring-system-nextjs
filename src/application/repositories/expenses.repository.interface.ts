@@ -4,6 +4,7 @@ import {
   ExpenseInsertSchema,
   PettyCashSchema,
   PettyCashInsertSchemaType,
+  PettyCash,
 } from "src/entities/models/Expense";
 
 export interface IExpenseRepository {
@@ -28,4 +29,5 @@ export interface IExpenseRepository {
     data: PettyCashInsertSchemaType,
   ) => Promise<PettyCashSchema>;
   deleteExpense: (expense_id: string) => Promise<void>;
+  recalculatePettyCash: (petty_cash: PettyCash) => Promise<void>;
 }
