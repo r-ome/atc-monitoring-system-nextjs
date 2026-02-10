@@ -118,7 +118,7 @@ export default async function Page({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="expense">
+          <Tabs defaultValue="inward">
             <TabsList className="w-full md:w-[230px]">
               <TabsTrigger value="inward">Inward Transactions</TabsTrigger>
               <TabsTrigger value="expense">Expenses</TabsTrigger>

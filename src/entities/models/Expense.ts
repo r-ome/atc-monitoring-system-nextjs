@@ -45,6 +45,10 @@ export type PettyCash = {
   petty_cash_id: string;
   amount: number;
   remarks: string;
+  branch: {
+    branch_id: string;
+    name: string;
+  };
   created_at: string;
   updated_at: string;
 };

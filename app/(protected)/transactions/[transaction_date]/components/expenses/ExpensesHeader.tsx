@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardTitle, CardDescription } from "@/app/components/ui/card";
 import { Expense, PettyCash } from "src/entities/models/Expense";
 import { formatDate } from "@/app/lib/utils";
+import { recalculatePettyCash } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 
 type ExpenseTypesTotal = {
   PETTY_CASH_BALANCE: number;
@@ -26,6 +28,7 @@ export const ExpensesHeader: React.FC<ExpensesHeaderProps> = ({
   lastPettyCash,
 }) => {
   const { transaction_date }: { transaction_date: string } = useParams();
+  const router = useRouter();
   const [expenseTypesTotal, setExpenseTypesTotal] = useState<ExpenseTypesTotal>(
     {
       PETTY_CASH_BALANCE: 0,
@@ -59,6 +62,36 @@ export const ExpensesHeader: React.FC<ExpensesHeaderProps> = ({
       TODAY_PETTY_CASH,
     }));
   }, [expenses, lastPettyCash, currentPettyCash, setExpenseTypesTotal]);
+
+  useEffect(() => {
+    const last = lastPettyCash?.amount || 0;
+
+    const totalCurrentPettyCash = expenses
+      .filter((item) => item.purpose === "ADD_PETTY_CASH")
+      .reduce((acc, item) => (acc += item.amount), 0);
+
+    const totalExpenses = expenses
+      .filter((item) => item.purpose === "EXPENSE")
+      .reduce((acc, item) => (acc += item.amount), 0);
+
+    const current = (
+      currentPettyCash?.amount || 0 + totalCurrentPettyCash
+    ).toFixed(2);
+    const expected = (last + totalCurrentPettyCash - totalExpenses).toFixed(2);
+
+    const recaculateInitialPettyCash = async (currentPettyCash: PettyCash) => {
+      const res = await recalculatePettyCash(currentPettyCash);
+      if (res.ok) {
+        router.refresh();
+      }
+    };
+
+    if (currentPettyCash) {
+      if (current !== expected) {
+        recaculateInitialPettyCash(currentPettyCash);
+      }
+    }
+  }, [lastPettyCash, currentPettyCash]);
 
   return (
     <>
