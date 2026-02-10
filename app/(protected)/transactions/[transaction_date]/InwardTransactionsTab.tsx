@@ -51,9 +51,10 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
   const totalRefund = transactions
     .filter((item) => item.receipt.purpose === "REFUNDED")
     .reduce(getTotal, 0);
-  const totalInwardCash = transactions
-    .filter((item) => item.receipt.purpose !== "REFUNDED")
-    .reduce(getTotal, 0);
+  const totalInwardCash =
+    transactions
+      .filter((item) => item.receipt.purpose !== "REFUNDED")
+      .reduce(getTotal, 0) - totalRefund;
 
   const something = paymentMethods
     .map((item) => {
@@ -71,7 +72,10 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
     })
     .reduce<Record<string, number>>((acc, obj) => {
       const [key, value] = Object.entries(obj)[0];
-      acc[key] = (acc[key] ?? 0) + value; // sums if duplicate keys exist
+      acc[key] = (acc[key] ?? 0) + value;
+      if (key === "CASH") {
+        acc[key] = acc[key] - totalRefund;
+      }
       return acc;
     }, {});
 
