@@ -91,7 +91,7 @@ export const ExpensesHeader: React.FC<ExpensesHeaderProps> = ({
         recaculateInitialPettyCash(currentPettyCash);
       }
     }
-  }, [lastPettyCash, currentPettyCash]);
+  }, [lastPettyCash, currentPettyCash, expenses, router]);
 
   return (
     <>
