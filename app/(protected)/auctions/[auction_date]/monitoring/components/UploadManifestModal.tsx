@@ -71,9 +71,14 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Manifest</DialogTitle>
+            <DialogTitle>
+              Upload Manifest{" "}
+              <a href="/MANIFEST_TEMPLATE.xlsx" download>
+                (DOWNLOAD TEMPLATE HERE)
+              </a>
+            </DialogTitle>
             <DialogDescription>
-              Upload manifest sheet here for monitoring
+              Upload manifest sheet here for monitoring.{" "}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">

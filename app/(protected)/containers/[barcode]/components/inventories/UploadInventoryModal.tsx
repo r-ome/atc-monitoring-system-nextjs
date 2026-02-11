@@ -59,7 +59,12 @@ export const UploadInventoryModal = () => {
       <DialogContent className="w-[425px]">
         <form onSubmit={handleSubmit} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>Upload Inventory File</DialogTitle>
+            <DialogTitle>
+              Upload Inventory File{" "}
+              <a href="/INVENTORY_TEMPLATE.xlsx" download>
+                (DOWNLOAD TEMPLATE HERE)
+              </a>
+            </DialogTitle>
           </DialogHeader>
 
           <Input
