@@ -31,7 +31,12 @@ function excelTimeToHHMMSS(v: number) {
 
 export const getSheetData = (
   file: ArrayBuffer,
-  type: "bidders" | "manifest" | "inventory" | "counter_check" = "inventory",
+  type:
+    | "bought_items"
+    | "bidders"
+    | "manifest"
+    | "inventory"
+    | "counter_check" = "inventory",
 ): { data: Record<string, string>[]; headers: string[] } => {
   try {
     const workbook = xlsx.read(file, { type: "array" });
@@ -143,6 +148,17 @@ export const getSheetData = (
           ADDRESS: item.ADDRESS,
           TIN: item.TIN_NUMBER,
         }));
+    }
+
+    if (type === "bought_items") {
+      headers = data.length ? Object.keys(data[0]) : [];
+      data = data.map((item) => ({
+        BARCODE: item.BARCODE,
+        CONTROL: item.CONTROL ? item.CONTROL.toString() : "",
+        DESCRIPTION: item.DESCRIPTION,
+        NEW_PRICE: item["NEW PRICE"],
+        OLD_PRICE: item["OLD PRICE"],
+      }));
     }
 
     return { data, headers };
@@ -451,14 +467,11 @@ export const removeMonitoringDuplicates = (
    * inventory status: SOLD
    * auction inventory status: UNPAID
    */
-  const existing_cancelled_items = monitoring
-    .filter((item) => ["CANCELLED", "REFUNDED"].includes(item.status))
-    .map((item) =>
-      JSON.stringify({
-        BARCODE: item.inventory.barcode,
-        CONTROL: item.inventory.control,
-      }),
-    );
+  const existing_cancelled_items = monitoring.filter(
+    (item) =>
+      ["CANCELLED", "REFUNDED"].includes(item.status) ||
+      ["BOUGHT_ITEM"].includes(item.inventory.status),
+  );
 
   return data.map((sheet_item) => {
     if (!sheet_item.isValid) return sheet_item;
@@ -468,12 +481,29 @@ export const removeMonitoringDuplicates = (
       CONTROL: sheet_item.CONTROL,
     });
 
-    if (existing_cancelled_items.includes(fields)) {
-      const matched_item = monitoring.find(
-        (item) =>
+    const already_existing_cancelled_items = existing_cancelled_items.find(
+      (item) => {
+        if (item.inventory.barcode.split("-").length === 3) {
+          return item.inventory.barcode === sheet_item.BARCODE;
+        }
+        return (
           item.inventory.barcode === sheet_item.BARCODE &&
-          item.inventory.control === sheet_item.CONTROL,
-      );
+          item.inventory.control === sheet_item.CONTROL
+        );
+      },
+    );
+
+    if (already_existing_cancelled_items) {
+      const matched_item = monitoring.find((item) => {
+        if (item.inventory.barcode.split("-").length === 3) {
+          return item.inventory.barcode === sheet_item.BARCODE;
+        }
+
+        return (
+          item.inventory.barcode === sheet_item.BARCODE &&
+          item.inventory.control === sheet_item.CONTROL
+        );
+      });
 
       sheet_item.forUpdating = true;
       if (matched_item) {

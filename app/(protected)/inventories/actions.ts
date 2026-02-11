@@ -37,7 +37,7 @@ export const getInventory = async (inventory_id: string) => {
 
 export const updateInventory = async (
   inventory_id: string,
-  formData: FormData
+  formData: FormData,
 ) => {
   const data = Object.fromEntries(formData.entries());
   data.control = formatNumberPadding(data.control as string, 4);
@@ -58,9 +58,12 @@ export const createInventory = async (formData: FormData) => {
   return await CreateInventoryController(data);
 };
 
-export const uploadBoughtItems = async (formData: FormData) => {
+export const uploadBoughtItems = async (
+  branch_id: string,
+  formData: FormData,
+) => {
   const file = formData.get("file");
-  return await UploadBoughtItemsController(file as File);
+  return await UploadBoughtItemsController(branch_id, file as File);
 };
 
 export const getBoughtItems = async () => {

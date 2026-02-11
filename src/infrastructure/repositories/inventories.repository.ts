@@ -397,8 +397,12 @@ export const InventoryRepository: IInventoryRepository = {
   getBoughtItems: async () => {
     try {
       return await prisma.inventories.findMany({
-        where: { status: "BOUGHT_ITEM" },
-        include: { auctions_inventory: true },
+        where: { is_bought_item: { not: null, gt: 0 } },
+        include: {
+          auctions_inventory: {
+            include: { auction_bidder: { include: { bidder: true } } },
+          },
+        },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -508,7 +512,6 @@ export const InventoryRepository: IInventoryRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        console.log({ error: error.message });
         throw new DatabaseOperationError(
           "Error getting inventories with no auction inventories",
           {

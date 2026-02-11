@@ -5,7 +5,7 @@ import { InventorySchema } from "src/entities/models/Inventory";
 import { err, ok } from "src/entities/models/Response";
 
 function presenter(
-  bought_items: Omit<InventorySchema, "histories" | "container">[]
+  bought_items: Omit<InventorySchema, "histories" | "container">[],
 ) {
   return bought_items.map((item) => {
     return {
@@ -13,10 +13,11 @@ function presenter(
       barcode: item.barcode,
       control: item.control || "NC",
       description: item.auctions_inventory?.description,
-      old_price: item.auctions_inventory?.price,
+      old_price: item.is_bought_item,
       qty: item.auctions_inventory?.qty ?? null,
-      bidder_number: "ATC",
-      new_price: item.auctions_inventory?.price,
+      bidder_number: "5013",
+      new_price:
+        item.status === "BOUGHT_ITEM" ? 0 : item.auctions_inventory?.price,
     };
   });
 }

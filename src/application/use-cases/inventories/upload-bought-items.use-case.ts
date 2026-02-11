@@ -1,28 +1,30 @@
-import { startAuctionUseCase } from "../auctions/start-auction.use-case";
-import { getAuctionUseCase } from "../auctions/get-auction.use-case";
 import { uploadManifestUseCase } from "../auctions/upload-manifest.use-case";
-import { startOfWeek, addDays } from "date-fns";
 import {
   BoughtItemsSheetRecord,
   ManifestSheetRecord,
 } from "src/entities/models/Manifest";
 import { updateBulkInventoryStatusUseCase } from "./update-bulk-inventory-status.use-case";
+import { getAuctionsByBranchUseCase } from "../auctions/get-auctions-by-branch.use-case";
+import { NotFoundError } from "src/entities/errors/common";
 
 export const uploadBoughtItemsUseCase = async (
-  data: BoughtItemsSheetRecord[]
+  branch_id: string,
+  data: BoughtItemsSheetRecord[],
 ) => {
-  const now = new Date();
-  const start = startOfWeek(now, { weekStartsOn: 1 });
-  const end = addDays(start, 1);
-  let auction = await getAuctionUseCase({ start, end });
+  const auctions = await getAuctionsByBranchUseCase(branch_id);
 
-  if (!auction) {
-    auction = await startAuctionUseCase(start);
+  if (!auctions.length) {
+    throw new NotFoundError("There are no available auctions");
   }
 
-  const atc_bidder = auction.registered_bidders.find(
-    (registered_bidder) => registered_bidder.bidder.bidder_number === "5013"
+  const recent_auction = auctions[0];
+  const atc_bidder = recent_auction.registered_bidders.find(
+    (registered_bidder) => registered_bidder.bidder.bidder_number === "5013",
   );
+
+  if (!atc_bidder) {
+    throw new NotFoundError("ATC Bidder not found!");
+  }
 
   const manifest_records = data.map((item) => ({
     BARCODE: item.BARCODE,
@@ -35,14 +37,13 @@ export const uploadBoughtItemsUseCase = async (
   }));
 
   const created_auctions_inventories = await uploadManifestUseCase(
-    auction.auction_id,
+    recent_auction.auction_id,
     manifest_records as ManifestSheetRecord[],
-    true
+    true,
   );
 
   const inventory_ids = created_auctions_inventories.map(
-    (item) => item.inventory_id
+    (item) => item.inventory_id,
   );
-
   await updateBulkInventoryStatusUseCase("BOUGHT_ITEM", inventory_ids);
 };

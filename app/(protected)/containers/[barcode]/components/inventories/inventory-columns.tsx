@@ -31,7 +31,7 @@ export const columns: ColumnDef<InventoryRowType>[] = [
           className="flex justify-center hover:cursor-pointer hover:underline"
           onClick={() =>
             redirect(
-              `${container.container.barcode}/inventories/${container.inventory_id}`
+              `${container.container.barcode}/inventories/${container.inventory_id}`,
             )
           }
         >
@@ -114,7 +114,7 @@ export const columns: ColumnDef<InventoryRowType>[] = [
                 : "destructive"
             }
           >
-            {inventory.status}
+            {inventory.status.replace("_", " ")}
           </Badge>
         </div>
       );

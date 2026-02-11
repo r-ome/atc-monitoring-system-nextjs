@@ -9,7 +9,10 @@ import { uploadBoughtItemsUseCase } from "src/application/use-cases/inventories/
 import { BoughtItemsSheetRecord } from "src/entities/models/Manifest";
 import { logger } from "@/app/lib/logger";
 
-export const UploadBoughtItemsController = async (file: File) => {
+export const UploadBoughtItemsController = async (
+  branch_id: string,
+  file: File,
+) => {
   try {
     if (!file) {
       throw new InputParseError("Invalid Data!", {
@@ -28,7 +31,7 @@ export const UploadBoughtItemsController = async (file: File) => {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const { data, headers } = getSheetData(arrayBuffer);
+    const { data, headers } = getSheetData(arrayBuffer, "bought_items");
 
     if (!data.length) {
       throw new InputParseError("Invalid Data!", {
@@ -50,15 +53,7 @@ export const UploadBoughtItemsController = async (file: File) => {
       });
     }
 
-    const formattedData = data.map((item) => ({
-      BARCODE: item.BARCODE,
-      CONTROL: item.CONTROL,
-      DESCRIPTION: item.DESCRIPTION,
-      OLD_PRICE: item["OLD PRICE"],
-      NEW_PRICE: item["NEW PRICE"],
-    }));
-
-    await uploadBoughtItemsUseCase(formattedData as BoughtItemsSheetRecord[]);
+    await uploadBoughtItemsUseCase(branch_id, data as BoughtItemsSheetRecord[]);
     return ok({ success: true });
   } catch (error) {
     logger("UploadBoughtItemsController", error);
