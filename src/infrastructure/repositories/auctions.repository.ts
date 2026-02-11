@@ -291,6 +291,26 @@ export const AuctionRepository: IAuctionRepository = {
           },
         });
 
+        if (is_bought_items) {
+          const inventory_ids = for_updating.map((item) => ({
+            inventory_id: item.inventory_id as string,
+            control: item.CONTROL,
+            old_price: parseInt(item.PRICE, 10),
+          }));
+          await Promise.all(
+            inventory_ids.map((inventory) => {
+              return tx.inventories.update({
+                data: {
+                  control: inventory.control,
+                  status: "BOUGHT_ITEM",
+                  is_bought_item: inventory.old_price,
+                },
+                where: { inventory_id: inventory.inventory_id },
+              });
+            }),
+          );
+        }
+
         // modify data for inserting into auctions_inventories table
         const auction_inventories = [...new_inventories, ...for_updating].map(
           (item) => {
@@ -343,9 +363,8 @@ export const AuctionRepository: IAuctionRepository = {
             ),
         );
 
-        // add "encoded" in history
         const auctions_inventories = await tx.auctions_inventories.findMany({
-          include: { histories: true },
+          include: { histories: true, inventory: true },
           where: {
             auction_inventory_id: {
               in: [...created_auctions_inventories, ...for_updating]
@@ -355,20 +374,25 @@ export const AuctionRepository: IAuctionRepository = {
           },
         });
 
+        // add "encoded" in history
         await tx.inventory_histories.createMany({
           data: auctions_inventories.map((item) => ({
             auction_inventory_id: item.auction_inventory_id,
             inventory_id: item.inventory_id,
-            auction_status: "UNPAID",
-            inventory_status: "SOLD",
-            remarks: item.histories.length ? "REASSIGNED" : "ENCODED",
+            auction_status: is_bought_items ? "PAID" : "UNPAID",
+            inventory_status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
+            remarks: is_bought_items ? "REASSIGNED" : "ENCODED",
           })),
         });
 
         const for_updating_with_auction_inventories = for_updating.map(
           (item) => {
             const match = auctions_inventories.find((auction_inventory) => {
-              return auction_inventory.inventory_id === item.inventory_id;
+              return (
+                auction_inventory.inventory_id === item.inventory_id &&
+                (["CANCELLED", "REFUNDED"].includes(auction_inventory.status) ||
+                  ["BOUGHT_ITEM"].includes(auction_inventory.inventory.status))
+              );
             });
             item.auction_inventory_id = match?.auction_inventory_id;
             item.status = match?.status;
@@ -377,13 +401,18 @@ export const AuctionRepository: IAuctionRepository = {
         );
 
         /**
-         * If item is CANCELLED or REFUNDED but was encoded again:
+         * If item is CANCELLED or REFUNDED or BOUGHT ITEM(inventory_status) but was encoded again:
          * update item inventory status to: SOLD
          * update auction inventory status to: UNPAID
          */
+
         if (for_updating.length) {
+          // update CANCELLED OR REFUNDED ITEM OR BOUGHT ITEM
           await tx.inventories.updateMany({
-            data: { status: "SOLD", auction_date: auction.created_at },
+            data: {
+              status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
+              auction_date: auction.created_at,
+            },
             where: {
               inventory_id: {
                 in: for_updating.map((item) => item.inventory_id as string),
@@ -391,39 +420,40 @@ export const AuctionRepository: IAuctionRepository = {
             },
           });
 
-          // update CANCELLED OR REFUNDED ITEM
-          await Promise.all(
-            for_updating_with_auction_inventories.map((item) =>
-              tx.auctions_inventories.update({
-                data: {
-                  auction_bidder_id: item.auction_bidder_id as string,
-                  description: item.DESCRIPTION,
-                  price: parseInt(item.PRICE, 10),
-                  qty: item.QTY,
-                  status: "UNPAID",
-                  auction_date: auction.created_at,
-                },
-                where: {
-                  auction_inventory_id: item.auction_inventory_id!,
-                },
+          if (!is_bought_items) {
+            await Promise.all(
+              for_updating_with_auction_inventories.map((item) =>
+                tx.auctions_inventories.update({
+                  data: {
+                    auction_bidder_id: item.auction_bidder_id as string,
+                    description: item.DESCRIPTION,
+                    price: parseInt(item.PRICE, 10),
+                    qty: item.QTY,
+                    status: "UNPAID",
+                    auction_date: auction.created_at,
+                  },
+                  where: {
+                    auction_inventory_id: item.auction_inventory_id!,
+                  },
+                }),
+              ),
+            );
+            // ADD HISTORY FOR ENCODING AGAIN
+            await Promise.all(
+              for_updating_with_auction_inventories.map((item) => {
+                const remarks = `Updated item from ${item.status} to UNPAID. ITEM ENCODED AGAIN`;
+                return tx.inventory_histories.create({
+                  data: {
+                    auction_inventory_id: item.auction_inventory_id,
+                    inventory_id: item.inventory_id!,
+                    auction_status: "UNPAID",
+                    inventory_status: "SOLD",
+                    remarks,
+                  },
+                });
               }),
-            ),
-          );
-
-          await Promise.all(
-            for_updating_with_auction_inventories.map((item) => {
-              const remarks = `Updated item from ${item.status} to UNPAID. ITEM ENCODED AGAIN`;
-              return tx.inventory_histories.create({
-                data: {
-                  auction_inventory_id: item.auction_inventory_id,
-                  inventory_id: item.inventory_id!,
-                  auction_status: "UNPAID",
-                  inventory_status: "SOLD",
-                  remarks,
-                },
-              });
-            }),
-          );
+            );
+          }
         }
 
         const update_balance = auction_inventories.reduce(
@@ -875,7 +905,6 @@ export const AuctionRepository: IAuctionRepository = {
               }),
             ),
           );
-
           const auctions_inventories = await tx.auctions_inventories.findMany({
             include: { histories: true },
             where: {
@@ -1046,6 +1075,23 @@ export const AuctionRepository: IAuctionRepository = {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         console.error(error);
         throw new DatabaseOperationError("Error unregistering bidder!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  getAuctionsByBranch: async (branch_id) => {
+    try {
+      return await prisma.auctions.findMany({
+        where: { branch_id },
+        include: { registered_bidders: { include: { bidder: true } } },
+        orderBy: { created_at: "desc" },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error fetching Auctions", {
           cause: error.message,
         });
       }

@@ -72,7 +72,7 @@ export default async function Page({
         },
         {
           label: "Registration Fee",
-          value: `Php ${bidder.bidder.registration_fee.toLocaleString()}`,
+          value: `Php ${bidder.registration_fee.toLocaleString()}`,
         },
         {
           label: "Service Charge",

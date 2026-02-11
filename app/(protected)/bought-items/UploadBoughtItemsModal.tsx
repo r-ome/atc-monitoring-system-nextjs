@@ -17,7 +17,13 @@ import {
 import { toast } from "sonner";
 import { uploadBoughtItems } from "@/app/(protected)/inventories/actions";
 
-export const UploadBoughtItems: React.FC = () => {
+interface UploadBoughtItemsModalProps {
+  selectedBranch: { branch_id: string; name: string } | null;
+}
+
+export const UploadBoughtItemsModal: React.FC<UploadBoughtItemsModalProps> = ({
+  selectedBranch,
+}) => {
   const router = useRouter();
   const [open, setOpenDialog] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -28,7 +34,9 @@ export const UploadBoughtItems: React.FC = () => {
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
 
-    const res = await uploadBoughtItems(formData);
+    if (!selectedBranch) return;
+
+    const res = await uploadBoughtItems(selectedBranch?.branch_id, formData);
     if (res) {
       setIsLoading(false);
       if (res.ok) {

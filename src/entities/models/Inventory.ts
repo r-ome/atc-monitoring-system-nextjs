@@ -98,7 +98,7 @@ export type BoughtItems = {
   description?: string;
   control: string;
   new_price?: number;
-  old_price?: number;
+  old_price: number | null;
   bidder_number: string | null;
   qty: string | null;
 };

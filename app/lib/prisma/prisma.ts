@@ -82,7 +82,7 @@ const prisma = base.$extends({
           ? buildBranchWhere(model, branch_id)
           : {};
         const shouldInjectBranchId =
-          modelHasBranch && model !== "auctions_inventories";
+          modelHasBranch && ["auctions_inventories"].includes(model);
 
         if (operation === "findMany" || operation === "findFirst") {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

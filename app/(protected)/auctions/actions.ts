@@ -3,6 +3,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/lib/auth";
+import { requireUser } from "@/app/lib/auth";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { GetAuctionController } from "src/controllers/auctions/get-auction.controller";
 import { StartAuctionController } from "src/controllers/auctions/start-auction.controller";
@@ -30,7 +31,7 @@ export const startAuction = async (auctionDate: string) => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await StartAuctionController(auctionDate)
+    async () => await StartAuctionController(auctionDate),
   );
 };
 
@@ -42,7 +43,7 @@ export const getAuction = async (auctionDate: string) => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetAuctionController(new Date(auctionDate))
+    async () => await GetAuctionController(new Date(auctionDate)),
   );
 };
 
@@ -65,20 +66,17 @@ export const getMonitoring = async (auctionId: string) => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetMonitoringController(auctionId)
+    async () => await GetMonitoringController(auctionId),
   );
 };
 
 export const uploadManifest = async (auctionId: string, formData: FormData) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
+  const user = await requireUser();
   const file = formData.get("file");
-
-  if (!user) redirect("/login");
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => UploadManifestController(auctionId, file as File)
+    async () => UploadManifestController(auctionId, file as File),
   );
 };
 
@@ -88,7 +86,7 @@ export const getManifestRecords = async (auctionId: string) => {
 
 export const getRegisteredBidderByBidderNumber = async (
   bidderNumber: string,
-  auctionDate: string
+  auctionDate: string,
 ) => {
   return await GetRegisteredBidderController(bidderNumber, auctionDate);
 };
@@ -131,7 +129,7 @@ export const cancelItems = async (formData: FormData) => {
 
 export const uploadCounterCheck = async (
   auctionId: string,
-  formData: FormData
+  formData: FormData,
 ) => {
   const file = formData.get("file");
   return await UploadCounterCheckController(auctionId, file as File);
@@ -143,7 +141,7 @@ export const getCounterCheck = async (auction_id: string) => {
 
 export const updateCounterCheck = async (
   counterCheckId: string,
-  formData: FormData
+  formData: FormData,
 ) => {
   const data = Object.fromEntries(formData.entries());
   return await UpdateCounterCheckController(counterCheckId, data);
@@ -152,7 +150,7 @@ export const updateCounterCheck = async (
 export const updateManifest = async (
   auction_id: string,
   manifest_id: string,
-  formData: FormData
+  formData: FormData,
 ) => {
   const data = Object.fromEntries(formData.entries());
   return await UpdateManifestController(auction_id, manifest_id, data);
@@ -160,7 +158,7 @@ export const updateManifest = async (
 
 export const insertAuctionInventory = async (
   auction_id: string,
-  formData: FormData
+  formData: FormData,
 ) => {
   const data = Object.fromEntries(formData.entries());
   return await InsertAuctionInventoryController(auction_id, data);
@@ -168,7 +166,7 @@ export const insertAuctionInventory = async (
 
 export const updateBidderRegistration = async (
   auction_bidder_id: string,
-  formData: FormData
+  formData: FormData,
 ) => {
   const data = Object.fromEntries(formData.entries());
   return await UpdateBidderRegistrationController(auction_bidder_id, data);

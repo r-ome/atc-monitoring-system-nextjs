@@ -25,30 +25,30 @@ import { CancelItemsSchema } from "src/entities/models/Inventory";
 export interface IAuctionRepository {
   getAuctionById: (auction_id: string) => Promise<AuctionSchema | null>;
   getAuction: (
-    auction_date: Date | AuctionDateRange
+    auction_date: Date | AuctionDateRange,
   ) => Promise<AuctionSchema | null>;
   startAuction: (auction_date: Date) => Promise<AuctionSchema>;
   registerBidder: (
-    data: RegisterBidderInputSchema
+    data: RegisterBidderInputSchema,
   ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
   getRegisteredBidders: (
-    auction_id: string
+    auction_id: string,
   ) => Promise<RegisteredBidderSchema[]>;
   getRegisteredBidder: (
     bidder_number: string,
-    auction_id: string
+    auction_id: string,
   ) => Promise<RegisteredBidderSchema | null>;
   getRegisteredBidderById: (
-    auction_bidder_id: string
+    auction_bidder_id: string,
   ) => Promise<RegisteredBidderSchema | null>;
   getMonitoring: (
     auction_id: string,
-    status: AUCTION_ITEM_STATUS[]
+    status: AUCTION_ITEM_STATUS[],
   ) => Promise<AuctionsInventorySchema[]>;
   uploadManifest: (
     auction_id: string,
     data: ManifestInsertSchema[],
-    is_bought_items: boolean
+    is_bought_items: boolean,
   ) => Promise<
     Omit<
       AuctionsInventorySchema,
@@ -57,7 +57,7 @@ export interface IAuctionRepository {
   >;
   uploadCounterCheck: (
     auction_id: string,
-    data: CounterCheckInsertSchema[]
+    data: CounterCheckInsertSchema[],
   ) => Promise<Prisma.BatchPayload>;
   getManifestRecords: (auction_id: string) => Promise<ManifestSchema[]>;
   cancelItems: (data: CancelItemsSchema) => Promise<void>;
@@ -72,16 +72,23 @@ export interface IAuctionRepository {
   getCounterCheckRecords: (auction_id: string) => Promise<CounterCheckSchema[]>;
   updateCounterCheck: (
     counter_check_id: string,
-    data: CounterCheckUpdateSchema
+    data: CounterCheckUpdateSchema,
   ) => Promise<CounterCheckSchema>;
   updateManifest: (
     manifest_id: string,
     data: ManifestUpdateSchema[],
-    original: ManifestUpdateSchema
+    original: ManifestUpdateSchema,
   ) => Promise<ManifestSchema>;
   updateBidderRegistration: (
     auction_bidder_id: string,
-    data: UpdateBidderRegistrationSchema
+    data: UpdateBidderRegistrationSchema,
   ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
   unregisterBidder: (auction_bidder_id: string) => Promise<void>;
+  getAuctionsByBranch: (
+    branch_id: string,
+  ) => Promise<
+    Prisma.auctionsGetPayload<{
+      include: { registered_bidders: { include: { bidder: true } } };
+    }>[]
+  >;
 }
