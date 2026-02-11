@@ -67,7 +67,12 @@ export const UploadCounterCheckModal: React.FC<UploadManifestModalProps> = ({
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Counter Check</DialogTitle>
+            <DialogTitle>
+              Upload Counter Check
+              <a href="/COUNTER_CHECK_TEMPLATE.xlsx" download>
+                (DOWNLOAD TEMPLATE HERE)
+              </a>
+            </DialogTitle>
             <DialogDescription>
               Upload manifest sheet here for monitoring
             </DialogDescription>

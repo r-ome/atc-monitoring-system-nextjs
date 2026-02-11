@@ -63,7 +63,12 @@ export const UploadBoughtItemsModal: React.FC<UploadBoughtItemsModalProps> = ({
       <Dialog open={open} onOpenChange={setOpenDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Bought Items</DialogTitle>
+            <DialogTitle>
+              Upload Bought Items
+              <a href="/BOUGHT_ITEMS_TEMPLATE.xlsx" download>
+                (DOWNLOAD TEMPLATE HERE)
+              </a>
+            </DialogTitle>
             <DialogDescription>Upload bought items</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
