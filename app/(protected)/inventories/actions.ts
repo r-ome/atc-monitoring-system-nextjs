@@ -10,6 +10,7 @@ import { formatNumberPadding } from "@/app/lib/utils";
 import { UploadBoughtItemsController } from "src/controllers/inventories/upload-bought-items.controller";
 import { GetBoughtItemsController } from "src/controllers/inventories/get-bought-items.controller";
 import { GetInventoriesWithNoAuctionsInventoriesController } from "src/controllers/inventories/get-inventories-with-no-auctions-inventories.controller";
+import { DeleteInventoryController } from "src/controllers/inventories/delete-inventory.controller";
 
 export const getAuctionItemDetails = async (auctionInventoryId: string) => {
   return await GetAuctionItemDetailsController(auctionInventoryId);
@@ -72,4 +73,8 @@ export const getBoughtItems = async () => {
 
 export const getInventoriesWithNoAuctionsInventories = async () => {
   return await GetInventoriesWithNoAuctionsInventoriesController();
+};
+
+export const deleteInventory = async (inventory_id: string) => {
+  return await DeleteInventoryController(inventory_id);
 };

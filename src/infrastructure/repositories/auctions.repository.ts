@@ -420,7 +420,12 @@ export const AuctionRepository: IAuctionRepository = {
             },
           });
 
-          if (!is_bought_items) {
+          const has_auction_inventory_update =
+            for_updating_with_auction_inventories.filter(
+              (item) => item.auction_inventory_id,
+            );
+
+          if (!is_bought_items && has_auction_inventory_update.length) {
             await Promise.all(
               for_updating_with_auction_inventories.map((item) =>
                 tx.auctions_inventories.update({

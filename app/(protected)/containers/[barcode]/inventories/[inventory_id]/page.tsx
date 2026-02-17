@@ -16,6 +16,7 @@ import {
 } from "@/app/components/ui/table";
 import { UpdateInventoryModal } from "./UpdateInventoryModal";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { DeleteInventoryModal } from "./DeleteInventoryModal";
 
 export default async function Page({
   params,
@@ -34,7 +35,10 @@ export default async function Page({
           <CardTitle>
             <div className="flex justify-between">
               {inventory.barcode}
-              <UpdateInventoryModal inventory={inventory} />
+              <div className="flex gap-4">
+                <UpdateInventoryModal inventory={inventory} />
+                <DeleteInventoryModal inventory={inventory} />
+              </div>
             </div>
           </CardTitle>
           <CardDescription>
