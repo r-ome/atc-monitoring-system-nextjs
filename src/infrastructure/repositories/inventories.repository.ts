@@ -548,4 +548,19 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
+  deleteInventory: async (inventory_id) => {
+    try {
+      await prisma.inventories.delete({ where: { inventory_id } });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(
+          "Error getting inventories with no auction inventories",
+          {
+            cause: error.message,
+          },
+        );
+      }
+      throw error;
+    }
+  },
 };
