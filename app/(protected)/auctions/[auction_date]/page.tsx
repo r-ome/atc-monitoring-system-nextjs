@@ -72,7 +72,7 @@ export default async function Page({
   const total_registered_bidders = auction.registered_bidders.length - 1; // minus one for the atc_default_bidder
   const total_registration_fee = auction.registered_bidders.reduce(
     (acc, item) => (acc += item.registration_fee),
-    0
+    0,
   );
 
   const total_items = auction.auctions_inventories.length;
@@ -90,7 +90,7 @@ export default async function Page({
       unpaid_items: [],
       cancelled_items: [],
       refunded_items: [],
-    }
+    },
   );
   const total_item_price = [
     ...filtered_items.paid_items,
@@ -106,12 +106,21 @@ export default async function Page({
         (registered_bidder.service_charge * total_item_price) / 100;
       return (acc += service_charge_amount);
     },
-    0
+    0,
   );
 
-  const auction_container = Object.groupBy(
-    auction.auctions_inventories,
-    (ai) => ai.inventory.container.barcode
+  const auction_container = auction.auctions_inventories.reduce(
+    (acc, ai) => {
+      const key = ai.inventory.container.barcode;
+
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+
+      acc[key].push(ai);
+      return acc;
+    },
+    {} as Record<string, typeof auction.auctions_inventories>,
   );
 
   const container_summary = Object.keys(auction_container)
@@ -137,7 +146,7 @@ export default async function Page({
       <div
         className={cn(
           "flex flex-col gap-4 mt-4",
-          session.user.role === "ENCODER" && "hidden"
+          session.user.role === "ENCODER" && "hidden",
         )}
       >
         <div className="flex flex-col gap-2 md:flex-row">
@@ -199,9 +208,9 @@ export default async function Page({
                           "text-right font-semibold",
                           item === "paid_items" && "text-green-500",
                           ["cancelled_items", "refunded_items"].includes(
-                            item
+                            item,
                           ) && "text-red-500",
-                          item === "unpaid_items" && "text-orange-500"
+                          item === "unpaid_items" && "text-orange-500",
                         )}
                       >
                         {item.replace(/_items/g, " ").toLocaleUpperCase()}
@@ -210,7 +219,7 @@ export default async function Page({
                         {filtered_items[item].length} ITEMS
                       </TableCell>
                     </TableRow>
-                  )
+                  ),
                 )}
               </TableBody>
             </Table>
