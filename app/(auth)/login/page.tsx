@@ -78,7 +78,7 @@ export default function Page() {
 
             <CardFooter>
               <div className="flex justify-center w-full">
-                <Button type="submit" className="w-2/6"  disabled={isLoading}>
+                <Button type="submit" className="w-2/6" disabled={isLoading}>
                   {isLoading && <Loader2Icon className="animate-spin" />}
                   Login
                 </Button>
