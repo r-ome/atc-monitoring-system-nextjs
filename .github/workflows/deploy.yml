@@ -19,7 +19,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build Next.js (standalone)
         run: npm run build
@@ -29,9 +29,9 @@ jobs:
           mkdir -p .next/standalone/.next
           cp -r .next/static .next/standalone/.next/
           cp -r public .next/standalone/
-          cp ecosystem.config.js .next/standalone/
 
           tar -czf release.tgz -C .next/standalone .
+          tar -czf prisma.tgz prisma
 
       - name: Upload to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -39,7 +39,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "release.tgz"
+          source: "release.tgz,prisma.tgz"
           target: "~/"
 
       - name: Deploy on EC2
@@ -51,17 +51,31 @@ jobs:
           script: |
             set -e
 
-            cd ~/atc-monitoring-system
+            APP_DIR=~/atc-monitoring-system
+            RUNTIME_DIR=$APP_DIR/runtime
+            MIG_DIR=$APP_DIR/migrations-runner
 
-            # Remove old build artifacts (keep node_modules)
-            rm -rf .next
-            rm -rf public
-            rm -f server.js
+            # --- Deploy runtime (Next standalone) ---
+            mkdir -p "$RUNTIME_DIR"
+            rm -rf "$RUNTIME_DIR"/*
+            tar -xzf ~/release.tgz -C "$RUNTIME_DIR"
+            rm -f ~/release.tgz
 
-            # Extract new release
-            tar -xzf ~/release.tgz -C ~/atc-monitoring-system
+            # --- Deploy prisma folder into migrations-runner ---
+            mkdir -p "$MIG_DIR"
+            rm -rf "$MIG_DIR/prisma"
+            tar -xzf ~/prisma.tgz -C "$MIG_DIR"
+            rm -f ~/prisma.tgz
 
-            rm ~/release.tgz
+            # --- Run migrations using pinned Prisma in migrations-runner ---
+            cd "$MIG_DIR"
+            npm ci
 
-            # Reload PM2 with updated env
-            pm2 reload ecosystem.config.js --update-env
+            set -a
+            source "$APP_DIR/.env"
+            set +a
+
+            ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma
+
+            # --- Reload app ---
+            pm2 reload "$APP_DIR/ecosystem.config.js" --update-env
