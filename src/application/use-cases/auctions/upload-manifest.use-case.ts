@@ -34,8 +34,8 @@ export const uploadManifestUseCase = async (
 
   const something = validateEmptyFields(data);
   const something1 = formatControlDescriptionQty(something);
-  const something2 = removeManifestDuplicates(something1);
-  const something3 = formatSlashedBarcodes(something2);
+  const something2 = formatSlashedBarcodes(something1);
+  const something3 = removeManifestDuplicates(something2);
   const something4 = validateBidders(something3, registered_bidders);
   const something5 = formatExistingInventories(
     something4,
