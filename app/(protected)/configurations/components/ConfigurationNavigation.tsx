@@ -15,7 +15,7 @@ export const ConfigurationNavigation = () => {
   const pathname = usePathname();
   const session = useSession();
 
-  if (!session) return;
+  if (!session.data) return null;
 
   const configurationNavigation = [
     {

@@ -16,20 +16,32 @@ export const UnpaidBiddersTable = () => {
   const session = useSession();
   const router = useRouter();
   const [unpaidBidders, setUnpaidBidders] = useState<UnpaidBidders[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const user = session.data?.user;
 
   useEffect(() => {
     const fetchInitialData = async () => {
       const result = await getUnpaidBidders();
-      if (!result.ok) return "what";
+      if (!result.ok) {
+        setError(result.error.message);
+        return;
+      }
 
       setUnpaidBidders(result.value);
     };
     fetchInitialData();
   }, []);
 
-  if (!user) return <div></div>;
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-6 text-red-500">
+        Failed to load unpaid bidders: {error}
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <DataTable

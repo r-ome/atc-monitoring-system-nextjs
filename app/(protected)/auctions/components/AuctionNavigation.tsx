@@ -15,7 +15,7 @@ export const AuctionNavigation = () => {
   const pathname = usePathname();
   const session = useSession();
 
-  if (!session) return;
+  if (!session.data) return null;
 
   const auctionNavigation = [
     {

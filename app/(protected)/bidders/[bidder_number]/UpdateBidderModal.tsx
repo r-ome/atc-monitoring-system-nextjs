@@ -142,9 +142,7 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
     setNewBidder((prev) => ({ ...prev, [name]: value }));
   };
 
-  if (!session) {
-    return <div></div>;
-  }
+  if (!session.data) return null;
 
   const user = session.data?.user;
 
