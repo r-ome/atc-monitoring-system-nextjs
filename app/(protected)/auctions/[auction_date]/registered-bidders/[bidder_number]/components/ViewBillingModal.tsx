@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, SetStateAction } from "react";
+import { safeSetItem } from "@/app/lib/local-storage";
 import { pdf, PDFViewer } from "@react-pdf/renderer";
 import { getBidderReceipts } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { PAYMENT_PURPOSE, ReceiptRecords } from "src/entities/models/Payment";
@@ -155,7 +156,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
   async function printPdf() {
     if (!registeredBidder || !receipt) return;
 
-    localStorage.setItem(
+    safeSetItem(
       registeredBidder.auction_bidder_id,
       JSON.stringify(
         receipt.auctions_inventories.map((item) => item.auction_inventory_id),

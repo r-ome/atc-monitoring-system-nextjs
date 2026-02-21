@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { safeGetItem } from "@/app/lib/local-storage";
 import {
   DropdownMenuTrigger,
   DropdownMenu,
@@ -34,6 +35,7 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
     useState<boolean>(false);
   const [openCancelItemsModal, setOpenCancelItemsModal] =
     useState<boolean>(false);
+  const [hasLastReceipt, setHasLastReceipt] = useState<boolean>(false);
   const { setRegisteredBidder, setSelectedItems } =
     useBidderPullOutModalContext();
 
@@ -41,6 +43,10 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
     setRegisteredBidder(registeredBidder);
     setSelectedItems(selectedItems);
   }, [selectedItems, registeredBidder, setRegisteredBidder, setSelectedItems]);
+
+  useEffect(() => {
+    setHasLastReceipt(!!safeGetItem(registeredBidder.auction_bidder_id));
+  }, [registeredBidder.auction_bidder_id]);
 
   return (
     <>
@@ -51,7 +57,7 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
         <DropdownMenuContent>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {localStorage.getItem(registeredBidder.auction_bidder_id) ? (
+          {hasLastReceipt ? (
             <DropdownMenuItem onClick={() => selectLastPrintedReceipt()}>
               Select Last Printed Receipt
             </DropdownMenuItem>

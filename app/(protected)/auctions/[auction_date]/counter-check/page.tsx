@@ -7,6 +7,7 @@ import {
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
+import { redirect } from "next/navigation";
 import { UploadCounterCheckModal } from "./components/UploadCounterCheckModal";
 import { CounterCheckTable } from "./CounterCheckTable";
 
@@ -16,7 +17,7 @@ export default async function Page({
   const { auction_date } = await params;
   const auction_res = await getAuction(auction_date);
   const session = await getServerSession(authOptions);
-  if (!session) return;
+  if (!session) redirect("/login");
 
   if (!auction_res.ok) {
     return <ErrorComponent error={auction_res.error} />;

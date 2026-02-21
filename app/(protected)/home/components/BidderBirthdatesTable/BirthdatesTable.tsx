@@ -11,16 +11,28 @@ export const BirthdatesTable = () => {
   const [bidders, setBidders] = useState<
     BiddersWithBirthdatesAndRecentAuctionSchema[]
   >([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       const result = await getBidderBirthdates();
-      if (!result.ok) return "what";
+      if (!result.ok) {
+        setError(result.error.message);
+        return;
+      }
 
       setBidders(result.value);
     };
     fetchInitialData();
   }, []);
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-6 text-red-500">
+        Failed to load bidder birthdays: {error}
+      </div>
+    );
+  }
 
   return (
     <>

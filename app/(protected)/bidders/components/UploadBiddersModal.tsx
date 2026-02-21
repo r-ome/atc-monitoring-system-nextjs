@@ -34,13 +34,13 @@ export const UploadBiddersModal: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]>>();
-  const [branches, setBranchs] = useState<Branch[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       const branch_res = await getBranches();
       if (branch_res.ok) {
-        setBranchs(branch_res.value);
+        setBranches(branch_res.value);
       }
     };
 

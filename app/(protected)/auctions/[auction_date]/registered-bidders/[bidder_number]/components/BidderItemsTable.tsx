@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { safeGetItem } from "@/app/lib/local-storage";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow, RowSelectionState } from "@tanstack/react-table";
 import {
@@ -33,7 +34,7 @@ export function BidderItemsTable({
   }, [selectedRows, auctionInventories]);
 
   const selectLastPrintedReceipt = () => {
-    const raw = localStorage.getItem(registeredBidder?.auction_bidder_id);
+    const raw = safeGetItem(registeredBidder?.auction_bidder_id);
     const lastPrinted = raw ? JSON.parse(raw) : [];
     const selection: RowSelectionState = {};
     auctionInventories.forEach((item) => {

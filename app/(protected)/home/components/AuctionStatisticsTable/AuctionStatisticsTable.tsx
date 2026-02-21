@@ -12,16 +12,28 @@ import { formatDate } from "@/app/lib/utils";
 export const AuctionStatisticsTable = () => {
   const router = useRouter();
   const [auctions, setAuctions] = useState<AuctionsStatistics[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       const result = await getAuctionsStatistics();
-      if (!result.ok) return "what";
+      if (!result.ok) {
+        setError(result.error.message);
+        return;
+      }
 
       setAuctions(result.value);
     };
     fetchInitialData();
   }, []);
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-6 text-red-500">
+        Failed to load auctions: {error}
+      </div>
+    );
+  }
 
   return (
     <DataTable
