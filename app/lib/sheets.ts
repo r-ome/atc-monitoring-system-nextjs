@@ -348,7 +348,7 @@ export const removeManifestDuplicates = (
     }
 
     if (seen.has(key)) {
-      return { ...item, isValid: false, error: "DUPLICATE MANIFEST" };
+      return { ...item, isValid: false, error: "DUPLICATE MANIFSET" };
     } else {
       seen.add(key);
       return item;
