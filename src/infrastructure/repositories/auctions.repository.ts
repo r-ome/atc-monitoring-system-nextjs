@@ -1,5 +1,5 @@
 import { IAuctionRepository } from "src/application/repositories/auctions.repository.interface";
-
+import { logger } from "@/app/lib/logger";
 import prisma from "@/app/lib/prisma/prisma";
 import {
   DatabaseOperationError,
@@ -1078,7 +1078,7 @@ export const AuctionRepository: IAuctionRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        console.error(error);
+        logger("AuctionRepository.unregisterBidder", error);
         throw new DatabaseOperationError("Error unregistering bidder!", {
           cause: error.message,
         });

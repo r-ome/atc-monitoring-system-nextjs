@@ -8,6 +8,7 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
+import { logger } from "@/app/lib/logger";
 import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 
 export const InventoryRepository: IInventoryRepository = {
@@ -31,7 +32,7 @@ export const InventoryRepository: IInventoryRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        console.error(error.message);
+        logger("InventoryRepository.getAuctionItemDetails", error);
         throw new DatabaseOperationError("Error getting Auction Item details!");
       }
       throw error;

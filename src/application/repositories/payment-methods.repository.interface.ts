@@ -3,7 +3,7 @@ import {
   PaymentMethodInsertSchema,
 } from "src/entities/models/PaymentMethod";
 
-export interface IPaymentMethodReposistory {
+export interface IPaymentMethodRepository {
   getPaymentMethods: () => Promise<PaymentMethodsSchema[]>;
   createPaymentMethod: (
     data: PaymentMethodInsertSchema

@@ -11,7 +11,7 @@ import { GetContainerByBarcodeController } from "src/controllers/containers/get-
 import { UploadInventoryFileController } from "src/controllers/containers/upload-inventory-file.controller";
 import { DeleteContainerController } from "src/controllers/containers/delete-container.controller";
 import { MergeInventoriesController } from "src/controllers/inventories/merge-inventories.controller";
-import { AppendInventoriesController } from "src/controllers/inventories/append-inventories";
+import { AppendInventoriesController } from "src/controllers/inventories/append-inventories.controller";
 
 export const getContainerByBarcode = async (barcode: string) => {
   return await GetContainerByBarcodeController(barcode);

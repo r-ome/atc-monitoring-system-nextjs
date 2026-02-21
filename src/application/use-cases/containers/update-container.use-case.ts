@@ -3,6 +3,7 @@ import { ContainerInsertSchema } from "src/entities/models/Container";
 import { ContainerRepository } from "src/infrastructure/repositories/containers.repository";
 import { getContainerByBarcodeUseCase } from "./get-container-by-barcode.use-case";
 import { addDays } from "date-fns";
+import { logger } from "@/app/lib/logger";
 
 export const updateContainerUseCase = async (
   container_id: string,
@@ -12,7 +13,7 @@ export const updateContainerUseCase = async (
   try {
     container = await getContainerByBarcodeUseCase(input.barcode);
   } catch (error) {
-    console.log(error);
+    logger("updateContainerUseCase", error);
   }
 
   if (container) {

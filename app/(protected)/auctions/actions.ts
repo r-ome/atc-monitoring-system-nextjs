@@ -13,7 +13,7 @@ import { GetMonitoringController } from "src/controllers/auctions/get-monitoring
 import { UploadManifestController } from "src/controllers/auctions/upload-manifest.controller";
 import { GetManifestRecordsController } from "src/controllers/auctions/get-manifest-records.controller";
 import { GetRegisteredBidderController } from "src/controllers/auctions/get-registered-bidder.controller";
-import { HandleBidderPullOutController } from "src/controllers/payments/handle-bidder-pullout.controllers";
+import { HandleBidderPullOutController } from "src/controllers/payments/handle-bidder-pullout.controller";
 import { CancelItemsController } from "src/controllers/auctions/cancel-items.controller";
 import { UploadCounterCheckController } from "src/controllers/auctions/upload-counter-check.controller";
 import { GetCounterCheckController } from "src/controllers/auctions/get-counter-check.controller";

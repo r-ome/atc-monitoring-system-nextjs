@@ -6,7 +6,7 @@ import { GetExpensesByDateController } from "src/controllers/expenses/get-expens
 import { RefundAuctionsInventoriesController } from "src/controllers/inventories/refund-auctions-inventories.controller";
 import { GetAuctionTransactionsController } from "src/controllers/payments/get-auction-transactions.controller";
 import { GetPaymentsByDateController } from "src/controllers/payments/get-payments-by-date.controller";
-import { GetReceiptDetailsController } from "src/controllers/payments/get-receipt-details.controllers";
+import { GetReceiptDetailsController } from "src/controllers/payments/get-receipt-details.controller";
 import { AddExpenseController } from "src/controllers/expenses/add-expense.controller";
 import { GetBidderReceiptsController } from "src/controllers/payments/get-bidder-receipts.controller";
 import { UpdateRegistrationPaymentController } from "src/controllers/payments/update-registration-payment.controller";

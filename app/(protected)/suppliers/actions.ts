@@ -1,9 +1,9 @@
 "use server";
 
-import { UpdateSupplierController } from "src/controllers/suppliers/update-suppliers.controllers";
+import { UpdateSupplierController } from "src/controllers/suppliers/update-suppliers.controller";
 import { CreateSupplierController } from "src/controllers/suppliers/create-supplier.controller";
 import { GetSupplierBySupplierCodeController } from "src/controllers/suppliers/get-supplier-by-supplier-code.controller";
-import { GetSuppliersController } from "src/controllers/suppliers/get-suppliers.controllers";
+import { GetSuppliersController } from "src/controllers/suppliers/get-suppliers.controller";
 
 export const getSupplierBySupplierCode = async (supplier_code: string) => {
   return await GetSupplierBySupplierCodeController(supplier_code);

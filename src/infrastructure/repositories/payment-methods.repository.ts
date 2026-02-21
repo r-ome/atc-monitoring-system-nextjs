@@ -1,4 +1,4 @@
-import { IPaymentMethodReposistory } from "src/application/repositories/payment-methods.repository.interface";
+import { IPaymentMethodRepository } from "src/application/repositories/payment-methods.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import {
@@ -6,7 +6,7 @@ import {
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
 
-export const PaymentMethodRepository: IPaymentMethodReposistory = {
+export const PaymentMethodRepository: IPaymentMethodRepository = {
   getPaymentMethods: async () => {
     try {
       const payment_methods = await prisma.payment_methods.findMany();
