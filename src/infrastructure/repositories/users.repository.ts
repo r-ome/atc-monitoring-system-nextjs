@@ -32,7 +32,7 @@ export const UserRepository: IUserRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error getting branch", {
+        throw new DatabaseOperationError("Error getting users", {
           cause: error.message,
         });
       }
@@ -75,7 +75,7 @@ export const UserRepository: IUserRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error registering user", {
+        throw new DatabaseOperationError("Error updating user", {
           cause: error.message,
         });
       }
@@ -91,7 +91,7 @@ export const UserRepository: IUserRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error registering user", {
+        throw new DatabaseOperationError("Error updating user password", {
           cause: error.message,
         });
       }

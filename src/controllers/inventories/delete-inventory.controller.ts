@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { deleteInventoryUseCase } from "src/application/use-cases/inventories/delete-inventeory.use-case";
+import { deleteInventoryUseCase } from "src/application/use-cases/inventories/delete-inventory.use-case";
 import {
   DatabaseOperationError,
   InputParseError,

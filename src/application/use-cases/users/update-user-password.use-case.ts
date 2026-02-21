@@ -4,8 +4,8 @@ import { UserRepository } from "src/infrastructure/repositories/users.repository
 
 export const updateUserPasswordUseCase = async (
   user_id: string,
-  data: UserUpdatePasswordInputSchema
+  data: UserUpdatePasswordInputSchema,
 ) => {
-  data.password = await bcrypt.hash(data.password, 10);
-  return await UserRepository.updateUserPassword(user_id, data);
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+  return await UserRepository.updateUserPassword(user_id, { ...data, password: hashedPassword });
 };
