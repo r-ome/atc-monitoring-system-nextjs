@@ -47,34 +47,25 @@ export const getSheetData = (
     let headers: string[] = [];
 
     if (type === "counter_check") {
-      headers = [];
+      if (!data.length) return { data: [], headers: [] };
+
       headers = Object.keys(data[0])
         .filter((item) => !item.startsWith("__EMPTY") && item)
         .map((item) => item.trim());
 
-      data = data
-        .map<Record<string, string>>((item) =>
-          headers.reduce((acc, header) => {
-            return {
-              ...acc,
-              [header]: item[header],
-            };
-          }, {}),
-        )
-        .map((item) => {
-          return {
-            DESCRIPTION: item["DESCRIPTION"] ? item["DESCRIPTION"] : "",
-            PAGE: item["PAGE#"] ? item["PAGE#"].toString() : "",
-            CONTROL: formatNumberPadding(item.CONTROL, 4) ?? "",
-            PRICE: item["TOTAL SALES"] ? item["TOTAL SALES"].toString() : "",
-            BIDDER: formatNumberPadding(item.BIDDER, 4) ?? "",
-            TIME: item.TIME ? excelTimeToHHMMSS(Number(item.TIME)) : "",
-          };
-        });
+      data = data.map((item) => ({
+        DESCRIPTION: item["DESCRIPTION"] ? item["DESCRIPTION"] : "",
+        PAGE: item["PAGE#"] ? item["PAGE#"].toString() : "",
+        CONTROL: formatNumberPadding(item.CONTROL, 4) ?? "",
+        PRICE: item["TOTAL SALES"] !== "" ? item["TOTAL SALES"].toString() : "",
+        BIDDER: formatNumberPadding(item.BIDDER, 4) ?? "",
+        TIME: item.TIME ? excelTimeToHHMMSS(Number(item.TIME)) : "",
+      }));
     }
 
     if (type === "manifest") {
-      headers = [];
+      if (data.length < 2) return { data: [], headers: [] };
+
       headers = Object.values(data[1])
         .filter((item) => item)
         .map((item) => item.trim());
@@ -98,12 +89,7 @@ export const getSheetData = (
           QTY: item.QTY,
           MANIFEST: item["MANIFEST NUMBER"],
         }))
-        .filter((item) => {
-          return (
-            JSON.stringify(item) !==
-            `{"BARCODE":"","CONTROL":"","DESCRIPTION":"","BIDDER":"","PRICE":"","QTY":"","MANIFEST":""}`
-          );
-        });
+        .filter((item) => Object.values(item).some(Boolean));
     }
 
     if (type === "inventory") {
@@ -112,15 +98,17 @@ export const getSheetData = (
         .filter((item) => item.Barcode)
         .map((item) => ({
           BARCODE: item.Barcode,
-          CONTROL: item.Control ? item.Control.toString() : "",
+          CONTROL: item.Control !== "" ? item.Control.toString() : "",
           DESCRIPTION: item.Description,
         }))
         .slice(0, -1);
     }
 
     if (type === "bidders") {
+      if (!data.length) return { data: [], headers: [] };
+
       headers = Object.values(data[0]).map((item) =>
-        item.trim().replace(/\ /g, "_"),
+        item.trim().replace(/ /g, "_"),
       );
       data = data
         .slice(1)
@@ -151,7 +139,7 @@ export const getSheetData = (
       headers = data.length ? Object.keys(data[0]) : [];
       data = data.map((item) => ({
         BARCODE: item.BARCODE,
-        CONTROL: item.CONTROL ? item.CONTROL.toString() : "",
+        CONTROL: item.CONTROL !== "" ? item.CONTROL.toString() : "",
         DESCRIPTION: item.DESCRIPTION,
         NEW_PRICE: item["NEW PRICE"],
         OLD_PRICE: item["OLD PRICE"],
