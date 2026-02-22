@@ -3,7 +3,7 @@ import {
   BiddersWithBirthdatesAndRecentAuctionSchema,
 } from "src/entities/models/Bidder";
 import { ContainerWithBranchRow } from "src/entities/models/Container";
-import { AuctionsStatisticsSchema } from "src/entities/models/Statistics";
+import { AuctionsStatisticsRow } from "src/entities/models/Statistics";
 
 export interface IStatisticsRepository {
   getBidderBirthdates: () => Promise<
@@ -11,5 +11,5 @@ export interface IStatisticsRepository {
   >;
   getContainersDueDate: () => Promise<ContainerWithBranchRow[]>;
   getUnpaidBidders: () => Promise<UnpaidAuctionsBiddersSchema[]>;
-  getAuctionsStatistics: () => Promise<AuctionsStatisticsSchema[]>;
+  getAuctionsStatistics: () => Promise<AuctionsStatisticsRow[]>;
 }

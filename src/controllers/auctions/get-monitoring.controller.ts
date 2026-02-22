@@ -1,11 +1,11 @@
 import { getMonitoringUseCase } from "src/application/use-cases/auctions/get-monitoring.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { AuctionsInventorySchema } from "src/entities/models/Auction";
+import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { ok, err } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(monitoring: AuctionsInventorySchema[]) {
+function presenter(monitoring: AuctionInventoryWithDetailsRow[]) {
   return monitoring.map((item) => ({
     auction_inventory_id: item.auction_inventory_id,
     auction_bidder_id: item.auction_bidder_id,

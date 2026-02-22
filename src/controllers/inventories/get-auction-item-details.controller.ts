@@ -4,11 +4,11 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Result";
-import { AuctionsInventorySchema } from "src/entities/models/Auction";
+import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
 
-const presenter = (auction_inventory: AuctionsInventorySchema) => {
+const presenter = (auction_inventory: AuctionInventoryWithDetailsRow) => {
   const date_format = "MMMM dd, yyyy";
   return {
     auction_inventory_id: auction_inventory.auction_inventory_id,

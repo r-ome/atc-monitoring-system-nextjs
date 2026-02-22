@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { formatDate } from "@/app/lib/utils";
 import { getAuction } from "@/app/(protected)/auctions/actions";
-import { AuctionsInventorySchema } from "src/entities/models/Auction";
+import { AuctionInventoryRow } from "src/entities/models/Auction";
 import { AuctionNavigation } from "@/app/(protected)/auctions/components/AuctionNavigation";
 import {
   Card,
@@ -26,10 +26,7 @@ import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import { AuctionContainerSummaryTable } from "../components/AuctionContainerSummaryTable";
 
-type AuctionItemSchema = Omit<
-  AuctionsInventorySchema,
-  "inventory" | "auction_bidder" | "histories" | "receipt"
->[];
+type AuctionItemSchema = AuctionInventoryRow[];
 
 type AuctionItems = {
   paid_items: AuctionItemSchema;

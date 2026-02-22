@@ -6,27 +6,22 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import {
-  InventoryInsertSchema,
-  InventorySchema,
-  type InventoryInsertSchema as InventoryInsertSchemaType,
+  createInventorySchema,
+  CreateInventoryInput,
+  InventoryRow,
 } from "src/entities/models/Inventory";
 import { ok, err } from "src/entities/models/Result";
 
-function presenter(
-  inventory: Omit<
-    InventorySchema,
-    "container" | "histories" | "auctions_inventory"
-  >,
-) {
+function presenter(inventory: InventoryRow) {
   return inventory;
 }
 
 export const CreateInventoryController = async (
-  input: Partial<InventoryInsertSchemaType>,
+  input: Partial<CreateInventoryInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      InventoryInsertSchema.safeParse(input);
+      createInventorySchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

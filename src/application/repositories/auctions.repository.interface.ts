@@ -1,9 +1,9 @@
 import { Prisma } from "@prisma/client";
 import {
-  AUCTION_ITEM_STATUS,
+  AuctionItemStatus,
   AuctionDateRange,
-  AuctionSchema,
-  AuctionsInventorySchema,
+  AuctionWithDetailsRow,
+  AuctionInventoryWithDetailsRow,
 } from "src/entities/models/Auction";
 import {
   RegisterBidderInput,
@@ -20,14 +20,14 @@ import {
   UploadManifestInput,
   UpdateManifestInput,
 } from "src/entities/models/Manifest";
-import { CancelItemsSchema } from "src/entities/models/Inventory";
+import { CancelItemsInput } from "src/entities/models/Inventory";
 
 export interface IAuctionRepository {
-  getAuctionById: (auction_id: string) => Promise<AuctionSchema | null>;
+  getAuctionById: (auction_id: string) => Promise<AuctionWithDetailsRow | null>;
   getAuction: (
     auction_date: Date | AuctionDateRange,
-  ) => Promise<AuctionSchema | null>;
-  startAuction: (auction_date: Date) => Promise<AuctionSchema>;
+  ) => Promise<AuctionWithDetailsRow | null>;
+  startAuction: (auction_date: Date) => Promise<AuctionWithDetailsRow>;
   registerBidder: (
     data: RegisterBidderInput,
   ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
@@ -43,15 +43,15 @@ export interface IAuctionRepository {
   ) => Promise<RegisteredBidderSchema | null>;
   getMonitoring: (
     auction_id: string,
-    status: AUCTION_ITEM_STATUS[],
-  ) => Promise<AuctionsInventorySchema[]>;
+    status: AuctionItemStatus[],
+  ) => Promise<AuctionInventoryWithDetailsRow[]>;
   uploadManifest: (
     auction_id: string,
     data: UploadManifestInput[],
     is_bought_items: boolean,
   ) => Promise<
     Omit<
-      AuctionsInventorySchema,
+      AuctionInventoryWithDetailsRow,
       "auction_bidder" | "inventory" | "histories" | "receipt"
     >[]
   >;
@@ -60,11 +60,11 @@ export interface IAuctionRepository {
     data: UploadCounterCheckInput[],
   ) => Promise<Prisma.BatchPayload>;
   getManifestRecords: (auction_id: string) => Promise<ManifestRow[]>;
-  cancelItems: (data: CancelItemsSchema) => Promise<void>;
+  cancelItems: (data: CancelItemsInput) => Promise<void>;
   getBiddersWithBalance: () => Promise<
     (Omit<RegisteredBidderSchema, "auctions_inventories"> & {
       auctions_inventories: Omit<
-        AuctionsInventorySchema,
+        AuctionInventoryWithDetailsRow,
         "auction_bidder" | "receipt" | "histories"
       >[];
     })[]

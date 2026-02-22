@@ -4,11 +4,11 @@ import {
 } from "src/entities/errors/common";
 import { getInventoryUseCase } from "src/application/use-cases/inventories/get-inventory.use-case";
 import { err, ok } from "src/entities/models/Result";
-import { InventorySchema } from "src/entities/models/Inventory";
+import { InventoryWithDetailsRow } from "src/entities/models/Inventory";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(inventory: InventorySchema) {
+function presenter(inventory: InventoryWithDetailsRow) {
   const date_format = "MMMM dd, yyyy";
   return {
     inventory_id: inventory.inventory_id,

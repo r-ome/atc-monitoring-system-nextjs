@@ -6,7 +6,7 @@ import {
   ContainerWithSupplierRow,
   CreateContainerInput,
 } from "src/entities/models/Container";
-import { InventoryInsertSchema } from "src/entities/models/Inventory";
+import { CreateInventoryInput } from "src/entities/models/Inventory";
 
 export interface IContainerRepository {
   getContainerByBarcode: (
@@ -23,7 +23,7 @@ export interface IContainerRepository {
     data: CreateContainerInput,
   ) => Promise<ContainerWithSupplierRow>;
   uploadInventoryFile: (
-    rows: InventoryInsertSchema[],
+    rows: CreateInventoryInput[],
   ) => Promise<{ count: number }>;
   deleteContainer: (container_id: string) => Promise<ContainerRow>;
 }

@@ -1,9 +1,9 @@
 import { InputParseError } from "src/entities/errors/common";
-import { InventoryInsertSchema } from "src/entities/models/Inventory";
+import { CreateInventoryInput } from "src/entities/models/Inventory";
 import { InventoryRepository } from "src/infrastructure/repositories/inventories.repository";
 import { getContainerByIdUseCase } from "../containers/get-container-by-id.use-case";
 
-export const createInventoryUseCase = async (input: InventoryInsertSchema) => {
+export const createInventoryUseCase = async (input: CreateInventoryInput) => {
   const container = await getContainerByIdUseCase(input.container_id);
   const match = container.inventories.find((inventory) => {
     if (input.barcode.split("-").length === 3) {

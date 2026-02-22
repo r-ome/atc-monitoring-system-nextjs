@@ -1,13 +1,11 @@
 import { logger } from "@/app/lib/logger";
 import { getInventoriesWithNoAuctionsInventoriesUseCase } from "src/application/use-cases/inventories/get-inventories-with-no-auctions-inventories.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { InventorySchema } from "src/entities/models/Inventory";
+import { InventoryWithAuctionsInventoryRow } from "src/entities/models/Inventory";
 import { err, ok } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 
-function presenter(
-  inventories: Omit<InventorySchema, "histories" | "container">[],
-) {
+function presenter(inventories: InventoryWithAuctionsInventoryRow[]) {
   return inventories.map((item) => ({
     inventory_id: item.inventory_id,
     barcode: item.barcode,

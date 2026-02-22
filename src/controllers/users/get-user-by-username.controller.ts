@@ -3,12 +3,12 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
-import { UserSchema } from "src/entities/models/User";
+import { UserWithBranchRow } from "src/entities/models/User";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 import { getUserByUsernameUseCase } from "src/application/use-cases/users/get-user-by-username.use-case";
 
-function presenter(user: UserSchema) {
+function presenter(user: UserWithBranchRow) {
   return {
     ...user,
     branch: {

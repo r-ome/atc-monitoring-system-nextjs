@@ -8,7 +8,7 @@ export type UnpaidBidders = {
   items: number;
 };
 
-export type AuctionsStatisticsSchema = {
+export type AuctionsStatisticsRow = {
   auction_id: string;
   auction_date: Date;
   total_registered_bidders: number;

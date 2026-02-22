@@ -4,23 +4,24 @@ import {
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
 import {
-  UserUpdatePasswordInputSchema,
-  UserSchema,
+  updateUserPasswordSchema,
+  UpdateUserPasswordInput,
+  UserWithBranchRow,
 } from "src/entities/models/User";
 import { logger } from "@/app/lib/logger";
 import { updateUserPasswordUseCase } from "src/application/use-cases/users/update-user-password.use-case";
 
-function presenter(user: UserSchema) {
+function presenter(user: UserWithBranchRow) {
   return user;
 }
 
 export const UpdateUserPasswordController = async (
   user_id: string,
-  input: Partial<UserUpdatePasswordInputSchema>,
+  input: Partial<UpdateUserPasswordInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      UserUpdatePasswordInputSchema.safeParse(input);
+      updateUserPasswordSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

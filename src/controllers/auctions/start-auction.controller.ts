@@ -1,10 +1,10 @@
 import { logger } from "@/app/lib/logger";
 import { startAuctionUseCase } from "src/application/use-cases/auctions/start-auction.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { AuctionSchema } from "src/entities/models/Auction";
+import { AuctionRow } from "src/entities/models/Auction";
 import { err, ok } from "src/entities/models/Result";
 
-function presenter(auction: Omit<AuctionSchema, "registered_bidders">) {
+function presenter(auction: AuctionRow) {
   return auction;
 }
 

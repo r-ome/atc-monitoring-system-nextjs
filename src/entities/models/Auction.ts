@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { RegisteredBidder } from "./Bidder";
-import { type INVENTORY_STATUS } from "./Inventory";
+import { type InventoryStatus } from "./Inventory";
 export type Override<T, R> = Omit<T, keyof R> & R;
 
 export const AUCTION_ITEM_STATUS = [
@@ -13,22 +13,18 @@ export const AUCTION_ITEM_STATUS = [
   "PARTIAL",
 ] as const;
 
-export type AUCTION_ITEM_STATUS =
-  | "PAID"
-  | "UNPAID"
-  | "CANCELLED"
-  | "REFUNDED"
-  | "DISCREPANCY"
-  | "PARTIAL";
+export type AuctionItemStatus = (typeof AUCTION_ITEM_STATUS)[number];
 
-export type AuctionSalesSchema = Prisma.auctionsGetPayload<{
+export type AuctionRow = Prisma.auctionsGetPayload<object>;
+
+export type AuctionWithSalesRow = Prisma.auctionsGetPayload<{
   include: {
     branch: true;
     registered_bidders: { include: { auctions_inventories: true } };
   };
 }>;
 
-export type AuctionSchema = Prisma.auctionsGetPayload<{
+export type AuctionWithDetailsRow = Prisma.auctionsGetPayload<{
   include: {
     registered_bidders: {
       include: {
@@ -54,14 +50,17 @@ export type Auction = {
   registered_bidders: RegisteredBidder[];
 };
 
-export type AuctionsInventorySchema = Prisma.auctions_inventoriesGetPayload<{
-  include: {
-    auction_bidder: { include: { bidder: true } };
-    inventory: true;
-    receipt: true;
-    histories: { include: { receipt: true } };
-  };
-}>;
+export type AuctionInventoryRow = Prisma.auctions_inventoriesGetPayload<object>;
+
+export type AuctionInventoryWithDetailsRow =
+  Prisma.auctions_inventoriesGetPayload<{
+    include: {
+      auction_bidder: { include: { bidder: true } };
+      inventory: true;
+      receipt: true;
+      histories: { include: { receipt: true } };
+    };
+  }>;
 
 export type AuctionsInventory = {
   auction_inventory_id: string;
@@ -69,7 +68,7 @@ export type AuctionsInventory = {
   inventory_id: string;
   receipt_id: string | null;
   description: string;
-  status: AUCTION_ITEM_STATUS;
+  status: AuctionItemStatus;
   price: number;
   qty: string;
   manifest_number: string;
@@ -81,7 +80,7 @@ export type AuctionsInventory = {
     inventory_id: string;
     barcode: string;
     control: string;
-    status: INVENTORY_STATUS;
+    status: InventoryStatus;
   };
   bidder: {
     bidder_id: string;
@@ -98,15 +97,15 @@ export type AuctionsInventory = {
   } | null;
   histories: {
     inventory_history_id: string;
-    auction_status: AUCTION_ITEM_STATUS;
-    inventory_status: INVENTORY_STATUS;
+    auction_status: AuctionItemStatus;
+    inventory_status: InventoryStatus;
     remarks: string | null;
     receipt_number: string | null;
     created_at: string;
   }[];
 };
 
-export const VoidItemsSchema = z.object({
+export const voidItemsSchema = z.object({
   auction_inventories: z.array(
     z.object({
       auction_inventory_id: z.string(),
@@ -115,7 +114,6 @@ export const VoidItemsSchema = z.object({
   ),
   reason: z.string(),
 });
-
-export type VoidItemsSchema = z.infer<typeof VoidItemsSchema>;
+export type VoidItemsInput = z.infer<typeof voidItemsSchema>;
 
 export type AuctionDateRange = { start: Date; end: Date };

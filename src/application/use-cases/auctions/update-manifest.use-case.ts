@@ -1,8 +1,8 @@
 import { AuctionRepository } from "src/infrastructure/repositories/auctions.repository";
-import { InventorySchema } from "src/entities/models/Inventory";
+import { InventoryWithDetailsRow } from "src/entities/models/Inventory";
 import { UpdateManifestInput } from "src/entities/models/Manifest";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
-import { AuctionsInventorySchema } from "src/entities/models/Auction";
+import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { getAllInventoriesUseCase } from "../inventories/get-all-inventories.use-case";
 import { ContainerWithAllRow } from "src/entities/models/Container";
 import { getContainersUseCase } from "../containers/get-containers.use-case";
@@ -80,7 +80,7 @@ const validateBidders = (
 const formatExistingInventories = (
   data: UpdateManifestInput[],
   existing_inventories: Omit<
-    InventorySchema,
+    InventoryWithDetailsRow,
     "histories" | "container" | "auctions_inventory"
   >[]
 ): UpdateManifestInput[] => {
@@ -186,7 +186,7 @@ const formatSlashedBarcodes = (
 
 const removeMonitoringDuplicates = (
   data: UpdateManifestInput[],
-  monitoring: AuctionsInventorySchema[]
+  monitoring: AuctionInventoryWithDetailsRow[]
 ) => {
   const existing_monitoring = monitoring.map((item) =>
     JSON.stringify({
