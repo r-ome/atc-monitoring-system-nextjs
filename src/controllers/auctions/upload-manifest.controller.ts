@@ -7,7 +7,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { type ManifestSheetRecord } from "src/entities/models/Manifest";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const UploadManifestController = async (
   auction_id: string,

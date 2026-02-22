@@ -1,10 +1,16 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-export type BranchSchema = Prisma.branchesGetPayload<object>;
-export type BranchWithBiddersSchema = Prisma.branchesGetPayload<{
+export type BranchRow = Prisma.branchesGetPayload<object>;
+export type BranchWithBiddersRow = Prisma.branchesGetPayload<{
   include: { bidders: true };
 }>;
+
+export const createBranchSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255).trim(),
+});
+export type CreateBranchInput = z.infer<typeof createBranchSchema>;
+
 export type Branch = {
   branch_id: string;
   name: string;
@@ -12,9 +18,3 @@ export type Branch = {
   updated_at: string;
   deleted_at: string | null;
 };
-
-export const BranchInsertSchema = z.object({
-  name: z.string(),
-});
-
-export type BranchInsertSchema = z.infer<typeof BranchInsertSchema>;

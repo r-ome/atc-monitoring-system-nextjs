@@ -5,7 +5,7 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 
 export const DeleteInventoryController = async (inventory_id: string) => {
   try {

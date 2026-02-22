@@ -4,9 +4,19 @@ import { AuctionsInventory, AuctionsInventorySchema } from "./Auction";
 import { PaymentMethod } from "./PaymentMethod";
 
 export const BIDDER_STATUS = ["BANNED", "ACTIVE", "INACTIVE"] as const;
-export type BIDDER_STATUS = "BANNED" | "ACTIVE" | "INACTIVE";
+export type BidderStatus = (typeof BIDDER_STATUS)[number];
 
-export type BidderSchema = Prisma.biddersGetPayload<{
+export type BidderRow = Prisma.biddersGetPayload<object>;
+
+export type BidderWithBranchRow = Prisma.biddersGetPayload<{
+  include: { branch: true };
+}>;
+
+export type BidderWithLastAuctionRow = Prisma.biddersGetPayload<{
+  include: { branch: true; auctions_joined: true };
+}>;
+
+export type BidderWithDetailsRow = Prisma.biddersGetPayload<{
   include: {
     branch: true;
     auctions_joined: { include: { auctions_inventories: true } };
@@ -28,7 +38,7 @@ export type Bidder = {
   store_name?: string | null;
   registration_fee: number;
   service_charge: number;
-  status: BIDDER_STATUS;
+  status: BidderStatus;
   remarks?: string;
   created_at: string;
   updated_at: string;
@@ -48,13 +58,14 @@ export type Bidder = {
   }[];
 };
 
-export const BidderInsertSchema = z.object({
-  bidder_number: z.string(),
-  first_name: z.string(),
+/** CREATE BIDDER */
+export const createBidderSchema = z.object({
+  bidder_number: z.string().min(1),
+  first_name: z.string().min(1),
   middle_name: z.string().optional().nullable(),
-  last_name: z.string(),
+  last_name: z.string().min(1),
   birthdate: z.date().optional().nullable(),
-  branch_id: z.string(),
+  branch_id: z.string().min(1),
   contact_number: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   tin_number: z.string().optional().nullable(),
@@ -65,18 +76,18 @@ export const BidderInsertSchema = z.object({
   payment_term: z.coerce.number(),
 });
 
-export type BidderInsertSchema = z.infer<typeof BidderInsertSchema>;
+export type CreateBidderInput = z.infer<typeof createBidderSchema>;
 
-export const UpdateBidderRegistrationInput = z.object({
+export const updateBidderRegistrationSchema = z.object({
   service_charge: z.coerce.number(),
   registration_fee: z.coerce.number(),
 });
 
-export type UpdateBidderRegistrationSchema = z.infer<
-  typeof UpdateBidderRegistrationInput
+export type UpdateBidderRegistrationInput = z.infer<
+  typeof updateBidderRegistrationSchema
 >;
 
-export const RegisterBidderInput = z.object({
+export const registerBidderSchema = z.object({
   auction_id: z.string(),
   bidder_id: z.string(),
   service_charge: z.coerce.number(),
@@ -86,11 +97,11 @@ export const RegisterBidderInput = z.object({
     z.object({
       payment_method: z.string(),
       amount_paid: z.number(),
-    })
+    }),
   ),
 });
 
-export type RegisterBidderInputSchema = z.infer<typeof RegisterBidderInput>;
+export type RegisterBidderInput = z.infer<typeof registerBidderSchema>;
 
 export type RegisteredBidderSchema = Prisma.auctions_biddersGetPayload<{
   include: {
@@ -134,7 +145,7 @@ export type AuctionBidderSchema = {
   registration_fee: number;
   balance: number;
   created_at: Date;
-  bidder: BidderSchema;
+  bidder: BidderRow;
 };
 
 export type BiddersWithBirthdatesAndRecentAuctionSchema = {
@@ -165,7 +176,7 @@ export type BidderSheetRecord = Record<
   string
 >;
 
-export const BulkBidderInsertSchema = z.object({
+export const createBidderBulkSchmea = z.object({
   BIDDER_NUMBER: z.string(),
   FIRST_NAME: z.string(),
   MIDDLE_NAME: z.string(),
@@ -182,4 +193,4 @@ export const BulkBidderInsertSchema = z.object({
   error: z.string(),
 });
 
-export type BulkBidderInsertSchema = z.infer<typeof BulkBidderInsertSchema>;
+export type CreateBidderBulkInput = z.infer<typeof createBidderBulkSchmea>;

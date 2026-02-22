@@ -2,10 +2,10 @@ import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
 import { getManifestRecordsUseCase } from "src/application/use-cases/auctions/get-manifest-records.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { ManifestSchema } from "src/entities/models/Manifest";
-import { ok, err } from "src/entities/models/Response";
+import { ManifestRow } from "src/entities/models/Manifest";
+import { ok, err } from "src/entities/models/Result";
 
-function presenter(manifest_records: ManifestSchema[]) {
+function presenter(manifest_records: ManifestRow[]) {
   return manifest_records.map((manifest) => ({
     manifest_id: manifest.manifest_id,
     auction_id: manifest.auction_id,

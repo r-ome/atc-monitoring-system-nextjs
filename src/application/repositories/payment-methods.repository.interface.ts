@@ -1,15 +1,15 @@
 import {
-  PaymentMethodsSchema,
-  PaymentMethodInsertSchema,
+  PaymentMethodRow,
+  CreatePaymentMethodInput,
 } from "src/entities/models/PaymentMethod";
 
 export interface IPaymentMethodRepository {
-  getPaymentMethods: () => Promise<PaymentMethodsSchema[]>;
+  getPaymentMethods: () => Promise<PaymentMethodRow[]>;
   createPaymentMethod: (
-    data: PaymentMethodInsertSchema
-  ) => Promise<PaymentMethodsSchema>;
+    data: CreatePaymentMethodInput
+  ) => Promise<PaymentMethodRow>;
   updatePaymentMethod: (
     payment_method_id: string,
-    data: PaymentMethodInsertSchema
-  ) => Promise<PaymentMethodsSchema>;
+    data: CreatePaymentMethodInput
+  ) => Promise<PaymentMethodRow>;
 }

@@ -1,11 +1,11 @@
-import { PaymentMethodsSchema } from "src/entities/models/PaymentMethod";
+import { PaymentMethodRow } from "src/entities/models/PaymentMethod";
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { getPaymentMethodsUseCase } from "src/application/use-cases/payment-methods/get-payment-methods.use-case";
 
-const presenter = (payment_methods: PaymentMethodsSchema[]) => {
+const presenter = (payment_methods: PaymentMethodRow[]) => {
   const date_format = "MMM dd, yyyy hh:mm a";
   return payment_methods.map((item) => ({
     ...item,

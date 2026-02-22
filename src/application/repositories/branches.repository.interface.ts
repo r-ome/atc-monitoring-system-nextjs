@@ -1,17 +1,17 @@
 import {
-  BranchInsertSchema,
-  BranchSchema,
-  BranchWithBiddersSchema,
+  BranchRow,
+  BranchWithBiddersRow,
+  CreateBranchInput,
 } from "src/entities/models/Branch";
 
 export interface IBranchRepository {
-  getBranch(branch_id: string): Promise<BranchSchema | null>;
-  getBranchWithBidders(branch_id: string): Promise<BranchWithBiddersSchema>;
-  getBranchByName(name: string): Promise<BranchSchema | null>;
-  getBranches(): Promise<BranchSchema[]>;
-  createBranch(name: BranchInsertSchema): Promise<BranchSchema>;
+  getBranch(branch_id: string): Promise<BranchRow | null>;
+  getBranchWithBidders(branch_id: string): Promise<BranchWithBiddersRow>;
+  getBranchByName(name: string): Promise<BranchRow | null>;
+  getBranches(): Promise<BranchRow[]>;
+  createBranch(input: CreateBranchInput): Promise<BranchRow>;
   updateBranch: (
     branch_id: string,
-    input: BranchInsertSchema
-  ) => Promise<BranchSchema>;
+    input: CreateBranchInput,
+  ) => Promise<BranchRow>;
 }

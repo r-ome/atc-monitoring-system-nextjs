@@ -4,15 +4,15 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import {
-  ExpenseInsertSchema,
-  ExpenseSchema,
-  type ExpenseInsertSchema as ExpenseInsertSchemaType,
+  createExpenseSchema,
+  CreateExpenseInput,
+  ExpenseWithBranchRow,
 } from "src/entities/models/Expense";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(expense: ExpenseSchema) {
+function presenter(expense: ExpenseWithBranchRow) {
   return {
     expense_id: expense.expense_id,
     amount: expense.amount.toNumber(),
@@ -28,11 +28,11 @@ function presenter(expense: ExpenseSchema) {
 
 export const AddExpenseController = async (
   petty_cash_id: string,
-  input: Partial<ExpenseInsertSchemaType>,
+  input: Partial<CreateExpenseInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      ExpenseInsertSchema.safeParse(input);
+      createExpenseSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

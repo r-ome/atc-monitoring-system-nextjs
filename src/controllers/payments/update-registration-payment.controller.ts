@@ -5,18 +5,18 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import {
-  RegistrationPaymentUpdateSchema,
-  type RegistrationPaymentUpdateSchema as RegistrationPaymentUpdateSchemaType,
+  updateRegistrationPaymentSchema,
+  UpdateRegistrationPaymentInput,
 } from "src/entities/models/Payment";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const UpdateRegistrationPaymentController = async (
   payment_id: string,
-  input: Partial<RegistrationPaymentUpdateSchemaType>
+  input: Partial<UpdateRegistrationPaymentInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      RegistrationPaymentUpdateSchema.safeParse(input);
+      updateRegistrationPaymentSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

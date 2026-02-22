@@ -1,9 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { ContainerSchema } from "./Container";
-import { InventorySchema } from "./Inventory";
+import { ContainerWithAllRow } from "./Container";
 
-export type SupplierSchema = Prisma.suppliersGetPayload<{
+export type SupplierRow = Prisma.suppliersGetPayload<object>;
+
+export type SupplierWithContainersRow = Prisma.suppliersGetPayload<{
   include: { containers: { include: { inventories: true; branch: true } } };
 }>;
 
@@ -20,12 +21,10 @@ export type Supplier = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  containers: (ContainerSchema & {
-    inventories: InventorySchema[];
-  })[];
+  containers: ContainerWithAllRow[];
 };
 
-export const SupplierInsertSchema = z.object({
+export const createSupplierSchema = z.object({
   name: z.string(),
   supplier_code: z.string(),
   japanese_name: z.string().optional().nullable(),
@@ -36,4 +35,4 @@ export const SupplierInsertSchema = z.object({
   contact_number: z.string().optional().nullable(),
 });
 
-export type SupplierInsertSchema = z.infer<typeof SupplierInsertSchema>;
+export type CreateSupplierInput = z.infer<typeof createSupplierSchema>;

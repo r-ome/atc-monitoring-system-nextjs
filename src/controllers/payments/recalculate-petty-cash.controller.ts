@@ -5,7 +5,7 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import { PettyCash } from "src/entities/models/Expense";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const RecalculatePettyCashController = async (input: PettyCash) => {
   try {

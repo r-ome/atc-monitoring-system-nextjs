@@ -7,7 +7,7 @@ import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { loginUseCase } from "src/application/use-cases/users/login.use-case";
 import { logger } from "@/app/lib/logger";
 
@@ -16,7 +16,7 @@ function presenter(user: UserSchema) {
 }
 
 export const LoginController = async (
-  credentials: Partial<LoginUserSchemaType>
+  credentials: Partial<LoginUserSchemaType>,
 ) => {
   try {
     const { data, error: inputParserror } =

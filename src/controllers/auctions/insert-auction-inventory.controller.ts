@@ -2,11 +2,11 @@ import { logger } from "@/app/lib/logger";
 import { uploadManifestUseCase } from "src/application/use-cases/auctions/upload-manifest.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ManifestSheetRecord } from "src/entities/models/Manifest";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const InsertAuctionInventoryController = async (
   auction_id: string,
-  input: Partial<ManifestSheetRecord>
+  input: Partial<ManifestSheetRecord>,
 ) => {
   try {
     const res = await uploadManifestUseCase(auction_id, [

@@ -1,14 +1,14 @@
 import { getPettyCashBalanceUseCase } from "src/application/use-cases/expenses/get-petty-cash-balance.use-case";
-import { PettyCashSchema } from "src/entities/models/Expense";
+import { PettyCashWithBranchRow } from "src/entities/models/Expense";
 import {
   InputParseError,
   DatabaseOperationError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
 
-function presenter(petty_cash: PettyCashSchema) {
+function presenter(petty_cash: PettyCashWithBranchRow) {
   const date_format = "MMM dd, yyyy HH:mm:ss";
 
   return {

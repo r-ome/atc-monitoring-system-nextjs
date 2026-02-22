@@ -6,19 +6,19 @@ import {
   AuctionsInventorySchema,
 } from "src/entities/models/Auction";
 import {
-  RegisterBidderInputSchema,
+  RegisterBidderInput,
   RegisteredBidderSchema,
-  UpdateBidderRegistrationSchema,
+  UpdateBidderRegistrationInput,
 } from "src/entities/models/Bidder";
 import {
-  CounterCheckInsertSchema,
-  CounterCheckSchema,
-  CounterCheckUpdateSchema,
+  CounterCheckRow,
+  UploadCounterCheckInput,
+  UpdateCounterCheckInput,
 } from "src/entities/models/CounterCheck";
 import {
-  ManifestInsertSchema,
-  ManifestSchema,
-  ManifestUpdateSchema,
+  ManifestRow,
+  UploadManifestInput,
+  UpdateManifestInput,
 } from "src/entities/models/Manifest";
 import { CancelItemsSchema } from "src/entities/models/Inventory";
 
@@ -29,7 +29,7 @@ export interface IAuctionRepository {
   ) => Promise<AuctionSchema | null>;
   startAuction: (auction_date: Date) => Promise<AuctionSchema>;
   registerBidder: (
-    data: RegisterBidderInputSchema,
+    data: RegisterBidderInput,
   ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
   getRegisteredBidders: (
     auction_id: string,
@@ -47,7 +47,7 @@ export interface IAuctionRepository {
   ) => Promise<AuctionsInventorySchema[]>;
   uploadManifest: (
     auction_id: string,
-    data: ManifestInsertSchema[],
+    data: UploadManifestInput[],
     is_bought_items: boolean,
   ) => Promise<
     Omit<
@@ -57,9 +57,9 @@ export interface IAuctionRepository {
   >;
   uploadCounterCheck: (
     auction_id: string,
-    data: CounterCheckInsertSchema[],
+    data: UploadCounterCheckInput[],
   ) => Promise<Prisma.BatchPayload>;
-  getManifestRecords: (auction_id: string) => Promise<ManifestSchema[]>;
+  getManifestRecords: (auction_id: string) => Promise<ManifestRow[]>;
   cancelItems: (data: CancelItemsSchema) => Promise<void>;
   getBiddersWithBalance: () => Promise<
     (Omit<RegisteredBidderSchema, "auctions_inventories"> & {
@@ -69,24 +69,22 @@ export interface IAuctionRepository {
       >[];
     })[]
   >;
-  getCounterCheckRecords: (auction_id: string) => Promise<CounterCheckSchema[]>;
+  getCounterCheckRecords: (auction_id: string) => Promise<CounterCheckRow[]>;
   updateCounterCheck: (
     counter_check_id: string,
-    data: CounterCheckUpdateSchema,
-  ) => Promise<CounterCheckSchema>;
+    data: UpdateCounterCheckInput,
+  ) => Promise<CounterCheckRow>;
   updateManifest: (
     manifest_id: string,
-    data: ManifestUpdateSchema[],
-    original: ManifestUpdateSchema,
-  ) => Promise<ManifestSchema>;
+    data: UpdateManifestInput[],
+    original: UpdateManifestInput,
+  ) => Promise<ManifestRow>;
   updateBidderRegistration: (
     auction_bidder_id: string,
-    data: UpdateBidderRegistrationSchema,
+    data: UpdateBidderRegistrationInput,
   ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
   unregisterBidder: (auction_bidder_id: string) => Promise<void>;
-  getAuctionsByBranch: (
-    branch_id: string,
-  ) => Promise<
+  getAuctionsByBranch: (branch_id: string) => Promise<
     Prisma.auctionsGetPayload<{
       include: { registered_bidders: { include: { bidder: true } } };
     }>[]

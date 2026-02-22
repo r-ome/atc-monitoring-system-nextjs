@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AuctionsInventorySchema } from "./Auction";
-import { AuctionBidderSchema, BidderSchema } from "./Bidder";
+import { AuctionBidderSchema, BidderRow } from "./Bidder";
 import { Prisma } from "@prisma/client";
 import { PaymentMethod } from "./PaymentMethod";
 
@@ -12,13 +12,9 @@ export const PAYMENT_PURPOSE = [
   "ADD_ON",
 ] as const;
 
-export type PAYMENT_PURPOSE =
-  | "REGISTRATION"
-  | "PULL_OUT"
-  | "REFUNDED"
-  | "LESS"
-  | "ADD_ON";
-export type PaymentSchema = Prisma.paymentsGetPayload<{
+export type PaymentPurpose = typeof PAYMENT_PURPOSE[number];
+
+export type PaymentWithDetailsRow = Prisma.paymentsGetPayload<{
   include: {
     payment_method: true;
     receipt: {
@@ -40,7 +36,7 @@ export type Payment = {
   receipt: {
     receipt_id: string;
     receipt_number: string;
-    purpose: PAYMENT_PURPOSE;
+    purpose: PaymentPurpose;
   };
   bidder: {
     bidder_id: string;
@@ -49,7 +45,7 @@ export type Payment = {
   };
 };
 
-export type ReceiptRecordsSchema = Prisma.receipt_recordsGetPayload<{
+export type ReceiptRecordWithDetailsRow = Prisma.receipt_recordsGetPayload<{
   include: {
     auction_bidder: { include: { bidder: true } };
     auctions_inventories: true;
@@ -67,7 +63,7 @@ export type ReceiptRecords = {
   receipt_number: string;
   auction_bidder_id: string;
   total_amount_paid: number;
-  purpose: PAYMENT_PURPOSE;
+  purpose: PaymentPurpose;
   auction_date: string;
   remarks?: string | null;
   payments: {
@@ -97,7 +93,7 @@ export type ReceiptRecords = {
   created_at: string;
 };
 
-export const PullOutPaymentInsertSchema = z.object({
+export const pullOutPaymentSchema = z.object({
   auction_bidder_id: z.string(),
   amount_to_be_paid: z.coerce.number(),
   auction_inventory_ids: z.string().array(),
@@ -110,14 +106,12 @@ export const PullOutPaymentInsertSchema = z.object({
   remarks: z.string().optional().nullable(),
 });
 
-export type PullOutPaymentInsertSchema = z.infer<
-  typeof PullOutPaymentInsertSchema
->;
+export type PullOutPaymentInput = z.infer<typeof pullOutPaymentSchema>;
 
-export type AuctionTransactionSchema = ReceiptRecordsSchema & {
-  payments: PaymentSchema[];
+export type AuctionTransactionSchema = ReceiptRecordWithDetailsRow & {
+  payments: PaymentWithDetailsRow[];
   auction_bidder: AuctionBidderSchema & {
-    bidder: BidderSchema;
+    bidder: BidderRow;
   };
   auctions_inventories: Omit<AuctionsInventorySchema, "inventory">[];
 };
@@ -127,7 +121,7 @@ export type AuctionTransaction = {
   receipt_number: string;
   auction_bidder_id: string;
   total_amount_paid: number;
-  purpose: PAYMENT_PURPOSE;
+  purpose: PaymentPurpose;
   payments: {
     payment_id: string;
     payment_method?: PaymentMethod["name"];
@@ -142,7 +136,7 @@ export type AuctionTransaction = {
   created_at: string;
 };
 
-export const RefundAuctionInventories = z.object({
+export const refundAuctionInventoriesSchema = z.object({
   auction_bidder_id: z.string(),
   reason: z.string().min(1, { message: "This field is required!" }),
   auction_inventories: z.array(
@@ -155,12 +149,10 @@ export const RefundAuctionInventories = z.object({
   ),
 });
 
-export type RefundAuctionInventories = z.infer<typeof RefundAuctionInventories>;
+export type RefundAuctionInventoriesInput = z.infer<typeof refundAuctionInventoriesSchema>;
 
-export const RegistrationPaymentUpdateSchema = z.object({
+export const updateRegistrationPaymentSchema = z.object({
   payment_method: z.string(),
 });
 
-export type RegistrationPaymentUpdateSchema = z.infer<
-  typeof RegistrationPaymentUpdateSchema
->;
+export type UpdateRegistrationPaymentInput = z.infer<typeof updateRegistrationPaymentSchema>;

@@ -1,5 +1,5 @@
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { UnpaidAuctionsBiddersSchema } from "src/entities/models/Bidder";
@@ -15,7 +15,7 @@ function presenter(bidders: UnpaidAuctionsBiddersSchema[]) {
     auction_date: formatDate(bidder.created_at, date_format),
     balance: bidder.balance,
     items: bidder.auctions_inventories.filter(
-      (item) => item.status === "UNPAID"
+      (item) => item.status === "UNPAID",
     ).length,
   }));
 }

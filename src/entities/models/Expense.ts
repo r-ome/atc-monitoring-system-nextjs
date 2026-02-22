@@ -1,19 +1,20 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 
-export type EXPENSE_PURPOSE = "ADD_PETTY_CASH" | "EXPENSE";
+export type ExpensePurpose = "ADD_PETTY_CASH" | "EXPENSE";
 
-export type PettyCashSchema = Prisma.petty_cashGetPayload<{
+export type PettyCashWithBranchRow = Prisma.petty_cashGetPayload<{
   include: { branch: true };
 }>;
 
-export type ExpenseSchema = Prisma.expensesGetPayload<{
+export type ExpenseWithBranchRow = Prisma.expensesGetPayload<{
   include: { branch: true };
 }>;
+
 export type Expense = {
   expense_id: string;
   amount: number;
-  purpose: EXPENSE_PURPOSE;
+  purpose: ExpensePurpose;
   remarks: string;
   branch: {
     branch_id: string;
@@ -22,7 +23,7 @@ export type Expense = {
   created_at: string;
 };
 
-export const ExpenseInsertSchema = z.object({
+export const createExpenseSchema = z.object({
   amount: z.coerce.number(),
   purpose: z.enum(["ADD_PETTY_CASH", "EXPENSE"]),
   remarks: z.string().min(1),
@@ -30,16 +31,16 @@ export const ExpenseInsertSchema = z.object({
   created_at: z.string(),
 });
 
-export type ExpenseInsertSchema = z.infer<typeof ExpenseInsertSchema>;
+export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
 
-export const UpdateExpenseInput = z.object({
+export const updateExpenseSchema = z.object({
   amount: z.coerce.number(),
   purpose: z.string(),
   remarks: z.string(),
   branch_id: z.string(),
 });
 
-export type UpdateExpenseInputSchema = z.infer<typeof UpdateExpenseInput>;
+export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
 
 export type PettyCash = {
   petty_cash_id: string;
@@ -53,11 +54,11 @@ export type PettyCash = {
   updated_at: string;
 };
 
-export const PettyCashInsertSchema = z.object({
+export const createPettyCashSchema = z.object({
   amount: z.coerce.number(),
   remarks: z.string().nullable(),
   created_at: z.string(),
   branch_id: z.string(),
 });
 
-export type PettyCashInsertSchemaType = z.infer<typeof PettyCashInsertSchema>;
+export type CreatePettyCashInput = z.infer<typeof createPettyCashSchema>;

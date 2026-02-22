@@ -5,7 +5,7 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
 function presenter(registeredBidder: RegisteredBidderSchema) {
@@ -40,7 +40,7 @@ function presenter(registeredBidder: RegisteredBidderSchema) {
         manifest_number: auction_inventory.manifest_number,
         auction_date: formatDate(
           auction_inventory.auction_date,
-          "MMMM dd, yyyy"
+          "MMMM dd, yyyy",
         ),
         created_at: formatDate(auction_inventory.created_at, "MMMM dd, yyyy"),
         updated_at: formatDate(auction_inventory.updated_at, "MMMM dd, yyyy"),
@@ -57,19 +57,19 @@ function presenter(registeredBidder: RegisteredBidderSchema) {
           receipt_number: auction_inventory.receipt?.receipt_number,
         },
         histories: auction_inventory.histories,
-      })
+      }),
     ),
   };
 }
 
 export async function GetRegisteredBidderController(
   bidder_number: string,
-  auction_date: string
+  auction_date: string,
 ) {
   try {
     const registered_bidder = await getRegisteredBidderUseCase(
       bidder_number,
-      new Date(auction_date)
+      new Date(auction_date),
     );
 
     return ok(presenter(registered_bidder));

@@ -9,7 +9,7 @@ import {
   InventoryMergeSchema,
   type InventoryMergeSchema as InventoryMergeSchemaType,
 } from "src/entities/models/Inventory";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 
 export const MergeInventoriesController = async (
   input: Partial<InventoryMergeSchemaType>,

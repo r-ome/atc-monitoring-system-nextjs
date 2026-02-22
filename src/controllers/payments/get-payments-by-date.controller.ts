@@ -1,11 +1,11 @@
 import { getPaymentsByDateUseCase } from "src/application/use-cases/payments/get-payments-by-date.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { PaymentSchema } from "src/entities/models/Payment";
-import { err, ok } from "src/entities/models/Response";
+import { PaymentWithDetailsRow } from "src/entities/models/Payment";
+import { err, ok } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(payments: PaymentSchema[]) {
+function presenter(payments: PaymentWithDetailsRow[]) {
   return payments.map((payment) => ({
     payment_id: payment.payment_id,
     receipt_id: payment.receipt_id,
@@ -22,7 +22,7 @@ function presenter(payments: PaymentSchema[]) {
     },
     auction_date: formatDate(
       payment.receipt.auction_bidder.auctions.created_at,
-      "yyyy-MM-dd"
+      "yyyy-MM-dd",
     ),
     created_at: formatDate(payment.created_at, "MMMM dd, yyyy hh:mm a"),
     receipt: {
@@ -40,7 +40,7 @@ function presenter(payments: PaymentSchema[]) {
 
 export const GetPaymentsByDateController = async (
   date: Date,
-  branch_id: string | undefined
+  branch_id: string | undefined,
 ) => {
   try {
     const payments = await getPaymentsByDateUseCase(date, branch_id);

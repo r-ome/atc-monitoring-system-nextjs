@@ -4,7 +4,7 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
 export const DeleteContainerController = async (container_id: string) => {

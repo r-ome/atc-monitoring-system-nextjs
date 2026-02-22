@@ -1,9 +1,9 @@
-import { UpdateBidderRegistrationSchema } from "src/entities/models/Bidder";
+import { UpdateBidderRegistrationInput } from "src/entities/models/Bidder";
 import { AuctionRepository } from "src/infrastructure/repositories/auctions.repository";
 
 export const updateBidderRegistrationUseCase = async (
   auction_bidder_id: string,
-  data: UpdateBidderRegistrationSchema
+  data: UpdateBidderRegistrationInput,
 ) => {
   return await AuctionRepository.updateBidderRegistration(
     auction_bidder_id,

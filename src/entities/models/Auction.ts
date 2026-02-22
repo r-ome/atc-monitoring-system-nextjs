@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { RegisteredBidder } from "./Bidder";
 import { type INVENTORY_STATUS } from "./Inventory";
+export type Override<T, R> = Omit<T, keyof R> & R;
 
 export const AUCTION_ITEM_STATUS = [
   "PAID",

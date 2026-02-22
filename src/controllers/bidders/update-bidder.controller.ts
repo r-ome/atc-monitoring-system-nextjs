@@ -4,18 +4,16 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import {
-  BidderInsertSchema,
-  BidderSchema,
-  type BidderInsertSchema as BidderInsertSchemaType,
+  createBidderSchema,
+  CreateBidderInput,
+  BidderWithBranchRow,
 } from "src/entities/models/Bidder";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { updateBidderUseCase } from "src/application/use-cases/bidders/update-bidder.use-case";
 import { logger } from "@/app/lib/logger";
 
-function presenter(
-  bidder: Omit<BidderSchema, "auctions_joined" | "requirements">
-) {
+function presenter(bidder: BidderWithBranchRow) {
   const date_format = "MMMM dd, yyyy";
   return {
     bidder_id: bidder.bidder_id,
@@ -40,12 +38,12 @@ function presenter(
 
 export const UpdateBidderController = async (
   bidder_id: string,
-  input: Partial<BidderInsertSchemaType>
+  input: Partial<CreateBidderInput>,
 ) => {
   try {
     input.birthdate = input.birthdate ? new Date(input.birthdate) : null;
     const { data, error: inputParseError } =
-      BidderInsertSchema.safeParse(input);
+      createBidderSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

@@ -1,16 +1,14 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 
-export type PaymentMethodsSchema = Prisma.payment_methodsGetPayload<object>;
+export type PaymentMethodRow = Prisma.payment_methodsGetPayload<object>;
 
-export const PaymentMethodInsertSchema = z.object({
+export const createPaymentMethodSchema = z.object({
   name: z.string(),
   state: z.enum(["ENABLED", "DISABLED"]),
 });
 
-export type PaymentMethodInsertSchema = z.infer<
-  typeof PaymentMethodInsertSchema
->;
+export type CreatePaymentMethodInput = z.infer<typeof createPaymentMethodSchema>;
 
 export type PaymentMethod = {
   payment_method_id: string;

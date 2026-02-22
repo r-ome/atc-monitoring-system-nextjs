@@ -1,36 +1,29 @@
 import {
-  ContainerSchema,
-  ContainerInsertSchema,
+  ContainerRow,
+  ContainerWithAllRow,
+  ContainerWithDetailsRow,
+  ContainerWithInventoriesRow,
+  ContainerWithSupplierRow,
+  CreateContainerInput,
 } from "src/entities/models/Container";
-import {
-  BaseInventorySchema,
-  InventoryInsertSchema,
-} from "src/entities/models/Inventory";
+import { InventoryInsertSchema } from "src/entities/models/Inventory";
 
 export interface IContainerRepository {
-  getContainerByBarcode: (barcode: string) => Promise<ContainerSchema | null>;
-  getContainerById: (container_id: string) => Promise<ContainerSchema | null>;
-  getContainers: () => Promise<
-    (Omit<ContainerSchema, "inventories"> & {
-      inventories: BaseInventorySchema[];
-    })[]
-  >;
-  createContainer: (
-    container: ContainerInsertSchema
-  ) => Promise<Omit<ContainerSchema, "inventories" | "branch" | "supplier">>;
-  getInventoriesByContainerBarcode: (barcode: string) => Promise<
-    Omit<ContainerSchema, "branch" | "supplier" | "inventories"> & {
-      inventories: BaseInventorySchema[];
-    }
-  >;
+  getContainerByBarcode: (
+    barcode: string,
+  ) => Promise<ContainerWithDetailsRow | null>;
+  getContainerById: (
+    container_id: string,
+  ) => Promise<ContainerWithDetailsRow | null>;
+  getContainers: () => Promise<ContainerWithAllRow[]>;
+  createContainer: (container: CreateContainerInput) => Promise<ContainerRow>;
+  getInventoriesByContainerBarcode: (barcode: string) => Promise<ContainerWithInventoriesRow>;
   updateContainer: (
     container_id: string,
-    data: ContainerInsertSchema
-  ) => Promise<Omit<ContainerSchema, "inventories">>;
+    data: CreateContainerInput,
+  ) => Promise<ContainerWithSupplierRow>;
   uploadInventoryFile: (
-    rows: InventoryInsertSchema[]
+    rows: InventoryInsertSchema[],
   ) => Promise<{ count: number }>;
-  deleteContainer: (
-    container_id: string
-  ) => Promise<Omit<ContainerSchema, "inventories" | "branch" | "supplier">>;
+  deleteContainer: (container_id: string) => Promise<ContainerRow>;
 }

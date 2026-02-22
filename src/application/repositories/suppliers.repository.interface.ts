@@ -1,24 +1,14 @@
 import {
-  SupplierInsertSchema,
-  SupplierSchema,
+  SupplierRow,
+  SupplierWithContainersRow,
+  CreateSupplierInput,
 } from "src/entities/models/Supplier";
 
 export interface ISupplierRepository {
-  getSupplierBySupplierId: (
-    supplier_id: string
-  ) => Promise<SupplierSchema | null>;
-  getSupplierBySupplierCode: (
-    supplier_code: string
-  ) => Promise<SupplierSchema | null>;
-  getSuppliers: () => Promise<Omit<SupplierSchema, "containers">[]>;
-  createSupplier: (
-    supplier: SupplierInsertSchema
-  ) => Promise<Omit<SupplierSchema, "containers">>;
-  getSupplierContainers: (
-    supplier_id: string
-  ) => Promise<SupplierSchema | null>;
-  updateSupplier: (
-    supplier_id: string,
-    data: SupplierInsertSchema
-  ) => Promise<Omit<SupplierSchema, "containers">>;
+  getSupplierBySupplierId(supplier_id: string): Promise<SupplierWithContainersRow | null>;
+  getSupplierBySupplierCode(supplier_code: string): Promise<SupplierWithContainersRow | null>;
+  getSuppliers(): Promise<SupplierRow[]>;
+  createSupplier(supplier: CreateSupplierInput): Promise<SupplierRow>;
+  getSupplierContainers(supplier_id: string): Promise<SupplierWithContainersRow | null>;
+  updateSupplier(supplier_id: string, data: CreateSupplierInput): Promise<SupplierRow>;
 }

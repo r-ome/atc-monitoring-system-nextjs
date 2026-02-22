@@ -1,9 +1,6 @@
 import { ISupplierRepository } from "src/application/repositories/suppliers.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
-import {
-  DatabaseOperationError,
-  NotFoundError,
-} from "src/entities/errors/common";
+import { DatabaseOperationError } from "src/entities/errors/common";
 import {
   isPrismaError,
   isPrismaValidationError,
@@ -57,10 +54,6 @@ export const SupplierRepository: ISupplierRepository = {
           contact_number: input.contact_number,
         },
       });
-
-      if (!created) {
-        throw new DatabaseOperationError("Error creating a new Supplier!");
-      }
 
       return created;
     } catch (error) {
@@ -117,10 +110,6 @@ export const SupplierRepository: ISupplierRepository = {
           contact_number: data.contact_number,
         },
       });
-
-      if (!updated) {
-        throw new NotFoundError("Supplier not found!");
-      }
 
       return updated;
     } catch (error) {

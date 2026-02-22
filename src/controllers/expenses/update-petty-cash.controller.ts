@@ -4,15 +4,15 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import {
-  PettyCashSchema,
-  type PettyCashInsertSchemaType,
-  PettyCashInsertSchema,
+  PettyCashWithBranchRow,
+  createPettyCashSchema,
+  CreatePettyCashInput,
 } from "src/entities/models/Expense";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(petty_cash: PettyCashSchema) {
+function presenter(petty_cash: PettyCashWithBranchRow) {
   return {
     petty_cash_id: petty_cash.petty_cash_id,
     remarks: petty_cash.remarks,
@@ -27,11 +27,11 @@ function presenter(petty_cash: PettyCashSchema) {
 
 export const UpdatePettyCashController = async (
   petty_cash_id: string,
-  input: Partial<PettyCashInsertSchemaType>,
+  input: Partial<CreatePettyCashInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      PettyCashInsertSchema.safeParse(input);
+      createPettyCashSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

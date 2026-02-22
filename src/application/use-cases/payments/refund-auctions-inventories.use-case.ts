@@ -1,8 +1,8 @@
-import { RefundAuctionInventories } from "src/entities/models/Payment";
+import { RefundAuctionInventoriesInput } from "src/entities/models/Payment";
 import { PaymentRepository } from "src/infrastructure/repositories/payments.repository";
 
 export const refundAuctionsInventoriesUseCase = async (
-  data: RefundAuctionInventories
+  data: RefundAuctionInventoriesInput
 ) => {
   return await PaymentRepository.refundAuctionInventories(data);
 };

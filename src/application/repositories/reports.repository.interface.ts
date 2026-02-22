@@ -1,5 +1,5 @@
 import { AuctionSalesSchema } from "src/entities/models/Auction";
-import { ExpenseSchema } from "src/entities/models/Expense";
+import { ExpenseWithBranchRow } from "src/entities/models/Expense";
 
 export interface IReportsRepository {
   getTotalSales: (
@@ -9,5 +9,5 @@ export interface IReportsRepository {
   getTotalExpenses: (
     branch_id: string,
     date: string,
-  ) => Promise<ExpenseSchema[]>;
+  ) => Promise<ExpenseWithBranchRow[]>;
 }

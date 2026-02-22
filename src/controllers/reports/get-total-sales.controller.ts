@@ -1,4 +1,4 @@
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { getTotalSalesUseCase } from "src/application/use-cases/reports/get-total-sales.use-case";

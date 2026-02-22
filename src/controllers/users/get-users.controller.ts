@@ -1,6 +1,6 @@
 import { getUsersUseCase } from "src/application/use-cases/users/get-users.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { UserSchema } from "src/entities/models/User";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";

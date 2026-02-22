@@ -3,13 +3,13 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { cancelItemsUseCase } from "src/application/use-cases/auctions/cancel-items.use-case";
 import { CancelItems, CancelItemsSchema } from "src/entities/models/Inventory";
 import { logger } from "@/app/lib/logger";
 
 export const CancelItemsController = async (
-  input: Partial<CancelItemsSchema>
+  input: Partial<CancelItemsSchema>,
 ) => {
   try {
     const { data, error: inputParseError } = CancelItems.safeParse(input);

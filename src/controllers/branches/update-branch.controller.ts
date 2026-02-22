@@ -4,25 +4,34 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import {
-  BranchInsertSchema,
-  BranchSchema,
-  type BranchInsertSchema as BranchInsertSchemaType,
+  BranchRow,
+  createBranchSchema,
+  CreateBranchInput,
 } from "src/entities/models/Branch";
 import { updateBranchUseCase } from "src/application/use-cases/branches/update-branch.use-case";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { formatDate } from "@/app/lib/utils";
 
-function presenter(branch: BranchSchema) {
-  return branch;
+function presenter(branch: BranchRow) {
+  const date_format = "MMM dd, yyyy";
+  return {
+    ...branch,
+    created_at: formatDate(branch.created_at, date_format),
+    updated_at: formatDate(branch.updated_at, date_format),
+    deleted_at: branch.deleted_at
+      ? formatDate(branch.deleted_at, date_format)
+      : null,
+  };
 }
 
 export const UpdateBranchController = async (
   branch_id: string,
-  input: Partial<BranchInsertSchemaType>
+  input: Partial<CreateBranchInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      BranchInsertSchema.safeParse(input);
+      createBranchSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

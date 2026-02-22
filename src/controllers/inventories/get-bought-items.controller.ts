@@ -2,7 +2,7 @@ import { logger } from "@/app/lib/logger";
 import { getBoughtItemsUseCase } from "src/application/use-cases/inventories/get-bought-items.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { InventorySchema } from "src/entities/models/Inventory";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 function presenter(
   bought_items: Omit<InventorySchema, "histories" | "container">[],

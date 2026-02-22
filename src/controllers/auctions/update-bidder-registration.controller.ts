@@ -5,18 +5,18 @@ import {
   DatabaseOperationError,
 } from "src/entities/errors/common";
 import {
+  updateBidderRegistrationSchema,
   UpdateBidderRegistrationInput,
-  type UpdateBidderRegistrationSchema,
 } from "src/entities/models/Bidder";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const UpdateBidderRegistrationController = async (
   auction_bidder_id: string,
-  input: Partial<UpdateBidderRegistrationSchema>
+  input: Partial<UpdateBidderRegistrationInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      UpdateBidderRegistrationInput.safeParse(input);
+      updateBidderRegistrationSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -26,7 +26,7 @@ export const UpdateBidderRegistrationController = async (
 
     const auction_bidder = await updateBidderRegistrationUseCase(
       auction_bidder_id,
-      data
+      data,
     );
     return ok(auction_bidder);
   } catch (error) {

@@ -7,7 +7,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { type InventorySheetRecord } from "src/entities/models/Inventory";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const UploadInventoryFileController = async (
   barcode: string,

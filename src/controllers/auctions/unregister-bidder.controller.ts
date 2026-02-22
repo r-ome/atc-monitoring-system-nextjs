@@ -3,7 +3,7 @@ import {
   DatabaseOperationError,
 } from "src/entities/errors/common";
 import { unregisterBidderUseCase } from "src/application/use-cases/auctions/unregister-bidder.use-case";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
 export const UnregisterBidderController = async (auction_bidder_id: string) => {

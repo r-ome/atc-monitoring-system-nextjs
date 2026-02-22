@@ -1,6 +1,6 @@
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { deleteExpenseUseCase } from "src/application/use-cases/expenses/delete-expense.use-case";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
 export const DeleteExpenseController = async (expense_id: string) => {

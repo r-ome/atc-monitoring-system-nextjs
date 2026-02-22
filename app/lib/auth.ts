@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials) {
           throw new InputParseError("Invalid Data!", {
-            cause: "Credentials is required!",
+            cause: { credentials: ["Credentials is required!"] },
           });
         }
         const res = await LoginController(credentials);

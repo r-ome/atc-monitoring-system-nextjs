@@ -1,10 +1,10 @@
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { getTotalExpensesUseCase } from "src/application/use-cases/reports/get-total-expenses.use-case";
-import { ExpenseSchema } from "src/entities/models/Expense";
+import { ExpenseWithBranchRow } from "src/entities/models/Expense";
 
-function presenter(expenses: ExpenseSchema[]) {
+function presenter(expenses: ExpenseWithBranchRow[]) {
   return expenses.reduce((acc, expense) => {
     acc += expense.amount.toNumber();
     return acc;

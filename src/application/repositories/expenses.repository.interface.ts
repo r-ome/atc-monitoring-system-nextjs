@@ -1,9 +1,9 @@
 import {
-  ExpenseSchema,
-  UpdateExpenseInputSchema,
-  ExpenseInsertSchema,
-  PettyCashSchema,
-  PettyCashInsertSchemaType,
+  ExpenseWithBranchRow,
+  UpdateExpenseInput,
+  CreateExpenseInput,
+  PettyCashWithBranchRow,
+  CreatePettyCashInput,
   PettyCash,
 } from "src/entities/models/Expense";
 
@@ -11,23 +11,23 @@ export interface IExpenseRepository {
   getExpensesByDate: (
     date: string,
     branch_id: string | undefined,
-  ) => Promise<ExpenseSchema[]>;
+  ) => Promise<ExpenseWithBranchRow[]>;
   addExpense: (
     petty_cash_id: string,
-    input: ExpenseInsertSchema,
-  ) => Promise<ExpenseSchema>;
+    input: CreateExpenseInput,
+  ) => Promise<ExpenseWithBranchRow>;
   getPettyCashBalance: (
     date: string,
     branch_id: string | undefined,
-  ) => Promise<PettyCashSchema | null>;
+  ) => Promise<PettyCashWithBranchRow | null>;
   updateExpense: (
     expense_id: string,
-    data: UpdateExpenseInputSchema,
-  ) => Promise<ExpenseSchema>;
+    data: UpdateExpenseInput,
+  ) => Promise<ExpenseWithBranchRow>;
   updatePettyCash: (
     petty_cash_id: string,
-    data: PettyCashInsertSchemaType,
-  ) => Promise<PettyCashSchema>;
+    data: CreatePettyCashInput,
+  ) => Promise<PettyCashWithBranchRow>;
   deleteExpense: (expense_id: string) => Promise<void>;
   recalculatePettyCash: (petty_cash: PettyCash) => Promise<void>;
 }

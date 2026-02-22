@@ -1,14 +1,11 @@
 import {
   ManifestSheetRecord,
-  ManifestInsertSchema,
+  UploadManifestInput,
 } from "src/entities/models/Manifest";
 import * as xlsx from "xlsx";
 import { formatNumberPadding } from "./utils";
-import {
-  BaseInventorySchema,
-  InventorySchema,
-} from "src/entities/models/Inventory";
-import { ContainerSchema } from "src/entities/models/Container";
+import { InventorySchema } from "src/entities/models/Inventory";
+import { ContainerWithAllRow } from "src/entities/models/Container";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { InputParseError } from "src/entities/errors/common";
@@ -172,7 +169,7 @@ export const getSheetData = (
 
 export const validateEmptyFields = (
   data: ManifestSheetRecord[],
-): ManifestInsertSchema[] => {
+): UploadManifestInput[] => {
   return data.map((item) => {
     const required = [
       "BARCODE",
@@ -216,8 +213,8 @@ export const validateEmptyFields = (
 };
 
 export const formatControlDescriptionQty = (
-  data: ManifestInsertSchema[],
-): ManifestInsertSchema[] => {
+  data: UploadManifestInput[],
+): UploadManifestInput[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
     if (!item.DESCRIPTION) item.DESCRIPTION = "NO DESCRIPTION";
@@ -265,8 +262,8 @@ export const divideQuantites = (qty: string | number, parts: number) => {
 };
 
 export const formatSlashedBarcodes = (
-  data: ManifestInsertSchema[],
-): ManifestInsertSchema[] => {
+  data: UploadManifestInput[],
+): UploadManifestInput[] => {
   return data.reduce((acc, item) => {
     const new_barcodes = item.BARCODE.split("/");
     const new_control = item.CONTROL.split("/");
@@ -303,11 +300,11 @@ export const formatSlashedBarcodes = (
     });
 
     return [...acc, ...new_rows];
-  }, [] as ManifestInsertSchema[]);
+  }, [] as UploadManifestInput[]);
 };
 
 export const validateBidders = (
-  data: ManifestInsertSchema[],
+  data: UploadManifestInput[],
   registeredBidders: RegisteredBidderSchema[],
 ) => {
   return data.map((item) => {
@@ -332,8 +329,8 @@ export const validateBidders = (
 };
 
 export const removeManifestDuplicates = (
-  data: ManifestInsertSchema[],
-): ManifestInsertSchema[] => {
+  data: UploadManifestInput[],
+): UploadManifestInput[] => {
   const seen = new Set<string>();
 
   return data.map((item) => {
@@ -348,7 +345,7 @@ export const removeManifestDuplicates = (
     }
 
     if (seen.has(key)) {
-      return { ...item, isValid: false, error: "DUPLICATE MANIFSET" };
+      return { ...item, isValid: false, error: "DUPLICATE MANIFEST" };
     } else {
       seen.add(key);
       return item;
@@ -363,15 +360,15 @@ export const removeManifestDuplicates = (
  *
  * @param data
  * @param existing_inventories
- * @returns ManifestInsertSchema[]
+ * @returns UploadManifestInput[]
  */
 export const formatExistingInventories = (
-  data: ManifestInsertSchema[],
+  data: UploadManifestInput[],
   existing_inventories: Omit<
     InventorySchema,
     "histories" | "container" | "auctions_inventory"
   >[],
-): ManifestInsertSchema[] => {
+): UploadManifestInput[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
 
@@ -415,11 +412,9 @@ export const formatExistingInventories = (
 };
 
 export const addContainerIdForNewInventories = (
-  data: ManifestInsertSchema[],
-  containers: (Omit<ContainerSchema, "inventories"> & {
-    inventories: BaseInventorySchema[];
-  })[],
-): ManifestInsertSchema[] => {
+  data: UploadManifestInput[],
+  containers: ContainerWithAllRow[],
+): UploadManifestInput[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
     if (item.inventory_id) return item;
@@ -451,7 +446,7 @@ export const addContainerIdForNewInventories = (
 };
 
 export const removeMonitoringDuplicates = (
-  data: ManifestInsertSchema[],
+  data: UploadManifestInput[],
   monitoring: AuctionsInventorySchema[],
 ) => {
   const existing_monitoring = monitoring.map((item) =>

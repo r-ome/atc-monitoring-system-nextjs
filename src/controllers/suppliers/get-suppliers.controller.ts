@@ -1,11 +1,11 @@
 import { getSuppliersUseCase } from "src/application/use-cases/suppliers/get-suppliers.use-case";
-import { SupplierSchema } from "src/entities/models/Supplier";
+import { SupplierRow } from "src/entities/models/Supplier";
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (suppliers: Omit<SupplierSchema, "containers">[]) => {
+const presenter = (suppliers: SupplierRow[]) => {
   const date_format = "MMM dd, yyyy";
   return suppliers.map((supplier) => ({
     supplier_id: supplier.supplier_id,

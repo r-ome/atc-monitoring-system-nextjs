@@ -1,13 +1,11 @@
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-import { ContainerSchema } from "src/entities/models/Container";
+import { ContainerWithBranchRow } from "src/entities/models/Container";
 import { getContainersDueDateUseCase } from "src/application/use-cases/statistics/get-containers-due-date.use-case";
 
-function presenter(
-  containers: Omit<ContainerSchema, "supplier" | "inventories">[]
-) {
+function presenter(containers: ContainerWithBranchRow[]) {
   const date_format = "MMM d";
   return containers.map((container) => ({
     container_id: container.container_id,

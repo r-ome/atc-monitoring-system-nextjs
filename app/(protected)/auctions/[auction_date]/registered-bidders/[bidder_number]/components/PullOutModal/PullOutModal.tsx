@@ -90,12 +90,12 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
     setIsLoading(true);
     formData.append(
       "auction_bidder_id",
-      bidderPaymentDetails.auction_bidder_id
+      bidderPaymentDetails.auction_bidder_id,
     );
 
     formData.append(
       "auction_inventory_ids",
-      JSON.stringify(selectedItems.map((item) => item.auction_inventory_id))
+      JSON.stringify(selectedItems.map((item) => item.auction_inventory_id)),
     );
 
     formData.append("amount_to_be_paid", grandTotal.toString());
@@ -129,8 +129,15 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
         onOpenChange(false);
         setCurrentStep(1);
       } else {
-        const description =
-          typeof res.error?.cause === "string" ? res.error.cause : null;
+        if (res.error.message === "Server Error") {
+          toast.error(res.error.message);
+        }
+        const cause = res.error.cause as Record<string, string[]> | undefined;
+        const description = cause
+          ? Object.entries(cause)
+              .map(([, msgs]) => `${msgs.join(", ")}`)
+              .join(" | ")
+          : undefined;
 
         toast.error(res.error.message, { description });
       }
@@ -200,7 +207,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
                     {params.auction_date
                       ? `(${formatDate(
                           new Date(params.auction_date.toString()),
-                          "MMMM dd, yyyy"
+                          "MMMM dd, yyyy",
                         )})`
                       : null}
                   </div>
@@ -220,7 +227,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
                     disabled={isLoading}
                     onClick={() => {
                       const form = document.getElementById(
-                        "bidder-payment-form"
+                        "bidder-payment-form",
                       ) as HTMLFormElement;
 
                       form.requestSubmit();

@@ -3,12 +3,12 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { getBidderByBidderNumberUseCase } from "src/application/use-cases/bidders/get-bidder-by-bidder-number.use-case";
-import { BidderSchema } from "src/entities/models/Bidder";
+import { BidderWithDetailsRow } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (bidder: BidderSchema) => {
+const presenter = (bidder: BidderWithDetailsRow) => {
   return {
     ...bidder,
     remarks: bidder.remarks || undefined,
@@ -42,12 +42,12 @@ const presenter = (bidder: BidderSchema) => {
 
 export const GetBidderByBidderNumberController = async (
   bidder_number: string,
-  branch_name: string
+  branch_name: string,
 ) => {
   try {
     const bidder = await getBidderByBidderNumberUseCase(
       bidder_number,
-      branch_name
+      branch_name,
     );
 
     if (!bidder) {

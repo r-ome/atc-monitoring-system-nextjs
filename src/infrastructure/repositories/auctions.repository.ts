@@ -10,11 +10,14 @@ import {
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
 import {
-  ManifestInsertSchema,
-  ManifestUpdateSchema,
+  UploadManifestInput,
+  UpdateManifestInput,
 } from "src/entities/models/Manifest";
-import { Override } from "src/entities/models/Response";
-import { AUCTION_ITEM_STATUS } from "src/entities/models/Auction";
+import {
+  AUCTION_ITEM_STATUS,
+  AuctionsInventorySchema,
+  Override,
+} from "src/entities/models/Auction";
 import { isRange } from "@/app/lib/utils";
 
 export const AuctionRepository: IAuctionRepository = {
@@ -188,14 +191,54 @@ export const AuctionRepository: IAuctionRepository = {
   ) => {
     try {
       if (auction_id === "ALL") {
-        return await prisma.auctions_inventories.findMany({
-          include: {
-            auction_bidder: { include: { bidder: true } },
-            inventory: true,
-            receipt: true,
-            histories: { include: { receipt: true } },
+        const result = (await prisma.auctions_inventories.findMany({
+          select: {
+            auction_inventory_id: true,
+            auction_bidder_id: true,
+            inventory_id: true,
+            receipt_id: true,
+            description: true,
+            status: true,
+            price: true,
+            qty: true,
+            manifest_number: true,
+            is_slash_item: true,
+            auction_date: true,
+            created_at: true,
+            updated_at: true,
+            inventory: {
+              select: {
+                inventory_id: true,
+                barcode: true,
+                control: true,
+                status: true,
+              },
+            },
+            auction_bidder: {
+              select: {
+                service_charge: true,
+                registration_fee: true,
+                already_consumed: true,
+                balance: true,
+                bidder: {
+                  select: {
+                    bidder_id: true,
+                    bidder_number: true,
+                    first_name: true,
+                    last_name: true,
+                  },
+                },
+              },
+            },
+            receipt: {
+              select: {
+                receipt_id: true,
+                receipt_number: true,
+              },
+            },
           },
-        });
+        })) as unknown as AuctionsInventorySchema[];
+        return result;
       }
 
       return await prisma.auctions_inventories.findMany({
@@ -332,7 +375,7 @@ export const AuctionRepository: IAuctionRepository = {
             item.inventory_id = item.inventory_id ?? match?.inventory_id;
             item.auction_inventory_id = item?.auction_inventory_id;
             return item as Override<
-              ManifestInsertSchema,
+              UploadManifestInput,
               {
                 auction_bidder_id: string;
                 inventory_id: string;
@@ -885,7 +928,7 @@ export const AuctionRepository: IAuctionRepository = {
             }
             item.inventory_id = item.inventory_id ?? match?.inventory_id;
             return item as Override<
-              ManifestUpdateSchema,
+              UpdateManifestInput,
               {
                 auction_bidder_id: string;
                 inventory_id: string;

@@ -3,15 +3,16 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { updateCounterCheckUseCase } from "src/application/use-cases/auctions/update-counter-check.use-case";
 import { logger } from "@/app/lib/logger";
 import {
-  CounterCheckUpdateSchema,
-  CounterCheckSchema,
+  updateCounterCheckSchema,
+  UpdateCounterCheckInput,
+  CounterCheckRow,
 } from "src/entities/models/CounterCheck";
 
-function presenter(counter_check: CounterCheckSchema) {
+function presenter(counter_check: CounterCheckRow) {
   return {
     counter_check_id: counter_check.counter_check_id,
     bidder_number: counter_check.bidder_number,
@@ -24,11 +25,11 @@ function presenter(counter_check: CounterCheckSchema) {
 
 export const UpdateCounterCheckController = async (
   counter_check_id: string,
-  input: Partial<CounterCheckUpdateSchema>,
+  input: Partial<UpdateCounterCheckInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      CounterCheckUpdateSchema.safeParse(input);
+      updateCounterCheckSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

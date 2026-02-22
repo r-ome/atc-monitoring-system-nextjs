@@ -1,18 +1,12 @@
-import { BidderSchema } from "src/entities/models/Bidder";
+import { BidderWithLastAuctionRow } from "src/entities/models/Bidder";
 import { getBiddersUseCase } from "src/application/use-cases/bidders/get-bidders.use-case";
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { formatDistanceToNow } from "date-fns";
 
-const presenter = (
-  bidders: (Omit<BidderSchema, "requirements" | "auctions_joined"> & {
-    auctions_joined: Array<
-      Omit<BidderSchema["auctions_joined"][number], "auctions_inventories">
-    >;
-  })[]
-) => {
+const presenter = (bidders: BidderWithLastAuctionRow[]) => {
   const date_format = "MMM dd, yyyy";
   return bidders.map((item) => ({
     ...item,

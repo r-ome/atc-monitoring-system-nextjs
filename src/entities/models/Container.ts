@@ -3,10 +3,25 @@ import { Prisma } from "@prisma/client";
 import { Inventory } from "./Inventory";
 import { Branch } from "./Branch";
 
-export type BaseContainerSchema = Prisma.containersGetPayload<{
+export type ContainerRow = Prisma.containersGetPayload<object>;
+
+export type ContainerWithBranchRow = Prisma.containersGetPayload<{
+  include: { branch: true };
+}>;
+
+export type ContainerWithSupplierRow = Prisma.containersGetPayload<{
+  include: { branch: true; supplier: true };
+}>;
+
+export type ContainerWithInventoriesRow = Prisma.containersGetPayload<{
+  include: { inventories: true };
+}>;
+
+export type ContainerWithAllRow = Prisma.containersGetPayload<{
   include: { branch: true; inventories: true; supplier: true };
 }>;
-export type ContainerSchema = Prisma.containersGetPayload<{
+
+export type ContainerWithDetailsRow = Prisma.containersGetPayload<{
   include: {
     branch: true;
     inventories: {
@@ -48,7 +63,7 @@ export type Container = {
   inventories: Inventory[];
 };
 
-export const ContainerInsertSchema = z.object({
+export const createContainerSchema = z.object({
   supplier_id: z.string(),
   branch_id: z.string(),
   barcode: z.string(),
@@ -61,7 +76,7 @@ export const ContainerInsertSchema = z.object({
   duties_and_taxes: z.coerce.number().nullable(),
 });
 
-export type ContainerInsertSchema = z.infer<typeof ContainerInsertSchema>;
+export type CreateContainerInput = z.infer<typeof createContainerSchema>;
 
 export type ContainerDueDate = {
   container_id: string;

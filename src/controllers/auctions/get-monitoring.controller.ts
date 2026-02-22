@@ -1,7 +1,7 @@
 import { getMonitoringUseCase } from "src/application/use-cases/auctions/get-monitoring.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
@@ -39,7 +39,7 @@ function presenter(monitoring: AuctionsInventorySchema[]) {
       receipt_id: item.receipt?.receipt_id,
       receipt_number: item.receipt?.receipt_number,
     },
-    histories: item.histories.map((item) => ({
+    histories: (item.histories ?? []).map((item) => ({
       inventory_history_id: item.inventory_history_id,
       auction_status: item.auction_status,
       inventory_status: item.inventory_status,

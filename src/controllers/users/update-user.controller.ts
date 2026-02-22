@@ -2,7 +2,7 @@ import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { UserUpdateInputSchema, UserSchema } from "src/entities/models/User";
 import { logger } from "@/app/lib/logger";
 import { updateUserUseCase } from "src/application/use-cases/users/update-user.use-case";
@@ -13,7 +13,7 @@ function presenter(user: UserSchema) {
 
 export const UpdateUserController = async (
   user_id: string,
-  input: Partial<UserUpdateInputSchema>
+  input: Partial<UserUpdateInputSchema>,
 ) => {
   try {
     const { data, error: inputParseError } =
