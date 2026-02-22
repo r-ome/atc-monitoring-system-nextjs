@@ -1,18 +1,9 @@
 "use client";
 
-import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { type Branch } from "src/entities/models/Branch";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/app/components/ui/dropdown-menu";
+import { ArrowUpDown } from "lucide-react";
 
 export const columns: ColumnDef<Branch>[] = [
   {
@@ -33,32 +24,5 @@ export const columns: ColumnDef<Branch>[] = [
   {
     accessorKey: "created_at",
     header: "Created At",
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    size: 50,
-    cell: ({ row }) => {
-      const branch = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="cursor-pointer">
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => redirect(`/branches/${branch.name}`)}
-            >
-              View Branch Profile
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
   },
 ];

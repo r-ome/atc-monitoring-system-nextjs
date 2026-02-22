@@ -5,18 +5,18 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import {
+  updateExpenseSchema,
   UpdateExpenseInput,
-  type UpdateExpenseInputSchema,
 } from "src/entities/models/Expense";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const UpdateExpenseController = async (
   expense_id: string,
-  input: Partial<UpdateExpenseInputSchema>
+  input: Partial<UpdateExpenseInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      UpdateExpenseInput.safeParse(input);
+      updateExpenseSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

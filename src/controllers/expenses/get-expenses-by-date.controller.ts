@@ -1,14 +1,14 @@
 import { getExpensesByDateUseCase } from "src/application/use-cases/expenses/get-expenses-by-date.use-case";
-import { ExpenseSchema } from "src/entities/models/Expense";
+import { ExpenseWithBranchRow } from "src/entities/models/Expense";
 import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(expenses: ExpenseSchema[]) {
+function presenter(expenses: ExpenseWithBranchRow[]) {
   return expenses.map((expense) => ({
     expense_id: expense.expense_id,
     amount: expense.amount.toNumber(),

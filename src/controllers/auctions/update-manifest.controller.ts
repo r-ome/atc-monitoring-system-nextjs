@@ -3,15 +3,16 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { updateManifestUseCase } from "src/application/use-cases/auctions/update-manifest.use-case";
 import { logger } from "@/app/lib/logger";
 import {
-  ManifestUpdateSchema,
-  ManifestSchema,
+  updateManifestSchema,
+  UpdateManifestInput,
+  ManifestRow,
 } from "src/entities/models/Manifest";
 
-function presenter(manifest: ManifestSchema) {
+function presenter(manifest: ManifestRow) {
   return {
     manifest_id: manifest.manifest_id,
     barcode: manifest.barcode,
@@ -26,11 +27,11 @@ function presenter(manifest: ManifestSchema) {
 export const UpdateManifestController = async (
   auction_id: string,
   manifest_id: string,
-  input: Partial<ManifestUpdateSchema>
+  input: Partial<UpdateManifestInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      ManifestUpdateSchema.safeParse(input);
+      updateManifestSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

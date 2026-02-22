@@ -4,7 +4,7 @@ import { Loader2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bidder, BIDDER_STATUS } from "src/entities/models/Bidder";
+import { Bidder, BidderStatus } from "src/entities/models/Bidder";
 import { toast } from "sonner";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { Button } from "@/app/components/ui/button";
@@ -45,7 +45,7 @@ type UpdateBidderForm = {
   contact_number?: string | null;
   registration_fee?: number;
   service_charge?: number;
-  status?: BIDDER_STATUS;
+  status?: BidderStatus;
   payment_term?: number;
   branch_id?: string | null;
 };
@@ -118,7 +118,7 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
           `${bidder.bidder_number}-${bidder.branch.name}`
         ) {
           router.push(
-            `/bidders/${res.value.bidder_number}-${res.value.branch.name}`
+            `/bidders/${res.value.bidder_number}-${res.value.branch.name}`,
           );
         } else {
           router.refresh();

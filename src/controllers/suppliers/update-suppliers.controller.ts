@@ -3,17 +3,17 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import {
-  SupplierInsertSchema,
-  SupplierSchema,
-  type SupplierInsertSchema as SupplierInsertSchemaType,
+  createSupplierSchema,
+  CreateSupplierInput,
+  SupplierRow,
 } from "src/entities/models/Supplier";
 import { updateSupplierUseCase } from "src/application/use-cases/suppliers/update-supplier.use-case";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(supplier: Omit<SupplierSchema, "containers">) {
+function presenter(supplier: SupplierRow) {
   const date_format = "MMMM dd, yyyy";
   return {
     supplier_id: supplier.supplier_id,
@@ -35,11 +35,11 @@ function presenter(supplier: Omit<SupplierSchema, "containers">) {
 
 export const UpdateSupplierController = async (
   supplier_id: string,
-  input: Partial<SupplierInsertSchemaType>
+  input: Partial<CreateSupplierInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      SupplierInsertSchema.safeParse(input);
+      createSupplierSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

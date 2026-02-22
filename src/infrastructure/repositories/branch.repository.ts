@@ -12,7 +12,7 @@ import {
 export const BranchRepository: IBranchRepository = {
   getBranch: async (branch_id) => {
     try {
-      return await prisma.branches.findFirst({ where: { branch_id } });
+      return await prisma.branches.findUnique({ where: { branch_id } });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting branch", {
@@ -38,7 +38,9 @@ export const BranchRepository: IBranchRepository = {
   },
   getBranches: async () => {
     try {
-      return await prisma.branches.findMany();
+      return await prisma.branches.findMany({
+        where: { name: { not: "ALL" } },
+      });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting branches", {
@@ -80,7 +82,7 @@ export const BranchRepository: IBranchRepository = {
   },
   getBranchWithBidders: async (branch_id) => {
     try {
-      const branch = await prisma.branches.findFirst({
+      const branch = await prisma.branches.findUnique({
         include: { bidders: true },
         where: { branch_id },
       });
@@ -90,7 +92,7 @@ export const BranchRepository: IBranchRepository = {
       return branch;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error updating Branch!", {
+        throw new DatabaseOperationError("Error getting Branch!", {
           cause: error.message,
         });
       }

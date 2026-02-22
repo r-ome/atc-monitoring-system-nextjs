@@ -1,13 +1,13 @@
 import { getReceiptDetailsUseCase } from "src/application/use-cases/payments/get-receipt-details.use-case";
-import { ReceiptRecordsSchema } from "src/entities/models/Payment";
-import { ok, err } from "src/entities/models/Response";
+import { ReceiptRecordWithDetailsRow } from "src/entities/models/Payment";
+import { ok, err } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { isBefore, isAfter } from "date-fns";
 
 function presenter(
-  receipt: Omit<ReceiptRecordsSchema, "auctions_inventories">,
+  receipt: Omit<ReceiptRecordWithDetailsRow, "auctions_inventories">,
 ) {
   const date_format = "MMMM dd, yyyy hh:mm:ss a";
 

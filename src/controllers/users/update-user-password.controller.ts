@@ -2,7 +2,7 @@ import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import {
   UserUpdatePasswordInputSchema,
   UserSchema,
@@ -16,7 +16,7 @@ function presenter(user: UserSchema) {
 
 export const UpdateUserPasswordController = async (
   user_id: string,
-  input: Partial<UserUpdatePasswordInputSchema>
+  input: Partial<UserUpdatePasswordInputSchema>,
 ) => {
   try {
     const { data, error: inputParseError } =

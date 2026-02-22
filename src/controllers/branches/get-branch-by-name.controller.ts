@@ -2,13 +2,13 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { BranchSchema } from "src/entities/models/Branch";
+import { BranchRow } from "src/entities/models/Branch";
 import { formatDate } from "@/app/lib/utils";
 import { getBranchByNameUseCase } from "src/application/use-cases/branches/get-branch-by-name.use-case";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (branch: BranchSchema) => {
+const presenter = (branch: BranchRow) => {
   const date_format = "MMM dd, yyyy";
   return {
     branch_id: branch.branch_id,

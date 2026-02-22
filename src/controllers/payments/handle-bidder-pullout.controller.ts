@@ -5,17 +5,17 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import {
-  PullOutPaymentInsertSchema,
-  type PullOutPaymentInsertSchema as PullOutPaymentInsertSchemaType,
+  pullOutPaymentSchema,
+  PullOutPaymentInput,
 } from "src/entities/models/Payment";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const HandleBidderPullOutController = async (
-  input: Partial<PullOutPaymentInsertSchemaType>
+  input: Partial<PullOutPaymentInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      PullOutPaymentInsertSchema.safeParse(input);
+      pullOutPaymentSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -25,12 +25,16 @@ export const HandleBidderPullOutController = async (
 
     const total_amount_paid = data.payments.reduce(
       (acc, item) => (acc += item.amount_paid),
-      0
+      0,
     );
 
     if (total_amount_paid !== data.amount_to_be_paid) {
       throw new InputParseError("Invalid Data!", {
-        cause: `Amount Paid should be equal to Grand Total(₱${data.amount_to_be_paid.toLocaleString()})`,
+        cause: {
+          amount_paid: [
+            `Amount Paid should be equal to Grand Total(₱${data.amount_to_be_paid.toLocaleString()})`,
+          ],
+        },
       });
     }
 

@@ -4,7 +4,7 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import {
   AuctionsInventorySchema,
   VoidItemsSchema,
@@ -16,7 +16,7 @@ const presenter = (
   auctionInventories: Omit<
     AuctionsInventorySchema,
     "auction_bidder" | "inventory" | "receipt" | "histories"
-  >[]
+  >[],
 ) => {
   const date_format = "MMMM dd, yyyy";
   return auctionInventories.map((auction_inventory) => ({

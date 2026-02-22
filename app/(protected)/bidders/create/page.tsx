@@ -35,7 +35,7 @@ export default function Page() {
   const [birthdate, setBirthdate] = useState<Date>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]> | undefined>(
-    undefined
+    undefined,
   );
   const [branches, setBranches] = useState<Branch[]>([]);
 
@@ -81,15 +81,14 @@ export default function Page() {
       if (res.ok) {
         toast.success("Successfully created Bidder!");
         router.push(
-          `/bidders/${res.value.bidder_number}-${res.value.branch.name}`
+          `/bidders/${res.value.bidder_number}-${res.value.branch.name}`,
         );
       }
       if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
         if (res.error.message === "Invalid Data!") {
           setErrors(res.error.cause as Record<string, string[]>);
+        } else {
+          toast.error(res.error.message);
         }
       }
     }

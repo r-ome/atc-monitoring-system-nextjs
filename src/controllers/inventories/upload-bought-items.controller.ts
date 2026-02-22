@@ -3,7 +3,7 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadBoughtItemsUseCase } from "src/application/use-cases/inventories/upload-bought-items.use-case";
 import { BoughtItemsSheetRecord } from "src/entities/models/Manifest";

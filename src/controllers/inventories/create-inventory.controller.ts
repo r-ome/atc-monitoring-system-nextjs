@@ -10,19 +10,19 @@ import {
   InventorySchema,
   type InventoryInsertSchema as InventoryInsertSchemaType,
 } from "src/entities/models/Inventory";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 
 function presenter(
   inventory: Omit<
     InventorySchema,
     "container" | "histories" | "auctions_inventory"
-  >
+  >,
 ) {
   return inventory;
 }
 
 export const CreateInventoryController = async (
-  input: Partial<InventoryInsertSchemaType>
+  input: Partial<InventoryInsertSchemaType>,
 ) => {
   try {
     const { data, error: inputParseError } =

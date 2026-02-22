@@ -3,7 +3,7 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";

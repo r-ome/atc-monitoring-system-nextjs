@@ -1,5 +1,4 @@
 import { IBidderRepository } from "src/application/repositories/bidders.repository.interface";
-import { BidderInsertSchema } from "src/entities/models/Bidder";
 import prisma from "@/app/lib/prisma/prisma";
 import {
   NotFoundError,
@@ -111,7 +110,7 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
-  updateBidder: async (bidder_id, data: BidderInsertSchema) => {
+  updateBidder: async (bidder_id, data) => {
     try {
       const updated = await prisma.bidders.update({
         include: { branch: true },

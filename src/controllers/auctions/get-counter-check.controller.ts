@@ -1,11 +1,11 @@
 import { getCounterCheckRecordsUseCase } from "src/application/use-cases/auctions/get-counter-check.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { CounterCheckSchema } from "src/entities/models/CounterCheck";
-import { ok, err } from "src/entities/models/Response";
+import { CounterCheckRow } from "src/entities/models/CounterCheck";
+import { ok, err } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-function presenter(counter_check: CounterCheckSchema[]) {
+function presenter(counter_check: CounterCheckRow[]) {
   return counter_check.map((item) => ({
     counter_check_id: item.counter_check_id,
     auction_id: item.auction_id,

@@ -6,21 +6,22 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import {
-  ContainerInsertSchema,
-  ContainerSchema,
+  createContainerSchema,
+  CreateContainerInput,
+  ContainerWithSupplierRow,
 } from "src/entities/models/Container";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
-function presenter(container: Omit<ContainerSchema, "inventories">) {
+function presenter(container: ContainerWithSupplierRow) {
   return {
     ...container,
-    duties_and_taxes: container.duties_and_taxes.toString(),
+    duties_and_taxes: Number(container.duties_and_taxes),
   };
 }
 
 export const UpdateContainerController = async (
   container_id: string,
-  input: Partial<ContainerInsertSchema>
+  input: Partial<CreateContainerInput>,
 ) => {
   try {
     input.arrival_date = input.arrival_date
@@ -28,7 +29,7 @@ export const UpdateContainerController = async (
       : null;
 
     const { data, error: inputParseError } =
-      ContainerInsertSchema.safeParse(input);
+      createContainerSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

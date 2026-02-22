@@ -1,6 +1,7 @@
 import {
-  SupplierSchema,
-  SupplierInsertSchema,
+  createSupplierSchema,
+  CreateSupplierInput,
+  SupplierRow,
 } from "src/entities/models/Supplier";
 import { formatDate } from "@/app/lib/utils";
 import { createSupplierUseCase } from "src/application/use-cases/suppliers/create-supplier.use-case";
@@ -8,10 +9,10 @@ import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (supplier: Omit<SupplierSchema, "containers">) => {
+const presenter = (supplier: SupplierRow) => {
   const date_format = "MMM dd, yyyy";
 
   return {
@@ -25,11 +26,11 @@ const presenter = (supplier: Omit<SupplierSchema, "containers">) => {
 };
 
 export const CreateSupplierController = async (
-  input: Partial<SupplierInsertSchema>
+  input: Partial<CreateSupplierInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      SupplierInsertSchema.safeParse(input);
+      createSupplierSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

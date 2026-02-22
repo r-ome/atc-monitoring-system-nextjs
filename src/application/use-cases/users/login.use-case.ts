@@ -14,7 +14,7 @@ export const loginUseCase = async (username: string, password: string) => {
     return user;
   } else {
     throw new InputParseError("Invalid Data!", {
-      cause: "The password you've entered is incorrect!",
+      cause: { password: ["The password you've entered is incorrect!"] },
     });
   }
 };

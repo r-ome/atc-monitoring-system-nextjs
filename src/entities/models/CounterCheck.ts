@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 
-export type CounterCheckSchema = Prisma.counter_checkGetPayload<object>;
+export type CounterCheckRow = Prisma.counter_checkGetPayload<object>;
 
 export type CounterCheckRecord = Record<
   "CONTROL" | "BIDDER" | "PAGE" | "PRICE" | "DESCRIPTION" | "TIME",
   string
 >;
 
-export const CounterCheckUpdateSchema = z.object({
+export const updateCounterCheckSchema = z.object({
   control: z.string(),
   bidder_number: z.string(),
   price: z.coerce.string(),
@@ -18,9 +18,9 @@ export const CounterCheckUpdateSchema = z.object({
   remarks: z.string().optional().nullable(),
 });
 
-export type CounterCheckUpdateSchema = z.infer<typeof CounterCheckUpdateSchema>;
+export type UpdateCounterCheckInput = z.infer<typeof updateCounterCheckSchema>;
 
-export const CounterCheckInsertSchema = z.object({
+export const uploadCounterCheckSchema = z.object({
   CONTROL: z.string(),
   BIDDER: z.string(),
   PRICE: z.coerce.string(),
@@ -29,7 +29,7 @@ export const CounterCheckInsertSchema = z.object({
   TIME: z.coerce.string(),
 });
 
-export type CounterCheckInsertSchema = z.infer<typeof CounterCheckInsertSchema>;
+export type UploadCounterCheckInput = z.infer<typeof uploadCounterCheckSchema>;
 
 export type CounterCheck = {
   counter_check_id: string;

@@ -1,10 +1,10 @@
-import { PaymentMethodInsertSchema } from "src/entities/models/PaymentMethod";
+import { CreatePaymentMethodInput } from "src/entities/models/PaymentMethod";
 import { PaymentMethodRepository } from "src/infrastructure/repositories/payment-methods.repository";
 import { InputParseError } from "src/entities/errors/common";
 
 export const updatePaymentMethodUseCase = async (
   payment_method_id: string,
-  method: PaymentMethodInsertSchema
+  method: CreatePaymentMethodInput
 ) => {
   const payment_methods = await PaymentMethodRepository.getPaymentMethods();
   const exists = payment_methods.find((item) => item.name === method.name);

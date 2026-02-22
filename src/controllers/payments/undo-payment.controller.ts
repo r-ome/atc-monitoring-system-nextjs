@@ -4,7 +4,7 @@ import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const UndoPaymentController = async (receipt_id: string) => {
   try {

@@ -1,6 +1,6 @@
 "use server";
 
-import { CreateBidderController } from "src/controllers/bidders/create-bidders.controller";
+import { CreateBidderController } from "src/controllers/bidders/create-bidder.controller";
 import { UpdateBidderController } from "src/controllers/bidders/update-bidder.controller";
 import { GetBiddersController } from "src/controllers/bidders/get-bidders.controller";
 import { GetBidderByBidderNumberController } from "src/controllers/bidders/get-bidder-by-bidder-number.controller";
@@ -15,7 +15,7 @@ export const createBidder = async (formData: FormData) => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await CreateBidderController(data)
+    async () => await CreateBidderController(data),
   );
 };
 
@@ -31,7 +31,7 @@ export const getBidders = async () => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetBiddersController()
+    async () => await GetBiddersController(),
   );
 };
 
@@ -43,7 +43,7 @@ export const updateBidder = async (bidder_id: string, formData: FormData) => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await UpdateBidderController(bidder_id, data)
+    async () => await UpdateBidderController(bidder_id, data),
   );
 };
 
@@ -54,6 +54,6 @@ export const uploadBidders = async (formData: FormData) => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await UploadBiddersController(branch_id, file as File)
+    async () => await UploadBiddersController(branch_id, file as File),
   );
 };

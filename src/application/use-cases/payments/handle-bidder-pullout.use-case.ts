@@ -1,8 +1,8 @@
-import { PullOutPaymentInsertSchema } from "src/entities/models/Payment";
+import { PullOutPaymentInput } from "src/entities/models/Payment";
 import { PaymentRepository } from "src/infrastructure/repositories/payments.repository";
 
 export const handleBidderPullOutUseCase = async (
-  data: PullOutPaymentInsertSchema
+  data: PullOutPaymentInput
 ) => {
   return PaymentRepository.handleBidderPullOut(data);
 };

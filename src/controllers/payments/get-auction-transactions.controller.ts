@@ -1,15 +1,15 @@
 import { getAuctionTransactionsUseCase } from "src/application/use-cases/payments/get-auction-transactions.use-case";
 import { formatDate } from "@/app/lib/utils";
-import { ReceiptRecordsSchema } from "src/entities/models/Payment";
-import { ok, err } from "src/entities/models/Response";
+import { ReceiptRecordWithDetailsRow } from "src/entities/models/Payment";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 
 function presenter(
   transactions: Omit<
-    ReceiptRecordsSchema,
+    ReceiptRecordWithDetailsRow,
     "auctions_inventories" | "inventory_histories"
-  >[]
+  >[],
 ) {
   const date_format = "MMMM dd, yyyy hh:mm:ss a";
   return transactions.map((item) => ({
@@ -20,7 +20,7 @@ function presenter(
     created_at: formatDate(item.created_at, date_format),
     total_amount_paid: item.payments.reduce(
       (acc, item) => (acc += item.amount_paid),
-      0
+      0,
     ),
     bidder: {
       bidder_id: item.auction_bidder.bidder.bidder_id,

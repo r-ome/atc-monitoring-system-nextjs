@@ -54,11 +54,10 @@ export const UpdateBranchModal: React.FC<UpdateBranchModalProps> = ({
       }
 
       if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
         if (res.error.message === "Invalid Data!") {
           setErrors(res.error.cause as Record<string, string[]>);
+        } else {
+          toast.error(res.error.message);
         }
       }
     }
@@ -68,7 +67,13 @@ export const UpdateBranchModal: React.FC<UpdateBranchModalProps> = ({
     <>
       <Button onClick={() => setOpenDialog(true)}>Edit Branch</Button>
 
-      <Dialog open={open}>
+      <Dialog
+        open={open}
+        onOpenChange={() => {
+          setOpenDialog(!open);
+          setErrors(undefined);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Update Branch</DialogTitle>

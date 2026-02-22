@@ -1,16 +1,11 @@
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { getContainersUseCase } from "src/application/use-cases/containers/get-containers.use-case";
-import { ContainerSchema } from "src/entities/models/Container";
-import { BaseInventorySchema } from "src/entities/models/Inventory";
+import { ContainerWithAllRow } from "src/entities/models/Container";
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (
-  containers: (Omit<ContainerSchema, "inventories"> & {
-    inventories: BaseInventorySchema[];
-  })[]
-) => {
+const presenter = (containers: ContainerWithAllRow[]) => {
   const date_format = "MMM dd, yyyy";
 
   return containers.map((container) => {

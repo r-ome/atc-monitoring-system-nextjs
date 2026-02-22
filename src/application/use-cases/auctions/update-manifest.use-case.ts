@@ -1,13 +1,10 @@
 import { AuctionRepository } from "src/infrastructure/repositories/auctions.repository";
-import {
-  BaseInventorySchema,
-  InventorySchema,
-} from "src/entities/models/Inventory";
-import { ManifestUpdateSchema } from "src/entities/models/Manifest";
+import { InventorySchema } from "src/entities/models/Inventory";
+import { UpdateManifestInput } from "src/entities/models/Manifest";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { AuctionsInventorySchema } from "src/entities/models/Auction";
 import { getAllInventoriesUseCase } from "../inventories/get-all-inventories.use-case";
-import { ContainerSchema } from "src/entities/models/Container";
+import { ContainerWithAllRow } from "src/entities/models/Container";
 import { getContainersUseCase } from "../containers/get-containers.use-case";
 import { divideIntoHundreds, divideQuantites } from "@/app/lib/sheets";
 import { formatNumberPadding } from "@/app/lib/utils";
@@ -17,7 +14,7 @@ import { winston_logger } from "@/app/lib/logger";
 export const updateManifestUseCase = async (
   auction_id: string,
   manifest_id: string,
-  data: ManifestUpdateSchema
+  data: UpdateManifestInput
 ) => {
   const registered_bidders = await AuctionRepository.getRegisteredBidders(
     auction_id
@@ -57,7 +54,7 @@ export const updateManifestUseCase = async (
 };
 
 const validateBidders = (
-  data: ManifestUpdateSchema[],
+  data: UpdateManifestInput[],
   registeredBidders: RegisteredBidderSchema[]
 ) => {
   return data.map((item) => {
@@ -81,12 +78,12 @@ const validateBidders = (
 };
 
 const formatExistingInventories = (
-  data: ManifestUpdateSchema[],
+  data: UpdateManifestInput[],
   existing_inventories: Omit<
     InventorySchema,
     "histories" | "container" | "auctions_inventory"
   >[]
-): ManifestUpdateSchema[] => {
+): UpdateManifestInput[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
     // check if it has inventory barcode (e.g. 27-01-01) (the 3 digit from the combination)
@@ -113,11 +110,9 @@ const formatExistingInventories = (
 };
 
 const addContainerIdForNewInventories = (
-  data: ManifestUpdateSchema[],
-  containers: (Omit<ContainerSchema, "inventories"> & {
-    inventories: BaseInventorySchema[];
-  })[]
-): ManifestUpdateSchema[] => {
+  data: UpdateManifestInput[],
+  containers: ContainerWithAllRow[],
+): UpdateManifestInput[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
     if (item.inventory_id) return item;
@@ -149,8 +144,8 @@ const addContainerIdForNewInventories = (
 };
 
 const formatSlashedBarcodes = (
-  data: ManifestUpdateSchema
-): ManifestUpdateSchema[] => {
+  data: UpdateManifestInput
+): UpdateManifestInput[] => {
   const new_barcodes = data.barcode.split("/");
   const new_control = data.control.split("/");
 
@@ -190,7 +185,7 @@ const formatSlashedBarcodes = (
 };
 
 const removeMonitoringDuplicates = (
-  data: ManifestUpdateSchema[],
+  data: UpdateManifestInput[],
   monitoring: AuctionsInventorySchema[]
 ) => {
   const existing_monitoring = monitoring.map((item) =>

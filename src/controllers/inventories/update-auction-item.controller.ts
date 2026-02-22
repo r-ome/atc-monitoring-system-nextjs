@@ -8,11 +8,11 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
 export const UpdateAuctionItemController = async (
-  input: Partial<AuctionInventoryUpdateSchemaType>
+  input: Partial<AuctionInventoryUpdateSchemaType>,
 ) => {
   try {
     const { data, error: inputParseError } =

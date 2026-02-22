@@ -1,11 +1,11 @@
 import { getContainerByBarcodeUseCase } from "src/application/use-cases/containers/get-container-by-barcode.use-case";
-import { ContainerSchema } from "src/entities/models/Container";
+import { ContainerWithDetailsRow } from "src/entities/models/Container";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (container: ContainerSchema) => {
+const presenter = (container: ContainerWithDetailsRow) => {
   const date_format = "MMM dd, yyyy";
 
   const timestamps = container.inventories

@@ -4,14 +4,15 @@ import {
 } from "src/entities/errors/common";
 import { createPaymentMethodUseCase } from "src/application/use-cases/payment-methods/create-payment-method.use-case";
 import {
-  PaymentMethodInsertSchema,
-  type PaymentMethodsSchema,
+  createPaymentMethodSchema,
+  CreatePaymentMethodInput,
+  PaymentMethodRow,
 } from "src/entities/models/PaymentMethod";
 import { formatDate } from "@/app/lib/utils";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (payment_method: PaymentMethodsSchema) => {
+const presenter = (payment_method: PaymentMethodRow) => {
   const date_format = "MMM dd, yyyy";
   return {
     ...payment_method,
@@ -24,11 +25,11 @@ const presenter = (payment_method: PaymentMethodsSchema) => {
 };
 
 export const CreatePaymentMethodController = async (
-  input: Partial<PaymentMethodInsertSchema>
+  input: Partial<CreatePaymentMethodInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      PaymentMethodInsertSchema.safeParse(input);
+      createPaymentMethodSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

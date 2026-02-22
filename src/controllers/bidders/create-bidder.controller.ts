@@ -4,17 +4,15 @@ import {
 } from "src/entities/errors/common";
 import { createBidderUseCase } from "src/application/use-cases/bidders/create-bidder.use-case";
 import {
-  BidderInsertSchema,
-  type BidderSchema,
-  type BidderInsertSchema as BidderInsertSchemaType,
+  createBidderSchema,
+  CreateBidderInput,
+  BidderWithBranchRow,
 } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (
-  bidder: Omit<BidderSchema, "auctions_joined" | "requirements">
-) => {
+const presenter = (bidder: BidderWithBranchRow) => {
   const date_format = "MMM dd, yyyy";
   return {
     ...bidder,
@@ -28,7 +26,7 @@ const presenter = (
 };
 
 export const CreateBidderController = async (
-  input: Partial<BidderInsertSchemaType>
+  input: Partial<CreateBidderInput>,
 ) => {
   try {
     input = {
@@ -37,7 +35,7 @@ export const CreateBidderController = async (
     };
 
     const { data, error: inputParseError } =
-      BidderInsertSchema.safeParse(input);
+      createBidderSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -49,6 +47,7 @@ export const CreateBidderController = async (
     return ok(presenter(bidder));
   } catch (error) {
     logger("CreateBidderController", error);
+    console.log(error);
     if (error instanceof DatabaseOperationError) {
       return err({
         message: "Server Error",

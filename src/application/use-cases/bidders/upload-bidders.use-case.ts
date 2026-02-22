@@ -1,7 +1,7 @@
 import { BidderRepository } from "src/infrastructure/repositories/bidders.repository";
 import {
   BidderSheetRecord,
-  BulkBidderInsertSchema,
+  CreateBidderBulkInput,
 } from "src/entities/models/Bidder";
 import { formatNumberPadding } from "@/app/lib/utils";
 
@@ -16,7 +16,7 @@ export const uploadBiddersUseCase = async (
 const validateEmptyFields = (
   branch_id: string,
   data: BidderSheetRecord[]
-): BulkBidderInsertSchema[] => {
+): CreateBidderBulkInput[] => {
   return data.map((item) => {
     const required = [
       "BIDDER_NUMBER",

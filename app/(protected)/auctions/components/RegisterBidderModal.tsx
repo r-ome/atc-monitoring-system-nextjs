@@ -167,8 +167,16 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
       }
 
       if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
+        if (res.error.message === "Server Error") {
+          toast.error(res.error.message);
+        }
+        const cause = res.error.cause as Record<string, string[]> | undefined;
+        const description = cause
+          ? Object.entries(cause)
+              .map(([, msgs]) => `${msgs.join(", ")}`)
+              .join(" | ")
+          : undefined;
+
         toast.error(res.error.message, { description });
       }
     }

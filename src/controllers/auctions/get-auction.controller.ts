@@ -4,7 +4,7 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
 
@@ -12,7 +12,7 @@ function presenter(auction: AuctionSchema) {
   const date_format = "MMM dd, yyyy";
   const auctions_inventories = auction.registered_bidders.reduce(
     (acc, item) => [...acc, ...item.auctions_inventories],
-    [] as AuctionSchema["registered_bidders"][number]["auctions_inventories"]
+    [] as AuctionSchema["registered_bidders"][number]["auctions_inventories"],
   );
 
   return {
@@ -22,7 +22,7 @@ function presenter(auction: AuctionSchema) {
     updated_at: formatDate(auction.updated_at, date_format),
     registered_bidders: auction.registered_bidders.map((registered_bidder) => {
       const receipt_records = registered_bidder.receipt_records.find(
-        (item) => item.purpose === "REGISTRATION"
+        (item) => item.purpose === "REGISTRATION",
       );
 
       return {
@@ -73,7 +73,7 @@ function presenter(auction: AuctionSchema) {
               receipt_number: item.receipt?.receipt_number,
             },
             histories: item.histories,
-          })
+          }),
         ),
       };
     }),

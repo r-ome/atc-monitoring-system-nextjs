@@ -1,5 +1,5 @@
 import { InputParseError } from "src/entities/errors/common";
-import { ContainerInsertSchema } from "src/entities/models/Container";
+import { CreateContainerInput } from "src/entities/models/Container";
 import { ContainerRepository } from "src/infrastructure/repositories/containers.repository";
 import { getContainerByBarcodeUseCase } from "./get-container-by-barcode.use-case";
 import { addDays } from "date-fns";
@@ -7,7 +7,7 @@ import { logger } from "@/app/lib/logger";
 
 export const updateContainerUseCase = async (
   container_id: string,
-  input: ContainerInsertSchema
+  input: CreateContainerInput,
 ) => {
   let container;
   try {
@@ -19,7 +19,7 @@ export const updateContainerUseCase = async (
   if (container) {
     if (container.container_id !== container_id && container) {
       throw new InputParseError("Invalid Data!", {
-        cause: "Barcode already exist!",
+        cause: { barcode: ["Barcode already exist!"] },
       });
     }
   }

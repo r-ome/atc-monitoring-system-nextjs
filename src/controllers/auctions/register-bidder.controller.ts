@@ -3,19 +3,19 @@ import {
   DatabaseOperationError,
 } from "src/entities/errors/common";
 import {
+  registerBidderSchema,
   RegisterBidderInput,
-  type RegisterBidderInputSchema,
 } from "src/entities/models/Bidder";
 import { registerBidderUseCase } from "src/application/use-cases/auctions/register-bidder.use-case";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
 export const RegisterBidderController = async (
-  input: Partial<RegisterBidderInputSchema>
+  input: Partial<RegisterBidderInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      RegisterBidderInput.safeParse(input);
+      registerBidderSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -25,12 +25,16 @@ export const RegisterBidderController = async (
 
     const total_amount_paid = data.payments.reduce(
       (acc, item) => (acc += item.amount_paid),
-      0
+      0,
     );
 
     if (total_amount_paid !== data.registration_fee) {
       throw new InputParseError("Invalid Data!", {
-        cause: `Amount Paid should be equal to (₱${data.registration_fee.toLocaleString()})`,
+        cause: {
+          amount_paid: [
+            `Amount Paid should be equal to (₱${data.registration_fee.toLocaleString()})`,
+          ],
+        },
       });
     }
 

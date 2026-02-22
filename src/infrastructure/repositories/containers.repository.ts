@@ -9,7 +9,6 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ContainerInsertSchema } from "src/entities/models/Container";
 
 export const ContainerRepository: IContainerRepository = {
   getContainerById: async (container_id: string) => {
@@ -82,7 +81,7 @@ export const ContainerRepository: IContainerRepository = {
       throw error;
     }
   },
-  createContainer: async (container: ContainerInsertSchema) => {
+  createContainer: async (container) => {
     try {
       const created = await prisma.containers.create({
         data: {
@@ -101,10 +100,6 @@ export const ContainerRepository: IContainerRepository = {
           status: "UNPAID",
         },
       });
-
-      if (!created) {
-        throw new Error("Failed to created Container");
-      }
 
       return created;
     } catch (error) {
@@ -133,7 +128,7 @@ export const ContainerRepository: IContainerRepository = {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError(
           "Error getting inventories by Container Barcode",
-          { cause: error.message }
+          { cause: error.message },
         );
       }
 

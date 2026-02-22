@@ -7,7 +7,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { CounterCheckRecord } from "src/entities/models/CounterCheck";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const UploadCounterCheckController = async (
   auction_id: string,

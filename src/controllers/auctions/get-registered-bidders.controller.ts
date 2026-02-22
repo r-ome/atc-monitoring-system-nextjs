@@ -1,7 +1,7 @@
 import { getRegisteredBiddersUseCase } from "src/application/use-cases/auctions/get-registered-bidders.use-case";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 

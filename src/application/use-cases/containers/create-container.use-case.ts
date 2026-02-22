@@ -1,4 +1,4 @@
-import { ContainerInsertSchema } from "src/entities/models/Container";
+import { CreateContainerInput } from "src/entities/models/Container";
 import { ContainerRepository } from "src/infrastructure/repositories/containers.repository";
 import { getSupplierContainersUseCase } from "../suppliers/get-supplier-containers.use-case";
 import { InputParseError } from "src/entities/errors/common";
@@ -6,7 +6,7 @@ import { formatNumberPadding } from "@/app/lib/utils";
 import { addDays } from "date-fns";
 
 export const createContainerUseCase = async (
-  container: ContainerInsertSchema,
+  container: CreateContainerInput,
 ) => {
   // validate if container number is already in supplier
   const supplier = await getSupplierContainersUseCase(container.supplier_id);

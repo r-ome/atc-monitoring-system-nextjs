@@ -1,8 +1,8 @@
 import { z } from "zod";
-
 import { Prisma } from "@prisma/client";
 
-export type ManifestSchema = Prisma.manifest_recordsGetPayload<object>;
+export type ManifestRow = Prisma.manifest_recordsGetPayload<object>;
+
 export type Manifest = {
   manifest_id: string;
   auction_id: string;
@@ -30,7 +30,7 @@ export type ManifestSheetRecord = Record<
   string
 >;
 
-export const ManifestInsertSchema = z.object({
+export const uploadManifestSchema = z.object({
   BARCODE: z.string(),
   CONTROL: z.string(),
   DESCRIPTION: z.string(),
@@ -50,14 +50,14 @@ export const ManifestInsertSchema = z.object({
   error: z.string(),
 });
 
-export type ManifestInsertSchema = z.infer<typeof ManifestInsertSchema>;
+export type UploadManifestInput = z.infer<typeof uploadManifestSchema>;
 
 export type BoughtItemsSheetRecord = Record<
   "BARCODE" | "CONTROL" | "DESCRIPTION" | "OLD_PRICE" | "NEW_PRICE",
   string
 >;
 
-export const ManifestUpdateSchema = z.object({
+export const updateManifestSchema = z.object({
   manifest_id: z.string(),
   barcode: z.string(),
   control: z.string(),
@@ -74,4 +74,4 @@ export const ManifestUpdateSchema = z.object({
   error: z.string(),
 });
 
-export type ManifestUpdateSchema = z.infer<typeof ManifestUpdateSchema>;
+export type UpdateManifestInput = z.infer<typeof updateManifestSchema>;

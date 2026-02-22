@@ -1,14 +1,18 @@
-import { BranchSchema, BranchInsertSchema } from "src/entities/models/Branch";
+import {
+  createBranchSchema,
+  CreateBranchInput,
+  BranchRow,
+} from "src/entities/models/Branch";
 import { createBranchUseCase } from "src/application/use-cases/branches/create-branch.use-case";
 import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
 import { formatDate } from "@/app/lib/utils";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (branch: BranchSchema) => {
+const presenter = (branch: BranchRow) => {
   const date_format = "MMM dd, yyyy";
   return {
     ...branch,
@@ -21,11 +25,11 @@ const presenter = (branch: BranchSchema) => {
 };
 
 export const CreateBranchController = async (
-  input: Partial<BranchInsertSchema>
+  input: Partial<CreateBranchInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      BranchInsertSchema.safeParse(input);
+      createBranchSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

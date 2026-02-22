@@ -1,8 +1,8 @@
 import { createContainerUseCase } from "src/application/use-cases/containers/create-container.use-case";
 import {
-  ContainerInsertSchema,
-  type ContainerInsertSchema as ContainerInsertSchemaType,
-  ContainerSchema,
+  createContainerSchema,
+  CreateContainerInput,
+  ContainerRow,
 } from "src/entities/models/Container";
 import {
   DatabaseOperationError,
@@ -10,12 +10,10 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { formatDate } from "@/app/lib/utils";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (
-  container: Omit<ContainerSchema, "branch" | "inventories" | "supplier">,
-) => {
+const presenter = (container: ContainerRow) => {
   const date_format = "MMM dd, yyyy";
   return {
     ...container,
@@ -35,7 +33,7 @@ const presenter = (
 };
 
 export const CreateContainerController = async (
-  input: Partial<ContainerInsertSchemaType>,
+  input: Partial<CreateContainerInput>,
 ) => {
   try {
     input = {
@@ -45,7 +43,7 @@ export const CreateContainerController = async (
     };
 
     const { data, error: inputParseError } =
-      ContainerInsertSchema.safeParse(input);
+      createContainerSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

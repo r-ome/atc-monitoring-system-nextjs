@@ -4,14 +4,15 @@ import {
 } from "src/entities/errors/common";
 import { updatePaymentMethodUseCase } from "src/application/use-cases/payment-methods/update-payment-method.use-case";
 import {
-  PaymentMethodInsertSchema,
-  type PaymentMethodsSchema,
+  createPaymentMethodSchema,
+  CreatePaymentMethodInput,
+  PaymentMethodRow,
 } from "src/entities/models/PaymentMethod";
 import { formatDate } from "@/app/lib/utils";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (payment_method: PaymentMethodsSchema) => {
+const presenter = (payment_method: PaymentMethodRow) => {
   const date_format = "MMM dd, yyyy";
   return {
     ...payment_method,
@@ -25,11 +26,11 @@ const presenter = (payment_method: PaymentMethodsSchema) => {
 
 export const UpdatePaymentMethodController = async (
   payment_method_id: string,
-  input: Partial<PaymentMethodInsertSchema>
+  input: Partial<CreatePaymentMethodInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      PaymentMethodInsertSchema.safeParse(input);
+      createPaymentMethodSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -39,7 +40,7 @@ export const UpdatePaymentMethodController = async (
 
     const payment_method = await updatePaymentMethodUseCase(
       payment_method_id,
-      data
+      data,
     );
     return ok(presenter(payment_method));
   } catch (error) {

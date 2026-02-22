@@ -1,43 +1,43 @@
 import {
-  PullOutPaymentInsertSchema,
-  RefundAuctionInventories,
-  ReceiptRecordsSchema,
-  PaymentSchema,
-  RegistrationPaymentUpdateSchema,
+  PullOutPaymentInput,
+  RefundAuctionInventoriesInput,
+  ReceiptRecordWithDetailsRow,
+  PaymentWithDetailsRow,
+  UpdateRegistrationPaymentInput,
 } from "src/entities/models/Payment";
 
 export interface IPaymentRepository {
   getPaymentsByDate: (
     date: Date,
     branch_id: string | undefined
-  ) => Promise<PaymentSchema[]>;
+  ) => Promise<PaymentWithDetailsRow[]>;
   getReceiptDetails: (
     auction_date: string,
     receipt_number: string
-  ) => Promise<Omit<ReceiptRecordsSchema, "auctions_inventories">>;
+  ) => Promise<Omit<ReceiptRecordWithDetailsRow, "auctions_inventories">>;
   getAuctionTransactions: (
     auction_id: string
-  ) => Promise<Omit<ReceiptRecordsSchema, "inventory_histories">[]>;
+  ) => Promise<Omit<ReceiptRecordWithDetailsRow, "inventory_histories">[]>;
   handleBidderPullOut: (
-    data: PullOutPaymentInsertSchema
+    data: PullOutPaymentInput
   ) => Promise<
     Omit<
-      ReceiptRecordsSchema,
+      ReceiptRecordWithDetailsRow,
       | "auction_bidder"
       | "auctions_inventories"
       | "payments"
       | "inventory_histories"
     >
   >;
-  refundAuctionInventories: (data: RefundAuctionInventories) => Promise<void>;
+  refundAuctionInventories: (data: RefundAuctionInventoriesInput) => Promise<void>;
   getBidderReceipts: (
     auction_bidder_id: string
   ) => Promise<
-    Omit<ReceiptRecordsSchema, "auctions_inventories" | "inventory_histories">[]
+    Omit<ReceiptRecordWithDetailsRow, "auctions_inventories" | "inventory_histories">[]
   >;
   updateRegistrationPayment: (
     payment_id: string,
-    data: RegistrationPaymentUpdateSchema
+    data: UpdateRegistrationPaymentInput
   ) => Promise<void>;
   undoPayment: (receipt_id: string) => Promise<void>;
 }

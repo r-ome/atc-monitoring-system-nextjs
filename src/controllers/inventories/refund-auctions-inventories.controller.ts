@@ -5,16 +5,16 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import {
-  RefundAuctionInventories,
-  type RefundAuctionInventories as RefundAuctionInventoriesType,
+  refundAuctionInventoriesSchema,
+  RefundAuctionInventoriesInput,
 } from "src/entities/models/Payment";
-import { ok, err } from "src/entities/models/Response";
+import { ok, err } from "src/entities/models/Result";
 
 export const RefundAuctionsInventoriesController = async (
-  input: Partial<RefundAuctionInventoriesType>
+  input: Partial<RefundAuctionInventoriesInput>,
 ) => {
   try {
-    const auction_inventories: RefundAuctionInventoriesType["auction_inventories"] =
+    const auction_inventories: RefundAuctionInventoriesInput["auction_inventories"] =
       typeof input.auction_inventories === "string"
         ? JSON.parse(input.auction_inventories)
         : {};
@@ -31,7 +31,7 @@ export const RefundAuctionsInventoriesController = async (
     };
 
     const { data, error: inputParseError } =
-      RefundAuctionInventories.safeParse(formattedInput);
+      refundAuctionInventoriesSchema.safeParse(formattedInput);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

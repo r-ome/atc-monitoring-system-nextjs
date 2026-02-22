@@ -7,11 +7,11 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { BidderSheetRecord } from "src/entities/models/Bidder";
-import { err, ok } from "src/entities/models/Response";
+import { err, ok } from "src/entities/models/Result";
 
 export const UploadBiddersController = async (
   branch_id: string,
-  file: File
+  file: File,
 ) => {
   try {
     if (!file) {
@@ -58,7 +58,7 @@ export const UploadBiddersController = async (
 
     const res = await uploadBiddersUseCase(
       branch_id,
-      data as BidderSheetRecord[]
+      data as BidderSheetRecord[],
     );
 
     return ok(`${res.count} records uploaded!`);
