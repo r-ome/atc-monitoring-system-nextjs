@@ -1,8 +1,5 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/app/lib/auth";
 import { requireUser } from "@/app/lib/auth";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { GetAuctionController } from "src/controllers/auctions/get-auction.controller";
@@ -24,10 +21,7 @@ import { UpdateBidderRegistrationController } from "src/controllers/auctions/upd
 import { UnregisterBidderController } from "src/controllers/auctions/unregister-bidder.controller";
 
 export const startAuction = async (auctionDate: string) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-
-  if (!user) redirect("/login");
+  const user = await requireUser();
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
@@ -36,10 +30,7 @@ export const startAuction = async (auctionDate: string) => {
 };
 
 export const getAuction = async (auctionDate: string) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-
-  if (!user) redirect("/login");
+  const user = await requireUser();
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
@@ -59,10 +50,7 @@ export const getRegisteredBidders = async (auctionId: string) => {
 };
 
 export const getMonitoring = async (auctionId: string) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-
-  if (!user) redirect("/login");
+  const user = await requireUser();
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },

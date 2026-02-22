@@ -6,14 +6,10 @@ import { GetBiddersController } from "src/controllers/bidders/get-bidders.contro
 import { GetBidderByBidderNumberController } from "src/controllers/bidders/get-bidder-by-bidder-number.controller";
 import { UploadBiddersController } from "src/controllers/bidders/upload-bidders.controller";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
-import { redirect } from "next/navigation";
+import { requireUser } from "@/app/lib/auth";
 
 export const createBidder = async (formData: FormData) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-  if (!user) redirect("/login");
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
   data.branch_id = data.branch_id ? data.branch_id : user.branch.branch_id;
 
@@ -31,10 +27,7 @@ export const getBidderByBidderNumber = async (bidderNumber: string) => {
 };
 
 export const getBidders = async () => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-
-  if (!user) redirect("/login");
+  const user = await requireUser();
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
@@ -43,9 +36,7 @@ export const getBidders = async () => {
 };
 
 export const updateBidder = async (bidder_id: string, formData: FormData) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-  if (!user) redirect("/login");
+  const user = await requireUser();
 
   const data = Object.fromEntries(formData.entries());
   data.branch_id = data.branch_id ? data.branch_id : user.branch.branch_id;
@@ -57,12 +48,9 @@ export const updateBidder = async (bidder_id: string, formData: FormData) => {
 };
 
 export const uploadBidders = async (formData: FormData) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
+  const user = await requireUser();
   const branch_id = formData.get("branch_id") as string;
   const file = formData.get("file");
-
-  if (!user) redirect("/login");
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },

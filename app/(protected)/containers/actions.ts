@@ -1,8 +1,6 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/app/lib/auth";
+import { requireUser } from "@/app/lib/auth";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { CreateContainerController } from "src/controllers/containers/create-container.controller";
 import { GetContainersController } from "src/controllers/containers/get-containers.controller";
@@ -18,10 +16,7 @@ export const getContainerByBarcode = async (barcode: string) => {
 };
 
 export const getContainers = async () => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
-
-  if (!user) redirect("/login");
+  const user = await requireUser();
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
@@ -30,11 +25,8 @@ export const getContainers = async () => {
 };
 
 export const createContainer = async (form_data: FormData) => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
+  const user = await requireUser();
   const data = Object.fromEntries(form_data.entries());
-
-  if (!user) redirect("/login");
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
