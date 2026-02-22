@@ -6,7 +6,7 @@ import {
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { IStatisticsRepository } from "src/application/repositories/statistics.repository.interface";
 import { BiddersWithBirthdatesAndRecentAuctionSchema } from "src/entities/models/Bidder";
-import { AuctionsStatisticsSchema } from "src/entities/models/Statistics";
+import { AuctionsStatisticsRow } from "src/entities/models/Statistics";
 
 export const StatisticsRepository: IStatisticsRepository = {
   getBidderBirthdates: async () => {
@@ -112,7 +112,7 @@ export const StatisticsRepository: IStatisticsRepository = {
         table: "a",
       });
 
-      return auctions as AuctionsStatisticsSchema[];
+      return auctions as AuctionsStatisticsRow[];
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting auction statistics!", {

@@ -1,5 +1,5 @@
 import { getAuctionUseCase } from "src/application/use-cases/auctions/get-auction.use-case";
-import { AuctionSchema } from "src/entities/models/Auction";
+import { AuctionWithDetailsRow } from "src/entities/models/Auction";
 import {
   DatabaseOperationError,
   NotFoundError,
@@ -8,11 +8,11 @@ import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
 
-function presenter(auction: AuctionSchema) {
+function presenter(auction: AuctionWithDetailsRow) {
   const date_format = "MMM dd, yyyy";
   const auctions_inventories = auction.registered_bidders.reduce(
     (acc, item) => [...acc, ...item.auctions_inventories],
-    [] as AuctionSchema["registered_bidders"][number]["auctions_inventories"],
+    [] as AuctionWithDetailsRow["registered_bidders"][number]["auctions_inventories"],
   );
 
   return {

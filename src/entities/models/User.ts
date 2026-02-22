@@ -9,14 +9,9 @@ export const USER_ROLES = [
   "ENCODER",
 ] as const;
 
-export type USER_ROLES =
-  | "SUPER_ADMIN"
-  | "ADMIN"
-  | "OWNER"
-  | "CASHIER"
-  | "ENCODER";
+export type UserRole = (typeof USER_ROLES)[number];
 
-export type UserSchema = Prisma.usersGetPayload<{
+export type UserWithBranchRow = Prisma.usersGetPayload<{
   include: { branch: true };
 }>;
 
@@ -24,7 +19,7 @@ export type User = {
   user_id: string;
   name: string;
   username: string;
-  role: USER_ROLES;
+  role: UserRole;
   branch: {
     branch_id: string;
     name: string;
@@ -33,22 +28,21 @@ export type User = {
   updated_at: string;
 };
 
-export const UsersInsertSchema = z.object({
+export const createUserSchema = z.object({
   name: z.string().min(1),
   username: z.string().min(1),
   password: z.string().min(1),
   role: z.enum(["ENCODER", "CASHIER"]),
 });
-export type UsersInsertSchema = z.infer<typeof UsersInsertSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
 
-export const LoginUserSchema = z.object({
+export const loginUserSchema = z.object({
   username: z.string().min(1),
   password: z.string().min(1),
 });
+export type LoginUserInput = z.infer<typeof loginUserSchema>;
 
-export type LoginUserSchema = z.infer<typeof LoginUserSchema>;
-
-export const RegisterUserInputSchema = z.object({
+export const registerUserSchema = z.object({
   name: z.string().min(1),
   username: z.string().min(1),
   branch_id: z.string(),
@@ -57,24 +51,19 @@ export const RegisterUserInputSchema = z.object({
     .min(6, { message: "Password must contain at least 6 characters!" }),
   role: z.enum(["CASHIER", "ENCODER"]),
 });
+export type RegisterUserInput = z.infer<typeof registerUserSchema>;
 
-export type RegisterUserInputSchema = z.infer<typeof RegisterUserInputSchema>;
-
-export const UserUpdateInputSchema = z.object({
+export const updateUserSchema = z.object({
   name: z.string().min(1),
   username: z.string().min(1),
   branch_id: z.string(),
   role: z.enum(["CASHIER", "ENCODER"]),
 });
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
-export type UserUpdateInputSchema = z.infer<typeof UserUpdateInputSchema>;
-
-export const UserUpdatePasswordInputSchema = z.object({
+export const updateUserPasswordSchema = z.object({
   password: z
     .string()
     .min(6, { message: "Password must contain at least 6 characters!" }),
 });
-
-export type UserUpdatePasswordInputSchema = z.infer<
-  typeof UserUpdatePasswordInputSchema
->;
+export type UpdateUserPasswordInput = z.infer<typeof updateUserPasswordSchema>;

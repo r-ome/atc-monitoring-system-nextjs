@@ -1,6 +1,6 @@
 import { InventoryRepository } from "src/infrastructure/repositories/inventories.repository";
-import { InventoryMergeSchema } from "src/entities/models/Inventory";
+import { MergeInventoriesInput } from "src/entities/models/Inventory";
 
-export const mergeInventoriesUseCase = async (data: InventoryMergeSchema) => {
+export const mergeInventoriesUseCase = async (data: MergeInventoriesInput) => {
   return InventoryRepository.mergeInventories(data);
 };

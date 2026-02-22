@@ -6,18 +6,14 @@ import {
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Result";
 import {
-  AuctionsInventorySchema,
-  VoidItemsSchema,
+  AuctionInventoryRow,
+  voidItemsSchema,
+  VoidItemsInput,
 } from "src/entities/models/Auction";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (
-  auctionInventories: Omit<
-    AuctionsInventorySchema,
-    "auction_bidder" | "inventory" | "receipt" | "histories"
-  >[],
-) => {
+const presenter = (auctionInventories: AuctionInventoryRow[]) => {
   const date_format = "MMMM dd, yyyy";
   return auctionInventories.map((auction_inventory) => ({
     ...auction_inventory,
@@ -26,9 +22,9 @@ const presenter = (
   }));
 };
 
-export const VoidItemsController = async (input: Partial<VoidItemsSchema>) => {
+export const VoidItemsController = async (input: Partial<VoidItemsInput>) => {
   try {
-    const { data, error: inputParseError } = VoidItemsSchema.safeParse(input);
+    const { data, error: inputParseError } = voidItemsSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

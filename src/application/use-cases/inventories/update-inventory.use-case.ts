@@ -1,5 +1,5 @@
 import { InputParseError } from "src/entities/errors/common";
-import { InventoryInsertSchema } from "src/entities/models/Inventory";
+import { CreateInventoryInput } from "src/entities/models/Inventory";
 import { InventoryRepository } from "src/infrastructure/repositories/inventories.repository";
 import { getContainersUseCase } from "../containers/get-containers.use-case";
 import { formatNumberPadding } from "@/app/lib/utils";
@@ -7,7 +7,7 @@ import { getInventoryUseCase } from "./get-inventory.use-case";
 
 export const updateInventoryUseCase = async (
   inventory_id: string,
-  input: InventoryInsertSchema
+  input: CreateInventoryInput
 ) => {
   const containers = await getContainersUseCase();
   await getInventoryUseCase(inventory_id);

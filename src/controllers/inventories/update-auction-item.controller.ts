@@ -1,6 +1,6 @@
 import {
-  AuctionInventoryUpdateSchema,
-  AuctionInventoryUpdateSchema as AuctionInventoryUpdateSchemaType,
+  updateAuctionInventorySchema,
+  UpdateAuctionInventoryInput,
 } from "src/entities/models/Inventory";
 import { updateAuctionItemUseCase } from "src/application/use-cases/inventories/update-auction-item.use-case";
 import {
@@ -12,11 +12,11 @@ import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
 export const UpdateAuctionItemController = async (
-  input: Partial<AuctionInventoryUpdateSchemaType>,
+  input: Partial<UpdateAuctionInventoryInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      AuctionInventoryUpdateSchema.safeParse(input);
+      updateAuctionInventorySchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

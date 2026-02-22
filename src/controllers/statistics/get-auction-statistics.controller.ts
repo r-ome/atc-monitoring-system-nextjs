@@ -3,9 +3,9 @@ import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { getAuctionsStatisticsUseCase } from "src/application/use-cases/statistics/get-auctions-statistics.use-case";
-import { AuctionsStatisticsSchema } from "src/entities/models/Statistics";
+import { AuctionsStatisticsRow } from "src/entities/models/Statistics";
 
-function presenter(auctions: AuctionsStatisticsSchema[]) {
+function presenter(auctions: AuctionsStatisticsRow[]) {
   return auctions.map((auction) => ({
     auction_id: auction.auction_id,
     auction_date: formatDate(auction.auction_date, "MMM dd, yyyy"),

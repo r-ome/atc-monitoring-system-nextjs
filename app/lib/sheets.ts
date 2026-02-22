@@ -4,9 +4,9 @@ import {
 } from "src/entities/models/Manifest";
 import * as xlsx from "xlsx";
 import { formatNumberPadding } from "./utils";
-import { InventorySchema } from "src/entities/models/Inventory";
+import { InventoryRow } from "src/entities/models/Inventory";
 import { ContainerWithAllRow } from "src/entities/models/Container";
-import { AuctionsInventorySchema } from "src/entities/models/Auction";
+import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { InputParseError } from "src/entities/errors/common";
 import { logger } from "./logger";
@@ -364,10 +364,7 @@ export const removeManifestDuplicates = (
  */
 export const formatExistingInventories = (
   data: UploadManifestInput[],
-  existing_inventories: Omit<
-    InventorySchema,
-    "histories" | "container" | "auctions_inventory"
-  >[],
+  existing_inventories: InventoryRow[],
 ): UploadManifestInput[] => {
   return data.map((item) => {
     if (!item.isValid) return item;
@@ -447,7 +444,7 @@ export const addContainerIdForNewInventories = (
 
 export const removeMonitoringDuplicates = (
   data: UploadManifestInput[],
-  monitoring: AuctionsInventorySchema[],
+  monitoring: AuctionInventoryWithDetailsRow[],
 ) => {
   const existing_monitoring = monitoring.map((item) =>
     JSON.stringify({

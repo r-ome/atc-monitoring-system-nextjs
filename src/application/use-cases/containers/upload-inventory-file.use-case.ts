@@ -2,7 +2,7 @@ import { ContainerRepository } from "src/infrastructure/repositories/containers.
 import { getContainerByBarcodeUseCase } from "./get-container-by-barcode.use-case";
 import type {
   InventorySheetRecord,
-  InventorySheetFormattedRecords,
+  CreateInventoryInput,
 } from "src/entities/models/Inventory";
 import { InputParseError } from "src/entities/errors/common";
 import { formatNumberPadding } from "@/app/lib/utils";
@@ -19,7 +19,7 @@ export const uploadInventoryFileUseCase = async (
     control: formatNumberPadding(item.CONTROL.toString(), 4),
     description: item.DESCRIPTION,
     status: "UNSOLD",
-  })) as InventorySheetFormattedRecords;
+  })) as CreateInventoryInput[];
 
   const existing_barcode_rows = new Set(
     container.inventories.map((item) => `${item.barcode}`),

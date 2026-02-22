@@ -1,21 +1,21 @@
 import { Prisma } from "@prisma/client";
 import type {
-  InventorySchema,
-  AuctionInventoryUpdateSchema,
-  InventoryInsertSchema,
-  InventoryMergeSchema,
-  INVENTORY_STATUS,
+  InventoryWithDetailsRow,
+  InventoryWithAuctionsInventoryRow,
+  InventoryRow,
+  UpdateAuctionInventoryInput,
+  CreateInventoryInput,
+  MergeInventoriesInput,
+  InventoryStatus,
 } from "src/entities/models/Inventory";
-import { AuctionsInventorySchema } from "src/entities/models/Auction";
+import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 
 export interface IInventoryRepository {
-  getInventory: (inventory_id: string) => Promise<InventorySchema>;
+  getInventory: (inventory_id: string) => Promise<InventoryWithDetailsRow>;
   getAuctionItemDetails: (
     auction_inventory_id: string,
-  ) => Promise<AuctionsInventorySchema | null>;
-  getUnsoldInventories: () => Promise<
-    Omit<InventorySchema, "histories" | "container" | "auctions_inventory">[]
-  >;
+  ) => Promise<AuctionInventoryWithDetailsRow | null>;
+  getUnsoldInventories: () => Promise<InventoryRow[]>;
   voidItems: (data: {
     auction_inventories: {
       auction_inventory_id: string;
@@ -24,38 +24,30 @@ export interface IInventoryRepository {
     reason: string;
   }) => Promise<
     Omit<
-      AuctionsInventorySchema,
+      AuctionInventoryWithDetailsRow,
       "auction_bidder" | "inventory" | "receipt" | "histories"
     >[]
   >;
-  updateAuctionItem: (data: AuctionInventoryUpdateSchema) => void;
+  updateAuctionItem: (data: UpdateAuctionInventoryInput) => void;
   updateInventory: (
     inventory_id: string,
-    data: InventoryInsertSchema,
-  ) => Promise<
-    Omit<InventorySchema, "container" | "histories" | "auctions_inventory">
-  >;
+    data: CreateInventoryInput,
+  ) => Promise<InventoryRow>;
   getAllInventories: (
-    status?: INVENTORY_STATUS[],
-  ) => Promise<
-    Omit<InventorySchema, "histories" | "auctions_inventory" | "container">[]
-  >;
+    status?: InventoryStatus[],
+  ) => Promise<InventoryRow[]>;
   updateBulkInventoryStatus: (
-    status: INVENTORY_STATUS,
+    status: InventoryStatus,
     data: string[],
   ) => Promise<Prisma.BatchPayload>;
-  getBoughtItems: () => Promise<
-    Omit<InventorySchema, "histories" | "container">[]
-  >;
+  getBoughtItems: () => Promise<InventoryWithAuctionsInventoryRow[]>;
   getInventoryWithNoAuctionInventory: () => Promise<
-    Omit<InventorySchema, "histories" | "container">[]
+    InventoryWithAuctionsInventoryRow[]
   >;
   createInventory: (
-    data: InventoryInsertSchema,
-  ) => Promise<
-    Omit<InventorySchema, "histories" | "auctions_inventory" | "container">
-  >;
-  mergeInventories: (data: InventoryMergeSchema) => Promise<void>;
+    data: CreateInventoryInput,
+  ) => Promise<InventoryRow>;
+  mergeInventories: (data: MergeInventoriesInput) => Promise<void>;
   appendInventories: (
     data: { barcode: string; inventory_id: string }[],
   ) => Promise<void>;

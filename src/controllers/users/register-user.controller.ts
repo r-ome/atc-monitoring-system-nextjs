@@ -3,20 +3,24 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
-import { RegisterUserInputSchema, UserSchema } from "src/entities/models/User";
+import {
+  registerUserSchema,
+  RegisterUserInput,
+  UserWithBranchRow,
+} from "src/entities/models/User";
 import { registerUserUseCase } from "src/application/use-cases/users/register-user.use-case";
 import { logger } from "@/app/lib/logger";
 
-function presenter(user: UserSchema) {
+function presenter(user: UserWithBranchRow) {
   return user;
 }
 
 export const RegisterUserController = async (
-  input: Partial<RegisterUserInputSchema>,
+  input: Partial<RegisterUserInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      RegisterUserInputSchema.safeParse(input);
+      registerUserSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

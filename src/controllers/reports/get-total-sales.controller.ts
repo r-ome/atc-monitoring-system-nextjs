@@ -2,10 +2,10 @@ import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { getTotalSalesUseCase } from "src/application/use-cases/reports/get-total-sales.use-case";
-import { AuctionSalesSchema } from "src/entities/models/Auction";
+import { AuctionWithSalesRow } from "src/entities/models/Auction";
 import { formatDate } from "@/app/lib/utils";
 
-function presenter(auctions: AuctionSalesSchema[]) {
+function presenter(auctions: AuctionWithSalesRow[]) {
   return auctions.map((auction) => {
     const total_items = auction.registered_bidders.flatMap(
       (registered_bidder) => registered_bidder.auctions_inventories,

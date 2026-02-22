@@ -1,5 +1,5 @@
 import { DefaultSession, DefaultUser } from "next-auth";
-import { USER_ROLES } from "src/entities/models/User";
+import { UserRole } from "src/entities/models/User";
 
 type Branch = {
   branch_id: string;
@@ -11,7 +11,7 @@ declare module "next-auth" {
     user: DefaultSession["user"] & {
       id: string;
       username?: string;
-      role: USER_ROLES;
+      role: UserRole;
       branch: Branch;
     };
   }
@@ -19,7 +19,7 @@ declare module "next-auth" {
   interface User extends DefaultUser {
     id: string;
     username?: string;
-    role: USER_ROLES;
+    role: UserRole;
     branch: Branch;
   }
 }
@@ -28,7 +28,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     username?: string;
-    role?: USER_ROLES;
+    role?: UserRole;
     branch?: Branch;
   }
 }

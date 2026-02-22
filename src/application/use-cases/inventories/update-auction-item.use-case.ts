@@ -1,11 +1,11 @@
 import { InventoryRepository } from "src/infrastructure/repositories/inventories.repository";
-import { AuctionInventoryUpdateSchema } from "src/entities/models/Inventory";
+import { UpdateAuctionInventoryInput } from "src/entities/models/Inventory";
 import { getContainersUseCase } from "../containers/get-containers.use-case";
 import { InputParseError } from "src/entities/errors/common";
 import { formatNumberPadding } from "@/app/lib/utils";
 
 export const updateAuctionItemUseCase = async (
-  data: AuctionInventoryUpdateSchema
+  data: UpdateAuctionInventoryInput
 ) => {
   const containers = await getContainersUseCase();
   const has_inventory_barcode = data.barcode.split("-").length === 3;

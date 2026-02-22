@@ -5,14 +5,14 @@ import {
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
 import { cancelItemsUseCase } from "src/application/use-cases/auctions/cancel-items.use-case";
-import { CancelItems, CancelItemsSchema } from "src/entities/models/Inventory";
+import { cancelItemsSchema, CancelItemsInput } from "src/entities/models/Inventory";
 import { logger } from "@/app/lib/logger";
 
 export const CancelItemsController = async (
-  input: Partial<CancelItemsSchema>,
+  input: Partial<CancelItemsInput>,
 ) => {
   try {
-    const { data, error: inputParseError } = CancelItems.safeParse(input);
+    const { data, error: inputParseError } = cancelItemsSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AuctionsInventorySchema } from "./Auction";
+import { AuctionInventoryWithDetailsRow } from "./Auction";
 import { AuctionBidderSchema, BidderRow } from "./Bidder";
 import { Prisma } from "@prisma/client";
 import { PaymentMethod } from "./PaymentMethod";
@@ -113,7 +113,7 @@ export type AuctionTransactionSchema = ReceiptRecordWithDetailsRow & {
   auction_bidder: AuctionBidderSchema & {
     bidder: BidderRow;
   };
-  auctions_inventories: Omit<AuctionsInventorySchema, "inventory">[];
+  auctions_inventories: Omit<AuctionInventoryWithDetailsRow, "inventory">[];
 };
 
 export type AuctionTransaction = {

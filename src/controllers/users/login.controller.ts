@@ -1,7 +1,7 @@
 import {
-  UserSchema,
-  LoginUserSchema,
-  type LoginUserSchema as LoginUserSchemaType,
+  UserWithBranchRow,
+  loginUserSchema,
+  LoginUserInput,
 } from "src/entities/models/User";
 import {
   DatabaseOperationError,
@@ -11,16 +11,16 @@ import { err, ok } from "src/entities/models/Result";
 import { loginUseCase } from "src/application/use-cases/users/login.use-case";
 import { logger } from "@/app/lib/logger";
 
-function presenter(user: UserSchema) {
+function presenter(user: UserWithBranchRow) {
   return user;
 }
 
 export const LoginController = async (
-  credentials: Partial<LoginUserSchemaType>,
+  credentials: Partial<LoginUserInput>,
 ) => {
   try {
     const { data, error: inputParserror } =
-      LoginUserSchema.safeParse(credentials);
+      loginUserSchema.safeParse(credentials);
 
     if (inputParserror) {
       throw new InputParseError("Invalid Data!", {

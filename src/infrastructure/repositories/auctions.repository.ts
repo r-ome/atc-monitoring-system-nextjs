@@ -14,8 +14,8 @@ import {
   UpdateManifestInput,
 } from "src/entities/models/Manifest";
 import {
-  AUCTION_ITEM_STATUS,
-  AuctionsInventorySchema,
+  AuctionItemStatus,
+  AuctionInventoryWithDetailsRow,
   Override,
 } from "src/entities/models/Auction";
 import { isRange } from "@/app/lib/utils";
@@ -187,7 +187,7 @@ export const AuctionRepository: IAuctionRepository = {
   },
   getMonitoring: async (
     auction_id: string,
-    status: AUCTION_ITEM_STATUS[] = [],
+    status: AuctionItemStatus[] = [],
   ) => {
     try {
       if (auction_id === "ALL") {
@@ -237,7 +237,7 @@ export const AuctionRepository: IAuctionRepository = {
               },
             },
           },
-        })) as unknown as AuctionsInventorySchema[];
+        })) as unknown as AuctionInventoryWithDetailsRow[];
         return result;
       }
 

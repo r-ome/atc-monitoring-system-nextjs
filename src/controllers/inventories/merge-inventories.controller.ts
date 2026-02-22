@@ -6,17 +6,17 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import {
-  InventoryMergeSchema,
-  type InventoryMergeSchema as InventoryMergeSchemaType,
+  mergeInventoriesSchema,
+  MergeInventoriesInput,
 } from "src/entities/models/Inventory";
 import { ok, err } from "src/entities/models/Result";
 
 export const MergeInventoriesController = async (
-  input: Partial<InventoryMergeSchemaType>,
+  input: Partial<MergeInventoriesInput>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      InventoryMergeSchema.safeParse(input);
+      mergeInventoriesSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {

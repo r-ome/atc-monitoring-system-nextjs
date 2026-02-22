@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { AuctionsInventory, AuctionsInventorySchema } from "./Auction";
+import { AuctionsInventory, AuctionInventoryWithDetailsRow } from "./Auction";
 import { PaymentMethod } from "./PaymentMethod";
 
 export const BIDDER_STATUS = ["BANNED", "ACTIVE", "INACTIVE"] as const;
@@ -54,7 +54,7 @@ export type Bidder = {
     registration_fee: number;
     balance: number;
     created_at: string;
-    auctions_inventories: AuctionsInventorySchema[];
+    auctions_inventories: AuctionInventoryWithDetailsRow[];
   }[];
 };
 

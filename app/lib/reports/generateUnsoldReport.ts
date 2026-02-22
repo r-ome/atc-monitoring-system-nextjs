@@ -1,9 +1,9 @@
 import * as xlsx from "xlsx-js-style";
 import { Monitoring } from "./generateReport";
-import { INVENTORY_STATUS } from "src/entities/models/Inventory";
+import { InventoryStatus } from "src/entities/models/Inventory";
 
 export type UnsoldMonitoring = Monitoring & {
-  status: INVENTORY_STATUS;
+  status: InventoryStatus;
 };
 
 const generateUnsoldReport = (

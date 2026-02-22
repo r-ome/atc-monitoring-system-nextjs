@@ -1,20 +1,20 @@
 import {
-  RegisterUserInputSchema,
-  UserSchema,
-  UserUpdateInputSchema,
-  UserUpdatePasswordInputSchema,
+  RegisterUserInput,
+  UserWithBranchRow,
+  UpdateUserInput,
+  UpdateUserPasswordInput,
 } from "src/entities/models/User";
 
 export interface IUserRepository {
-  getUserByUsername: (username: string) => Promise<UserSchema | null>;
-  getUsers: () => Promise<UserSchema[]>;
-  registerUser: (input: RegisterUserInputSchema) => Promise<UserSchema>;
+  getUserByUsername: (username: string) => Promise<UserWithBranchRow | null>;
+  getUsers: () => Promise<UserWithBranchRow[]>;
+  registerUser: (input: RegisterUserInput) => Promise<UserWithBranchRow>;
   updateUser: (
     user_id: string,
-    data: UserUpdateInputSchema
-  ) => Promise<UserSchema>;
+    data: UpdateUserInput
+  ) => Promise<UserWithBranchRow>;
   updateUserPassword: (
     user_id: string,
-    data: UserUpdatePasswordInputSchema
-  ) => Promise<UserSchema>;
+    data: UpdateUserPasswordInput
+  ) => Promise<UserWithBranchRow>;
 }
