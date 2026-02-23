@@ -1,9 +1,6 @@
 import { getBranches } from "@/app/(protected)/branches/actions";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
-import { DataTable } from "@/app/components/data-table/data-table";
-import { columns } from "./branch-columns";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { BranchsTable } from "./BranchTable";
 

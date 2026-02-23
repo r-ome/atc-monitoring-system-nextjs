@@ -1,4 +1,5 @@
 import { createContainerUseCase } from "src/application/use-cases/containers/create-container.use-case";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   createContainerSchema,
   CreateContainerInput,
@@ -35,6 +36,12 @@ const presenter = (container: ContainerRow) => {
 export const CreateContainerController = async (
   input: Partial<CreateContainerInput>,
 ) => {
+  const ctx = RequestContext.getStore();
+  const user_context = {
+    username: ctx?.username,
+    branch_name: ctx?.branch_name,
+  };
+
   try {
     input = {
       ...input,
@@ -52,17 +59,20 @@ export const CreateContainerController = async (
     }
 
     const container = await createContainerUseCase(data);
+    logger("StartAuctionController", { data, ...user_context }, "info");
     return ok(presenter(container));
   } catch (error) {
-    logger("CreateContainerController", error);
     if (error instanceof InputParseError) {
+      logger("CreateContainerController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("CreateContainerController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("CreateContainerController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

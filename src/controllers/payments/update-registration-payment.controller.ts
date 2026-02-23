@@ -27,11 +27,12 @@ export const UpdateRegistrationPaymentController = async (
     const res = await updateRegistrationPaymentUseCase(payment_id, data);
     return ok(res);
   } catch (error) {
-    logger("UpdateRegistrationPaymentController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateRegistrationPaymentController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UpdateRegistrationPaymentController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error?.message });
     }

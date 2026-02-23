@@ -44,13 +44,14 @@ export const UpdatePaymentMethodController = async (
     );
     return ok(presenter(payment_method));
   } catch (error) {
+    if (error instanceof InputParseError) {
+      logger("UpdatePaymentMethodController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
     logger("UpdatePaymentMethodController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
-    }
-
-    if (error instanceof InputParseError) {
-      return err({ message: error.message, cause: error.cause });
     }
 
     return err({

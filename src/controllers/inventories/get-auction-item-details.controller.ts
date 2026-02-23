@@ -62,11 +62,12 @@ export const GetAuctionItemDetailsController = async (
       await getAuctionItemDetailsUseCase(auction_inventory_id);
     return ok(presenter(auction_inventory));
   } catch (error) {
-    logger("GetAuctionItemDetailsController", error);
     if (error instanceof NotFoundError) {
+      logger("GetAuctionItemDetailsController", error, "warn");
       return err({ message: error.message, cause: error?.cause });
     }
 
+    logger("GetAuctionItemDetailsController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

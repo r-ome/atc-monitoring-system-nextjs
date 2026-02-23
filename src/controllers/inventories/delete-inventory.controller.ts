@@ -12,15 +12,17 @@ export const DeleteInventoryController = async (inventory_id: string) => {
     await deleteInventoryUseCase(inventory_id);
     return ok({});
   } catch (error) {
-    logger("DeleteInventoryController", error);
     if (error instanceof InputParseError) {
+      logger("DeleteInventoryController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("DeleteInventoryController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("DeleteInventoryController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

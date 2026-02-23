@@ -1,0 +1,439 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Single VPC (ap-southeast-1) with 2 public + 2 private subnets across 2 AZs,
+  IGW + public routing, optional NAT gateways for private egress,
+  EC2 (public subnet) + RDS MySQL (private subnets, Multi-AZ capable),
+  Security Groups wired EC2 -> RDS (3306).
+
+Parameters:
+  # Networking
+  VpcCidr:
+    Type: String
+    Default: 10.20.0.0/16
+
+  PublicSubnet1Cidr:
+    Type: String
+    Default: 10.20.1.0/24
+  PublicSubnet2Cidr:
+    Type: String
+    Default: 10.20.2.0/24
+
+  PrivateSubnet1Cidr:
+    Type: String
+    Default: 10.20.11.0/24
+  PrivateSubnet2Cidr:
+    Type: String
+    Default: 10.20.12.0/24
+
+  Az1:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: "AZ for subnet set 1 (e.g., ap-southeast-1a)."
+  Az2:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: "AZ for subnet set 2 (e.g., ap-southeast-1b)."
+
+  CreateNatGateways:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: "If true, creates 2 NAT Gateways (one per public subnet) and routes private subnets to them."
+
+  # EC2
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: "Existing EC2 KeyPair name for SSH access."
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t4g.micro
+      - t4g.small
+      - t4g.medium
+    Description: "EC2 instance type."
+  Ec2AmiSsmParameter:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id
+    Description: "SSM parameter for the AMI ID (default: latest Amazon Ubuntu 22.04 LTS)."
+
+  SshCidr:
+    Type: String
+    Default: "0.0.0.0/0"
+    Description: "CIDR allowed to SSH into EC2. Prefer your IP /32."
+  HttpCidr:
+    Type: String
+    Default: "0.0.0.0/0"
+    Description: "CIDR allowed to access HTTP (80) on EC2."
+  AppPort:
+    Type: Number
+    Default: 3000
+    Description: "Optional app port to open publicly (set to 0 to disable)."
+
+  # RDS
+  DbName:
+    Type: String
+    Default: atc-monitoring-system
+    Description: "Initial database name."
+  DbUsername:
+    Type: String
+    Default: admin
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: "^[a-zA-Z][a-zA-Z0-9_]*$"
+    Description: "Master username (must start with a letter)."
+  DbPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    MaxLength: 41
+    Description: "Master password (NoEcho)."
+  DbInstanceClass:
+    Type: String
+    Default: db.t3.micro
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t3.medium
+      - db.t4g.micro
+      - db.t4g.small
+      - db.t4g.medium
+    Description: "RDS instance class."
+  DbAllocatedStorage:
+    Type: Number
+    Default: 20
+    MinValue: 20
+    MaxValue: 1000
+    Description: "Allocated storage (GiB)."
+  DbMultiAz:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: "Enable Multi-AZ for RDS."
+  DbEngineVersion:
+    Type: String
+    Default: "8.0"
+    Description: "MySQL engine version family hint. (RDS may select a specific minor.)"
+
+Conditions:
+  UseNat: !Equals [!Ref CreateNatGateways, "true"]
+  OpenAppPort: !Not [!Equals [!Ref AppPort, 0]]
+  EnableDbMultiAz: !Equals [!Ref DbMultiAz, "true"]
+
+Resources:
+  # VPC
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-vpc"
+
+  # IGW + attachment
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-igw"
+
+  VpcIgwAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # Subnets
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Ref Az1
+      CidrBlock: !Ref PublicSubnet1Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-public-1"
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Ref Az2
+      CidrBlock: !Ref PublicSubnet2Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-public-2"
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Ref Az1
+      CidrBlock: !Ref PrivateSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-private-1"
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Ref Az2
+      CidrBlock: !Ref PrivateSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-private-2"
+
+  # Route tables
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-rtb-public"
+
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VpcIgwAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-rtb-private-1"
+
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-rtb-private-2"
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable1
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable2
+
+  # Optional NAT (for private subnet outbound internet; not required for RDS)
+  NatEip1:
+    Type: AWS::EC2::EIP
+    Condition: UseNat
+    Properties:
+      Domain: vpc
+
+  NatEip2:
+    Type: AWS::EC2::EIP
+    Condition: UseNat
+    Properties:
+      Domain: vpc
+
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Condition: UseNat
+    Properties:
+      AllocationId: !GetAtt NatEip1.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-nat-1"
+
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Condition: UseNat
+    Properties:
+      AllocationId: !GetAtt NatEip2.AllocationId
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-nat-2"
+
+  PrivateDefaultRoute1ToNat:
+    Type: AWS::EC2::Route
+    Condition: UseNat
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+
+  PrivateDefaultRoute2ToNat:
+    Type: AWS::EC2::Route
+    Condition: UseNat
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+
+  # Security Groups
+  Ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "EC2 SG (SSH + HTTP + optional app port)"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SshCidr
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref HttpCidr
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-sg-ec2"
+
+  Ec2AppPortIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: OpenAppPort
+    Properties:
+      GroupId: !Ref Ec2SecurityGroup
+      IpProtocol: tcp
+      FromPort: !Ref AppPort
+      ToPort: !Ref AppPort
+      CidrIp: 0.0.0.0/0
+
+  RdsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "RDS SG (allow MySQL 3306 from EC2 SG only)"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref Ec2SecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-sg-rds"
+
+  # RDS Subnet Group (2 private subnets -> Multi-AZ capable)
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub "DB subnet group for ${AWS::StackName}"
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-dbsubnetgroup"
+
+  # RDS Instance (MySQL)
+  DbInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      Engine: mysql
+      DBInstanceClass: !Ref DbInstanceClass
+      AllocatedStorage: !Ref DbAllocatedStorage
+      DBName: !Ref DbName
+      MasterUsername: !Ref DbUsername
+      MasterUserPassword: !Ref DbPassword
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups:
+        - !Ref RdsSecurityGroup
+      PubliclyAccessible: false
+      MultiAZ: !If [EnableDbMultiAz, true, false]
+      BackupRetentionPeriod: 1
+      StorageEncrypted: true
+      AutoMinorVersionUpgrade: true
+
+  # EC2 Instance (public subnet)
+  AppInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref Ec2AmiSsmParameter
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds:
+        - !Ref Ec2SecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-app-ec2"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euo pipefail
+          yum update -y
+          # Basic tools
+          yum install -y git unzip
+          # MySQL client for manual DB access from EC2
+          yum install -y mariadb105 || yum install -y mysql || true
+
+          cat >/etc/motd <<'EOF'
+          EC2 provisioned.
+          RDS endpoint (from CloudFormation Outputs): use mysql client from this instance.
+          EOF
+
+Outputs:
+  VpcId:
+    Value: !Ref VPC
+  PublicSubnet1Id:
+    Value: !Ref PublicSubnet1
+  PublicSubnet2Id:
+    Value: !Ref PublicSubnet2
+  PrivateSubnet1Id:
+    Value: !Ref PrivateSubnet1
+  PrivateSubnet2Id:
+    Value: !Ref PrivateSubnet2
+
+  Ec2InstanceId:
+    Value: !Ref AppInstance
+  Ec2PublicIp:
+    Value: !GetAtt AppInstance.PublicIp
+  Ec2PublicDns:
+    Value: !GetAtt AppInstance.PublicDnsName
+
+  RdsEndpointAddress:
+    Value: !GetAtt DbInstance.Endpoint.Address
+  RdsEndpointPort:
+    Value: !GetAtt DbInstance.Endpoint.Port
+  RdsSecurityGroupId:
+    Value: !Ref RdsSecurityGroup
+  Ec2SecurityGroupId:
+    Value: !Ref Ec2SecurityGroup
+  DbSubnetGroupName:
+    Value: !Ref DbSubnetGroup

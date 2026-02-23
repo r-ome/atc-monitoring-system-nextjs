@@ -41,11 +41,12 @@ export const RegisterBidderController = async (
     const res = await registerBidderUseCase(data);
     return ok(res);
   } catch (error) {
-    logger("RegisterBidderController", error);
     if (error instanceof InputParseError) {
+      logger("RegisterBidderController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("RegisterBidderController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

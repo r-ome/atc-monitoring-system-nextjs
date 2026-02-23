@@ -42,15 +42,17 @@ export const UpdateManifestController = async (
     const updated = await updateManifestUseCase(auction_id, manifest_id, data);
     return ok(presenter(updated));
   } catch (error) {
-    logger("UpdateManifestController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateManifestController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UpdateManifestController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UpdateManifestController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

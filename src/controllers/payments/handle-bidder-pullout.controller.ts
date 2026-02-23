@@ -41,11 +41,12 @@ export const HandleBidderPullOutController = async (
     const res = await handleBidderPullOutUseCase(data);
     return ok(res);
   } catch (error) {
-    logger("HandleBidderPullOutController", error);
     if (error instanceof InputParseError) {
+      logger("HandleBidderPullOutController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("HandleBidderPullOutController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error?.message });
     }

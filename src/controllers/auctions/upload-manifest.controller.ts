@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadManifestUseCase } from "src/application/use-cases/auctions/upload-manifest.use-case";
 import {
@@ -13,6 +14,9 @@ export const UploadManifestController = async (
   auction_id: string,
   file: File,
 ) => {
+  const ctx = RequestContext.getStore();
+  const user_context = { username: ctx?.username, branch_name: ctx?.branch_name };
+
   try {
     if (!file) {
       throw new InputParseError("Invalid Data!", {
@@ -58,17 +62,20 @@ export const UploadManifestController = async (
       data as ManifestSheetRecord[],
     );
 
+    logger("UploadManifestController", { auction_id, records: res.length, ...user_context }, "info");
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
-    logger("UploadManifestController", error);
     if (error instanceof InputParseError) {
+      logger("UploadManifestController", error, "warn", user_context);
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UploadManifestController", error, "warn", user_context);
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UploadManifestController", error, "error", user_context);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

@@ -29,7 +29,11 @@ export const createContainer = async (form_data: FormData) => {
   const data = Object.fromEntries(form_data.entries());
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await CreateContainerController(data),
   );
 };

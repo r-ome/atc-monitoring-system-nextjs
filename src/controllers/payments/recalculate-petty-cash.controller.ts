@@ -9,15 +9,16 @@ import { err, ok } from "src/entities/models/Result";
 
 export const RecalculatePettyCashController = async (input: PettyCash) => {
   try {
-    console.info(`Recalculating Petty Cash for ${input.created_at}`, input);
+    logger("RecalculatePettyCashController", input, "info");
     const res = await recalculatePettyCashUseCase(input);
     return ok(res);
   } catch (error) {
-    logger("RecalculatePettyCashController", error);
     if (error instanceof InputParseError) {
+      logger("RecalculatePettyCashController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("RecalculatePettyCashController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error?.message });
     }

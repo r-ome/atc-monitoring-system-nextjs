@@ -1,3 +1,4 @@
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -28,6 +29,12 @@ const presenter = (bidder: BidderWithBranchRow) => {
 export const CreateBidderController = async (
   input: Partial<CreateBidderInput>,
 ) => {
+  const ctx = RequestContext.getStore();
+  const user_context = {
+    username: ctx?.username,
+    branch_name: ctx?.branch_name,
+  };
+
   try {
     input = {
       ...input,
@@ -44,21 +51,22 @@ export const CreateBidderController = async (
     }
 
     const bidder = await createBidderUseCase(data);
+    logger("CreateBidderController", { data, ...user_context }, "info");
     return ok(presenter(bidder));
   } catch (error) {
+    if (error instanceof InputParseError) {
+      logger("CreateBidderController", error, "warn");
+      return err({
+        message: error.message,
+        cause: error.cause,
+      });
+    }
+
     logger("CreateBidderController", error);
-    console.log(error);
     if (error instanceof DatabaseOperationError) {
       return err({
         message: "Server Error",
         cause: error.message,
-      });
-    }
-
-    if (error instanceof InputParseError) {
-      return err({
-        message: error.message,
-        cause: error.cause,
       });
     }
 

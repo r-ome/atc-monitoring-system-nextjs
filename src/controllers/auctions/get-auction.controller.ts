@@ -88,11 +88,12 @@ export const GetAuctionController = async (auction_date: Date) => {
     }
     return ok(presenter(auction));
   } catch (error) {
-    logger("GetAuctionController", error);
     if (error instanceof NotFoundError) {
+      logger("GetAuctionController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("GetAuctionController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

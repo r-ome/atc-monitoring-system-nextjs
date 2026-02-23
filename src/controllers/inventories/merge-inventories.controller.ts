@@ -27,15 +27,17 @@ export const MergeInventoriesController = async (
     await mergeInventoriesUseCase(data);
     return ok({});
   } catch (error) {
-    logger("MergeInventoriesController", error);
     if (error instanceof InputParseError) {
+      logger("MergeInventoriesController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("MergeInventoriesController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("MergeInventoriesController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

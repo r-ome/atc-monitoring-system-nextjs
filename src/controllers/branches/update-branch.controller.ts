@@ -42,17 +42,19 @@ export const UpdateBranchController = async (
     const updated = await updateBranchUseCase(branch_id, data);
     return ok(presenter(updated));
   } catch (error) {
-    logger("UpdateBranchController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateBranchController", error, "warn");
       return err({ message: error.message, cause: error.cause });
-    }
-
-    if (error instanceof DatabaseOperationError) {
-      return err({ message: "Server Error", cause: error.message });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UpdateBranchController", error, "warn");
       return err({ message: error.message, cause: error.cause });
+    }
+
+    logger("UpdateBranchController", error);
+    if (error instanceof DatabaseOperationError) {
+      return err({ message: "Server Error", cause: error.message });
     }
 
     return err({

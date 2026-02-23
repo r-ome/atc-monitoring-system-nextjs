@@ -41,11 +41,12 @@ export const CreateSupplierController = async (
     const supplier = await createSupplierUseCase(data);
     return ok(presenter(supplier));
   } catch (error) {
-    logger("CreateSupplierController", error);
     if (error instanceof InputParseError) {
+      logger("CreateSupplierController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("CreateSupplierController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

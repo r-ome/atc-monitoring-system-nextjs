@@ -12,15 +12,17 @@ export const DeleteContainerController = async (container_id: string) => {
     const container = await deleteContainerUseCase(container_id);
     return ok(container);
   } catch (error) {
-    logger("DeleteContainerController", error);
     if (error instanceof InputParseError) {
+      logger("DeleteContainerController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("DeleteContainerController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("DeleteContainerController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

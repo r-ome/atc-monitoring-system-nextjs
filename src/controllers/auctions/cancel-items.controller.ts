@@ -23,15 +23,17 @@ export const CancelItemsController = async (
     const res = await cancelItemsUseCase(data);
     return ok(res);
   } catch (error) {
-    logger("CancelItemsController", error);
     if (error instanceof InputParseError) {
+      logger("CancelItemsController", error, "warn");
       return err({ message: error.message, cause: error?.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("CancelItemsController", error, "warn");
       return err({ message: error.message, cause: error?.cause });
     }
 
+    logger("CancelItemsController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

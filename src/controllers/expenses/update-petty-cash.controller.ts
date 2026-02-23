@@ -1,4 +1,5 @@
 import { updatePettyCashUseCase } from "src/application/use-cases/expenses/update-petty-cash.use-case";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -29,6 +30,12 @@ export const UpdatePettyCashController = async (
   petty_cash_id: string,
   input: Partial<CreatePettyCashInput>,
 ) => {
+  const ctx = RequestContext.getStore();
+  const user_context = {
+    username: ctx?.username,
+    branch_name: ctx?.branch_name,
+  };
+
   try {
     const { data, error: inputParseError } =
       createPettyCashSchema.safeParse(input);
@@ -40,16 +47,18 @@ export const UpdatePettyCashController = async (
     }
 
     const expense = await updatePettyCashUseCase(petty_cash_id, data);
+    logger("UpdatePettyCashController", { data, ...user_context }, "info");
     return ok(presenter(expense));
   } catch (error) {
-    logger("UpdatePettyCashController", error);
     if (error instanceof InputParseError) {
+      logger("UpdatePettyCashController", error, "warn");
       return err({
         message: error.message,
         cause: error.cause,
       });
     }
 
+    logger("UpdatePettyCashController", error);
     if (error instanceof DatabaseOperationError) {
       return err({
         message: "Server Error",

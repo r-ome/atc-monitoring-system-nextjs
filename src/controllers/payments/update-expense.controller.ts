@@ -27,11 +27,12 @@ export const UpdateExpenseController = async (
     const res = await updateExpenseUseCase(expense_id, data);
     return ok(res);
   } catch (error) {
-    logger("UpdateExpenseController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateExpenseController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UpdateExpenseController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error?.message });
     }

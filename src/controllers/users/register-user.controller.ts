@@ -31,11 +31,12 @@ export const RegisterUserController = async (
     const created = await registerUserUseCase(data);
     return ok(presenter(created));
   } catch (error) {
-    logger("RegisterUserController", error);
     if (error instanceof InputParseError) {
+      logger("RegisterUserController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("RegisterUserController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

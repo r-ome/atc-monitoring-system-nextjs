@@ -32,11 +32,12 @@ export const UpdateUserPasswordController = async (
     const created = await updateUserPasswordUseCase(user_id, data);
     return ok(presenter(created));
   } catch (error) {
-    logger("UpdateUserPasswordController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateUserPasswordController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UpdateUserPasswordController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

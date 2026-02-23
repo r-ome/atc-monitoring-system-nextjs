@@ -19,7 +19,7 @@ export const GetTotalExpensesController = async (
     const total_expenses = await getTotalExpensesUseCase(branch_id, date);
     return ok(presenter(total_expenses));
   } catch (error) {
-    logger("GetTotalSalesController", error);
+    logger("GetTotalExpensesController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }
