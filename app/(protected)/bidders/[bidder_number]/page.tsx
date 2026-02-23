@@ -8,6 +8,7 @@ import {
 } from "@/app/components/ui/card";
 import { Badge } from "@/app/components/ui/badge";
 import { UpdateBidderModal } from "./UpdateBidderModal";
+import { PrintBidderNumber } from "./components/PrintBidderNumber";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 import {
@@ -104,7 +105,10 @@ export default async function Page({
               </p>
             </CardDescription>
           </div>
-          <UpdateBidderModal bidder={bidder} />
+          <div className="flex w-1/4 gap-2 justify-end">
+            <UpdateBidderModal bidder={bidder} />
+            <PrintBidderNumber bidder={bidder} />
+          </div>
         </CardHeader>
         <CardContent>
           <BidderProfile />
