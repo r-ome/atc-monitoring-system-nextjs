@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { pdf } from "@react-pdf/renderer";
 import { Button } from "@/app/components/ui/button";
 import { Loader2Icon, CircleX } from "lucide-react";
 import {
@@ -41,8 +40,6 @@ import { Auction } from "src/entities/models/Auction";
 import { RegisteredBidder } from "src/entities/models/Bidder";
 import { toast } from "sonner";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
-import BidderNumberDocument from "../[auction_date]/payments/[receipt_number]/BidderNumber/BidderNumberDocument";
-
 interface RegisterBidderModalProps {
   auction: Auction;
   registeredBidders: RegisteredBidder[];
@@ -181,36 +178,6 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
       }
     }
   };
-
-  async function printPdf() {
-    if (!selectedBidder || !bidders) return;
-
-    const bidder = bidders.find(
-      (bidder) => bidder.bidder_id === selectedBidder.value,
-    );
-
-    if (!bidder || !bidder.branch.name) return;
-
-    const blob = await pdf(
-      <BidderNumberDocument
-        bidder_number={bidder.bidder_number}
-        branch_name={bidder.branch.name}
-        full_name={`${bidder.last_name}, ${bidder.first_name}`}
-      />,
-    ).toBlob();
-    const url = URL.createObjectURL(blob);
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.right = "100%";
-    iframe.style.bottom = "100%";
-    iframe.src = url;
-
-    iframe.onload = () => {
-      iframe.contentWindow?.print();
-    };
-
-    document.body.appendChild(iframe);
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -401,31 +368,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
             )}
             <DialogFooter>
               <DialogClose className="cursor-pointer">Cancel</DialogClose>
-              <Button
-                type="button"
-                disabled={!selectedBidder}
-                onClick={async () => {
-                  await printPdf();
-                  // if (!selectedBidder) return;
-                  // const bidder = bidders.find(
-                  //   (bidder) => bidder.bidder_id === selectedBidder.value,
-                  // );
 
-                  // if (!bidder) return;
-
-                  // generateReport(
-                  //   {
-                  //     bidder_number: bidder?.bidder_number,
-                  //     full_name: bidder?.full_name,
-                  //     branch_name: bidder?.branch.name,
-                  //   },
-                  //   ["bidder_number"],
-                  //   `${bidder.bidder_number} Bidder Number`,
-                  // );
-                }}
-              >
-                Print Bidder Number
-              </Button>
               <Button type="submit" disabled={isLoading || !selectedBidder}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
