@@ -56,13 +56,14 @@ export const GetBidderByBidderNumberController = async (
 
     return ok(presenter(bidder));
   } catch (error) {
+    if (error instanceof NotFoundError) {
+      logger("GetBidderByBidderNumberController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
     logger("GetBidderByBidderNumberController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
-    }
-
-    if (error instanceof NotFoundError) {
-      return err({ message: error.message, cause: error.cause });
     }
 
     return err({

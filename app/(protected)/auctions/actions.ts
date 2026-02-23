@@ -24,7 +24,11 @@ export const startAuction = async (auctionDate: string) => {
   const user = await requireUser();
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await StartAuctionController(auctionDate),
   );
 };
@@ -63,7 +67,11 @@ export const uploadManifest = async (auctionId: string, formData: FormData) => {
   const file = formData.get("file");
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => UploadManifestController(auctionId, file as File),
   );
 };

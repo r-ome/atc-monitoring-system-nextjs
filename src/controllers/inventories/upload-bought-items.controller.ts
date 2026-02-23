@@ -56,15 +56,17 @@ export const UploadBoughtItemsController = async (
     await uploadBoughtItemsUseCase(branch_id, data as BoughtItemsSheetRecord[]);
     return ok({ success: true });
   } catch (error) {
-    logger("UploadBoughtItemsController", error);
     if (error instanceof InputParseError) {
+      logger("UploadBoughtItemsController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UploadBoughtItemsController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UploadBoughtItemsController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

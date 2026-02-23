@@ -43,11 +43,12 @@ export const RefundAuctionsInventoriesController = async (
 
     return ok(res);
   } catch (error) {
-    logger("RefundAuctionsInventoriesController", error);
     if (error instanceof InputParseError) {
+      logger("RefundAuctionsInventoriesController", error, "warn");
       return err({ message: error.message, cause: error?.cause });
     }
 
+    logger("RefundAuctionsInventoriesController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

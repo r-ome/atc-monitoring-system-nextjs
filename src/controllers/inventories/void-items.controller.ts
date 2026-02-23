@@ -35,15 +35,17 @@ export const VoidItemsController = async (input: Partial<VoidItemsInput>) => {
     const res = await voidItemsUseCase(data);
     return ok(presenter(res));
   } catch (error) {
-    logger("VoidItemsController", error);
     if (error instanceof InputParseError) {
+      logger("VoidItemsController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("VoidItemsController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("VoidItemsController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

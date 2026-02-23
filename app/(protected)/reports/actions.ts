@@ -9,7 +9,7 @@ export const getTotalSales = async (branch_id: string, date: string) => {
   const user = await requireUser();
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    { branch_id: user.branch.branch_id, username: user.username ?? "", branch_name: user.branch.name ?? "" },
     async () => await GetTotalSalesController(branch_id, date),
   );
 };
@@ -18,7 +18,7 @@ export const getTotalExpenses = async (branch_id: string, date: string) => {
   const user = await requireUser();
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    { branch_id: user.branch.branch_id, username: user.username ?? "", branch_name: user.branch.name ?? "" },
     async () => await GetTotalExpensesController(branch_id, date),
   );
 };

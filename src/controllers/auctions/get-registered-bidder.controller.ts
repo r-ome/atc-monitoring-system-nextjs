@@ -74,11 +74,12 @@ export async function GetRegisteredBidderController(
 
     return ok(presenter(registered_bidder));
   } catch (error) {
-    logger("GetRegisteredBidderController", error);
     if (error instanceof NotFoundError) {
+      logger("GetRegisteredBidderController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("GetRegisteredBidderController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

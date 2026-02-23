@@ -50,15 +50,17 @@ export const UpdateSupplierController = async (
     const supplier = await updateSupplierUseCase(supplier_id, data);
     return ok(presenter(supplier));
   } catch (error) {
-    logger("UpdateSupplierController", error);
-    if (error instanceof NotFoundError) {
-      return err({ message: error.message, cause: error.cause });
-    }
-
     if (error instanceof InputParseError) {
+      logger("UpdateSupplierController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    if (error instanceof NotFoundError) {
+      logger("UpdateSupplierController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
+    logger("UpdateSupplierController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

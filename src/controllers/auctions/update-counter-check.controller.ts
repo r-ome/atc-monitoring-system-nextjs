@@ -40,15 +40,17 @@ export const UpdateCounterCheckController = async (
     const updated = await updateCounterCheckUseCase(counter_check_id, data);
     return ok(presenter(updated));
   } catch (error) {
-    logger("UpdateCounterCheckController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateCounterCheckController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UpdateCounterCheckController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UpdateCounterCheckController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

@@ -66,7 +66,11 @@ export const addExpense = async (
   const input = Object.fromEntries(form_data.entries());
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await AddExpenseController(petty_cash_id, input),
   );
 };
@@ -115,7 +119,11 @@ export const updatePettyCash = async (
   const input = Object.fromEntries(form_data.entries());
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await UpdatePettyCashController(petty_cash_id, input),
   );
 };
@@ -124,7 +132,11 @@ export const deleteExpense = async (expense_id: string) => {
   const user = await requireUser();
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await DeleteExpenseController(expense_id),
   );
 };
@@ -133,7 +145,11 @@ export const recalculatePettyCash = async (petty_cash: PettyCash) => {
   const user = await requireUser();
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await RecalculatePettyCashController(petty_cash),
   );
 };

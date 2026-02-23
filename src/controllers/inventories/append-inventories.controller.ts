@@ -15,15 +15,17 @@ export const AppendInventoriesController = async (
     await appendInventoriesUseCase(container_barcode, inventory_ids);
     return ok({});
   } catch (error) {
-    logger("AppendInventoriesController", error);
     if (error instanceof InputParseError) {
+      logger("AppendInventoriesController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("AppendInventoriesController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("AppendInventoriesController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

@@ -27,15 +27,17 @@ export const UpdateAuctionItemController = async (
     const res = await updateAuctionItemUseCase(data);
     return ok(res);
   } catch (error) {
-    logger("UpdateAuctionItemController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateAuctionItemController", error, "warn");
       return err({ message: error.message, cause: error?.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UpdateAuctionItemController", error, "warn");
       return err({ message: error.message, cause: error?.cause });
     }
 
+    logger("UpdateAuctionItemController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

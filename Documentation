@@ -1,0 +1,47 @@
+# ATC Monitoring System
+
+## AWS ACCOUNT
+
+- root email address: lira_2111@yahoo.com
+- password: Atc@amazon2026
+- REMINDER: Get GoogleAuthenticator for MFA
+
+### Prerequisites
+
+1. Key Pair - Create key pair in EC2, download `.pem` file
+
+---
+
+### Connecting to EC2
+
+- EC2 Public IP: `54.169.216.182`
+- After downloading `.pem` file
+- use ssh from your computer to connect to EC2:
+  - `ssh -i <KEY_PAIR>.pem ubuntu@54.169.216.182`
+
+### Connecting to MySQL
+
+- After connecting to EC2, type in this command:
+- `mysql -h atc-monitoring-system.c72ka2agmalz.ap-southeast-1.rds.amazonaws.com -u admin -p`
+- then input password `Atcamazon2026`
+
+### Downloading Backup `.sql` file
+
+- After connecting to EC2, type in this command:
+
+```
+mysqldump -h atc-monitoring-system.c72ka2agmalz.ap-southeast-1.rds.amazonaws.com -u admin -p \
+  --single-transaction \
+  --set-gtid-purged=OFF \
+  --quick \
+  --routines --triggers --events \
+  atc_monitoring_system > backup.sql
+```
+
+- this command will create a `backup.sql` file in your ec2
+- exit EC2, then type in your local computer this command:
+- `ssh -i <KEY_PAIR>.pem ubuntu@54.169.216.182:~/backup.sql .`
+
+## Restarting Server
+
+- type in command `pm2 restart 0 --update-env`

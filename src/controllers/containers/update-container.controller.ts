@@ -40,15 +40,17 @@ export const UpdateContainerController = async (
     const container = await updateContainerUseCase(container_id, data);
     return ok(presenter(container));
   } catch (error) {
-    logger("UpdateContainerController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateContainerController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UpdateContainerController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UpdateContainerController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

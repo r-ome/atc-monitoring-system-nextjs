@@ -40,11 +40,12 @@ export const CreateBranchController = async (
     const branch = await createBranchUseCase(data);
     return ok(presenter(branch));
   } catch (error) {
-    logger("CreateBranchController", error);
     if (error instanceof InputParseError) {
+      logger("CreateBranchController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("CreateBranchController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

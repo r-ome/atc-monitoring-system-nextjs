@@ -11,11 +11,12 @@ export const UndoPaymentController = async (receipt_id: string) => {
     const res = await undoPaymentUseCase(receipt_id);
     return ok(res);
   } catch (error) {
-    logger("HandleBidderPullOutController", error);
     if (error instanceof InputParseError) {
+      logger("UndoPaymentController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UndoPaymentController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error?.message });
     }

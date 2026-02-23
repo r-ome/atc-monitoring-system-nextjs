@@ -53,11 +53,12 @@ export const GetSupplierBySupplierCodeController = async (
     const supplier = await getSupplierBySupplierCodeUseCase(supplier_code);
     return ok(presenter(supplier));
   } catch (error) {
-    logger("GetSupplierBySupplierCodeController", error);
     if (error instanceof NotFoundError) {
+      logger("GetSupplierBySupplierCodeController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("GetSupplierBySupplierCodeController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

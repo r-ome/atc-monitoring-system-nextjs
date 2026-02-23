@@ -37,6 +37,11 @@ export const GetPettyCashBalanceController = async (
     if (petty_cash === null) return ok(null);
     return ok(presenter(petty_cash));
   } catch (error) {
+    if (error instanceof InputParseError) {
+      logger("GetPettyCashBalanceController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
     logger("GetPettyCashBalanceController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });

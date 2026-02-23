@@ -31,11 +31,12 @@ export const LoginController = async (
     const user = await loginUseCase(data.username, data.password);
     return ok(presenter(user));
   } catch (error) {
-    logger("LoginController", error);
     if (error instanceof InputParseError) {
+      logger("LoginController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("LoginController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

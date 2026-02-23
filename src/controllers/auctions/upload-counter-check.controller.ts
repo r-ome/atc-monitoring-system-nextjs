@@ -59,15 +59,17 @@ export const UploadCounterCheckController = async (
 
     return ok(`${res.count} records uploaded!`);
   } catch (error) {
-    logger("UploadCounterCheckController", error);
     if (error instanceof InputParseError) {
+      logger("UploadCounterCheckController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UploadCounterCheckController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UploadCounterCheckController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

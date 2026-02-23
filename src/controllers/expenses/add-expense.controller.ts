@@ -1,4 +1,5 @@
 import { addExpenseUseCase } from "src/application/use-cases/expenses/add-expense.use-case";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -30,6 +31,11 @@ export const AddExpenseController = async (
   petty_cash_id: string,
   input: Partial<CreateExpenseInput>,
 ) => {
+  const ctx = RequestContext.getStore();
+  const user_context = {
+    username: ctx?.username,
+    branch_name: ctx?.branch_name,
+  };
   try {
     const { data, error: inputParseError } =
       createExpenseSchema.safeParse(input);
@@ -41,16 +47,18 @@ export const AddExpenseController = async (
     }
 
     const expense = await addExpenseUseCase(petty_cash_id, data);
+    logger("AddExpenseController", { data, ...user_context }, "info");
     return ok(presenter(expense));
   } catch (error) {
-    logger("AddExpenseController", error);
     if (error instanceof InputParseError) {
+      logger("AddExpenseController", error, "warn");
       return err({
         message: error.message,
         cause: error.cause,
       });
     }
 
+    logger("AddExpenseController", error);
     if (error instanceof DatabaseOperationError) {
       return err({
         message: "Server Error",

@@ -11,11 +11,12 @@ export const UnregisterBidderController = async (auction_bidder_id: string) => {
     const res = await unregisterBidderUseCase(auction_bidder_id);
     return ok(res);
   } catch (error) {
-    logger("UnregisterBidderController", error);
     if (error instanceof InputParseError) {
+      logger("UnregisterBidderController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UnregisterBidderController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

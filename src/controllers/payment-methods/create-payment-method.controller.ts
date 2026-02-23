@@ -40,13 +40,14 @@ export const CreatePaymentMethodController = async (
     const payment_method = await createPaymentMethodUseCase(data);
     return ok(presenter(payment_method));
   } catch (error) {
+    if (error instanceof InputParseError) {
+      logger("CreatePaymentMethodController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
     logger("CreatePaymentMethodController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
-    }
-
-    if (error instanceof InputParseError) {
-      return err({ message: error.message, cause: error.cause });
     }
 
     return err({

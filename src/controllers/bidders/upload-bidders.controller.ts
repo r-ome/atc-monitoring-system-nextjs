@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadBiddersUseCase } from "src/application/use-cases/bidders/upload-bidders.use-case";
 import {
@@ -13,6 +14,12 @@ export const UploadBiddersController = async (
   branch_id: string,
   file: File,
 ) => {
+  const ctx = RequestContext.getStore();
+  const user_context = {
+    username: ctx?.username,
+    branch_name: ctx?.branch_name,
+  };
+
   try {
     if (!file) {
       throw new InputParseError("Invalid Data!", {
@@ -61,17 +68,20 @@ export const UploadBiddersController = async (
       data as BidderSheetRecord[],
     );
 
+    logger("StartAuctionController", { ...user_context }, "info");
     return ok(`${res.count} records uploaded!`);
   } catch (error) {
-    logger("UploadManifestController", error);
     if (error instanceof InputParseError) {
+      logger("UploadBiddersController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UploadBiddersController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UploadBiddersController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

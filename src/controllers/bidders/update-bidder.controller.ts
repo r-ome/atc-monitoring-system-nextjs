@@ -3,6 +3,7 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   createBidderSchema,
   CreateBidderInput,
@@ -40,6 +41,12 @@ export const UpdateBidderController = async (
   bidder_id: string,
   input: Partial<CreateBidderInput>,
 ) => {
+  const ctx = RequestContext.getStore();
+  const user_context = {
+    username: ctx?.username,
+    branch_name: ctx?.branch_name,
+  };
+
   try {
     input.birthdate = input.birthdate ? new Date(input.birthdate) : null;
     const { data, error: inputParseError } =
@@ -52,17 +59,20 @@ export const UpdateBidderController = async (
     }
 
     const updated = await updateBidderUseCase(bidder_id, data);
+    logger("UpdateBidderController", { data, ...user_context }, "info");
     return ok(presenter(updated));
   } catch (error) {
-    logger("UpdateBidderController", error);
     if (error instanceof InputParseError) {
+      logger("UpdateBidderController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("UpdateBidderController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("UpdateBidderController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

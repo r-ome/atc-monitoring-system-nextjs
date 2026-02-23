@@ -33,11 +33,12 @@ export const GetBranchByNameController = async (name: string) => {
 
     return ok(presenter(branch));
   } catch (error) {
-    logger("GetBranchByNameController", error);
     if (error instanceof NotFoundError) {
+      logger("GetBranchByNameController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("GetBranchByNameController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

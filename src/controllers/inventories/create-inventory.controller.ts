@@ -32,15 +32,17 @@ export const CreateInventoryController = async (
     const updated = await createInventoryUseCase(data);
     return ok(presenter(updated));
   } catch (error) {
-    logger("UpdateInventoryController", error);
     if (error instanceof InputParseError) {
+      logger("CreateInventoryController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
     if (error instanceof NotFoundError) {
+      logger("CreateInventoryController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
+    logger("CreateInventoryController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
     }

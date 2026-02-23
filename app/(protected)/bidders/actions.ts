@@ -14,7 +14,11 @@ export const createBidder = async (formData: FormData) => {
   data.branch_id = data.branch_id ? data.branch_id : user.branch.branch_id;
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await CreateBidderController(data),
   );
 };
@@ -42,7 +46,11 @@ export const updateBidder = async (bidder_id: string, formData: FormData) => {
   data.branch_id = data.branch_id ? data.branch_id : user.branch.branch_id;
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await UpdateBidderController(bidder_id, data),
   );
 };
@@ -53,7 +61,11 @@ export const uploadBidders = async (formData: FormData) => {
   const file = formData.get("file");
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => await UploadBiddersController(branch_id, file as File),
   );
 };

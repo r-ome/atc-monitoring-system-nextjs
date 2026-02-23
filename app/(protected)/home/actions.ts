@@ -12,7 +12,7 @@ export const getBidderBirthdates = async () => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetBidderBirthdatesController()
+    async () => await GetBidderBirthdatesController(),
   );
 };
 
@@ -21,7 +21,7 @@ export const getContainersDueDate = async () => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetContainersDueDateController()
+    async () => await GetContainersDueDateController(),
   );
 };
 
@@ -30,7 +30,7 @@ export const getUnpaidBidders = async () => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetUnpaidBiddersController()
+    async () => await GetUnpaidBiddersController(),
   );
 };
 
@@ -39,6 +39,6 @@ export const getAuctionsStatistics = async () => {
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
-    async () => await GetAuctionsStatisticsController()
+    async () => await GetAuctionsStatisticsController(),
   );
 };

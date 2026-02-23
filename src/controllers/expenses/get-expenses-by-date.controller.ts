@@ -34,6 +34,11 @@ export const GetExpensesByDateController = async (
     const expenses = await getExpensesByDateUseCase(date, branch_id);
     return ok(presenter(expenses));
   } catch (error) {
+    if (error instanceof InputParseError) {
+      logger("GetExpensesByDateController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
     logger("GetExpensesByDateController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });

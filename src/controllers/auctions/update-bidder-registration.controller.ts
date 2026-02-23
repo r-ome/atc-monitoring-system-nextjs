@@ -30,6 +30,11 @@ export const UpdateBidderRegistrationController = async (
     );
     return ok(auction_bidder);
   } catch (error) {
+    if (error instanceof InputParseError) {
+      logger("UpdateBidderRegistrationController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
     logger("UpdateBidderRegistrationController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error.message });
