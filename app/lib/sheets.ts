@@ -324,16 +324,13 @@ export const removeManifestDuplicates = (
   return data.map((item) => {
     if (!item.isValid) return item;
     let key = item.BARCODE;
-    if (item.BARCODE.split("-").length === 3) {
-      key = item.BARCODE;
-    }
 
     if (item.BARCODE.split("-").length === 2) {
       key = `${item.BARCODE}-${item.CONTROL}`;
     }
 
     if (seen.has(key)) {
-      return { ...item, isValid: false, error: "DUPLICATE MANIFEST" };
+      return { ...item, isValid: false, error: "DUPLICATE BARCODE" };
     } else {
       seen.add(key);
       return item;
