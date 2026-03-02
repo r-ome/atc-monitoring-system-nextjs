@@ -802,7 +802,7 @@ export const AuctionRepository: IAuctionRepository = {
           control: item.CONTROL,
           price: item.PRICE.toString(),
           page: item.PAGE,
-          description: item.DESCRIPTION,
+          description: item.DESCRIPTION.toString(),
           time: item.TIME,
           bidder_number: item.BIDDER,
         })),
