@@ -183,7 +183,7 @@ export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ user }) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {["CASHIER", "ENCODER"].map((item) => (
+                    {["CASHIER", "ENCODER", "MODERATOR"].map((item) => (
                       <SelectItem key={item} value={item}>
                         {item}
                       </SelectItem>

@@ -33,7 +33,7 @@ export default function Page() {
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string[]> | undefined>(
-    undefined
+    undefined,
   );
   const [branches, setBranches] = useState<Branch[]>([]);
 
@@ -92,7 +92,7 @@ export default function Page() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {["CASHIER", "ENCODER"].map((item) => (
+                        {["CASHIER", "ENCODER", "MODERATOR"].map((item) => (
                           <SelectItem key={item} value={item}>
                             {item}
                           </SelectItem>
