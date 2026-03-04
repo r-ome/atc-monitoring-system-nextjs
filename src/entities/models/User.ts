@@ -7,6 +7,7 @@ export const USER_ROLES = [
   "OWNER",
   "CASHIER",
   "ENCODER",
+  "MODERATOR",
 ] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
