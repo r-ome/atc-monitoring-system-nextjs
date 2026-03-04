@@ -56,7 +56,9 @@ export default async function Page({
               <p className="text-muted-foreground text-sm">
                 if you want you can start an auction today!
               </p>
-              {session.user.role !== "ENCODER" && <StartAuctionButton />}
+              {!["ENCODER", "MODERATOR"].includes(session.user.role) && (
+                <StartAuctionButton />
+              )}
             </CardHeader>
           </Card>
         </div>
@@ -138,12 +140,13 @@ export default async function Page({
         {formatDate(new Date(auction_date), "EEEE, MMMM dd, yyyy")}
       </h1>
 
-      <AuctionNavigation />
+      {session.user.role !== "MODERATOR" ? <AuctionNavigation /> : null}
 
       <div
         className={cn(
           "flex flex-col gap-4 mt-4",
           session.user.role === "ENCODER" && "hidden",
+          session.user.role === "MODERATOR" && "show",
         )}
       >
         <div className="flex flex-col gap-2 md:flex-row">

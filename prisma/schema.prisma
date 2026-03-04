@@ -346,6 +346,7 @@ enum users_role {
   OWNER
   CASHIER
   ENCODER
+  MODERATOR
 }
 
 enum payments_purpose {
