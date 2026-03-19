@@ -6,14 +6,13 @@ import {
 import { createBidderUseCase } from "src/application/use-cases/bidders/create-bidder.use-case";
 import {
   createBidderSchema,
-  CreateBidderInput,
   BidderWithBranchRow,
 } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (bidder: BidderWithBranchRow) => {
+export const presentBidder = (bidder: BidderWithBranchRow) => {
   const date_format = "MMM dd, yyyy";
   return {
     ...bidder,
@@ -27,7 +26,7 @@ const presenter = (bidder: BidderWithBranchRow) => {
 };
 
 export const CreateBidderController = async (
-  input: Partial<CreateBidderInput>,
+  input: Record<string, unknown>,
 ) => {
   const ctx = RequestContext.getStore();
   const user_context = {
@@ -36,13 +35,13 @@ export const CreateBidderController = async (
   };
 
   try {
-    input = {
+    const parsedInput = {
       ...input,
-      birthdate: input?.birthdate ? new Date(input?.birthdate) : null,
+      birthdate: input?.birthdate ? new Date(input.birthdate as string) : null,
     };
 
     const { data, error: inputParseError } =
-      createBidderSchema.safeParse(input);
+      createBidderSchema.safeParse(parsedInput);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -52,7 +51,7 @@ export const CreateBidderController = async (
 
     const bidder = await createBidderUseCase(data);
     logger("CreateBidderController", { data, ...user_context }, "info");
-    return ok(presenter(bidder));
+    return ok(presentBidder(bidder));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("CreateBidderController", error, "warn");

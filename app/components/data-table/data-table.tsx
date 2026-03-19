@@ -46,6 +46,7 @@ export const DataTable = <TData, TValue>({
   onRowClick,
   filterColumns = false,
   title,
+  footer,
   pageSize = 10,
 }: DataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
@@ -217,6 +218,8 @@ export const DataTable = <TData, TValue>({
           )}
         </TableBody>
       </Table>
+
+      {footer && <div className="border-t pt-2 mt-2">{footer}</div>}
 
       <div className="flex justify-between my-2">
         <div>Total of {table.getFilteredRowModel().rows.length} rows</div>

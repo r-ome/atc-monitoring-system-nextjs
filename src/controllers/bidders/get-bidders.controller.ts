@@ -28,7 +28,7 @@ const presenter = (bidders: BidderWithLastAuctionRow[]) => {
     created_at: formatDate(item.created_at, date_format),
     updated_at: formatDate(item.updated_at, date_format),
     deleted_at: item.deleted_at
-      ? formatDate(item.created_at, date_format)
+      ? formatDate(item.deleted_at, date_format)
       : null,
   }));
 };
