@@ -1,11 +1,11 @@
-import { CreateSupplierInput } from "src/entities/models/Supplier";
+import { UpdateSupplierInput } from "src/entities/models/Supplier";
 import { SupplierRepository } from "src/infrastructure/di/repositories";
 import { getSupplierBySupplierIdUseCase } from "./get-supplier-by-supplier-id.use-case";
 import { InputParseError } from "src/entities/errors/common";
 
 export const updateSupplierUseCase = async (
   supplier_id: string,
-  data: CreateSupplierInput,
+  data: UpdateSupplierInput,
 ) => {
   await getSupplierBySupplierIdUseCase(supplier_id);
 

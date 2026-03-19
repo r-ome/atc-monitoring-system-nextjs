@@ -1,6 +1,6 @@
 "use server";
 
-import { UpdateSupplierController } from "src/controllers/suppliers/update-suppliers.controller";
+import { UpdateSupplierController } from "src/controllers/suppliers/update-supplier.controller";
 import { CreateSupplierController } from "src/controllers/suppliers/create-supplier.controller";
 import { GetSupplierBySupplierCodeController } from "src/controllers/suppliers/get-supplier-by-supplier-code.controller";
 import { GetSuppliersController } from "src/controllers/suppliers/get-suppliers.controller";

@@ -4,42 +4,18 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
-import {
-  createSupplierSchema,
-  CreateSupplierInput,
-  SupplierRow,
-} from "src/entities/models/Supplier";
+import { updateSupplierSchema } from "src/entities/models/Supplier";
 import { updateSupplierUseCase } from "src/application/use-cases/suppliers/update-supplier.use-case";
-import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
-
-function presenter(supplier: SupplierRow) {
-  const date_format = "MMMM dd, yyyy";
-  return {
-    supplier_id: supplier.supplier_id,
-    supplier_code: supplier.supplier_code,
-    name: supplier.name,
-    japanese_name: supplier.japanese_name ?? "",
-    commission: supplier.commission ?? "",
-    sales_remittance_account: supplier.sales_remittance_account ?? "",
-    email: supplier.email ?? "",
-    contact_number: supplier.contact_number ?? "",
-    shipper: supplier.shipper ?? "",
-    created_at: formatDate(supplier.created_at, date_format),
-    updated_at: formatDate(supplier.updated_at, date_format),
-    deleted_at: supplier.deleted_at
-      ? formatDate(supplier.deleted_at, date_format)
-      : null,
-  };
-}
+import { presentSupplier } from "./create-supplier.controller";
 
 export const UpdateSupplierController = async (
   supplier_id: string,
-  input: Partial<CreateSupplierInput>,
+  input: Record<string, unknown>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      createSupplierSchema.safeParse(input);
+      updateSupplierSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -48,7 +24,7 @@ export const UpdateSupplierController = async (
     }
 
     const supplier = await updateSupplierUseCase(supplier_id, data);
-    return ok(presenter(supplier));
+    return ok(presentSupplier(supplier));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateSupplierController", error, "warn");

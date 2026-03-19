@@ -1,29 +1,30 @@
 import { SupplierRepository } from "src/infrastructure/di/repositories";
-import { SupplierRow } from "src/entities/models/Supplier";
+import { SupplierWithCountRow } from "src/entities/models/Supplier";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (suppliers: SupplierRow[]) => {
-  const date_format = "MMM dd, yyyy";
-  return suppliers.map((supplier) => ({
+const DATE_FORMAT = "MMM dd, yyyy hh:mm a";
+
+const presenter = (suppliers: SupplierWithCountRow[]) =>
+  suppliers.map((supplier) => ({
     supplier_id: supplier.supplier_id,
     supplier_code: supplier.supplier_code,
     name: supplier.name,
-    shipper: supplier.shipper || "",
-    email: supplier.email || "",
-    japanese_name: supplier.japanese_name || "",
-    contact_number: supplier.contact_number || "",
-    commission: supplier.commission || "",
-    sales_remittance_account: supplier.sales_remittance_account || "",
-    created_at: formatDate(supplier.created_at, date_format),
-    updated_at: formatDate(supplier.updated_at, date_format),
+    shipper: supplier.shipper ?? "",
+    email: supplier.email ?? "",
+    japanese_name: supplier.japanese_name ?? "",
+    contact_number: supplier.contact_number ?? "",
+    commission: supplier.commission ?? "",
+    sales_remittance_account: supplier.sales_remittance_account ?? "",
+    container_count: supplier._count.containers,
+    created_at: formatDate(supplier.created_at, DATE_FORMAT),
+    updated_at: formatDate(supplier.updated_at, DATE_FORMAT),
     deleted_at: supplier.deleted_at
-      ? formatDate(supplier.deleted_at, date_format)
+      ? formatDate(supplier.deleted_at, DATE_FORMAT)
       : null,
   }));
-};
 
 export const GetSuppliersController = async () => {
   try {

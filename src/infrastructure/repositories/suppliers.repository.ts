@@ -11,9 +11,7 @@ export const SupplierRepository: ISupplierRepository = {
     try {
       return await prisma.suppliers.findFirst({
         where: { supplier_id },
-        include: {
-          containers: { include: { inventories: true, branch: true } },
-        },
+        include: { containers: { select: { barcode: true } } },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -29,12 +27,20 @@ export const SupplierRepository: ISupplierRepository = {
       return await prisma.suppliers.findFirst({
         where: { supplier_code },
         include: {
-          containers: { include: { inventories: true, branch: true } },
+          containers: {
+            orderBy: { arrival_date: "desc" },
+            include: {
+              branch: true,
+              inventories: { select: { status: true } },
+            },
+          },
         },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error getting Supplier!");
+        throw new DatabaseOperationError("Error getting Supplier!", {
+          cause: error.message,
+        });
       }
 
       throw error;
@@ -42,7 +48,7 @@ export const SupplierRepository: ISupplierRepository = {
   },
   createSupplier: async (input) => {
     try {
-      const created = await prisma.suppliers.create({
+      return await prisma.suppliers.create({
         data: {
           name: input.name,
           supplier_code: input.supplier_code,
@@ -54,8 +60,6 @@ export const SupplierRepository: ISupplierRepository = {
           contact_number: input.contact_number,
         },
       });
-
-      return created;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error creating supplier", {
@@ -67,29 +71,15 @@ export const SupplierRepository: ISupplierRepository = {
   },
   getSuppliers: async () => {
     try {
-      return await prisma.suppliers.findMany({ orderBy: { name: "asc" } });
-    } catch (error) {
-      if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error getting suppliers!");
-      }
-
-      throw error;
-    }
-  },
-  getSupplierContainers: async (supplier_id) => {
-    try {
-      return await prisma.suppliers.findFirst({
-        where: { supplier_id },
-        include: {
-          containers: { include: { inventories: true, branch: true } },
-        },
+      return await prisma.suppliers.findMany({
+        orderBy: { name: "asc" },
+        include: { _count: { select: { containers: true } } },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError(
-          "Error getting Supplier's Containers",
-          { cause: error.message }
-        );
+        throw new DatabaseOperationError("Error getting suppliers!", {
+          cause: error.message,
+        });
       }
 
       throw error;
@@ -97,7 +87,7 @@ export const SupplierRepository: ISupplierRepository = {
   },
   updateSupplier: async (supplier_id, data) => {
     try {
-      const updated = await prisma.suppliers.update({
+      return await prisma.suppliers.update({
         where: { supplier_id },
         data: {
           name: data.name,
@@ -110,8 +100,6 @@ export const SupplierRepository: ISupplierRepository = {
           contact_number: data.contact_number,
         },
       });
-
-      return updated;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error updating Supplier!", {

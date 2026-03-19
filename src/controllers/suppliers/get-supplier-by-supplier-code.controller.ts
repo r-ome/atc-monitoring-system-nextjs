@@ -8,8 +8,9 @@ import { SupplierWithContainersRow } from "src/entities/models/Supplier";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
+const DATE_FORMAT = "MMM dd, yyyy hh:mm a";
+
 function presenter(supplier: SupplierWithContainersRow) {
-  const date_format = "MMMM dd, yyyy";
   return {
     supplier_id: supplier.supplier_id,
     supplier_code: supplier.supplier_code,
@@ -20,10 +21,10 @@ function presenter(supplier: SupplierWithContainersRow) {
     email: supplier.email ?? "",
     contact_number: supplier.contact_number ?? "",
     shipper: supplier.shipper ?? "",
-    created_at: formatDate(supplier.created_at, date_format),
-    updated_at: formatDate(supplier.updated_at, date_format),
+    created_at: formatDate(supplier.created_at, DATE_FORMAT),
+    updated_at: formatDate(supplier.updated_at, DATE_FORMAT),
     deleted_at: supplier.deleted_at
-      ? formatDate(supplier.deleted_at, date_format)
+      ? formatDate(supplier.deleted_at, DATE_FORMAT)
       : null,
     containers: supplier.containers.map((container) => {
       const sold_items = container.inventories.filter(
