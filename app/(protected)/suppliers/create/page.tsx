@@ -27,25 +27,22 @@ export default function Page() {
     event.preventDefault();
     if (isLoading) return;
 
+    setErrors(undefined);
     const formData = new FormData(event.currentTarget);
     setIsLoading(true);
     const res = await createSupplier(formData);
+    setIsLoading(false);
 
-    if (res) {
-      setIsLoading(false);
-      if (res.ok) {
-        toast.success("Successfully created Supplier!");
-        router.push(`/suppliers`);
-      }
+    if (res.ok) {
+      toast.success("Successfully created Supplier!");
+      router.push(`/suppliers`);
+    } else {
+      const description =
+        typeof res.error?.cause === "string" ? res.error?.cause : null;
+      toast.error(res.error.message, { description });
 
-      if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
-
-        if (res.error.message === "Invalid Data!") {
-          setErrors(res.error.cause as Record<string, string[]>);
-        }
+      if (res.error.message === "Invalid Data!") {
+        setErrors(res.error.cause as Record<string, string[]>);
       }
     }
   };
@@ -147,7 +144,7 @@ export default function Page() {
                 type="button"
                 variant="secondary"
                 disabled={isLoading}
-                onClick={() => router.push("/branches")}
+                onClick={() => router.push("/suppliers")}
               >
                 Cancel
               </Button>

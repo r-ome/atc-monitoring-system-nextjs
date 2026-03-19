@@ -4,8 +4,26 @@ import { ContainerWithAllRow } from "./Container";
 
 export type SupplierRow = Prisma.suppliersGetPayload<object>;
 
+// Used by getSuppliers — list view with container count
+export type SupplierWithCountRow = Prisma.suppliersGetPayload<{
+  include: { _count: { select: { containers: true } } };
+}>;
+
+// Used by getSupplierBySupplierId — barcode uniqueness check in create-container
+export type SupplierWithContainerBarcodesRow = Prisma.suppliersGetPayload<{
+  include: { containers: { select: { barcode: true } } };
+}>;
+
+// Used by getSupplierBySupplierCode — detail page; only status needed for sold/unsold counts
 export type SupplierWithContainersRow = Prisma.suppliersGetPayload<{
-  include: { containers: { include: { inventories: true; branch: true } } };
+  include: {
+    containers: {
+      include: {
+        branch: true;
+        inventories: { select: { status: true } };
+      };
+    };
+  };
 }>;
 
 export type Supplier = {
@@ -25,8 +43,8 @@ export type Supplier = {
 };
 
 export const createSupplierSchema = z.object({
-  name: z.string(),
-  supplier_code: z.string(),
+  name: z.string().min(1),
+  supplier_code: z.string().min(1),
   japanese_name: z.string().optional().nullable(),
   shipper: z.string().optional().nullable(),
   email: z.string().optional().nullable(),
@@ -36,3 +54,16 @@ export const createSupplierSchema = z.object({
 });
 
 export type CreateSupplierInput = z.infer<typeof createSupplierSchema>;
+
+export const updateSupplierSchema = z.object({
+  name: z.string().min(1),
+  supplier_code: z.string().min(1),
+  japanese_name: z.string().optional().nullable(),
+  shipper: z.string().optional().nullable(),
+  email: z.string().optional().nullable(),
+  sales_remittance_account: z.string().optional().nullable(),
+  commission: z.string().optional().nullable(),
+  contact_number: z.string().optional().nullable(),
+});
+
+export type UpdateSupplierInput = z.infer<typeof updateSupplierSchema>;

@@ -6,7 +6,9 @@ import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./suppliers-columns";
 import { CoreRow } from "@tanstack/react-table";
 
-export type SupplierRowType = Omit<Supplier, "containers">;
+export type SupplierRowType = Omit<Supplier, "containers"> & {
+  container_count: number;
+};
 
 interface SuppliersTableProps {
   suppliers: SupplierRowType[];
@@ -21,8 +23,8 @@ export const SuppliersTable: React.FC<SuppliersTableProps> = ({
     columnId?: string,
     filterValue?: string
   ) => {
-    const name = (row.original as SupplierRowType).name.toLowerCase();
-    const code = (row.original as SupplierRowType).supplier_code.toLowerCase();
+    const name = row.original.name.toLowerCase();
+    const code = row.original.supplier_code.toLowerCase();
     const search = (filterValue ?? "").toLowerCase();
 
     return name.includes(search) || code.includes(search);

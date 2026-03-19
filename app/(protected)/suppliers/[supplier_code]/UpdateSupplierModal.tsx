@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/app/components/ui/dialog";
-import { Supplier } from "src/entities/models/Supplier";
+import { Supplier, UpdateSupplierInput } from "src/entities/models/Supplier";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
 import { updateSupplier } from "../actions";
@@ -24,28 +24,20 @@ interface UpdateSupplierModalProps {
   supplier: Omit<Supplier, "containers">;
 }
 
-type UpdateSupplierForm = {
-  name?: string;
-  supplier_code?: string;
-  japanese_name?: string;
-  commission?: string;
-  sales_remittance_account?: string;
-  shipper?: string;
-  email?: string;
-  contact_number?: string;
-};
-
 export const UpdateSupplierModal: React.FC<UpdateSupplierModalProps> = ({
   supplier,
 }) => {
   const router = useRouter();
-  const [open, onOpenChange] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [newSupplier, setNewSupplier] = useState<UpdateSupplierForm>({});
+  const [form, setForm] = useState<UpdateSupplierInput>({
+    name: "",
+    supplier_code: "",
+  });
   const [errors, setErrors] = useState<Record<string, string[]>>();
 
   useEffect(() => {
-    setNewSupplier({
+    setForm({
       name: supplier.name,
       supplier_code: supplier.supplier_code,
       japanese_name: supplier.japanese_name,
@@ -57,40 +49,44 @@ export const UpdateSupplierModal: React.FC<UpdateSupplierModalProps> = ({
     });
   }, [supplier]);
 
+  const handleOpenChange = (value: boolean) => {
+    setOpen(value);
+    if (!value) setErrors(undefined);
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isLoading) return;
+
+    setErrors(undefined);
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
     const res = await updateSupplier(supplier.supplier_id, formData);
+    setIsLoading(false);
 
-    if (res) {
-      setIsLoading(false);
-      if (res.ok) {
-        toast.success("Successfully updated supplier!");
-        onOpenChange(false);
-        router.refresh();
-      }
-
-      if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
-        if (res.error.message === "Invalid Data!") {
-          setErrors(res.error.cause as Record<string, string[]>);
-        }
+    if (res.ok) {
+      toast.success("Successfully updated supplier!");
+      setOpen(false);
+      router.refresh();
+    } else {
+      const description =
+        typeof res.error?.cause === "string" ? res.error?.cause : null;
+      toast.error(res.error.message, { description });
+      if (res.error.message === "Invalid Data!") {
+        setErrors(res.error.cause as Record<string, string[]>);
       }
     }
   };
 
-  const handleUpdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
-    setNewSupplier((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button onClick={() => onOpenChange(true)}>Edit Supplier</Button>
+        <Button>Edit Supplier</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -101,9 +97,9 @@ export const UpdateSupplierModal: React.FC<UpdateSupplierModalProps> = ({
           <div className="flex gap-2">
             <Label className="w-40">Supplier Name:</Label>
             <Input
-              value={newSupplier.name}
+              value={form.name}
               name="name"
-              onChange={handleUpdateChange}
+              onChange={handleChange}
               error={errors}
               required
             />
@@ -111,9 +107,9 @@ export const UpdateSupplierModal: React.FC<UpdateSupplierModalProps> = ({
           <div className="flex gap-2">
             <Label className="w-40">Supplier Code:</Label>
             <Input
-              value={newSupplier.supplier_code}
+              value={form.supplier_code}
               name="supplier_code"
-              onChange={handleUpdateChange}
+              onChange={handleChange}
               required
               error={errors}
             />
@@ -121,62 +117,59 @@ export const UpdateSupplierModal: React.FC<UpdateSupplierModalProps> = ({
           <div className="flex gap-2">
             <Label className="w-40">Japanese Name:</Label>
             <Input
-              value={newSupplier.japanese_name}
+              value={form.japanese_name ?? ""}
               name="japanese_name"
-              onChange={handleUpdateChange}
-              required
+              onChange={handleChange}
             />
           </div>
           <div className="flex gap-2">
             <Label className="w-40">Commission:</Label>
             <Input
-              value={newSupplier.commission}
+              value={form.commission ?? ""}
               name="commission"
-              onChange={handleUpdateChange}
+              onChange={handleChange}
               error={errors}
-              required
             />
           </div>
           <div className="flex gap-2">
             <Label className="w-40">Sales Remittance Account:</Label>
             <Input
-              value={newSupplier.sales_remittance_account}
+              value={form.sales_remittance_account ?? ""}
               name="sales_remittance_account"
-              onChange={handleUpdateChange}
-              required
+              onChange={handleChange}
               error={errors}
             />
           </div>
           <div className="flex gap-2">
             <Label className="w-40">Shipper:</Label>
             <Input
-              value={newSupplier.shipper}
+              value={form.shipper ?? ""}
               name="shipper"
-              onChange={handleUpdateChange}
+              onChange={handleChange}
               error={errors}
             />
           </div>
           <div className="flex gap-2">
             <Label className="w-40">Email:</Label>
             <Input
-              value={newSupplier.email}
+              value={form.email ?? ""}
               name="email"
-              onChange={handleUpdateChange}
+              onChange={handleChange}
               error={errors}
             />
           </div>
           <div className="flex gap-2">
             <Label className="w-40">Contact Number:</Label>
             <Input
-              value={newSupplier.contact_number}
+              value={form.contact_number ?? ""}
               name="contact_number"
-              onChange={handleUpdateChange}
+              onChange={handleChange}
               error={errors}
             />
           </div>
           <DialogFooter>
             <DialogClose>Cancel</DialogClose>
-            <Button type="submit">
+            <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2Icon className="animate-spin" />}
               Submit
             </Button>

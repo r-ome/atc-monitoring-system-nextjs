@@ -35,7 +35,8 @@ mysqldump -h atc-monitoring-system.c72ka2agmalz.ap-southeast-1.rds.amazonaws.com
   --set-gtid-purged=OFF \
   --quick \
   --routines --triggers --events \
-  atc_monitoring_system > backup.sql
+  --no-create-info \
+  atc_monitoring_system > data.sql
 ```
 
 - this command will create a `backup.sql` file in your ec2

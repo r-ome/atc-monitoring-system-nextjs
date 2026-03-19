@@ -1,6 +1,5 @@
 import {
   createSupplierSchema,
-  CreateSupplierInput,
   SupplierRow,
 } from "src/entities/models/Supplier";
 import { formatDate } from "@/app/lib/utils";
@@ -12,21 +11,19 @@ import {
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (supplier: SupplierRow) => {
-  const date_format = "MMM dd, yyyy";
+const DATE_FORMAT = "MMM dd, yyyy hh:mm a";
 
-  return {
-    ...supplier,
-    created_at: formatDate(supplier.created_at, date_format),
-    updated_at: formatDate(supplier.updated_at, date_format),
-    deleted_at: supplier.deleted_at
-      ? formatDate(supplier.deleted_at, date_format)
-      : null,
-  };
-};
+export const presentSupplier = (supplier: SupplierRow) => ({
+  ...supplier,
+  created_at: formatDate(supplier.created_at, DATE_FORMAT),
+  updated_at: formatDate(supplier.updated_at, DATE_FORMAT),
+  deleted_at: supplier.deleted_at
+    ? formatDate(supplier.deleted_at, DATE_FORMAT)
+    : null,
+});
 
 export const CreateSupplierController = async (
-  input: Partial<CreateSupplierInput>,
+  input: Record<string, unknown>,
 ) => {
   try {
     const { data, error: inputParseError } =
@@ -39,7 +36,7 @@ export const CreateSupplierController = async (
     }
 
     const supplier = await SupplierRepository.createSupplier(data);
-    return ok(presenter(supplier));
+    return ok(presentSupplier(supplier));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("CreateSupplierController", error, "warn");
