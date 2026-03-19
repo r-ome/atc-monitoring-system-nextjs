@@ -13,7 +13,9 @@ import {
 
 export const columns: ColumnDef<BidderRowType>[] = [
   {
+    id: "branch_name",
     accessorKey: "branch.name",
+    filterFn: "includesIn",
     size: 80,
     header: ({ column }) => {
       return (
@@ -85,6 +87,14 @@ export const columns: ColumnDef<BidderRowType>[] = [
   {
     accessorKey: "birthdate",
     size: 100,
+    sortingFn: (rowA, rowB, columnId) => {
+      const a = rowA.getValue<string | null>(columnId);
+      const b = rowB.getValue<string | null>(columnId);
+      if (!a && !b) return 0;
+      if (!a) return 1;
+      if (!b) return -1;
+      return new Date(a).getTime() - new Date(b).getTime();
+    },
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -103,7 +113,16 @@ export const columns: ColumnDef<BidderRowType>[] = [
     },
   },
   {
-    accessorKey: "last_active.duration",
+    id: "last_active",
+    accessorFn: (row) => row.last_active.auction,
+    sortingFn: (rowA, rowB, columnId) => {
+      const a = rowA.getValue<string | null>(columnId);
+      const b = rowB.getValue<string | null>(columnId);
+      if (!a && !b) return 0;
+      if (!a) return 1;
+      if (!b) return -1;
+      return new Date(a).getTime() - new Date(b).getTime();
+    },
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
@@ -120,13 +139,13 @@ export const columns: ColumnDef<BidderRowType>[] = [
     },
     size: 100,
     cell: ({ row }) => {
-      const bidder = row.original;
+      const { duration, auction } = row.original.last_active;
       return (
         <div className="flex justify-center">
           <Tooltip>
-            <TooltipTrigger>{bidder.last_active.duration}</TooltipTrigger>
+            <TooltipTrigger>{duration ?? "Never"}</TooltipTrigger>
             <TooltipContent>
-              Last Auction: {bidder.last_active.auction}
+              Last Auction: {auction ?? "No auction history"}
             </TooltipContent>
           </Tooltip>
         </div>

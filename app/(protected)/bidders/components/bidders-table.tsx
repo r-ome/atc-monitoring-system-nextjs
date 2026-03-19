@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
@@ -27,6 +28,14 @@ interface BiddersTableProps {
 
 export const BiddersTable = ({ bidders }: BiddersTableProps) => {
   const router = useRouter();
+
+  const branchOptions = useMemo(() => {
+    const seen = new Set<string>();
+    return bidders
+      .filter((b) => b.branch.name && !seen.has(b.branch.name) && seen.add(b.branch.name))
+      .map((b) => ({ value: b.branch.name, label: b.branch.name }));
+  }, [bidders]);
+
   const globalFilterFn = (
     row: CoreRow<BidderRowType>,
     columnId?: string,
@@ -57,6 +66,13 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
         globalFilterFn,
         searchComponentProps: {
           placeholder: "Search By Name or Bidder Number",
+        },
+      }}
+      columnFilter={{
+        column: "branch_name",
+        options: branchOptions,
+        filterComponentProps: {
+          placeholder: "Filter by Branch",
         },
       }}
     />

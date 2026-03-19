@@ -2,19 +2,19 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { getBidderByBidderNumberUseCase } from "src/application/use-cases/bidders/get-bidder-by-bidder-number.use-case";
-import { BidderWithDetailsRow } from "src/entities/models/Bidder";
+import { BidderRepository } from "src/infrastructure/di/repositories";
+import { BidderWithDetailsAndReceiptsRow } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (bidder: BidderWithDetailsRow) => {
+const presenter = (bidder: BidderWithDetailsAndReceiptsRow) => {
   return {
     ...bidder,
     remarks: bidder.remarks || undefined,
     full_name: `${bidder.first_name} ${bidder.last_name}`,
     birthdate: bidder.birthdate
-      ? formatDate(bidder.birthdate, "MMM dd, yyy")
+      ? formatDate(bidder.birthdate, "MMM dd, yyyy")
       : null,
     address: bidder.address,
     store_name: bidder.store_name,
@@ -34,8 +34,12 @@ const presenter = (bidder: BidderWithDetailsRow) => {
       service_charge: auction.service_charge,
       registration_fee: auction.registration_fee,
       balance: auction.balance,
+      total_paid: auction.receipt_records
+        .flatMap((r) => r.payments)
+        .reduce((sum, p) => sum + p.amount_paid, 0),
+      total_items: auction.auctions_inventories.length,
       created_at: formatDate(auction.created_at, "MMM dd, yyyy"),
-      auctions_inventories: auction.auctions_inventories,
+      auction_date: formatDate(auction.created_at, "yyyy-MM-dd"),
     })),
   };
 };
@@ -45,7 +49,7 @@ export const GetBidderByBidderNumberController = async (
   branch_name: string,
 ) => {
   try {
-    const bidder = await getBidderByBidderNumberUseCase(
+    const bidder = await BidderRepository.getBidderByBidderNumber(
       bidder_number,
       branch_name,
     );

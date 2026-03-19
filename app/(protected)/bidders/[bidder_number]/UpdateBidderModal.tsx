@@ -285,7 +285,10 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
                 {branches.length ? (
                   <div className="w-full">
                     <Select
-                      defaultValue={newBidder?.branch_id || ""}
+                      value={newBidder?.branch_id ?? ""}
+                      onValueChange={(v) =>
+                        setNewBidder((prev) => ({ ...prev, branch_id: v }))
+                      }
                       name="branch_id"
                     >
                       <SelectTrigger className="w-full">

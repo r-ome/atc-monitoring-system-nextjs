@@ -4,42 +4,15 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
-import {
-  createBidderSchema,
-  CreateBidderInput,
-  BidderWithBranchRow,
-} from "src/entities/models/Bidder";
+import { updateBidderSchema } from "src/entities/models/Bidder";
 import { err, ok } from "src/entities/models/Result";
-import { formatDate } from "@/app/lib/utils";
 import { updateBidderUseCase } from "src/application/use-cases/bidders/update-bidder.use-case";
 import { logger } from "@/app/lib/logger";
-
-function presenter(bidder: BidderWithBranchRow) {
-  const date_format = "MMMM dd, yyyy";
-  return {
-    bidder_id: bidder.bidder_id,
-    bidder_number: bidder.bidder_number,
-    first_name: bidder.first_name,
-    middle_name: bidder.middle_name,
-    last_name: bidder.last_name,
-    full_name: `${bidder.first_name} ${bidder.last_name}`,
-    contact_number: bidder.contact_number,
-    branch: {
-      branch_id: bidder.branch_id,
-      name: bidder.branch.name,
-    },
-    birthdate: bidder.birthdate
-      ? formatDate(bidder.birthdate, date_format)
-      : null,
-    registration_fee: bidder.registration_fee,
-    service_charge: bidder.service_charge,
-    payment_term: bidder.payment_term,
-  };
-}
+import { presentBidder } from "./create-bidder.controller";
 
 export const UpdateBidderController = async (
   bidder_id: string,
-  input: Partial<CreateBidderInput>,
+  input: Record<string, unknown>,
 ) => {
   const ctx = RequestContext.getStore();
   const user_context = {
@@ -48,9 +21,13 @@ export const UpdateBidderController = async (
   };
 
   try {
-    input.birthdate = input.birthdate ? new Date(input.birthdate) : null;
+    const parsedInput = {
+      ...input,
+      birthdate: input.birthdate ? new Date(input.birthdate as string) : null,
+    };
+
     const { data, error: inputParseError } =
-      createBidderSchema.safeParse(input);
+      updateBidderSchema.safeParse(parsedInput);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -60,7 +37,7 @@ export const UpdateBidderController = async (
 
     const updated = await updateBidderUseCase(bidder_id, data);
     logger("UpdateBidderController", { data, ...user_context }, "info");
-    return ok(presenter(updated));
+    return ok(presentBidder(updated));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateBidderController", error, "warn");

@@ -8,6 +8,8 @@ import {
   isPrismaError,
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
+import { UpdateBidderInput } from "src/entities/models/Bidder";
+import { payments_purpose } from "@prisma/client";
 
 export const BidderRepository: IBidderRepository = {
   getBidder: async (bidder_id) => {
@@ -42,7 +44,16 @@ export const BidderRepository: IBidderRepository = {
         where: { bidder_number, branch: { name: branch_name } },
         include: {
           branch: true,
-          auctions_joined: { include: { auctions_inventories: true } },
+          auctions_joined: {
+            include: {
+              auctions_inventories: true,
+              receipt_records: {
+                where: { purpose: { not: payments_purpose.REFUNDED } },
+                include: { payments: true },
+              },
+            },
+            orderBy: { created_at: "desc" },
+          },
           requirements: true,
         },
       });
@@ -110,7 +121,7 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
-  updateBidder: async (bidder_id, data) => {
+  updateBidder: async (bidder_id, data: UpdateBidderInput) => {
     try {
       const updated = await prisma.bidders.update({
         include: { branch: true },
