@@ -1,10 +1,10 @@
 import { BranchRepository } from "src/infrastructure/di/repositories";
-import { type CreateBranchInput } from "src/entities/models/Branch";
+import { type UpdateBranchInput } from "src/entities/models/Branch";
 import { InputParseError, NotFoundError } from "src/entities/errors/common";
 
 export const updateBranchUseCase = async (
   branch_id: string,
-  input: CreateBranchInput,
+  input: UpdateBranchInput,
 ) => {
   const branch = await BranchRepository.getBranch(branch_id);
   if (!branch) throw new NotFoundError("Branch not found!");

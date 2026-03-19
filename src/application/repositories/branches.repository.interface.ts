@@ -2,6 +2,7 @@ import {
   BranchRow,
   BranchWithBiddersRow,
   CreateBranchInput,
+  UpdateBranchInput,
 } from "src/entities/models/Branch";
 
 export interface IBranchRepository {
@@ -12,6 +13,6 @@ export interface IBranchRepository {
   createBranch(input: CreateBranchInput): Promise<BranchRow>;
   updateBranch: (
     branch_id: string,
-    input: CreateBranchInput,
+    input: UpdateBranchInput,
   ) => Promise<BranchRow>;
 }

@@ -1,6 +1,5 @@
 import {
   createBranchSchema,
-  CreateBranchInput,
   BranchRow,
 } from "src/entities/models/Branch";
 import { createBranchUseCase } from "src/application/use-cases/branches/create-branch.use-case";
@@ -12,21 +11,20 @@ import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (branch: BranchRow) => {
-  const date_format = "MMM dd, yyyy";
+const DATE_FORMAT = "MMM dd, yyyy hh:mm a";
+
+export const presentBranch = (branch: BranchRow) => {
   return {
     ...branch,
-    created_at: formatDate(branch.created_at, date_format),
-    updated_at: formatDate(branch.updated_at, date_format),
+    created_at: formatDate(branch.created_at, DATE_FORMAT),
+    updated_at: formatDate(branch.updated_at, DATE_FORMAT),
     deleted_at: branch.deleted_at
-      ? formatDate(branch.deleted_at, date_format)
+      ? formatDate(branch.deleted_at, DATE_FORMAT)
       : null,
   };
 };
 
-export const CreateBranchController = async (
-  input: Partial<CreateBranchInput>,
-) => {
+export const CreateBranchController = async (input: Record<string, unknown>) => {
   try {
     const { data, error: inputParseError } =
       createBranchSchema.safeParse(input);
@@ -38,7 +36,7 @@ export const CreateBranchController = async (
     }
 
     const branch = await createBranchUseCase(data);
-    return ok(presenter(branch));
+    return ok(presentBranch(branch));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("CreateBranchController", error, "warn");

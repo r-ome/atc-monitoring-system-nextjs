@@ -40,6 +40,7 @@ export const BranchRepository: IBranchRepository = {
     try {
       return await prisma.branches.findMany({
         where: { name: { not: "ALL" } },
+        orderBy: { name: "asc" },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
