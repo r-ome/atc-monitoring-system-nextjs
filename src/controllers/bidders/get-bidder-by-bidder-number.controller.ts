@@ -41,6 +41,14 @@ const presenter = (bidder: BidderWithDetailsAndReceiptsRow) => {
       created_at: formatDate(auction.created_at, "MMM dd, yyyy"),
       auction_date: formatDate(auction.created_at, "yyyy-MM-dd"),
     })),
+    requirements: bidder.requirements.map((req) => ({
+      ...req,
+      validity_date: req.validity_date
+        ? formatDate(req.validity_date, "MMM dd, yyyy")
+        : null,
+      created_at: formatDate(req.created_at, "MMM dd, yyyy"),
+      updated_at: formatDate(req.updated_at, "MMM dd, yyyy"),
+    })),
   };
 };
 

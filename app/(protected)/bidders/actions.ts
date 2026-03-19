@@ -5,6 +5,9 @@ import { UpdateBidderController } from "src/controllers/bidders/update-bidder.co
 import { GetBiddersController } from "src/controllers/bidders/get-bidders.controller";
 import { GetBidderByBidderNumberController } from "src/controllers/bidders/get-bidder-by-bidder-number.controller";
 import { UploadBiddersController } from "src/controllers/bidders/upload-bidders.controller";
+import { CreateBidderRequirementController } from "src/controllers/bidder-requirement/create-bidder-requirement.controller";
+import { UpdateBidderRequirementController } from "src/controllers/bidder-requirement/update-bidder-requirement.controller";
+import { DeleteBidderRequirementController } from "src/controllers/bidder-requirement/delete-bidder-requirement.controller";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { requireUser } from "@/app/lib/auth";
 
@@ -68,4 +71,43 @@ export const uploadBidders = async (formData: FormData) => {
     },
     async () => await UploadBiddersController(branch_id, file as File),
   );
+};
+
+export const createBidderRequirement = async (
+  bidder_id: string,
+  formData: FormData,
+) => {
+  const user = await requireUser();
+  const data = Object.fromEntries(formData.entries());
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await CreateBidderRequirementController(bidder_id, data),
+  );
+};
+
+export const updateBidderRequirement = async (
+  requirement_id: string,
+  formData: FormData,
+) => {
+  const user = await requireUser();
+  const data = Object.fromEntries(formData.entries());
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await UpdateBidderRequirementController(requirement_id, data),
+  );
+};
+
+export const deleteBidderRequirement = async (requirement_id: string) => {
+  await requireUser();
+  return await DeleteBidderRequirementController(requirement_id);
 };
