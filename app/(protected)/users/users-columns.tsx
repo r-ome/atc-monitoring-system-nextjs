@@ -96,9 +96,7 @@ export const columns: ColumnDef<User>[] = [
       const user = row.original;
       return (
         <div className="flex justify-center">
-          <Badge
-            variant={user.branch?.name === "TARLAC" ? "success" : "warning"}
-          >
+          <Badge variant="outline">
             {user.branch?.name}
           </Badge>
         </div>

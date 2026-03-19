@@ -26,6 +26,11 @@ import { registerUser } from "@/app/(protected)/users/actions";
 import { toast } from "sonner";
 import { getBranches } from "@/app/(protected)/branches/actions";
 import { Branch } from "src/entities/models/Branch";
+import { USER_ROLES } from "src/entities/models/User";
+
+const ASSIGNABLE_ROLES = USER_ROLES.filter(
+  (r) => !["SUPER_ADMIN", "ADMIN", "OWNER"].includes(r),
+);
 
 export default function Page() {
   const router = useRouter();
@@ -92,7 +97,7 @@ export default function Page() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {["CASHIER", "ENCODER", "MODERATOR"].map((item) => (
+                        {ASSIGNABLE_ROLES.map((item) => (
                           <SelectItem key={item} value={item}>
                             {item}
                           </SelectItem>
@@ -162,7 +167,7 @@ export default function Page() {
                 <div className="flex flex-col gap-2 w-1/2">
                   <Label htmlFor="password">Confirm Password:</Label>
                   <PasswordInput
-                    name="password"
+                    name="confirm_password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
