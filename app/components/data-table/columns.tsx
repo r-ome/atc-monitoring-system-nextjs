@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef, TableState, Updater } from "@tanstack/react-table";
+import { ColumnDef, SortingState, TableState, Updater } from "@tanstack/react-table";
 import type { SearchComponentProps } from "@/app/components/data-table/SearchComponent";
 import type { FilterColumnComponentProps } from "./FilterColumnComponent";
 
@@ -32,4 +32,5 @@ export interface DataTableProps<TData, TValue> {
   title?: string | React.ReactNode;
   footer?: React.ReactNode;
   pageSize?: number;
+  initialSorting?: SortingState;
 }
