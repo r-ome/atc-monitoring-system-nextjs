@@ -76,7 +76,6 @@ export const UpdateBidderRegistrationModal: React.FC<
               <InputNumber
                 id="service_charge"
                 name="service_charge"
-                defaultValue={12}
                 value={bidder?.service_charge as number}
               />
             </div>
@@ -86,7 +85,6 @@ export const UpdateBidderRegistrationModal: React.FC<
               <InputNumber
                 id="registration_fee"
                 name="registration_fee"
-                defaultValue={3000}
                 value={bidder?.registration_fee as number}
               />
             </div>

@@ -43,6 +43,7 @@ export const getAuction = async (auctionDate: string) => {
 };
 
 export const registerBidder = async (input: FormData) => {
+  await requireUser();
   const data = Object.fromEntries(input.entries());
   data.payments = JSON.parse(data.payments as string);
 
@@ -88,6 +89,7 @@ export const getRegisteredBidderByBidderNumber = async (
 };
 
 export const handleBidderPullOut = async (formData: FormData) => {
+  await requireUser();
   const data = Object.fromEntries(formData.entries());
   data.payments = JSON.parse(data.payments as string);
   data.auction_inventory_ids = JSON.parse(data.auction_inventory_ids as string);
@@ -95,6 +97,7 @@ export const handleBidderPullOut = async (formData: FormData) => {
 };
 
 export const cancelItems = async (formData: FormData) => {
+  await requireUser();
   const data = Object.fromEntries(formData.entries());
 
   const auction_inventory_ids =
@@ -127,6 +130,7 @@ export const uploadCounterCheck = async (
   auctionId: string,
   formData: FormData,
 ) => {
+  await requireUser();
   const file = formData.get("file");
   return await UploadCounterCheckController(auctionId, file as File);
 };
@@ -139,6 +143,7 @@ export const updateCounterCheck = async (
   counterCheckId: string,
   formData: FormData,
 ) => {
+  await requireUser();
   const data = Object.fromEntries(formData.entries());
   return await UpdateCounterCheckController(counterCheckId, data);
 };
@@ -148,6 +153,7 @@ export const updateManifest = async (
   manifest_id: string,
   formData: FormData,
 ) => {
+  await requireUser();
   const data = Object.fromEntries(formData.entries());
   return await UpdateManifestController(auction_id, manifest_id, data);
 };
@@ -156,6 +162,7 @@ export const insertAuctionInventory = async (
   auction_id: string,
   formData: FormData,
 ) => {
+  await requireUser();
   const data = Object.fromEntries(formData.entries());
   return await InsertAuctionInventoryController(auction_id, data);
 };
@@ -164,10 +171,12 @@ export const updateBidderRegistration = async (
   auction_bidder_id: string,
   formData: FormData,
 ) => {
+  await requireUser();
   const data = Object.fromEntries(formData.entries());
   return await UpdateBidderRegistrationController(auction_bidder_id, data);
 };
 
 export const unregisterBidder = async (auction_bidder_id: string) => {
+  await requireUser();
   return await UnregisterBidderController(auction_bidder_id);
 };
