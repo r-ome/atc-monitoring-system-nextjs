@@ -1,26 +1,13 @@
 import { BranchRepository } from "src/infrastructure/di/repositories";
-import { BranchRow } from "src/entities/models/Branch";
-import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-
-const presenter = (branches: BranchRow[]) => {
-  const date_format = "MMM dd, yyyy";
-  return branches.map((branch) => ({
-    ...branch,
-    created_at: formatDate(branch.created_at, date_format),
-    updated_at: formatDate(branch.updated_at, date_format),
-    deleted_at: branch.deleted_at
-      ? formatDate(branch.deleted_at, date_format)
-      : null,
-  }));
-};
+import { presentBranch } from "./create-branch.controller";
 
 export const GetBranchesController = async () => {
   try {
     const branches = await BranchRepository.getBranches();
-    return ok(presenter(branches));
+    return ok(branches.map(presentBranch));
   } catch (error) {
     logger("GetBranchesController", error);
     if (error instanceof DatabaseOperationError) {

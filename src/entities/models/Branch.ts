@@ -11,6 +11,11 @@ export const createBranchSchema = z.object({
 });
 export type CreateBranchInput = z.infer<typeof createBranchSchema>;
 
+export const updateBranchSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255).trim(),
+});
+export type UpdateBranchInput = z.infer<typeof updateBranchSchema>;
+
 export type Branch = {
   branch_id: string;
   name: string;
