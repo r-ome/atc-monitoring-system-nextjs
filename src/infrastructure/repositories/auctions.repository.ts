@@ -812,7 +812,7 @@ export const AuctionRepository: IAuctionRepository = {
       return counter_check_records;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError(error.message, {
+        throw new DatabaseOperationError("Error uploading counter check", {
           cause: error.message,
         });
       }
@@ -828,7 +828,7 @@ export const AuctionRepository: IAuctionRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError(error.message, {
+        throw new DatabaseOperationError("Error getting counter check records", {
           cause: error.message,
         });
       }
@@ -850,7 +850,7 @@ export const AuctionRepository: IAuctionRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError(error.message, {
+        throw new DatabaseOperationError("Error updating counter check", {
           cause: error.message,
         });
       }
@@ -1000,7 +1000,7 @@ export const AuctionRepository: IAuctionRepository = {
       );
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError(error.message, {
+        throw new DatabaseOperationError("Error updating manifest", {
           cause: error.message,
         });
       }
