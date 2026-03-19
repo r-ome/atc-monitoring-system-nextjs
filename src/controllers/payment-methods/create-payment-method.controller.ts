@@ -5,27 +5,25 @@ import {
 import { createPaymentMethodUseCase } from "src/application/use-cases/payment-methods/create-payment-method.use-case";
 import {
   createPaymentMethodSchema,
-  CreatePaymentMethodInput,
   PaymentMethodRow,
 } from "src/entities/models/PaymentMethod";
 import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (payment_method: PaymentMethodRow) => {
-  const date_format = "MMM dd, yyyy";
-  return {
-    ...payment_method,
-    created_at: formatDate(payment_method.created_at, date_format),
-    updated_at: formatDate(payment_method.updated_at, date_format),
-    deleted_at: payment_method.deleted_at
-      ? formatDate(payment_method.deleted_at, date_format)
-      : null,
-  };
-};
+const DATE_FORMAT = "MMM dd, yyyy hh:mm a";
+
+export const presentPaymentMethod = (payment_method: PaymentMethodRow) => ({
+  ...payment_method,
+  created_at: formatDate(payment_method.created_at, DATE_FORMAT),
+  updated_at: formatDate(payment_method.updated_at, DATE_FORMAT),
+  deleted_at: payment_method.deleted_at
+    ? formatDate(payment_method.deleted_at, DATE_FORMAT)
+    : null,
+});
 
 export const CreatePaymentMethodController = async (
-  input: Partial<CreatePaymentMethodInput>,
+  input: Record<string, unknown>,
 ) => {
   try {
     const { data, error: inputParseError } =
@@ -38,7 +36,7 @@ export const CreatePaymentMethodController = async (
     }
 
     const payment_method = await createPaymentMethodUseCase(data);
-    return ok(presenter(payment_method));
+    return ok(presentPaymentMethod(payment_method));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("CreatePaymentMethodController", error, "warn");

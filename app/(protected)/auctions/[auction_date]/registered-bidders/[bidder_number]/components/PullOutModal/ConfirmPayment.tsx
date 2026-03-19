@@ -26,7 +26,7 @@ import {
 } from "@/app/components/ui/table";
 import { useBidderPullOutModalContext } from "../../context/BidderPullOutModalContext";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
-import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
+import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 
 type PaymentEntry = {
   method: PaymentMethod["name"] | "";
@@ -41,7 +41,7 @@ export const ConfirmPayment: React.FC = () => {
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      const res = await getPaymentMethods();
+      const res = await getEnabledPaymentMethods();
       if (res.ok) setPaymentMethods(res.value);
     };
 

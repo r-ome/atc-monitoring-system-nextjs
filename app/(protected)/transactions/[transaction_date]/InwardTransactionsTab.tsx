@@ -8,7 +8,7 @@ import { columns } from "./transactions-columns";
 import { Card, CardDescription, CardTitle } from "@/app/components/ui/card";
 import { cn } from "@/app/lib/utils";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
-import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
+import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 
 interface InwardTransactionsTabProps {
   transactions: Payment[];
@@ -21,7 +21,7 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      const res = await getPaymentMethods();
+      const res = await getEnabledPaymentMethods();
       if (res.ok) setPaymentMethods(res.value);
     };
 

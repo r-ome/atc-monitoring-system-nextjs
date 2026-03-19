@@ -33,7 +33,7 @@ import { Bidder } from "src/entities/models/Bidder";
 import { getBidders } from "@/app/(protected)/bidders/actions";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { registerBidder } from "@/app/(protected)/auctions/actions";
-import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
+import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { Auction } from "src/entities/models/Auction";
@@ -98,7 +98,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
     const fetchInitialData = async () => {
       const bidderRes = await getBidders();
       if (bidderRes.ok) setBidders(bidderRes.value);
-      const paymentMethodsRes = await getPaymentMethods();
+      const paymentMethodsRes = await getEnabledPaymentMethods();
       if (paymentMethodsRes.ok) setPaymentMethods(paymentMethodsRes.value);
     };
     fetchInitialData();

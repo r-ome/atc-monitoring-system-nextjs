@@ -12,7 +12,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/app/components/ui/card";
-import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
+import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 import {
   Tabs,
   TabsContent,
@@ -46,7 +46,7 @@ export default async function Page({
   const { user } = session;
 
   const [payment_methods_res, branches_res] = await Promise.all([
-    getPaymentMethods(),
+    getEnabledPaymentMethods(),
     getBranches(),
   ]);
 

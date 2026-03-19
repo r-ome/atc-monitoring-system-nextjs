@@ -1,11 +1,18 @@
 "use server";
 
-import { GetPaymentMethodsController } from "src/controllers/payment-methods/get-payment-methods.controller";
+import {
+  GetPaymentMethodsController,
+  GetEnabledPaymentMethodsController,
+} from "src/controllers/payment-methods/get-payment-methods.controller";
 import { CreatePaymentMethodController } from "src/controllers/payment-methods/create-payment-method.controller";
 import { UpdatePaymentMethodController } from "src/controllers/payment-methods/update-payment-method.controller";
 
 export const getPaymentMethods = async () => {
   return await GetPaymentMethodsController();
+};
+
+export const getEnabledPaymentMethods = async () => {
+  return await GetEnabledPaymentMethodsController();
 };
 
 export const createPaymentMethod = async (input: FormData) => {

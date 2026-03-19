@@ -20,7 +20,7 @@ import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { toast } from "sonner";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
-import { getPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
+import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 
 interface UpdateRegistrationPaymentMethodModalProps {
   receipt: {
@@ -55,7 +55,7 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      const res = await getPaymentMethods();
+      const res = await getEnabledPaymentMethods();
       if (!res.ok) return;
       setPaymentMethods(res.value);
       const defaultPaymentMethod = res.value.find(
