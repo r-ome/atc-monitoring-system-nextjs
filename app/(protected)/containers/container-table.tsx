@@ -1,13 +1,28 @@
 "use client";
 
 import { CoreRow } from "@tanstack/react-table";
-import { Container } from "src/entities/models/Container";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./container-columns";
-import { Inventory } from "src/entities/models/Inventory";
 
-export type ContainerRowType = Omit<Container, "inventories"> & {
-  inventories: Omit<Inventory, "histories" | "auctions_inventory">[];
+export type ContainerRowType = {
+  container_id: string;
+  barcode: string;
+  supplier_id: string;
+  branch_id: string;
+  bill_of_lading_number: string;
+  container_number: string;
+  gross_weight: string;
+  auction_or_sell: string;
+  status: string;
+  duties_and_taxes: number;
+  branch: { branch_id: string; name: string };
+  supplier: { supplier_id: string; supplier_code: string; name: string };
+  arrival_date?: string;
+  due_date?: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  inventory_count: number;
 };
 
 interface ContainersTableProps {

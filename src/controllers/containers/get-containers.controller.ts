@@ -1,89 +1,51 @@
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ContainerRepository } from "src/infrastructure/di/repositories";
-import { ContainerWithAllRow } from "src/entities/models/Container";
+import { ContainerListRow } from "src/entities/models/Container";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (containers: ContainerWithAllRow[]) => {
-  const date_format = "MMM dd, yyyy";
+const DATE_FORMAT = "MMM dd, yyyy";
 
-  return containers.map((container) => {
-    const timestamps = container.inventories
-      .map((i) => i.auction_date)
-      .flatMap((d) => {
-        if (!d) return [];
-
-        const t = d instanceof Date ? d.getTime() : new Date(d).getTime();
-        return isNaN(t) ? [] : [t];
-      });
-
-    const auction_start_date =
-      timestamps.length === 0 ? null : new Date(Math.min(...timestamps));
-
-    return {
-      container_id: container.container_id,
-      barcode: container.barcode,
-      supplier_id: container.supplier_id,
-      branch_id: container.branch_id,
-      bill_of_lading_number: container.bill_of_lading_number ?? "",
-      container_number: container.container_number ?? "",
-      gross_weight: container.gross_weight ?? "",
-      auction_or_sell: container.auction_or_sell ?? "",
-      status: container.status ?? "",
-      duties_and_taxes: Number(container.duties_and_taxes),
-      branch: {
-        branch_id: container.branch.branch_id,
-        name: container.branch.name,
-      },
-      supplier: {
-        supplier_id: container.supplier_id,
-        supplier_code: container.supplier.supplier_code,
-        name: container.supplier.name,
-      },
-      arrival_date: container.arrival_date
-        ? formatDate(container.arrival_date, date_format)
-        : undefined,
-      due_date: container.due_date
-        ? formatDate(container.due_date, date_format)
-        : undefined,
-      auction_start_date: auction_start_date
-        ? formatDate(new Date(auction_start_date), date_format)
-        : "N/A",
-      created_at: formatDate(container.created_at, date_format),
-      updated_at: formatDate(container.updated_at, date_format),
-      deleted_at: container.deleted_at
-        ? formatDate(container.deleted_at, date_format)
-        : null,
-      inventories: container.inventories.map((item) => ({
-        inventory_id: item.inventory_id,
-        container_id: item.container_id,
-        container: {
-          container_id: item.container_id,
-          barcode: container.barcode,
-        },
-        barcode: item.barcode,
-        control: item.control ?? "NC",
-        description: item.description,
-        status: item.status,
-        is_bought_item: item.is_bought_item ?? 0,
-        url: item.url,
-        auction_date: item.auction_date
-          ? formatDate(item.auction_date, date_format)
-          : "N/A",
-        created_at: formatDate(item.created_at, date_format),
-        updated_at: formatDate(item.updated_at, date_format),
-        deleted_at: item.deleted_at
-          ? formatDate(item.deleted_at, date_format)
-          : null,
-      })),
-    };
-  });
+const presenter = (containers: ContainerListRow[]) => {
+  return containers.map((container) => ({
+    container_id: container.container_id,
+    barcode: container.barcode,
+    supplier_id: container.supplier_id,
+    branch_id: container.branch_id,
+    bill_of_lading_number: container.bill_of_lading_number ?? "",
+    container_number: container.container_number ?? "",
+    gross_weight: container.gross_weight ?? "",
+    auction_or_sell: container.auction_or_sell,
+    status: container.status,
+    duties_and_taxes: Number(container.duties_and_taxes),
+    branch: {
+      branch_id: container.branch.branch_id,
+      name: container.branch.name,
+    },
+    supplier: {
+      supplier_id: container.supplier.supplier_id,
+      supplier_code: container.supplier.supplier_code,
+      name: container.supplier.name,
+    },
+    arrival_date: container.arrival_date
+      ? formatDate(container.arrival_date, DATE_FORMAT)
+      : undefined,
+    due_date: container.due_date
+      ? formatDate(container.due_date, DATE_FORMAT)
+      : undefined,
+    created_at: formatDate(container.created_at, DATE_FORMAT),
+    updated_at: formatDate(container.updated_at, DATE_FORMAT),
+    deleted_at: container.deleted_at
+      ? formatDate(container.deleted_at, DATE_FORMAT)
+      : null,
+    inventory_count: container._count.inventories,
+  }));
 };
 
 export const GetContainersController = async () => {
   try {
-    const containers = await ContainerRepository.getContainers();
+    const containers = await ContainerRepository.getContainersList();
     return ok(presenter(containers));
   } catch (error) {
     logger("GetContainersController", error);

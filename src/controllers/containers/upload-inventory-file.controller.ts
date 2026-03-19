@@ -1,12 +1,11 @@
 import { logger } from "@/app/lib/logger";
-import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
+import { getInventorySheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadInventoryFileUseCase } from "src/application/use-cases/containers/upload-inventory-file.use-case";
 import {
   DatabaseOperationError,
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { type InventorySheetRecord } from "src/entities/models/Inventory";
 import { err, ok } from "src/entities/models/Result";
 
 export const UploadInventoryFileController = async (
@@ -31,7 +30,7 @@ export const UploadInventoryFileController = async (
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const { data, headers } = getSheetData(arrayBuffer);
+    const { data, headers } = getInventorySheetData(arrayBuffer);
 
     if (!data.length) {
       throw new InputParseError("Invalid Data!", {
@@ -39,17 +38,17 @@ export const UploadInventoryFileController = async (
       });
     }
 
-    const validInventoryHeaders = ["Barcode", "Control", "Description"]
+    const hasMissingHeaders = ["Barcode", "Control", "Description"]
       .map((item) => headers.includes(item))
       .some((item) => !item);
 
-    if (validInventoryHeaders) {
+    if (hasMissingHeaders) {
       throw new InputParseError("Invalid Data!", {
         cause: { file: ["Sheet has invalid headers."] },
       });
     }
 
-    await uploadInventoryFileUseCase(barcode, data as InventorySheetRecord[]);
+    await uploadInventoryFileUseCase(barcode, data);
     return ok({ success: true });
   } catch (error) {
     if (error instanceof InputParseError) {

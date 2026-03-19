@@ -1,6 +1,6 @@
 import { getContainerByBarcodeUseCase } from "src/application/use-cases/containers/get-container-by-barcode.use-case";
 import { ContainerWithDetailsRow } from "src/entities/models/Container";
-import { DatabaseOperationError } from "src/entities/errors/common";
+import { DatabaseOperationError, NotFoundError } from "src/entities/errors/common";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
@@ -122,6 +122,11 @@ export const GetContainerByBarcodeController = async (barcode: string) => {
     const container = await getContainerByBarcodeUseCase(barcode);
     return ok(presenter(container));
   } catch (error) {
+    if (error instanceof NotFoundError) {
+      logger("GetContainerByBarcodeController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
     logger("GetContainerByBarcodeController", error);
     if (error instanceof DatabaseOperationError) {
       return err({

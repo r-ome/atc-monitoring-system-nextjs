@@ -11,6 +11,9 @@ import { AuctionsInventory } from "src/entities/models/Auction";
 import { GenerateContainerReportModal } from "./GenerateContainerReportModal";
 import { CreateInventoryModal } from "../../inventories/[inventory_id]/CreateInventoryModal";
 import { AppendInventoriesModal } from "./AppendInventoriesModal";
+import { useRouter } from "next/navigation";
+import { Button } from "@/app/components/ui/button";
+import { RefreshCwIcon } from "lucide-react";
 
 export type InventoryRowType = Omit<
   Inventory,
@@ -33,6 +36,8 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
   inventories,
   container,
 }) => {
+  const router = useRouter();
+
   const globalFilterFn = (
     row: CoreRow<InventoryRowType>,
     columnId?: string,
@@ -58,6 +63,9 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
           />
           <MergeInventoriesModal inventories={inventories} />
           <AppendInventoriesModal inventories={inventories} />
+          <Button variant="outline" onClick={() => router.refresh()}>
+            <RefreshCwIcon />
+          </Button>
         </div>
 
         <DataTable

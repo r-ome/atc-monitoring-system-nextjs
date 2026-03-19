@@ -39,6 +39,7 @@ export const createContainer = async (form_data: FormData) => {
 };
 
 export const updateContainer = async (containerId: string, input: FormData) => {
+  await requireUser();
   const data = Object.fromEntries(input.entries());
   return await UpdateContainerController(containerId, data);
 };
@@ -52,10 +53,12 @@ export const uploadInventoryFile = async (
 };
 
 export const deleteContainer = async (container_id: string) => {
+  await requireUser();
   return await DeleteContainerController(container_id);
 };
 
 export const mergeInventories = async (input: FormData) => {
+  await requireUser();
   const data = Object.fromEntries(input.entries());
   return await MergeInventoriesController(data);
 };

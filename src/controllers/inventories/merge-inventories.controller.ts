@@ -5,14 +5,11 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import {
-  mergeInventoriesSchema,
-  MergeInventoriesInput,
-} from "src/entities/models/Inventory";
+import { mergeInventoriesSchema } from "src/entities/models/Inventory";
 import { ok, err } from "src/entities/models/Result";
 
 export const MergeInventoriesController = async (
-  input: Partial<MergeInventoriesInput>,
+  input: Record<string, unknown>,
 ) => {
   try {
     const { data, error: inputParseError } =

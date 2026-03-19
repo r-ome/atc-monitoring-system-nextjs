@@ -12,21 +12,25 @@ export const createContainerUseCase = async (
   const supplier = await getSupplierBySupplierIdUseCase(container.supplier_id);
   const container_barcodes = supplier.containers.map((item) => item.barcode);
   const formatted_barcode = formatNumberPadding(container.barcode, 2);
-  container.barcode = `${supplier.supplier_code}-${formatted_barcode}`;
+  const barcode = `${supplier.supplier_code}-${formatted_barcode}`;
 
-  if (container_barcodes.includes(container.barcode)) {
+  if (container_barcodes.includes(barcode)) {
     throw new InputParseError("Invalid Data!", {
       cause: {
         barcode: [
-          `Barcode ${container.barcode} already exist within the Supplier`,
+          `Barcode ${barcode} already exist within the Supplier`,
         ],
       },
     });
   }
 
-  if (container.arrival_date) {
-    container.due_date = addDays(container.arrival_date, 40);
-  }
+  const due_date = container.arrival_date
+    ? addDays(container.arrival_date, 40)
+    : container.due_date;
 
-  return await ContainerRepository.createContainer(container);
+  return await ContainerRepository.createContainer({
+    ...container,
+    barcode,
+    due_date,
+  });
 };

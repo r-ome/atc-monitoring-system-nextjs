@@ -1,10 +1,12 @@
 import {
   ContainerRow,
+  ContainerListRow,
   ContainerWithAllRow,
   ContainerWithDetailsRow,
   ContainerWithInventoriesRow,
-  ContainerWithSupplierRow,
+  ContainerWithSupplierAndBranchRow,
   CreateContainerInput,
+  UpdateContainerInput,
 } from "src/entities/models/Container";
 import { CreateInventoryInput } from "src/entities/models/Inventory";
 
@@ -16,12 +18,13 @@ export interface IContainerRepository {
     container_id: string,
   ) => Promise<ContainerWithDetailsRow | null>;
   getContainers: () => Promise<ContainerWithAllRow[]>;
+  getContainersList: () => Promise<ContainerListRow[]>;
   createContainer: (container: CreateContainerInput) => Promise<ContainerRow>;
   getInventoriesByContainerBarcode: (barcode: string) => Promise<ContainerWithInventoriesRow>;
   updateContainer: (
     container_id: string,
-    data: CreateContainerInput,
-  ) => Promise<ContainerWithSupplierRow>;
+    data: UpdateContainerInput,
+  ) => Promise<ContainerWithSupplierAndBranchRow>;
   uploadInventoryFile: (
     rows: CreateInventoryInput[],
   ) => Promise<{ count: number }>;

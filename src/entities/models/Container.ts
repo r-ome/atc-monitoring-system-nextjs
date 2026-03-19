@@ -9,7 +9,7 @@ export type ContainerWithBranchRow = Prisma.containersGetPayload<{
   include: { branch: true };
 }>;
 
-export type ContainerWithSupplierRow = Prisma.containersGetPayload<{
+export type ContainerWithSupplierAndBranchRow = Prisma.containersGetPayload<{
   include: { branch: true; supplier: true };
 }>;
 
@@ -19,6 +19,14 @@ export type ContainerWithInventoriesRow = Prisma.containersGetPayload<{
 
 export type ContainerWithAllRow = Prisma.containersGetPayload<{
   include: { branch: true; inventories: true; supplier: true };
+}>;
+
+export type ContainerListRow = Prisma.containersGetPayload<{
+  include: {
+    branch: { select: { branch_id: true; name: true } };
+    supplier: { select: { supplier_id: true; supplier_code: true; name: true } };
+    _count: { select: { inventories: true } };
+  };
 }>;
 
 export type ContainerWithDetailsRow = Prisma.containersGetPayload<{
@@ -64,9 +72,9 @@ export type Container = {
 };
 
 export const createContainerSchema = z.object({
-  supplier_id: z.string(),
-  branch_id: z.string(),
-  barcode: z.string(),
+  supplier_id: z.string().min(1),
+  branch_id: z.string().min(1),
+  barcode: z.string().min(1),
   bill_of_lading_number: z.string().optional().nullable(),
   container_number: z.string().optional().nullable(),
   arrival_date: z.date().optional().nullable(),
@@ -77,6 +85,21 @@ export const createContainerSchema = z.object({
 });
 
 export type CreateContainerInput = z.infer<typeof createContainerSchema>;
+
+export const updateContainerSchema = z.object({
+  supplier_id: z.string().min(1),
+  branch_id: z.string().min(1),
+  barcode: z.string().min(1),
+  bill_of_lading_number: z.string().optional().nullable(),
+  container_number: z.string().optional().nullable(),
+  arrival_date: z.date().optional().nullable(),
+  due_date: z.date().optional().nullable(),
+  gross_weight: z.string().optional().nullable(),
+  auction_or_sell: z.enum(["AUCTION", "SELL"]),
+  duties_and_taxes: z.coerce.number().nullable(),
+});
+
+export type UpdateContainerInput = z.infer<typeof updateContainerSchema>;
 
 export type ContainerDueDate = {
   container_id: string;

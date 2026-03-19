@@ -39,7 +39,7 @@ export const ContainerRepository: IContainerRepository = {
   },
   getContainerByBarcode: async (barcode: string) => {
     try {
-      const container = await prisma.containers.findFirst({
+      return await prisma.containers.findFirst({
         where: { barcode },
         include: {
           branch: true,
@@ -53,8 +53,6 @@ export const ContainerRepository: IContainerRepository = {
           supplier: true,
         },
       });
-
-      return container;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting Container!", {
@@ -81,6 +79,26 @@ export const ContainerRepository: IContainerRepository = {
       throw error;
     }
   },
+  getContainersList: async () => {
+    try {
+      return await prisma.containers.findMany({
+        include: {
+          branch: { select: { branch_id: true, name: true } },
+          supplier: { select: { supplier_id: true, supplier_code: true, name: true } },
+          _count: { select: { inventories: true } },
+        },
+        orderBy: { due_date: { sort: "desc", nulls: "last" } },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting Containers!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
   createContainer: async (container) => {
     try {
       const created = await prisma.containers.create({
@@ -96,7 +114,7 @@ export const ContainerRepository: IContainerRepository = {
           duties_and_taxes: container.duties_and_taxes
             ? new Prisma.Decimal(container.duties_and_taxes)
             : 0,
-          auction_or_sell: "AUCTION",
+          auction_or_sell: container.auction_or_sell,
           status: "UNPAID",
         },
       });
@@ -152,21 +170,59 @@ export const ContainerRepository: IContainerRepository = {
   },
   updateContainer: async (container_id, data) => {
     try {
-      return await prisma.containers.update({
-        where: { container_id },
-        include: { supplier: true, branch: true },
-        data: {
-          supplier_id: data.supplier_id,
-          branch_id: data.branch_id,
-          barcode: data.barcode,
-          bill_of_lading_number: data.bill_of_lading_number,
-          container_number: data.container_number,
-          arrival_date: data.arrival_date,
-          due_date: data.due_date,
-          gross_weight: data.gross_weight,
-          auction_or_sell: data.auction_or_sell,
-          // status: data.status
-        },
+      return await prisma.$transaction(async (tx) => {
+        const current = await tx.containers.findUnique({
+          where: { container_id },
+          select: { barcode: true },
+        });
+
+        const updated = await tx.containers.update({
+          where: { container_id },
+          include: { supplier: true, branch: true },
+          data: {
+            supplier_id: data.supplier_id,
+            branch_id: data.branch_id,
+            barcode: data.barcode,
+            bill_of_lading_number: data.bill_of_lading_number,
+            container_number: data.container_number,
+            arrival_date: data.arrival_date,
+            due_date: data.due_date,
+            gross_weight: data.gross_weight,
+            auction_or_sell: data.auction_or_sell,
+            // status: data.status
+          },
+        });
+
+        if (current && current.barcode !== data.barcode) {
+          const inventories = await tx.inventories.findMany({
+            where: {
+              container_id,
+              OR: [
+                { barcode: current.barcode },
+                { barcode: { startsWith: `${current.barcode}-` } },
+              ],
+            },
+            select: { inventory_id: true, barcode: true },
+          });
+
+          await Promise.all(
+            inventories.map((inv) =>
+              tx.inventories.update({
+                where: { inventory_id: inv.inventory_id },
+                data: {
+                  barcode: inv.barcode === current.barcode
+                    ? data.barcode
+                    : inv.barcode.replace(
+                        `${current.barcode}-`,
+                        `${data.barcode}-`,
+                      ),
+                },
+              }),
+            ),
+          );
+        }
+
+        return updated;
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -180,10 +236,9 @@ export const ContainerRepository: IContainerRepository = {
   },
   deleteContainer: async (container_id) => {
     try {
-      const deleted = await prisma.containers.delete({
+      return await prisma.containers.delete({
         where: { container_id },
       });
-      return deleted;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error deleting container!", {
