@@ -84,7 +84,7 @@ export const columns: ColumnDef<RegisteredBidderSummary>[] = [
     },
   },
   {
-    accessorKey: "auction_inventories",
+    accessorKey: "auction_inventories_count",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

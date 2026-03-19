@@ -34,6 +34,7 @@ export const RegisteredBiddersTable = ({
     <DataTable
       columns={columns}
       data={registeredBidders}
+      initialSorting={[{ id: "created_at", desc: false }]}
       onRowClick={(registeredBidder) =>
         router.push(
           `registered-bidders/${registeredBidder.bidder.bidder_number}`

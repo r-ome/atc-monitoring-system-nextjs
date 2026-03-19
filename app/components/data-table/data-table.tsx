@@ -48,9 +48,10 @@ export const DataTable = <TData, TValue>({
   title,
   footer,
   pageSize = 10,
+  initialSorting = [],
 }: DataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
