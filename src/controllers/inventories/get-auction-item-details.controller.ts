@@ -1,8 +1,8 @@
-import { getAuctionItemDetailsUseCase } from "src/application/use-cases/inventories/get-auction-item-details.use-case";
 import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { ok, err } from "src/entities/models/Result";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { logger } from "@/app/lib/logger";
@@ -59,7 +59,10 @@ export const GetAuctionItemDetailsController = async (
 ) => {
   try {
     const auction_inventory =
-      await getAuctionItemDetailsUseCase(auction_inventory_id);
+      await InventoryRepository.getAuctionItemDetails(auction_inventory_id);
+    if (!auction_inventory) {
+      throw new NotFoundError("Auction Item does not exist!");
+    }
     return ok(presenter(auction_inventory));
   } catch (error) {
     if (error instanceof NotFoundError) {

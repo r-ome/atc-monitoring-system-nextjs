@@ -10,7 +10,7 @@ function presenter(inventories: InventoryWithAuctionsInventoryRow[]) {
     inventory_id: item.inventory_id,
     barcode: item.barcode,
     control: item.control ?? "NC",
-    created_at: formatDate(item.created_at, "MMM dd, yyyy"),
+    created_at: formatDate(item.created_at, "MMMM dd, yyyy"),
   }));
 }
 
