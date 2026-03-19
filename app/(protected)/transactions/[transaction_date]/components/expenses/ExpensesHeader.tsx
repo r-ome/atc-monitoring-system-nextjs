@@ -63,35 +63,35 @@ export const ExpensesHeader: React.FC<ExpensesHeaderProps> = ({
     }));
   }, [expenses, lastPettyCash, currentPettyCash, setExpenseTypesTotal]);
 
-  useEffect(() => {
-    const last = lastPettyCash?.amount || 0;
+  // useEffect(() => {
+  //   const last = lastPettyCash?.amount || 0;
 
-    const totalCurrentPettyCash = expenses
-      .filter((item) => item.purpose === "ADD_PETTY_CASH")
-      .reduce((acc, item) => (acc += item.amount), 0);
+  //   const totalCurrentPettyCash = expenses
+  //     .filter((item) => item.purpose === "ADD_PETTY_CASH")
+  //     .reduce((acc, item) => (acc += item.amount), 0);
 
-    const totalExpenses = expenses
-      .filter((item) => item.purpose === "EXPENSE")
-      .reduce((acc, item) => (acc += item.amount), 0);
+  //   const totalExpenses = expenses
+  //     .filter((item) => item.purpose === "EXPENSE")
+  //     .reduce((acc, item) => (acc += item.amount), 0);
 
-    const current = (
-      currentPettyCash?.amount || 0 + totalCurrentPettyCash
-    ).toFixed(2);
-    const expected = (last + totalCurrentPettyCash - totalExpenses).toFixed(2);
+  //   const current = (
+  //     currentPettyCash?.amount || 0 + totalCurrentPettyCash
+  //   ).toFixed(2);
+  //   const expected = (last + totalCurrentPettyCash - totalExpenses).toFixed(2);
 
-    const recaculateInitialPettyCash = async (currentPettyCash: PettyCash) => {
-      const res = await recalculatePettyCash(currentPettyCash);
-      if (res.ok) {
-        router.refresh();
-      }
-    };
+  //   // const recaculateInitialPettyCash = async (currentPettyCash: PettyCash) => {
+  //   //   const res = await recalculatePettyCash(currentPettyCash);
+  //   //   if (res.ok) {
+  //   //     router.refresh();
+  //   //   }
+  //   // };
 
-    if (currentPettyCash) {
-      if (current !== expected) {
-        recaculateInitialPettyCash(currentPettyCash);
-      }
-    }
-  }, [lastPettyCash, currentPettyCash, expenses, router]);
+  //   // if (currentPettyCash) {
+  //   //   if (current !== expected) {
+  //   //     recaculateInitialPettyCash(currentPettyCash);
+  //   //   }
+  //   // }
+  // }, [lastPettyCash, currentPettyCash, expenses, router]);
 
   return (
     <>
