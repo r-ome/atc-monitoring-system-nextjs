@@ -1,9 +1,6 @@
-"use server";
-
-import Link from "next/link";
-import { Button } from "@/app/components/ui/button";
 import { getContainers } from "./actions";
 import { ContainersTable } from "./container-table";
+import { CreateContainerModal } from "./CreateContainerModal";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page() {
@@ -17,9 +14,7 @@ export default async function Page() {
 
   return (
     <>
-      <Link href="containers/create">
-        <Button>Create Container</Button>
-      </Link>
+      <CreateContainerModal />
 
       <div className="my-2">
         <ContainersTable containers={containers} />

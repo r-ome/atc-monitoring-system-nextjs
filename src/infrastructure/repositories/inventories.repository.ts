@@ -459,7 +459,7 @@ export const InventoryRepository: IInventoryRepository = {
   mergeInventories: async (data) => {
     try {
       await prisma.$transaction(async (tx) => {
-        const [old_inventory, new_inventory, new_auction_inventory] =
+        const [old_inventory, new_inventory, old_auction_inventory] =
           await Promise.all([
             tx.inventories.findUnique({
               where: { inventory_id: data.old_inventory_id },
@@ -468,11 +468,11 @@ export const InventoryRepository: IInventoryRepository = {
               where: { inventory_id: data.new_inventory_id },
             }),
             tx.auctions_inventories.findUnique({
-              where: { inventory_id: data.new_inventory_id },
+              where: { inventory_id: data.old_inventory_id },
             }),
           ]);
 
-        if (!old_inventory || !new_inventory || !new_auction_inventory) {
+        if (!old_inventory || !new_inventory || !old_auction_inventory) {
           throw new NotFoundError("Inventory / Auction inventory not found!");
         }
 
@@ -488,13 +488,13 @@ export const InventoryRepository: IInventoryRepository = {
             ...(new_inventory.control === "0000"
               ? { control: old_inventory.control }
               : {}),
-            auction_date: new_auction_inventory.auction_date,
+            auction_date: old_auction_inventory.auction_date,
           },
         });
 
         await tx.inventory_histories.create({
           data: {
-            auction_inventory_id: new_auction_inventory.auction_inventory_id,
+            auction_inventory_id: old_auction_inventory.auction_inventory_id,
             inventory_id: data.new_inventory_id,
             auction_status: "DISCREPANCY",
             inventory_status: "SOLD",
@@ -502,11 +502,9 @@ export const InventoryRepository: IInventoryRepository = {
           },
         });
 
-        if (old_inventory) {
-          await tx.auctions_inventories.delete({
-            where: { inventory_id: data.old_inventory_id },
-          });
-        }
+        await tx.auctions_inventories.delete({
+          where: { inventory_id: data.old_inventory_id },
+        });
 
         await tx.inventories.delete({
           where: { inventory_id: data.old_inventory_id },
@@ -514,12 +512,9 @@ export const InventoryRepository: IInventoryRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError(
-          "Error getting inventories with no auction inventories",
-          {
-            cause: error.message,
-          },
-        );
+        throw new DatabaseOperationError("Error merging inventories", {
+          cause: error.message,
+        });
       }
       throw error;
     }

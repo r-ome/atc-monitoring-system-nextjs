@@ -4,7 +4,7 @@ import {
 } from "src/entities/models/Manifest";
 import * as xlsx from "xlsx";
 import { formatNumberPadding } from "./utils";
-import { InventoryRow } from "src/entities/models/Inventory";
+import { InventoryRow, InventorySheetRecord } from "src/entities/models/Inventory";
 import { ContainerWithAllRow } from "src/entities/models/Container";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
@@ -28,12 +28,7 @@ function excelTimeToHHMMSS(v: number) {
 
 export const getSheetData = (
   file: ArrayBuffer,
-  type:
-    | "bought_items"
-    | "bidders"
-    | "manifest"
-    | "inventory"
-    | "counter_check" = "inventory",
+  type: "bought_items" | "bidders" | "manifest" | "counter_check",
 ): { data: Record<string, string>[]; headers: string[] } => {
   try {
     const workbook = xlsx.read(file, { type: "array" });
@@ -92,18 +87,6 @@ export const getSheetData = (
         .filter((item) => Object.values(item).some(Boolean));
     }
 
-    if (type === "inventory") {
-      headers = data.length ? Object.keys(data[0]) : [];
-      data = data
-        .filter((item) => item.Barcode)
-        .map((item) => ({
-          BARCODE: item.Barcode,
-          CONTROL: item.Control !== "" ? item.Control.toString() : "",
-          DESCRIPTION: item.Description,
-        }))
-        .slice(0, -1);
-    }
-
     if (type === "bidders") {
       if (!data.length) return { data: [], headers: [] };
 
@@ -149,6 +132,38 @@ export const getSheetData = (
     return { data, headers };
   } catch (error) {
     logger("getSheetData", error);
+    throw new InputParseError("Invalid Data!", {
+      cause: { file: ["Sheet uploaded has wrong format!"] },
+    });
+  }
+};
+
+export const getInventorySheetData = (
+  file: ArrayBuffer,
+): { data: InventorySheetRecord[]; headers: string[] } => {
+  try {
+    const workbook = xlsx.read(file, { type: "array" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const raw = xlsx.utils.sheet_to_json(worksheet, {
+      defval: "",
+      raw: true,
+    }) as Record<string, string>[];
+
+    const headers = raw.length ? Object.keys(raw[0]) : [];
+
+    const data = raw
+      .filter((item) => item.Barcode)
+      .map((item) => ({
+        BARCODE: item.Barcode,
+        CONTROL: item.Control !== "" ? item.Control.toString() : "",
+        DESCRIPTION: item.Description,
+      }))
+      // The inventory template has a Total row at the end — exclude it
+      .slice(0, -1);
+
+    return { data, headers };
+  } catch (error) {
+    logger("getInventorySheetData", error);
     throw new InputParseError("Invalid Data!", {
       cause: { file: ["Sheet uploaded has wrong format!"] },
     });

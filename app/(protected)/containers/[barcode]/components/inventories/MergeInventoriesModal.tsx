@@ -33,28 +33,44 @@ export const MergeInventoriesModal: React.FC<MergeInventoriesModalProps> = ({
   const [open, setOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
+  const [didMerge, setDidMerge] = useState<boolean>(false);
+
+  const handleOpenChange = (value: boolean) => {
+    setOpen(value);
+    if (!value) {
+      setSearch("");
+      setIsLoading(false);
+      if (didMerge) {
+        setDidMerge(false);
+        router.refresh();
+      }
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
 
     const formData = new FormData(event.currentTarget);
+    const new_inventory_id = formData.get("new_inventory_id");
+    const old_inventory_id = formData.get("old_inventory_id");
+
+    if (!new_inventory_id || !old_inventory_id) {
+      toast.error("Please select one item from each column.");
+      return;
+    }
+
+    setIsLoading(true);
     const res = await mergeInventories(formData);
+    setIsLoading(false);
 
-    if (res) {
-      setSearch("");
-      setIsLoading(false);
-      if (res.ok) {
-        toast.success("Successfully merged inventories!");
-        setOpen(false);
-        router.refresh();
-      }
-
-      if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
-      }
+    if (res.ok) {
+      toast.success("Successfully merged inventories!");
+      setDidMerge(true);
+      setOpen(false);
+    } else {
+      const description =
+        typeof res.error?.cause === "string" ? res.error?.cause : null;
+      toast.error(res.error.message, { description });
     }
   };
 
@@ -65,10 +81,10 @@ export const MergeInventoriesModal: React.FC<MergeInventoriesModalProps> = ({
   }) =>
     [inventory.barcode, inventory.description, inventory.control]
       .filter(Boolean)
-      .some((field) => field!.toUpperCase().includes(search));
+      .some((field) => field!.toUpperCase().includes(search.toUpperCase()));
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>Merge Inventories</Button>
       </DialogTrigger>
@@ -77,19 +93,23 @@ export const MergeInventoriesModal: React.FC<MergeInventoriesModalProps> = ({
           <DialogHeader>
             <DialogTitle>Merge Inventories</DialogTitle>
           </DialogHeader>
-          <Input onChange={(e) => setSearch(e.target.value)} />
+          <Input onChange={(e) => setSearch(e.target.value)} value={search} placeholder="Search..." />
 
           <div className="flex gap-4">
             <div className="flex-1 rounded-md border">
               <h4 className="mb-4 text-sm text-center flex justify-center items-center h-10 border py-2 leading-none font-medium">
-                UNSOLD
+                UNSOLD (with barcode)
               </h4>
 
               <RadioGroup className="w-full" name="new_inventory_id">
                 <ScrollArea className="h-72">
                   <div className="px-4">
                     {inventories
-                      .filter((inventory) => inventory.status === "UNSOLD")
+                      .filter(
+                        (inventory) =>
+                          inventory.status === "UNSOLD" &&
+                          inventory.barcode.split("-").length === 3,
+                      )
                       .filter(filterList)
                       .map((inventory) => (
                         <React.Fragment key={inventory.inventory_id}>
@@ -97,11 +117,11 @@ export const MergeInventoriesModal: React.FC<MergeInventoriesModalProps> = ({
                             <div className="flex justify-center items-center">
                               <RadioGroupItem
                                 value={inventory.inventory_id}
-                                id={inventory.inventory_id}
+                                id={`new-${inventory.inventory_id}`}
                               />
                             </div>
                             <div className="text-sm justify-between">
-                              <Label htmlFor={inventory.inventory_id}>
+                              <Label htmlFor={`new-${inventory.inventory_id}`}>
                                 <div>{inventory.barcode}</div>
                                 <div>{inventory.control}</div>
                                 <div>{inventory.description}</div>
@@ -118,7 +138,7 @@ export const MergeInventoriesModal: React.FC<MergeInventoriesModalProps> = ({
 
             <div className="flex-1 rounded-md border">
               <h4 className="mb-4 text-sm text-center flex justify-center items-center h-10 border py-2 leading-none font-medium">
-                SOLD BUT NOT BARCODE
+                SOLD (no barcode)
               </h4>
 
               <RadioGroup className="w-full" name="old_inventory_id">
@@ -127,8 +147,8 @@ export const MergeInventoriesModal: React.FC<MergeInventoriesModalProps> = ({
                     {inventories
                       .filter(
                         (inventory) =>
-                          inventory.barcode.split("-").length === 2 &&
-                          inventory.status === "SOLD",
+                          inventory.status === "SOLD" &&
+                          inventory.barcode.split("-").length === 2,
                       )
                       .filter(filterList)
                       .map((inventory) => (
@@ -137,11 +157,11 @@ export const MergeInventoriesModal: React.FC<MergeInventoriesModalProps> = ({
                             <div className="flex justify-center items-center">
                               <RadioGroupItem
                                 value={inventory.inventory_id}
-                                id={inventory.inventory_id}
+                                id={`old-${inventory.inventory_id}`}
                               />
                             </div>
                             <div className="text-sm justify-between">
-                              <Label htmlFor={inventory.inventory_id}>
+                              <Label htmlFor={`old-${inventory.inventory_id}`}>
                                 <div>{inventory.barcode}</div>
                                 <div>{inventory.control}</div>
                                 <div>{inventory.description}</div>

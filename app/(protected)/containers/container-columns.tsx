@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { Badge } from "@/app/components/ui/badge";
 import { ArrowUpDown } from "lucide-react";
+import { parse } from "date-fns";
 import { ContainerRowType } from "./container-table";
 
 export const columns: ColumnDef<ContainerRowType>[] = [
@@ -57,7 +58,7 @@ export const columns: ColumnDef<ContainerRowType>[] = [
       const container = row.original;
       return (
         <div className="flex justify-center">
-          {container.inventories.length} items
+          {container.inventory_count} items
         </div>
       );
     },
@@ -116,6 +117,11 @@ export const columns: ColumnDef<ContainerRowType>[] = [
   },
   {
     accessorKey: "due_date",
+    sortingFn: (rowA, rowB) => {
+      const parse_date = (val: string | undefined) =>
+        val ? parse(val, "MMM dd, yyyy", new Date()).getTime() : 0;
+      return parse_date(rowA.original.due_date) - parse_date(rowB.original.due_date);
+    },
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

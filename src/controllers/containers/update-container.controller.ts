@@ -5,31 +5,23 @@ import {
   InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
-import {
-  createContainerSchema,
-  CreateContainerInput,
-  ContainerWithSupplierRow,
-} from "src/entities/models/Container";
+import { updateContainerSchema } from "src/entities/models/Container";
 import { err, ok } from "src/entities/models/Result";
-
-function presenter(container: ContainerWithSupplierRow) {
-  return {
-    ...container,
-    duties_and_taxes: Number(container.duties_and_taxes),
-  };
-}
+import { presentContainer } from "./create-container.controller";
 
 export const UpdateContainerController = async (
   container_id: string,
-  input: Partial<CreateContainerInput>,
+  input: Record<string, unknown>,
 ) => {
   try {
-    input.arrival_date = input.arrival_date
-      ? new Date(input.arrival_date)
-      : null;
+    const parsed = {
+      ...input,
+      arrival_date: input.arrival_date ? new Date(input.arrival_date as string) : null,
+      due_date: input.due_date ? new Date(input.due_date as string) : null,
+    };
 
     const { data, error: inputParseError } =
-      createContainerSchema.safeParse(input);
+      updateContainerSchema.safeParse(parsed);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -38,7 +30,7 @@ export const UpdateContainerController = async (
     }
 
     const container = await updateContainerUseCase(container_id, data);
-    return ok(presenter(container));
+    return ok(presentContainer(container));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateContainerController", error, "warn");

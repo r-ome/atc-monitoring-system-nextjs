@@ -82,9 +82,17 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
       duties_and_taxes: container.duties_and_taxes,
     });
 
+    if (container.gross_weight) {
+      setWeightInTons(
+        Number(container.gross_weight.replace(/ kgs/gi, "")) * 0.001,
+      );
+    }
+
     if (container.arrival_date) {
       setArrivalDate(new Date(container.arrival_date));
     }
+
+    setErrors(undefined);
   }, [container]);
 
   useEffect(() => {
@@ -104,6 +112,10 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
     const formData = new FormData(event.currentTarget);
     formData.append("supplier_id", selectedSupplier?.value as string);
     formData.append("branch_id", selectedBranch?.value as string);
+    formData.append(
+      "arrival_date",
+      arrivalDate ? arrivalDate.toISOString() : "",
+    );
     const res = await updateContainer(container.container_id, formData);
 
     if (res) {

@@ -1,7 +1,6 @@
 import { ContainerRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
-  InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Result";
@@ -12,11 +11,6 @@ export const DeleteContainerController = async (container_id: string) => {
     const container = await ContainerRepository.deleteContainer(container_id);
     return ok(container);
   } catch (error) {
-    if (error instanceof InputParseError) {
-      logger("DeleteContainerController", error, "warn");
-      return err({ message: error.message, cause: error.cause });
-    }
-
     if (error instanceof NotFoundError) {
       logger("DeleteContainerController", error, "warn");
       return err({ message: error.message, cause: error.cause });

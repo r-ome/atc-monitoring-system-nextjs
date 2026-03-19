@@ -2,7 +2,6 @@ import { createContainerUseCase } from "src/application/use-cases/containers/cre
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   createContainerSchema,
-  CreateContainerInput,
   ContainerRow,
 } from "src/entities/models/Container";
 import {
@@ -14,27 +13,28 @@ import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (container: ContainerRow) => {
-  const date_format = "MMM dd, yyyy";
+const DATE_FORMAT = "MMM dd, yyyy";
+
+export const presentContainer = (container: ContainerRow) => {
   return {
     ...container,
     duties_and_taxes: Number(container.duties_and_taxes),
     arrival_date: container.arrival_date
-      ? formatDate(container.arrival_date, date_format)
+      ? formatDate(container.arrival_date, DATE_FORMAT)
       : null,
     due_date: container.due_date
-      ? formatDate(container.due_date, date_format)
+      ? formatDate(container.due_date, DATE_FORMAT)
       : null,
-    created_at: formatDate(container.created_at, date_format),
-    updated_at: formatDate(container.updated_at, date_format),
+    created_at: formatDate(container.created_at, DATE_FORMAT),
+    updated_at: formatDate(container.updated_at, DATE_FORMAT),
     deleted_at: container.deleted_at
-      ? formatDate(container.deleted_at, date_format)
+      ? formatDate(container.deleted_at, DATE_FORMAT)
       : null,
   };
 };
 
 export const CreateContainerController = async (
-  input: Partial<CreateContainerInput>,
+  input: Record<string, unknown>,
 ) => {
   const ctx = RequestContext.getStore();
   const user_context = {
@@ -43,14 +43,14 @@ export const CreateContainerController = async (
   };
 
   try {
-    input = {
+    const parsed = {
       ...input,
-      arrival_date: input.arrival_date ? new Date(input?.arrival_date) : null,
-      due_date: input.due_date ? new Date(input?.due_date) : null,
+      arrival_date: input.arrival_date ? new Date(input.arrival_date as string) : null,
+      due_date: input.due_date ? new Date(input.due_date as string) : null,
     };
 
     const { data, error: inputParseError } =
-      createContainerSchema.safeParse(input);
+      createContainerSchema.safeParse(parsed);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -59,8 +59,8 @@ export const CreateContainerController = async (
     }
 
     const container = await createContainerUseCase(data);
-    logger("StartAuctionController", { data, ...user_context }, "info");
-    return ok(presenter(container));
+    logger("CreateContainerController", { data, ...user_context }, "info");
+    return ok(presentContainer(container));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("CreateContainerController", error, "warn");
