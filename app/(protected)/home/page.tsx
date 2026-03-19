@@ -2,6 +2,7 @@ import { BirthdatesTable } from "@/app/(protected)/home/components/BidderBirthda
 import { ContainersDueDateTable } from "./components/ContainersTable/ContainersDueDateTable";
 import { UnpaidBiddersTable } from "./components/UnpaidBiddersTable/UnpaidBiddersTable";
 import { AuctionStatisticsTable } from "./components/AuctionStatisticsTable/AuctionStatisticsTable";
+import { BannedBiddersTable } from "./components/BannedBiddersTable/BannedBiddersTable";
 
 const Page = async () => {
   return (
@@ -21,6 +22,9 @@ const Page = async () => {
         <div className="w-2/3">
           <AuctionStatisticsTable />
         </div>
+      </div>
+      <div>
+        <BannedBiddersTable />
       </div>
     </div>
   );

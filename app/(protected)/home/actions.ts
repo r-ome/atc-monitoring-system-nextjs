@@ -6,6 +6,7 @@ import { GetAuctionsStatisticsController } from "src/controllers/statistics/get-
 import { GetBidderBirthdatesController } from "src/controllers/statistics/get-bidder-birthdates.controller";
 import { GetContainersDueDateController } from "src/controllers/statistics/get-containers-due-date.controller";
 import { GetUnpaidBiddersController } from "src/controllers/statistics/get-unpaid-bidders.controller";
+import { GetBannedBiddersController } from "src/controllers/statistics/get-banned-bidders.controller";
 
 export const getBidderBirthdates = async () => {
   const user = await requireUser();
@@ -40,5 +41,14 @@ export const getAuctionsStatistics = async () => {
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
     async () => await GetAuctionsStatisticsController(),
+  );
+};
+
+export const getBannedBidders = async () => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetBannedBiddersController(),
   );
 };

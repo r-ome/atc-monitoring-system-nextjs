@@ -36,6 +36,7 @@ export type BidderWithDetailsAndReceiptsRow = Prisma.biddersGetPayload<{
       };
     };
     requirements: true;
+    ban_histories: true;
   };
 }>;
 

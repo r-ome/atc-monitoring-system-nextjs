@@ -85,6 +85,41 @@ export const StatisticsRepository: IStatisticsRepository = {
       throw error;
     }
   },
+  getBannedBidders: async () => {
+    try {
+      return await prisma.$queryRawUnsafe<
+        import("src/entities/models/BidderBanHistory").BannedBidderRow[]
+      >(`
+        SELECT
+          b.bidder_id,
+          b.bidder_number,
+          b.first_name,
+          b.last_name,
+          br.name AS branch_name,
+          bbh.bidder_ban_history_id,
+          bbh.remarks,
+          bbh.created_at AS banned_at
+        FROM bidders b
+        JOIN branches br ON br.branch_id = b.branch_id
+        LEFT JOIN bidder_ban_histories bbh
+          ON bbh.bidder_id = b.bidder_id
+          AND bbh.created_at = (
+            SELECT MAX(created_at)
+            FROM bidder_ban_histories
+            WHERE bidder_id = b.bidder_id
+          )
+        WHERE b.status = 'BANNED'
+        ORDER BY b.bidder_number ASC
+      `);
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting banned bidders!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
   getAuctionsStatistics: async () => {
     try {
       const auctions = await tenantQuery({

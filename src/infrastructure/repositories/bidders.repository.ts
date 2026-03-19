@@ -55,6 +55,7 @@ export const BidderRepository: IBidderRepository = {
             orderBy: { created_at: "desc" },
           },
           requirements: true,
+          ban_histories: { orderBy: { created_at: "desc" } },
         },
       });
 
