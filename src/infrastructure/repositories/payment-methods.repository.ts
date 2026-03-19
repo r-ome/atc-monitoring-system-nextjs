@@ -9,11 +9,28 @@ import {
 export const PaymentMethodRepository: IPaymentMethodRepository = {
   getPaymentMethods: async () => {
     try {
-      const payment_methods = await prisma.payment_methods.findMany();
-      return payment_methods;
+      return await prisma.payment_methods.findMany({
+        orderBy: { name: "asc" },
+      });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error getting branches", {
+        throw new DatabaseOperationError("Error getting payment methods", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  getEnabledPaymentMethods: async () => {
+    try {
+      return await prisma.payment_methods.findMany({
+        where: { state: "ENABLED" },
+        orderBy: { name: "asc" },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting payment methods", {
           cause: error.message,
         });
       }
@@ -23,17 +40,15 @@ export const PaymentMethodRepository: IPaymentMethodRepository = {
   },
   createPaymentMethod: async (data) => {
     try {
-      const payment_method = await prisma.payment_methods.create({
+      return await prisma.payment_methods.create({
         data: {
           name: data.name,
           state: data.state,
         },
       });
-
-      return payment_method;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error creating branch!", {
+        throw new DatabaseOperationError("Error creating payment method!", {
           cause: error.message,
         });
       }
@@ -43,18 +58,16 @@ export const PaymentMethodRepository: IPaymentMethodRepository = {
   },
   updatePaymentMethod: async (payment_method_id, data) => {
     try {
-      const payment_method = await prisma.payment_methods.update({
+      return await prisma.payment_methods.update({
         where: { payment_method_id },
         data: {
           name: data.name,
           state: data.state,
         },
       });
-
-      return payment_method;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error updating Branch!", {
+        throw new DatabaseOperationError("Error updating payment method!", {
           cause: error.message,
         });
       }

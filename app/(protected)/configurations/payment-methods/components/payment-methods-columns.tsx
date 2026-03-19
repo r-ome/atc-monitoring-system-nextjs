@@ -44,6 +44,7 @@ export const columns = (
   },
   {
     accessorKey: "state",
+    filterFn: "includesIn",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

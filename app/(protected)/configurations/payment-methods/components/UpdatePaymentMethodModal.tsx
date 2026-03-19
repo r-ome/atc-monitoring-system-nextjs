@@ -20,11 +20,6 @@ import { PaymentMethod } from "src/entities/models/PaymentMethod";
 import { updatePaymentMethod } from "../actions";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 
-type UpdatePaymentMethodForm = {
-  name: string | null;
-  state?: string;
-};
-
 interface UpdatePaymentMethodProps {
   open: boolean;
   setOpen: React.Dispatch<SetStateAction<boolean>>;
@@ -39,108 +34,89 @@ export const UpdatePaymentMethodModal: React.FC<UpdatePaymentMethodProps> = ({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]>>();
-  const [newSelected, setNewSelected] =
-    useState<UpdatePaymentMethodForm>(selected);
+  const [name, setName] = useState(selected.name);
+  const [state, setState] = useState<PaymentMethod["state"]>(selected.state);
 
   useEffect(() => {
-    setNewSelected({
-      name: selected?.name,
-      state: selected?.state,
-    });
+    setName(selected.name);
+    setState(selected.state);
+    setErrors(undefined);
   }, [selected]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
-    if (!selected) return;
 
     const formData = new FormData(event.currentTarget);
+    setIsLoading(true);
     const res = await updatePaymentMethod(selected.payment_method_id, formData);
+    setIsLoading(false);
 
-    if (res) {
-      setIsLoading(false);
-      if (res.ok) {
-        toast.success("Successfully updated payment method!");
-        setOpen(false);
-        router.refresh();
-      }
-
-      if (!res.ok) {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
-        if (res.error.message === "Invalid Data!") {
-          setErrors(res.error.cause as Record<string, string[]>);
-        }
+    if (res.ok) {
+      toast.success("Successfully updated payment method!");
+      setOpen(false);
+      router.refresh();
+    } else {
+      const description =
+        typeof res.error?.cause === "string" ? res.error?.cause : null;
+      toast.error(res.error.message, { description });
+      if (res.error.message === "Invalid Data!") {
+        setErrors(res.error.cause as Record<string, string[]>);
       }
     }
   };
 
-  const handleUpdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const name = e.target.name;
-    setNewSelected((prev) => ({ ...prev, [name]: value }));
-  };
-
-  if (!selected) return null;
-
   return (
-    <div>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Payment Method</DialogTitle>
-            <DialogDescription>Update Payment Method details</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex gap-4">
-              <Label htmlFor="name" className="w-40">
-                Name:
-              </Label>
-              <Input
-                name="name"
-                value={newSelected?.name || ""}
-                onChange={handleUpdateChange}
-                required
-                error={errors}
-              />
-            </div>
-            <div className="flex gap-4">
-              <Label htmlFor="control" className="w-30">
-                State
-              </Label>
-              <div>
-                <RadioGroup
-                  name="state"
-                  defaultValue={newSelected.state}
-                  className="flex"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="ENABLED" id="enabled" />
-                    <Label htmlFor="enabled" className="cursor-pointer">
-                      ENABLED
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 cursor-pointer">
-                    <RadioGroupItem value="DISABLED" id="disabled" />
-                    <Label htmlFor="disabled" className="cursor-pointer">
-                      DISABLED
-                    </Label>
-                  </div>
-                </RadioGroup>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Update Payment Method</DialogTitle>
+          <DialogDescription>Update Payment Method details</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex gap-4">
+            <Label htmlFor="name" className="w-40">
+              Name:
+            </Label>
+            <Input
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              error={errors}
+            />
+          </div>
+          <div className="flex gap-4">
+            <Label className="w-30">State</Label>
+            <RadioGroup
+              name="state"
+              value={state}
+              onValueChange={(v) => setState(v as PaymentMethod["state"])}
+              className="flex"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="ENABLED" id="enabled" />
+                <Label htmlFor="enabled" className="cursor-pointer">
+                  ENABLED
+                </Label>
               </div>
-            </div>
+              <div className="flex items-center space-x-2 cursor-pointer">
+                <RadioGroupItem value="DISABLED" id="disabled" />
+                <Label htmlFor="disabled" className="cursor-pointer">
+                  DISABLED
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
 
-            <DialogFooter>
-              <DialogClose className="cursor-pointer">Cancel</DialogClose>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2Icon className="animate-spin" />}
-                Submit
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <DialogFooter>
+            <DialogClose className="cursor-pointer">Cancel</DialogClose>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading && <Loader2Icon className="animate-spin" />}
+              Submit
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };

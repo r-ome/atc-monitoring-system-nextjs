@@ -7,35 +7,33 @@ import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./payment-methods-columns";
 import { UpdatePaymentMethodModal } from "./UpdatePaymentMethodModal";
 
-export type PaymentMethodRowType = PaymentMethod;
+const EMPTY_PAYMENT_METHOD: PaymentMethod = {
+  payment_method_id: "",
+  name: "",
+  state: "DISABLED",
+  created_at: "",
+  updated_at: "",
+  deleted_at: null,
+};
 
 interface PaymentMethodsTableProps {
-  payment_methods: PaymentMethodRowType[];
+  payment_methods: PaymentMethod[];
 }
 
 export const PaymentMethodsTable = ({
   payment_methods,
 }: PaymentMethodsTableProps) => {
   const [open, setOpen] = useState<boolean>(false);
-  const [selected, setSelected] = useState<PaymentMethod>({
-    payment_method_id: "",
-    name: "",
-    state: "DISABLED",
-  } as PaymentMethod);
+  const [selected, setSelected] = useState<PaymentMethod>(EMPTY_PAYMENT_METHOD);
 
   const globalFilterFn = (
-    row: CoreRow<PaymentMethodRowType>,
-    columnId?: string,
-    filterValue?: string
+    row: CoreRow<PaymentMethod>,
+    _columnId: string,
+    filterValue: string
   ) => {
-    const payment_method = row.original as PaymentMethodRowType;
-    const name = payment_method.name.toLowerCase();
-    const state = payment_method.state.toLowerCase();
-    const search = (filterValue ?? "").toLowerCase();
-
-    return [name, state]
-      .filter(Boolean)
-      .some((field) => field!.toLowerCase().includes(search));
+    const { name, state } = row.original;
+    const search = filterValue.toLowerCase();
+    return [name, state].some((field) => field.toLowerCase().includes(search));
   };
 
   return (
@@ -52,6 +50,16 @@ export const PaymentMethodsTable = ({
           globalFilterFn,
           searchComponentProps: {
             placeholder: "Search By Payment Method Name",
+          },
+        }}
+        columnFilter={{
+          column: "state",
+          options: [
+            { value: "ENABLED", label: "Enabled" },
+            { value: "DISABLED", label: "Disabled" },
+          ],
+          filterComponentProps: {
+            placeholder: "Filter by State",
           },
         }}
       />
