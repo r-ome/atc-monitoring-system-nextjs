@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
 import AuctionsJoined from "./components/AuctionsJoinedTable";
+import BidderRequirementsTable from "./components/BidderRequirementsTable";
 import { redirect } from "next/navigation";
 
 export default async function Page({
@@ -118,6 +119,11 @@ export default async function Page({
       <AuctionsJoined
         auctionsJoined={bidder.auctions_joined}
         bidderNumber={bidder.bidder_number}
+      />
+
+      <BidderRequirementsTable
+        bidder_id={bidder.bidder_id}
+        requirements={bidder.requirements}
       />
     </div>
   );
