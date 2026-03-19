@@ -9,7 +9,7 @@ import {
   UserWithBranchRow,
 } from "src/entities/models/User";
 import { logger } from "@/app/lib/logger";
-import { updateUserUseCase } from "src/application/use-cases/users/update-user.use-case";
+import { UserRepository } from "src/infrastructure/di/repositories";
 
 function presenter(user: UserWithBranchRow) {
   return user;
@@ -29,7 +29,7 @@ export const UpdateUserController = async (
       });
     }
 
-    const created = await updateUserUseCase(user_id, data);
+    const created = await UserRepository.updateUser(user_id, data);
     return ok(presenter(created));
   } catch (error) {
     if (error instanceof InputParseError) {

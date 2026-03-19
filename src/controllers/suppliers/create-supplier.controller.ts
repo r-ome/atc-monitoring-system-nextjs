@@ -4,7 +4,7 @@ import {
   SupplierRow,
 } from "src/entities/models/Supplier";
 import { formatDate } from "@/app/lib/utils";
-import { createSupplierUseCase } from "src/application/use-cases/suppliers/create-supplier.use-case";
+import { SupplierRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -38,7 +38,7 @@ export const CreateSupplierController = async (
       });
     }
 
-    const supplier = await createSupplierUseCase(data);
+    const supplier = await SupplierRepository.createSupplier(data);
     return ok(presenter(supplier));
   } catch (error) {
     if (error instanceof InputParseError) {

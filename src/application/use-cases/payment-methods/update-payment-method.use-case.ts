@@ -1,5 +1,5 @@
 import { CreatePaymentMethodInput } from "src/entities/models/PaymentMethod";
-import { PaymentMethodRepository } from "src/infrastructure/repositories/payment-methods.repository";
+import { PaymentMethodRepository } from "src/infrastructure/di/repositories";
 import { InputParseError } from "src/entities/errors/common";
 
 export const updatePaymentMethodUseCase = async (

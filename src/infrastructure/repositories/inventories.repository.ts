@@ -4,6 +4,7 @@ import {
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
 import { IInventoryRepository } from "src/application/repositories/inventories.repository.interface";
+import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import {
   DatabaseOperationError,
   NotFoundError,
@@ -66,7 +67,7 @@ export const InventoryRepository: IInventoryRepository = {
       const atc_default_bidder = await prisma.auctions_bidders.findFirst({
         where: {
           auction_id: auctions_inventory?.auction_bidder.auction_id,
-          bidder: { bidder_number: "5013" },
+          bidder: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
         },
       });
 

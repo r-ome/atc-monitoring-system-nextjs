@@ -1,5 +1,5 @@
 import { NotFoundError } from "src/entities/errors/common";
-import { InventoryRepository } from "src/infrastructure/repositories/inventories.repository";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 
 export const getInventoryUseCase = async (inventory_id: string) => {
   const inventory = await InventoryRepository.getInventory(inventory_id);

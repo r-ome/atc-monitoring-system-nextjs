@@ -1,5 +1,5 @@
 import { BidderWithLastAuctionRow } from "src/entities/models/Bidder";
-import { getBiddersUseCase } from "src/application/use-cases/bidders/get-bidders.use-case";
+import { BidderRepository } from "src/infrastructure/di/repositories";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
@@ -35,7 +35,7 @@ const presenter = (bidders: BidderWithLastAuctionRow[]) => {
 
 export const GetBiddersController = async () => {
   try {
-    const bidders = await getBiddersUseCase();
+    const bidders = await BidderRepository.getBidders();
     return ok(presenter(bidders));
   } catch (error) {
     logger("GetBiddersController", error);

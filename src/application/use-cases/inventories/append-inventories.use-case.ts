@@ -1,12 +1,12 @@
-import { InventoryRepository } from "src/infrastructure/repositories/inventories.repository";
-import { getInventoriesByContainerBarcodeUseCase } from "../containers/get-inventories-by-container-barcode.use-case";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
+import { ContainerRepository } from "src/infrastructure/di/repositories";
 
 export const appendInventoriesUseCase = async (
   container_barcode: string,
   inventory_ids: string[],
 ) => {
   const container =
-    await getInventoriesByContainerBarcodeUseCase(container_barcode);
+    await ContainerRepository.getInventoriesByContainerBarcode(container_barcode);
 
   const inventories = container.inventories.sort((a, b) =>
     a.barcode.localeCompare(b.barcode),

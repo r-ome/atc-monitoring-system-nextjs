@@ -1,4 +1,4 @@
-import { BidderRepository } from "src/infrastructure/repositories/bidders.repository";
+import { BidderRepository } from "src/infrastructure/di/repositories";
 import {
   BidderSheetRecord,
   CreateBidderBulkInput,

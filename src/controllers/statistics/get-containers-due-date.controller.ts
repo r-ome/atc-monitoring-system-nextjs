@@ -3,7 +3,7 @@ import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { ContainerWithBranchRow } from "src/entities/models/Container";
-import { getContainersDueDateUseCase } from "src/application/use-cases/statistics/get-containers-due-date.use-case";
+import { StatisticsRepository } from "src/infrastructure/di/repositories";
 
 function presenter(containers: ContainerWithBranchRow[]) {
   const date_format = "MMM d";
@@ -31,7 +31,7 @@ function presenter(containers: ContainerWithBranchRow[]) {
 
 export const GetContainersDueDateController = async () => {
   try {
-    const containers = await getContainersDueDateUseCase();
+    const containers = await StatisticsRepository.getContainersDueDate();
     return ok(presenter(containers));
   } catch (error) {
     logger("GetContainersDueDateController", error);

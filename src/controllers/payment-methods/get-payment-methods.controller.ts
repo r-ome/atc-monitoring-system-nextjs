@@ -3,7 +3,7 @@ import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-import { getPaymentMethodsUseCase } from "src/application/use-cases/payment-methods/get-payment-methods.use-case";
+import { PaymentMethodRepository } from "src/infrastructure/di/repositories";
 
 const presenter = (payment_methods: PaymentMethodRow[]) => {
   const date_format = "MMM dd, yyyy hh:mm a";
@@ -19,7 +19,7 @@ const presenter = (payment_methods: PaymentMethodRow[]) => {
 
 export const GetPaymentMethodsController = async () => {
   try {
-    const payment_methods = await getPaymentMethodsUseCase();
+    const payment_methods = await PaymentMethodRepository.getPaymentMethods();
     return ok(presenter(payment_methods));
   } catch (error) {
     logger("GetPaymentMethodsController", error);

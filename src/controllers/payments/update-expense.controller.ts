@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { updateExpenseUseCase } from "src/application/use-cases/payments/update-expense.use-case";
+import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -24,7 +24,7 @@ export const UpdateExpenseController = async (
       });
     }
 
-    const res = await updateExpenseUseCase(expense_id, data);
+    const res = await ExpensesRepository.updateExpense(expense_id, data);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

@@ -1,4 +1,4 @@
-import { getExpensesByDateUseCase } from "src/application/use-cases/expenses/get-expenses-by-date.use-case";
+import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import { ExpenseWithBranchRow } from "src/entities/models/Expense";
 import {
   DatabaseOperationError,
@@ -31,7 +31,7 @@ export const GetExpensesByDateController = async (
       throw new InputParseError("Invalid date param");
     }
 
-    const expenses = await getExpensesByDateUseCase(date, branch_id);
+    const expenses = await ExpensesRepository.getExpensesByDate(date, branch_id);
     return ok(presenter(expenses));
   } catch (error) {
     if (error instanceof InputParseError) {

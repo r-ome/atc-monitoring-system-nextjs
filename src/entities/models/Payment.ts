@@ -45,6 +45,35 @@ export type Payment = {
   };
 };
 
+export type ReceiptRecordRow = Prisma.receipt_recordsGetPayload<object>;
+
+export type ReceiptRecordWithHistoriesRow = Prisma.receipt_recordsGetPayload<{
+  include: {
+    auction_bidder: { include: { bidder: true } };
+    payments: { include: { payment_method: true } };
+    inventory_histories: {
+      include: {
+        auction_inventory: { include: { inventory: true; histories: true } };
+      };
+    };
+  };
+}>;
+
+export type ReceiptRecordWithInventoriesRow = Prisma.receipt_recordsGetPayload<{
+  include: {
+    auctions_inventories: true;
+    payments: { include: { payment_method: true } };
+    auction_bidder: { include: { bidder: true } };
+  };
+}>;
+
+export type ReceiptRecordWithPaymentsRow = Prisma.receipt_recordsGetPayload<{
+  include: {
+    payments: { include: { payment_method: true } };
+    auction_bidder: { include: { bidder: true } };
+  };
+}>;
+
 export type ReceiptRecordWithDetailsRow = Prisma.receipt_recordsGetPayload<{
   include: {
     auction_bidder: { include: { bidder: true } };

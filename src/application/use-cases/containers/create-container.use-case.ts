@@ -1,5 +1,5 @@
 import { CreateContainerInput } from "src/entities/models/Container";
-import { ContainerRepository } from "src/infrastructure/repositories/containers.repository";
+import { ContainerRepository } from "src/infrastructure/di/repositories";
 import { getSupplierContainersUseCase } from "../suppliers/get-supplier-containers.use-case";
 import { InputParseError } from "src/entities/errors/common";
 import { formatNumberPadding } from "@/app/lib/utils";

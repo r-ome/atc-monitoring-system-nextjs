@@ -1,4 +1,4 @@
-import { getCounterCheckRecordsUseCase } from "src/application/use-cases/auctions/get-counter-check.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { CounterCheckRow } from "src/entities/models/CounterCheck";
 import { ok, err } from "src/entities/models/Result";
@@ -24,7 +24,7 @@ function presenter(counter_check: CounterCheckRow[]) {
 export async function GetCounterCheckController(auction_id: string) {
   try {
     const counter_check_records =
-      await getCounterCheckRecordsUseCase(auction_id);
+      await AuctionRepository.getCounterCheckRecords(auction_id);
     return ok(presenter(counter_check_records));
   } catch (error) {
     logger("GetCounterCheckController", error);

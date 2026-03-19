@@ -6,7 +6,7 @@ import { err, ok } from "src/entities/models/Result";
 import { UserWithBranchRow } from "src/entities/models/User";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
-import { getUserByUsernameUseCase } from "src/application/use-cases/users/get-user-by-username.use-case";
+import { UserRepository } from "src/infrastructure/di/repositories";
 
 function presenter(user: UserWithBranchRow) {
   return {
@@ -22,7 +22,7 @@ function presenter(user: UserWithBranchRow) {
 
 export const GetUserByUsernameController = async (username: string) => {
   try {
-    const user = await getUserByUsernameUseCase(username);
+    const user = await UserRepository.getUserByUsername(username);
 
     if (!user) {
       return err({ message: "Server Error", cause: "User Not Found" });

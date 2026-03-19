@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { updateRegistrationPaymentUseCase } from "src/application/use-cases/payments/update-registration-payment.use-case";
+import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -24,7 +24,7 @@ export const UpdateRegistrationPaymentController = async (
       });
     }
 
-    const res = await updateRegistrationPaymentUseCase(payment_id, data);
+    const res = await PaymentRepository.updateRegistrationPayment(payment_id, data);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

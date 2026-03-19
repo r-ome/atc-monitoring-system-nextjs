@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { mergeInventoriesUseCase } from "src/application/use-cases/inventories/merge-inventories.use-case";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -24,7 +24,7 @@ export const MergeInventoriesController = async (
       });
     }
 
-    await mergeInventoriesUseCase(data);
+    await InventoryRepository.mergeInventories(data);
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

@@ -1,4 +1,4 @@
-import { getBranchesUseCase } from "src/application/use-cases/branches/get-branches.use-case";
+import { BranchRepository } from "src/infrastructure/di/repositories";
 import { BranchRow } from "src/entities/models/Branch";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
@@ -19,7 +19,7 @@ const presenter = (branches: BranchRow[]) => {
 
 export const GetBranchesController = async () => {
   try {
-    const branches = await getBranchesUseCase();
+    const branches = await BranchRepository.getBranches();
     return ok(presenter(branches));
   } catch (error) {
     logger("GetBranchesController", error);

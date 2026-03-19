@@ -1,4 +1,4 @@
-import { getPaymentsByDateUseCase } from "src/application/use-cases/payments/get-payments-by-date.use-case";
+import { PaymentRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { PaymentWithDetailsRow } from "src/entities/models/Payment";
 import { err, ok } from "src/entities/models/Result";
@@ -43,7 +43,7 @@ export const GetPaymentsByDateController = async (
   branch_id: string | undefined,
 ) => {
   try {
-    const payments = await getPaymentsByDateUseCase(date, branch_id);
+    const payments = await PaymentRepository.getPaymentsByDate(date, branch_id);
     return ok(presenter(payments));
   } catch (error) {
     logger("GetPaymentsByDateController", error);

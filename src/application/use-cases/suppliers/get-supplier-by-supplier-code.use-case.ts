@@ -1,5 +1,5 @@
 import { NotFoundError } from "src/entities/errors/common";
-import { SupplierRepository } from "src/infrastructure/repositories/suppliers.repository";
+import { SupplierRepository } from "src/infrastructure/di/repositories";
 
 export const getSupplierBySupplierCodeUseCase = async (
   supplier_code: string

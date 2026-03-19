@@ -1,5 +1,5 @@
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { getContainersUseCase } from "src/application/use-cases/containers/get-containers.use-case";
+import { ContainerRepository } from "src/infrastructure/di/repositories";
 import { ContainerWithAllRow } from "src/entities/models/Container";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
@@ -83,7 +83,7 @@ const presenter = (containers: ContainerWithAllRow[]) => {
 
 export const GetContainersController = async () => {
   try {
-    const containers = await getContainersUseCase();
+    const containers = await ContainerRepository.getContainers();
     return ok(presenter(containers));
   } catch (error) {
     logger("GetContainersController", error);

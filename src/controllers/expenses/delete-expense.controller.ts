@@ -1,6 +1,6 @@
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
-import { deleteExpenseUseCase } from "src/application/use-cases/expenses/delete-expense.use-case";
+import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
@@ -11,7 +11,7 @@ export const DeleteExpenseController = async (expense_id: string) => {
     branch_name: ctx?.branch_name,
   };
   try {
-    await deleteExpenseUseCase(expense_id);
+    await ExpensesRepository.deleteExpense(expense_id);
     logger("DeleteExpenseController", { ...user_context }, "info");
     return ok({ message: "expense deleted" });
   } catch (error) {

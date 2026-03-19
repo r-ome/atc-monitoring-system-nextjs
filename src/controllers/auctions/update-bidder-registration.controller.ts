@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { updateBidderRegistrationUseCase } from "src/application/use-cases/auctions/update-bidder-registration.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import {
   InputParseError,
   DatabaseOperationError,
@@ -24,7 +24,7 @@ export const UpdateBidderRegistrationController = async (
       });
     }
 
-    const auction_bidder = await updateBidderRegistrationUseCase(
+    const auction_bidder = await AuctionRepository.updateBidderRegistration(
       auction_bidder_id,
       data,
     );

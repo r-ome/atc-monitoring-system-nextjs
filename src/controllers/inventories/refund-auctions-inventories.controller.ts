@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { refundAuctionsInventoriesUseCase } from "src/application/use-cases/payments/refund-auctions-inventories.use-case";
+import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -39,7 +39,7 @@ export const RefundAuctionsInventoriesController = async (
       });
     }
 
-    const res = await refundAuctionsInventoriesUseCase(data);
+    const res = await PaymentRepository.refundAuctionInventories(data);
 
     return ok(res);
   } catch (error) {

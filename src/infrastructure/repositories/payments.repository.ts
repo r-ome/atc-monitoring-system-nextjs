@@ -4,6 +4,7 @@ import {
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
 import { IPaymentRepository } from "src/application/repositories/payments.repository.interface";
+import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import {
   DatabaseOperationError,
   NotFoundError,
@@ -227,7 +228,7 @@ export const PaymentRepository: IPaymentRepository = {
         const atc_default_bidder = await tx.auctions_bidders.findFirst({
           where: {
             auction_id: auction_bidder?.auction_id,
-            bidder: { bidder_number: "5013" },
+            bidder: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
           },
         });
 

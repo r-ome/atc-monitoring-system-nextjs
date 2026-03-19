@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { deleteInventoryUseCase } from "src/application/use-cases/inventories/delete-inventory.use-case";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -9,7 +9,7 @@ import { ok, err } from "src/entities/models/Result";
 
 export const DeleteInventoryController = async (inventory_id: string) => {
   try {
-    await deleteInventoryUseCase(inventory_id);
+    await InventoryRepository.deleteInventory(inventory_id);
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

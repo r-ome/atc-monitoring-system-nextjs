@@ -1,4 +1,4 @@
-import { getMonitoringUseCase } from "src/application/use-cases/auctions/get-monitoring.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { ok, err } from "src/entities/models/Result";
@@ -52,7 +52,7 @@ function presenter(monitoring: AuctionInventoryWithDetailsRow[]) {
 
 export async function GetMonitoringController(auction_id: string) {
   try {
-    const monitoring = await getMonitoringUseCase(auction_id);
+    const monitoring = await AuctionRepository.getMonitoring(auction_id, []);
     return ok(presenter(monitoring));
   } catch (error) {
     logger("GetMonitoringController", error);

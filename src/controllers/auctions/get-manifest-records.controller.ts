@@ -1,6 +1,6 @@
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
-import { getManifestRecordsUseCase } from "src/application/use-cases/auctions/get-manifest-records.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ManifestRow } from "src/entities/models/Manifest";
 import { ok, err } from "src/entities/models/Result";
@@ -25,7 +25,7 @@ function presenter(manifest_records: ManifestRow[]) {
 
 export const GetManifestRecordsController = async (auctionId: string) => {
   try {
-    const manifest_records = await getManifestRecordsUseCase(auctionId);
+    const manifest_records = await AuctionRepository.getManifestRecords(auctionId);
     return ok(presenter(manifest_records));
   } catch (error) {
     logger("GetManifestRecordsController", error);

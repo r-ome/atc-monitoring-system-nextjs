@@ -5,10 +5,92 @@ import {
 } from "@/app/lib/error-handler";
 import { IExpenseRepository } from "src/application/repositories/expenses.repository.interface";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { computePettyCashUseCase } from "../../application/use-cases/expenses/compute-petty-cash.use-case";
 import { formatDate } from "@/app/lib/utils";
 import { fromZonedTime } from "date-fns-tz";
+import { subDays } from "date-fns";
 const TZ = "Asia/Manila";
+
+type PrismaTransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
+
+async function computePettyCash(
+  tx: PrismaTransactionClient,
+  petty_cash_id: string,
+  input: { created_at: string; branch_id: string },
+) {
+  const dateStr = formatDate(new Date(input.created_at), "yyyy-MM-dd");
+  const startOfDay = fromZonedTime(`${dateStr} 00:00:00.000`, TZ);
+  const endOfDay = fromZonedTime(`${dateStr} 23:59:59.999`, TZ);
+
+  const yesterdayStr = formatDate(
+    subDays(new Date(input.created_at), 1),
+    "yyyy-MM-dd",
+  );
+  const yesterdayStart = fromZonedTime(`${yesterdayStr} 00:00:00.000`, TZ);
+  const yesterdayEnd = fromZonedTime(`${yesterdayStr} 23:59:59.999`, TZ);
+
+  let last_petty_cash = await tx.petty_cash.findFirst({
+    where: {
+      branch_id: input.branch_id,
+      created_at: { gte: yesterdayStart, lte: yesterdayEnd },
+    },
+    orderBy: { created_at: "desc" },
+  });
+
+  if (!last_petty_cash) {
+    last_petty_cash = await tx.petty_cash.findFirst({
+      where: {
+        branch_id: input.branch_id,
+        created_at: { lt: yesterdayStart },
+      },
+      orderBy: { created_at: "desc" },
+    });
+  }
+
+  const today_petty_cash = await tx.expenses.findMany({
+    where: {
+      branch_id: input.branch_id,
+      created_at: { gte: startOfDay, lte: endOfDay },
+      purpose: "ADD_PETTY_CASH",
+    },
+  });
+  const total_today_petty_cash = today_petty_cash.reduce((acc, item) => {
+    acc += item.amount.toNumber();
+    return acc;
+  }, 0);
+
+  const expenses = await tx.expenses.findMany({
+    where: {
+      branch_id: input.branch_id,
+      created_at: { gte: startOfDay, lte: endOfDay },
+      purpose: "EXPENSE",
+    },
+  });
+  const total_expenses = expenses.reduce((acc, item) => {
+    acc += item.amount.toNumber();
+    return acc;
+  }, 0);
+
+  const cash_on_hand =
+    (last_petty_cash ? last_petty_cash.amount.toNumber() : 0) +
+    total_today_petty_cash -
+    total_expenses;
+
+  await tx.petty_cash.upsert({
+    where: { petty_cash_id },
+    update: {
+      amount: cash_on_hand,
+      remarks: "updated petty cash amount",
+    },
+    create: {
+      amount: cash_on_hand,
+      remarks: "created petty cash",
+      created_at: fromZonedTime(input.created_at, TZ),
+      branch_id: input.branch_id,
+    },
+  });
+}
 
 export const ExpensesRepository: IExpenseRepository = {
   getExpensesByDate: async (date, branch_id) => {
@@ -87,7 +169,7 @@ export const ExpensesRepository: IExpenseRepository = {
         });
 
         // update petty_cash
-        await computePettyCashUseCase(tx, petty_cash_id, input);
+        await computePettyCash(tx, petty_cash_id, input);
         return created;
       });
     } catch (error) {
@@ -125,7 +207,7 @@ export const ExpensesRepository: IExpenseRepository = {
 
         if (!petty_cash) throw new Error("No Petty Cash");
 
-        await computePettyCashUseCase(tx, petty_cash?.petty_cash_id, {
+        await computePettyCash(tx, petty_cash?.petty_cash_id, {
           created_at: formatted_created_at,
           branch_id: updated_expense.branch_id,
         });
@@ -208,7 +290,7 @@ export const ExpensesRepository: IExpenseRepository = {
   recalculatePettyCash: async (petty_cash) => {
     try {
       await prisma.$transaction(async (tx) => {
-        await computePettyCashUseCase(tx, petty_cash.petty_cash_id, {
+        await computePettyCash(tx, petty_cash.petty_cash_id, {
           created_at: `${formatDate(new Date(petty_cash.created_at), "yyyy-MM-dd")} 00:00:00.000`,
           branch_id: petty_cash.branch.branch_id,
         });

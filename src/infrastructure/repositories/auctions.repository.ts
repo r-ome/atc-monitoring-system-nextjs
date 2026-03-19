@@ -1,4 +1,5 @@
 import { IAuctionRepository } from "src/application/repositories/auctions.repository.interface";
+import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { logger } from "@/app/lib/logger";
 import prisma from "@/app/lib/prisma/prisma";
 import {
@@ -25,7 +26,7 @@ export const AuctionRepository: IAuctionRepository = {
     try {
       return await prisma.$transaction(async (tx) => {
         const atc_default_bidder = await tx.bidders.findFirst({
-          where: { bidder_number: "5013" },
+          where: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
         });
 
         if (!atc_default_bidder) {
@@ -732,7 +733,7 @@ export const AuctionRepository: IAuctionRepository = {
         const atc_default_bidder = await tx.auctions_bidders.findFirst({
           where: {
             auction_id: bidder.auction_id,
-            bidder: { bidder_number: "5013" },
+            bidder: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
           },
         });
 

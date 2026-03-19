@@ -1,5 +1,5 @@
 import { CreateSupplierInput } from "src/entities/models/Supplier";
-import { SupplierRepository } from "src/infrastructure/repositories/suppliers.repository";
+import { SupplierRepository } from "src/infrastructure/di/repositories";
 import { getSupplierBySupplierIdUseCase } from "./get-supplier-by-supplier-id.use-case";
 import { InputParseError } from "src/entities/errors/common";
 

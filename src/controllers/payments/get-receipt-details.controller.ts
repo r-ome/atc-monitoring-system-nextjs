@@ -1,4 +1,4 @@
-import { getReceiptDetailsUseCase } from "src/application/use-cases/payments/get-receipt-details.use-case";
+import { PaymentRepository } from "src/infrastructure/di/repositories";
 import { ReceiptRecordWithDetailsRow } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
@@ -143,7 +143,7 @@ export const GetReceiptDetailsController = async (
   receipt_number: string,
 ) => {
   try {
-    const receipt = await getReceiptDetailsUseCase(auction_id, receipt_number);
+    const receipt = await PaymentRepository.getReceiptDetails(auction_id, receipt_number);
     return ok(presenter(receipt));
   } catch (error) {
     logger("GetReceiptDetailsController", error);

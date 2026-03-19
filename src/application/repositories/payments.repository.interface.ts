@@ -1,9 +1,12 @@
 import {
   PullOutPaymentInput,
   RefundAuctionInventoriesInput,
-  ReceiptRecordWithDetailsRow,
   PaymentWithDetailsRow,
   UpdateRegistrationPaymentInput,
+  ReceiptRecordRow,
+  ReceiptRecordWithHistoriesRow,
+  ReceiptRecordWithInventoriesRow,
+  ReceiptRecordWithPaymentsRow,
 } from "src/entities/models/Payment";
 
 export interface IPaymentRepository {
@@ -14,27 +17,17 @@ export interface IPaymentRepository {
   getReceiptDetails: (
     auction_date: string,
     receipt_number: string
-  ) => Promise<Omit<ReceiptRecordWithDetailsRow, "auctions_inventories">>;
+  ) => Promise<ReceiptRecordWithHistoriesRow>;
   getAuctionTransactions: (
     auction_id: string
-  ) => Promise<Omit<ReceiptRecordWithDetailsRow, "inventory_histories">[]>;
+  ) => Promise<ReceiptRecordWithInventoriesRow[]>;
   handleBidderPullOut: (
     data: PullOutPaymentInput
-  ) => Promise<
-    Omit<
-      ReceiptRecordWithDetailsRow,
-      | "auction_bidder"
-      | "auctions_inventories"
-      | "payments"
-      | "inventory_histories"
-    >
-  >;
+  ) => Promise<ReceiptRecordRow>;
   refundAuctionInventories: (data: RefundAuctionInventoriesInput) => Promise<void>;
   getBidderReceipts: (
     auction_bidder_id: string
-  ) => Promise<
-    Omit<ReceiptRecordWithDetailsRow, "auctions_inventories" | "inventory_histories">[]
-  >;
+  ) => Promise<ReceiptRecordWithPaymentsRow[]>;
   updateRegistrationPayment: (
     payment_id: string,
     data: UpdateRegistrationPaymentInput

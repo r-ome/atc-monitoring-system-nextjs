@@ -1,7 +1,7 @@
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-import { getTotalExpensesUseCase } from "src/application/use-cases/reports/get-total-expenses.use-case";
+import { ReportsRepository } from "src/infrastructure/di/repositories";
 import { ExpenseWithBranchRow } from "src/entities/models/Expense";
 
 function presenter(expenses: ExpenseWithBranchRow[]) {
@@ -16,7 +16,7 @@ export const GetTotalExpensesController = async (
   date: string,
 ) => {
   try {
-    const total_expenses = await getTotalExpensesUseCase(branch_id, date);
+    const total_expenses = await ReportsRepository.getTotalExpenses(branch_id, date);
     return ok(presenter(total_expenses));
   } catch (error) {
     logger("GetTotalExpensesController", error);

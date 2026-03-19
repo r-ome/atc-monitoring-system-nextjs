@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { undoPaymentUseCase } from "src/application/use-cases/payments/undo-payment.use-case";
+import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -8,7 +8,7 @@ import { err, ok } from "src/entities/models/Result";
 
 export const UndoPaymentController = async (receipt_id: string) => {
   try {
-    const res = await undoPaymentUseCase(receipt_id);
+    const res = await PaymentRepository.undoPayment(receipt_id);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

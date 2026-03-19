@@ -1,4 +1,4 @@
-import { addExpenseUseCase } from "src/application/use-cases/expenses/add-expense.use-case";
+import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   DatabaseOperationError,
@@ -46,7 +46,7 @@ export const AddExpenseController = async (
       });
     }
 
-    const expense = await addExpenseUseCase(petty_cash_id, data);
+    const expense = await ExpensesRepository.addExpense(petty_cash_id, data);
     logger("AddExpenseController", { data, ...user_context }, "info");
     return ok(presenter(expense));
   } catch (error) {

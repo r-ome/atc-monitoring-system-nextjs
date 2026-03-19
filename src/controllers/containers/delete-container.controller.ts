@@ -1,4 +1,4 @@
-import { deleteContainerUseCase } from "src/application/use-cases/containers/delete-container.use-case";
+import { ContainerRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -9,7 +9,7 @@ import { logger } from "@/app/lib/logger";
 
 export const DeleteContainerController = async (container_id: string) => {
   try {
-    const container = await deleteContainerUseCase(container_id);
+    const container = await ContainerRepository.deleteContainer(container_id);
     return ok(container);
   } catch (error) {
     if (error instanceof InputParseError) {
