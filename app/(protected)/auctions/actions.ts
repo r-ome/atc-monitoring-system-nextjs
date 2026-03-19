@@ -2,10 +2,12 @@
 
 import { requireUser } from "@/app/lib/auth";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { GetAuctionController } from "src/controllers/auctions/get-auction.controller";
 import { StartAuctionController } from "src/controllers/auctions/start-auction.controller";
 import { RegisterBidderController } from "src/controllers/auctions/register-bidder.controller";
 import { GetRegisteredBiddersController } from "src/controllers/auctions/get-registered-bidders.controller";
+import { GetRegisteredBiddersSummaryController } from "src/controllers/auctions/get-registered-bidders-summary.controller";
 import { GetMonitoringController } from "src/controllers/auctions/get-monitoring.controller";
 import { UploadManifestController } from "src/controllers/auctions/upload-manifest.controller";
 import { GetManifestRecordsController } from "src/controllers/auctions/get-manifest-records.controller";
@@ -33,6 +35,15 @@ export const startAuction = async (auctionDate: string) => {
   );
 };
 
+export const getAuctionId = async (auctionDate: string) => {
+  await requireUser();
+  const result = await AuctionRepository.getAuctionId(new Date(auctionDate));
+  if (!result) {
+    return { ok: false as const, error: { message: "Auction not found!" } };
+  }
+  return { ok: true as const, value: result.auction_id };
+};
+
 export const getAuction = async (auctionDate: string) => {
   const user = await requireUser();
 
@@ -52,6 +63,10 @@ export const registerBidder = async (input: FormData) => {
 
 export const getRegisteredBidders = async (auctionId: string) => {
   return await GetRegisteredBiddersController(auctionId);
+};
+
+export const getRegisteredBiddersSummary = async (auctionId: string) => {
+  return await GetRegisteredBiddersSummaryController(auctionId);
 };
 
 export const getMonitoring = async (auctionId: string) => {

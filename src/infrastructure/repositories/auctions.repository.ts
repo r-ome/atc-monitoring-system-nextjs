@@ -95,6 +95,26 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
+  getAuctionId: async (auction_date) => {
+    try {
+      const start = new Date(auction_date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(auction_date);
+      end.setHours(23, 59, 59, 999);
+
+      return await prisma.auctions.findFirst({
+        where: { created_at: { gte: start, lte: end } },
+        select: { auction_id: true },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error fetching auction ID", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
   getAuction: async (auction_date) => {
     try {
       let start: Date;
@@ -549,6 +569,25 @@ export const AuctionRepository: IAuctionRepository = {
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error fetching Manifest Records", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  getRegisteredBiddersSummary: async (auction_id) => {
+    try {
+      return await prisma.auctions_bidders.findMany({
+        where: { auction_id },
+        include: {
+          bidder: true,
+          _count: { select: { auctions_inventories: true } },
+        },
+        orderBy: { created_at: "asc" },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error fetching registered bidders", {
           cause: error.message,
         });
       }

@@ -10,6 +10,7 @@ import {
 import {
   RegisterBidderInput,
   RegisteredBidderSchema,
+  RegisteredBidderSummaryRow,
   UpdateBidderRegistrationInput,
   AuctionBidderRow,
   AuctionBidderWithInventoriesRow,
@@ -31,6 +32,9 @@ export interface IAuctionRepository {
   getAuction: (
     auction_date: Date | AuctionDateRange,
   ) => Promise<AuctionWithDetailsRow | null>;
+  getAuctionId: (
+    auction_date: Date,
+  ) => Promise<{ auction_id: string } | null>;
   startAuction: (auction_date: Date) => Promise<AuctionWithDetailsRow>;
   registerBidder: (
     data: RegisterBidderInput,
@@ -38,6 +42,9 @@ export interface IAuctionRepository {
   getRegisteredBidders: (
     auction_id: string,
   ) => Promise<RegisteredBidderSchema[]>;
+  getRegisteredBiddersSummary: (
+    auction_id: string,
+  ) => Promise<RegisteredBidderSummaryRow[]>;
   getRegisteredBidder: (
     bidder_number: string,
     auction_id: string,
