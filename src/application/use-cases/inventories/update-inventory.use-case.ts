@@ -3,14 +3,13 @@ import { CreateInventoryInput } from "src/entities/models/Inventory";
 import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { ContainerRepository } from "src/infrastructure/di/repositories";
 import { formatNumberPadding } from "@/app/lib/utils";
-import { getInventoryUseCase } from "./get-inventory.use-case";
 
 export const updateInventoryUseCase = async (
   inventory_id: string,
   input: CreateInventoryInput
 ) => {
   const containers = await ContainerRepository.getContainers();
-  await getInventoryUseCase(inventory_id);
+  await InventoryRepository.getInventory(inventory_id);
 
   const hasInventoryBarcode = input.barcode.split("-").length === 3;
   const item_container_barcode = hasInventoryBarcode

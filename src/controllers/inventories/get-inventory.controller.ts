@@ -2,7 +2,7 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { getInventoryUseCase } from "src/application/use-cases/inventories/get-inventory.use-case";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { err, ok } from "src/entities/models/Result";
 import { InventoryWithDetailsRow } from "src/entities/models/Inventory";
 import { formatDate } from "@/app/lib/utils";
@@ -54,7 +54,7 @@ function presenter(inventory: InventoryWithDetailsRow) {
 }
 export const GetInventoryController = async (inventory_id: string) => {
   try {
-    const inventory = await getInventoryUseCase(inventory_id);
+    const inventory = await InventoryRepository.getInventory(inventory_id);
     return ok(presenter(inventory));
   } catch (error) {
     if (error instanceof NotFoundError) {
