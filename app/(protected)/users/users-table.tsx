@@ -18,7 +18,7 @@ export const UsersTable = ({ users }: UsersTableProps) => {
     filterValue?: string
   ) => {
     const name = (row.original as User).name.toLowerCase();
-    const username = (row.original as User).name.toLowerCase();
+    const username = (row.original as User).username.toLowerCase();
     const search = (filterValue ?? "").toLowerCase();
 
     return name.includes(search) || username.includes(search);

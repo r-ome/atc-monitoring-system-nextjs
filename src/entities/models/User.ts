@@ -33,7 +33,7 @@ export const createUserSchema = z.object({
   name: z.string().min(1),
   username: z.string().min(1),
   password: z.string().min(1),
-  role: z.enum(["ENCODER", "CASHIER"]),
+  role: z.enum(["CASHIER", "ENCODER", "MODERATOR"]),
 });
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 
@@ -50,7 +50,7 @@ export const registerUserSchema = z.object({
   password: z
     .string()
     .min(6, { message: "Password must contain at least 6 characters!" }),
-  role: z.enum(["CASHIER", "ENCODER"]),
+  role: z.enum(["CASHIER", "ENCODER", "MODERATOR"]),
 });
 export type RegisterUserInput = z.infer<typeof registerUserSchema>;
 
@@ -58,7 +58,7 @@ export const updateUserSchema = z.object({
   name: z.string().min(1),
   username: z.string().min(1),
   branch_id: z.string(),
-  role: z.enum(["CASHIER", "ENCODER"]),
+  role: z.enum(["CASHIER", "ENCODER", "MODERATOR"]),
 });
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
