@@ -1,23 +1,15 @@
 import { logger } from "@/app/lib/logger";
 import { ExpensesRepository } from "src/infrastructure/di/repositories";
-import {
-  DatabaseOperationError,
-  InputParseError,
-} from "src/entities/errors/common";
+import { DatabaseOperationError } from "src/entities/errors/common";
 import { PettyCash } from "src/entities/models/Expense";
 import { err, ok } from "src/entities/models/Result";
 
 export const RecalculatePettyCashController = async (input: PettyCash) => {
   try {
     logger("RecalculatePettyCashController", input, "info");
-    const res = await ExpensesRepository.recalculatePettyCash(input);
-    return ok(res);
+    await ExpensesRepository.recalculatePettyCash(input);
+    return ok({ message: "Petty cash recalculated" });
   } catch (error) {
-    if (error instanceof InputParseError) {
-      logger("RecalculatePettyCashController", error, "warn");
-      return err({ message: error.message, cause: error.cause });
-    }
-
     logger("RecalculatePettyCashController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error?.message });

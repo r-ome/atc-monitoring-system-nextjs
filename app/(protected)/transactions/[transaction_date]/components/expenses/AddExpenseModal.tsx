@@ -46,6 +46,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const { transaction_date } = useParams();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpenDialog] = useState<boolean>(false);
+  const [purpose, setPurpose] = useState<"EXPENSE" | "ADD_PETTY_CASH">("EXPENSE");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -88,7 +89,13 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     <>
       <Button onClick={() => setOpenDialog(true)}>Add Expense</Button>
 
-      <Dialog open={open} onOpenChange={() => setOpenDialog(!open)}>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) setPurpose("EXPENSE");
+          setOpenDialog(next);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Expense</DialogTitle>
@@ -113,13 +120,20 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               <Label htmlFor="purpose" className="w-40">
                 Purpose
               </Label>
-              <Select required name="purpose" defaultValue="EXPENSE">
+              <Select
+                required
+                name="purpose"
+                value={purpose}
+                onValueChange={(val: "EXPENSE" | "ADD_PETTY_CASH") =>
+                  setPurpose(val)
+                }
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Payment Type"></SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {["EXPENSE", "ADD_PETTY_CASH"].map((item) => (
+                    {(["EXPENSE", "ADD_PETTY_CASH"] as const).map((item) => (
                       <SelectItem key={item} value={item}>
                         {item.replace(/_/g, " ")}
                       </SelectItem>

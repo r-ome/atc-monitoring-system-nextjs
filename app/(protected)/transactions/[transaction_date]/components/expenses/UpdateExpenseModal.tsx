@@ -83,9 +83,9 @@ export const UpdateExpenseModal = ({
     if (res) {
       setIsLoading(false);
       if (!res.ok) {
-        toast.error("");
+        toast.error("Failed to update expense. Please try again.");
       } else {
-        toast.success("Successfully added expense!");
+        toast.success("Successfully updated expense!");
         onOpenChange(false);
         router.refresh();
       }
@@ -101,9 +101,9 @@ export const UpdateExpenseModal = ({
     if (res) {
       setIsLoading(false);
       if (!res.ok) {
-        toast.error("");
+        toast.error("Failed to delete expense. Please try again.");
       } else {
-        toast.success("Successfully added expense!");
+        toast.success("Successfully deleted expense!");
         onOpenChange(false);
         setOpenDeleteModal(false);
         router.refresh();
@@ -129,7 +129,7 @@ export const UpdateExpenseModal = ({
                   onChange={(e) =>
                     setSelectedExpense((prev) => ({
                       ...prev,
-                      amount: parseInt(e.target.value, 10),
+                      amount: parseFloat(e.target.value),
                     }))
                   }
                   min={0}

@@ -5,6 +5,9 @@ import {
   PettyCashWithBranchRow,
   CreatePettyCashInput,
   PettyCash,
+  ConsistencyIssue,
+  PettyCashSnapshot,
+  RepairResult,
 } from "src/entities/models/Expense";
 
 export interface IExpenseRepository {
@@ -30,4 +33,15 @@ export interface IExpenseRepository {
   ) => Promise<PettyCashWithBranchRow>;
   deleteExpense: (expense_id: string) => Promise<void>;
   recalculatePettyCash: (petty_cash: PettyCash) => Promise<void>;
+  checkConsistency: (
+    branch_id: string,
+    startDate: string,
+    endDate: string,
+  ) => Promise<ConsistencyIssue[]>;
+  repairConsistency: (
+    branch_id: string,
+    startDate: string,
+    endDate: string,
+  ) => Promise<RepairResult | null>;
+  undoRepair: (snapshot: PettyCashSnapshot) => Promise<void>;
 }

@@ -9,14 +9,20 @@ import {
 } from "@/app/components/ui/card";
 import { formatDate } from "@/app/lib/utils";
 import { FullScreenCalendar } from "@/app/components/fullscreen-calendar/fullscreen-calendar";
+import { ConsistencyCheckerDialog } from "./[transaction_date]/ConsistencyCheckerDialog";
 
 export default function Page() {
   return (
     <div className="flex gap-2">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Transactions</CardTitle>
-          <CardDescription>Choose a date</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Transactions</CardTitle>
+              <CardDescription>Choose a date</CardDescription>
+            </div>
+            <ConsistencyCheckerDialog />
+          </div>
         </CardHeader>
         <CardContent>
           <FullScreenCalendar
