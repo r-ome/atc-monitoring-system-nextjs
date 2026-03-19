@@ -49,6 +49,11 @@ const presenter = (bidder: BidderWithDetailsAndReceiptsRow) => {
       created_at: formatDate(req.created_at, "MMM dd, yyyy"),
       updated_at: formatDate(req.updated_at, "MMM dd, yyyy"),
     })),
+    ban_histories: bidder.ban_histories.map((ban) => ({
+      ...ban,
+      created_at: formatDate(ban.created_at, "MMM dd, yyyy"),
+      updated_at: formatDate(ban.updated_at, "MMM dd, yyyy"),
+    })),
   };
 };
 

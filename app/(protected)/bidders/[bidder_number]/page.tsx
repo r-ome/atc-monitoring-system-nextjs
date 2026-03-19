@@ -18,6 +18,7 @@ import {
 } from "@/app/components/ui/tooltip";
 import AuctionsJoined from "./components/AuctionsJoinedTable";
 import BidderRequirementsTable from "./components/BidderRequirementsTable";
+import BidderBanHistoriesTable from "./components/BidderBanHistoriesTable";
 import { redirect } from "next/navigation";
 
 export default async function Page({
@@ -124,6 +125,11 @@ export default async function Page({
       <BidderRequirementsTable
         bidder_id={bidder.bidder_id}
         requirements={bidder.requirements}
+      />
+
+      <BidderBanHistoriesTable
+        bidder_id={bidder.bidder_id}
+        ban_histories={bidder.ban_histories}
       />
     </div>
   );

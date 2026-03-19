@@ -8,6 +8,8 @@ import { UploadBiddersController } from "src/controllers/bidders/upload-bidders.
 import { CreateBidderRequirementController } from "src/controllers/bidder-requirement/create-bidder-requirement.controller";
 import { UpdateBidderRequirementController } from "src/controllers/bidder-requirement/update-bidder-requirement.controller";
 import { DeleteBidderRequirementController } from "src/controllers/bidder-requirement/delete-bidder-requirement.controller";
+import { CreateBanHistoryController } from "src/controllers/bidder-ban-history/create-ban-history.controller";
+import { DeleteBanHistoryController } from "src/controllers/bidder-ban-history/delete-ban-history.controller";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { requireUser } from "@/app/lib/auth";
 
@@ -110,4 +112,26 @@ export const updateBidderRequirement = async (
 export const deleteBidderRequirement = async (requirement_id: string) => {
   await requireUser();
   return await DeleteBidderRequirementController(requirement_id);
+};
+
+export const createBanHistory = async (
+  bidder_id: string,
+  formData: FormData,
+) => {
+  const user = await requireUser();
+  const data = Object.fromEntries(formData.entries());
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await CreateBanHistoryController(bidder_id, data),
+  );
+};
+
+export const deleteBanHistory = async (bidder_ban_history_id: string) => {
+  await requireUser();
+  return await DeleteBanHistoryController(bidder_ban_history_id);
 };

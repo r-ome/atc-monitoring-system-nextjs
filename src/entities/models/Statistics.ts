@@ -1,3 +1,5 @@
+export type { BannedBidder } from "./BidderBanHistory";
+
 export type UnpaidBidders = {
   bidder_id: string;
   bidder_number: string;

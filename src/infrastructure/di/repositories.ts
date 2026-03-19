@@ -1,6 +1,7 @@
 // Wiring layer — all infrastructure implementations, re-exported as interface-typed constants
 export { AuctionRepository } from "../repositories/auctions.repository";
 export { BidderRequirementRepository } from "../repositories/bidder-requirement.repository";
+export { BidderBanHistoryRepository } from "../repositories/bidder-ban-history.repository";
 export { BidderRepository } from "../repositories/bidders.repository";
 export { BranchRepository } from "../repositories/branch.repository";
 export { ContainerRepository } from "../repositories/containers.repository";
