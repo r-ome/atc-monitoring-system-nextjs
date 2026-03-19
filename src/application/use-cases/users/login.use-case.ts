@@ -1,9 +1,9 @@
-import { getUserByUsernameUseCase } from "./get-user-by-username.use-case";
+import { UserRepository } from "src/infrastructure/di/repositories";
 import bcrypt from "bcrypt";
 import { InputParseError, NotFoundError } from "src/entities/errors/common";
 
 export const loginUseCase = async (username: string, password: string) => {
-  const user = await getUserByUsernameUseCase(username);
+  const user = await UserRepository.getUserByUsername(username);
 
   if (!user) {
     throw new NotFoundError("User not found!");

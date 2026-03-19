@@ -1,4 +1,4 @@
-import { getPettyCashBalanceUseCase } from "src/application/use-cases/expenses/get-petty-cash-balance.use-case";
+import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import { PettyCashWithBranchRow } from "src/entities/models/Expense";
 import {
   InputParseError,
@@ -33,7 +33,7 @@ export const GetPettyCashBalanceController = async (
       throw new InputParseError("Invalid date param");
     }
 
-    const petty_cash = await getPettyCashBalanceUseCase(date, branch_id);
+    const petty_cash = await ExpensesRepository.getPettyCashBalance(date, branch_id);
     if (petty_cash === null) return ok(null);
     return ok(presenter(petty_cash));
   } catch (error) {

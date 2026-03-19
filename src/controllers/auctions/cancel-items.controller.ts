@@ -4,7 +4,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
-import { cancelItemsUseCase } from "src/application/use-cases/auctions/cancel-items.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { cancelItemsSchema, CancelItemsInput } from "src/entities/models/Inventory";
 import { logger } from "@/app/lib/logger";
 
@@ -20,7 +20,7 @@ export const CancelItemsController = async (
       });
     }
 
-    const res = await cancelItemsUseCase(data);
+    const res = await AuctionRepository.cancelItems(data);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

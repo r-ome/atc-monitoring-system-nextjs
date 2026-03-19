@@ -2,7 +2,7 @@ import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-import { getAuctionsStatisticsUseCase } from "src/application/use-cases/statistics/get-auctions-statistics.use-case";
+import { StatisticsRepository } from "src/infrastructure/di/repositories";
 import { AuctionsStatisticsRow } from "src/entities/models/Statistics";
 
 function presenter(auctions: AuctionsStatisticsRow[]) {
@@ -20,7 +20,7 @@ function presenter(auctions: AuctionsStatisticsRow[]) {
 
 export const GetAuctionsStatisticsController = async () => {
   try {
-    const auction_statistics = await getAuctionsStatisticsUseCase();
+    const auction_statistics = await StatisticsRepository.getAuctionsStatistics();
     return ok(presenter(auction_statistics));
   } catch (error) {
     logger("GetAuctionsStatisticsController", error);

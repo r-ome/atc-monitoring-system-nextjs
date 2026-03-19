@@ -1,4 +1,4 @@
-import { getRegisteredBiddersUseCase } from "src/application/use-cases/auctions/get-registered-bidders.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
@@ -33,7 +33,7 @@ function presenter(registeredBidders: RegisteredBidderSchema[]) {
 
 export const GetRegisteredBiddersController = async (auction_id: string) => {
   try {
-    const registered_bidders = await getRegisteredBiddersUseCase(auction_id);
+    const registered_bidders = await AuctionRepository.getRegisteredBidders(auction_id);
     return ok(presenter(registered_bidders));
   } catch (error) {
     logger("GetRegisteredBiddersController", error);

@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { getInventoriesWithNoAuctionsInventoriesUseCase } from "src/application/use-cases/inventories/get-inventories-with-no-auctions-inventories.use-case";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { InventoryWithAuctionsInventoryRow } from "src/entities/models/Inventory";
 import { err, ok } from "src/entities/models/Result";
@@ -16,7 +16,7 @@ function presenter(inventories: InventoryWithAuctionsInventoryRow[]) {
 
 export const GetInventoriesWithNoAuctionsInventoriesController = async () => {
   try {
-    const inventories = await getInventoriesWithNoAuctionsInventoriesUseCase();
+    const inventories = await InventoryRepository.getInventoryWithNoAuctionInventory();
     return ok(presenter(inventories));
   } catch (error) {
     logger("GetInventoriesWithNoAuctionsInventories", error);

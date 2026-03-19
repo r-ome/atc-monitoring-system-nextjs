@@ -4,7 +4,7 @@ import {
 } from "src/entities/errors/common";
 import { BranchRow } from "src/entities/models/Branch";
 import { formatDate } from "@/app/lib/utils";
-import { getBranchByNameUseCase } from "src/application/use-cases/branches/get-branch-by-name.use-case";
+import { BranchRepository } from "src/infrastructure/di/repositories";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
@@ -23,7 +23,7 @@ const presenter = (branch: BranchRow) => {
 
 export const GetBranchByNameController = async (name: string) => {
   try {
-    const branch = await getBranchByNameUseCase(name);
+    const branch = await BranchRepository.getBranchByName(name);
 
     if (!branch) {
       throw new NotFoundError("Branch not found!", {

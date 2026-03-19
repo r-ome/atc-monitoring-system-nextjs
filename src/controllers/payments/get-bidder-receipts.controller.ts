@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { getBidderReceiptsUseCase } from "src/application/use-cases/payments/get-bidder-receipts.use-case";
+import { PaymentRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ReceiptRecordWithDetailsRow } from "src/entities/models/Payment";
 import { err, ok } from "src/entities/models/Result";
@@ -32,7 +32,7 @@ export const GetBidderReceiptsController = async (
   auction_bidder_id: string,
 ) => {
   try {
-    const receipts = await getBidderReceiptsUseCase(auction_bidder_id);
+    const receipts = await PaymentRepository.getBidderReceipts(auction_bidder_id);
     return ok(presenter(receipts));
   } catch (error) {
     logger("GetBidderReceiptsController", error);

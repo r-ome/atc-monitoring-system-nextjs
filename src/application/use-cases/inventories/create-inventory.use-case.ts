@@ -1,6 +1,6 @@
 import { InputParseError } from "src/entities/errors/common";
 import { CreateInventoryInput } from "src/entities/models/Inventory";
-import { InventoryRepository } from "src/infrastructure/repositories/inventories.repository";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { getContainerByIdUseCase } from "../containers/get-container-by-id.use-case";
 
 export const createInventoryUseCase = async (input: CreateInventoryInput) => {

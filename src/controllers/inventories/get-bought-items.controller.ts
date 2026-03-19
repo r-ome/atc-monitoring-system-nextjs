@@ -1,7 +1,8 @@
 import { logger } from "@/app/lib/logger";
-import { getBoughtItemsUseCase } from "src/application/use-cases/inventories/get-bought-items.use-case";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { InventoryWithAuctionsInventoryRow } from "src/entities/models/Inventory";
+import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { err, ok } from "src/entities/models/Result";
 
 function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
@@ -13,7 +14,7 @@ function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
       description: item.auctions_inventory?.description,
       old_price: item.is_bought_item,
       qty: item.auctions_inventory?.qty ?? null,
-      bidder_number: "5013",
+      bidder_number: ATC_DEFAULT_BIDDER_NUMBER,
       new_price:
         item.status === "BOUGHT_ITEM" ? 0 : item.auctions_inventory?.price,
     };
@@ -22,7 +23,7 @@ function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
 
 export const GetBoughtItemsController = async () => {
   try {
-    const bought_items = await getBoughtItemsUseCase();
+    const bought_items = await InventoryRepository.getBoughtItems();
     return ok(presenter(bought_items));
   } catch (error) {
     logger("GetBoughtItemsController", error);

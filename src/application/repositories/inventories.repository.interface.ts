@@ -22,12 +22,7 @@ export interface IInventoryRepository {
       inventory_id: string;
     }[];
     reason: string;
-  }) => Promise<
-    Omit<
-      AuctionInventoryWithDetailsRow,
-      "auction_bidder" | "inventory" | "receipt" | "histories"
-    >[]
-  >;
+  }) => Promise<AuctionInventoryWithDetailsRow[]>;
   updateAuctionItem: (data: UpdateAuctionInventoryInput) => void;
   updateInventory: (
     inventory_id: string,

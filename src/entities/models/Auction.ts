@@ -52,6 +52,15 @@ export type Auction = {
 
 export type AuctionInventoryRow = Prisma.auctions_inventoriesGetPayload<object>;
 
+export type AuctionInventoryWithHistoriesRow =
+  Prisma.auctions_inventoriesGetPayload<{
+    include: { histories: true; inventory: true };
+  }>;
+
+export type AuctionWithBranchBiddersRow = Prisma.auctionsGetPayload<{
+  include: { registered_bidders: { include: { bidder: true } } };
+}>;
+
 export type AuctionInventoryWithDetailsRow =
   Prisma.auctions_inventoriesGetPayload<{
     include: {

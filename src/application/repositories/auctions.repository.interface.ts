@@ -4,11 +4,15 @@ import {
   AuctionDateRange,
   AuctionWithDetailsRow,
   AuctionInventoryWithDetailsRow,
+  AuctionInventoryWithHistoriesRow,
+  AuctionWithBranchBiddersRow,
 } from "src/entities/models/Auction";
 import {
   RegisterBidderInput,
   RegisteredBidderSchema,
   UpdateBidderRegistrationInput,
+  AuctionBidderRow,
+  AuctionBidderWithInventoriesRow,
 } from "src/entities/models/Bidder";
 import {
   CounterCheckRow,
@@ -30,7 +34,7 @@ export interface IAuctionRepository {
   startAuction: (auction_date: Date) => Promise<AuctionWithDetailsRow>;
   registerBidder: (
     data: RegisterBidderInput,
-  ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
+  ) => Promise<AuctionBidderRow>;
   getRegisteredBidders: (
     auction_id: string,
   ) => Promise<RegisteredBidderSchema[]>;
@@ -49,26 +53,14 @@ export interface IAuctionRepository {
     auction_id: string,
     data: UploadManifestInput[],
     is_bought_items: boolean,
-  ) => Promise<
-    Omit<
-      AuctionInventoryWithDetailsRow,
-      "auction_bidder" | "inventory" | "histories" | "receipt"
-    >[]
-  >;
+  ) => Promise<AuctionInventoryWithHistoriesRow[]>;
   uploadCounterCheck: (
     auction_id: string,
     data: UploadCounterCheckInput[],
   ) => Promise<Prisma.BatchPayload>;
   getManifestRecords: (auction_id: string) => Promise<ManifestRow[]>;
   cancelItems: (data: CancelItemsInput) => Promise<void>;
-  getBiddersWithBalance: () => Promise<
-    (Omit<RegisteredBidderSchema, "auctions_inventories"> & {
-      auctions_inventories: Omit<
-        AuctionInventoryWithDetailsRow,
-        "auction_bidder" | "receipt" | "histories"
-      >[];
-    })[]
-  >;
+  getBiddersWithBalance: () => Promise<AuctionBidderWithInventoriesRow[]>;
   getCounterCheckRecords: (auction_id: string) => Promise<CounterCheckRow[]>;
   updateCounterCheck: (
     counter_check_id: string,
@@ -82,11 +74,7 @@ export interface IAuctionRepository {
   updateBidderRegistration: (
     auction_bidder_id: string,
     data: UpdateBidderRegistrationInput,
-  ) => Promise<Omit<RegisteredBidderSchema, "auctions_inventories" | "bidder">>;
+  ) => Promise<AuctionBidderRow>;
   unregisterBidder: (auction_bidder_id: string) => Promise<void>;
-  getAuctionsByBranch: (branch_id: string) => Promise<
-    Prisma.auctionsGetPayload<{
-      include: { registered_bidders: { include: { bidder: true } } };
-    }>[]
-  >;
+  getAuctionsByBranch: (branch_id: string) => Promise<AuctionWithBranchBiddersRow[]>;
 }

@@ -1,4 +1,4 @@
-import { voidItemsUseCase } from "src/application/use-cases/inventories/void-items.use-case";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -32,7 +32,7 @@ export const VoidItemsController = async (input: Partial<VoidItemsInput>) => {
       });
     }
 
-    const res = await voidItemsUseCase(data);
+    const res = await InventoryRepository.voidItems(data);
     return ok(presenter(res));
   } catch (error) {
     if (error instanceof InputParseError) {

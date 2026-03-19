@@ -1,4 +1,4 @@
-import { ContainerRepository } from "src/infrastructure/repositories/containers.repository";
+import { ContainerRepository } from "src/infrastructure/di/repositories";
 import { getContainerByBarcodeUseCase } from "./get-container-by-barcode.use-case";
 import type {
   InventorySheetRecord,

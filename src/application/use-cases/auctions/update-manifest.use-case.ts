@@ -1,14 +1,11 @@
-import { AuctionRepository } from "src/infrastructure/repositories/auctions.repository";
+import { AuctionRepository, ContainerRepository, InventoryRepository } from "src/infrastructure/di/repositories";
 import { InventoryWithDetailsRow } from "src/entities/models/Inventory";
 import { UpdateManifestInput } from "src/entities/models/Manifest";
 import { RegisteredBidderSchema } from "src/entities/models/Bidder";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
-import { getAllInventoriesUseCase } from "../inventories/get-all-inventories.use-case";
 import { ContainerWithAllRow } from "src/entities/models/Container";
-import { getContainersUseCase } from "../containers/get-containers.use-case";
 import { divideIntoHundreds, divideQuantites } from "@/app/lib/sheets";
 import { formatNumberPadding } from "@/app/lib/utils";
-import { getMonitoringUseCase } from "./get-monitoring.use-case";
 import { winston_logger } from "@/app/lib/logger";
 
 export const updateManifestUseCase = async (
@@ -20,37 +17,37 @@ export const updateManifestUseCase = async (
     auction_id
   );
 
-  const existing_inventories = await getAllInventoriesUseCase();
-  const containers = await getContainersUseCase();
-  const monitoring = await getMonitoringUseCase(auction_id, [
+  const existing_inventories = await InventoryRepository.getAllInventories();
+  const containers = await ContainerRepository.getContainers();
+  const monitoring = await AuctionRepository.getMonitoring(auction_id, [
     "UNPAID",
     "PAID",
     "CANCELLED",
     "REFUNDED",
   ]);
 
-  const something1 = formatSlashedBarcodes(data);
-  const something2 = validateBidders(something1, registered_bidders);
-  const something3 = formatExistingInventories(
-    something2,
+  const withFormattedBarcodes = formatSlashedBarcodes(data);
+  const withValidatedBidders = validateBidders(withFormattedBarcodes, registered_bidders);
+  const withExistingInventories = formatExistingInventories(
+    withValidatedBidders,
     existing_inventories
   );
-  const something4 = addContainerIdForNewInventories(something3, containers);
-  const something5 = removeMonitoringDuplicates(something4, monitoring);
+  const withContainerIds = addContainerIdForNewInventories(withExistingInventories, containers);
+  const withoutMonitoringDuplicates = removeMonitoringDuplicates(withContainerIds, monitoring);
 
-  const something = await AuctionRepository.updateManifest(
+  const result = await AuctionRepository.updateManifest(
     manifest_id,
-    something5,
+    withoutMonitoringDuplicates,
     data
   );
 
   winston_logger.info(
-    something5.filter((item) =>
+    withoutMonitoringDuplicates.filter((item) =>
       item.error.includes("Required Fields: BARCODE, BIDDER, PRICE")
     )
   );
 
-  return something;
+  return result;
 };
 
 const validateBidders = (

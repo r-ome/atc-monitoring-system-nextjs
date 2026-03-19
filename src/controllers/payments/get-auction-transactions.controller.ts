@@ -1,4 +1,4 @@
-import { getAuctionTransactionsUseCase } from "src/application/use-cases/payments/get-auction-transactions.use-case";
+import { PaymentRepository } from "src/infrastructure/di/repositories";
 import { formatDate } from "@/app/lib/utils";
 import { ReceiptRecordWithDetailsRow } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Result";
@@ -38,7 +38,7 @@ function presenter(
 
 export const GetAuctionTransactionsController = async (auction_id: string) => {
   try {
-    const transactions = await getAuctionTransactionsUseCase(auction_id);
+    const transactions = await PaymentRepository.getAuctionTransactions(auction_id);
     return ok(presenter(transactions));
   } catch (error) {
     logger("GetAuctionTransactionsController", error);

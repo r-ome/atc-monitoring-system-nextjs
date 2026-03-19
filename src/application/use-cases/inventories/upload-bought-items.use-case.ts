@@ -3,15 +3,15 @@ import {
   BoughtItemsSheetRecord,
   ManifestSheetRecord,
 } from "src/entities/models/Manifest";
-import { updateBulkInventoryStatusUseCase } from "./update-bulk-inventory-status.use-case";
-import { getAuctionsByBranchUseCase } from "../auctions/get-auctions-by-branch.use-case";
+import { AuctionRepository, InventoryRepository } from "src/infrastructure/di/repositories";
+import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { NotFoundError } from "src/entities/errors/common";
 
 export const uploadBoughtItemsUseCase = async (
   branch_id: string,
   data: BoughtItemsSheetRecord[],
 ) => {
-  const auctions = await getAuctionsByBranchUseCase(branch_id);
+  const auctions = await AuctionRepository.getAuctionsByBranch(branch_id);
 
   if (!auctions.length) {
     throw new NotFoundError("There are no available auctions");
@@ -19,7 +19,7 @@ export const uploadBoughtItemsUseCase = async (
 
   const recent_auction = auctions[0];
   const atc_bidder = recent_auction.registered_bidders.find(
-    (registered_bidder) => registered_bidder.bidder.bidder_number === "5013",
+    (registered_bidder) => registered_bidder.bidder.bidder_number === ATC_DEFAULT_BIDDER_NUMBER,
   );
 
   if (!atc_bidder) {
@@ -45,5 +45,5 @@ export const uploadBoughtItemsUseCase = async (
   const inventory_ids = created_auctions_inventories.map(
     (item) => item.inventory_id,
   );
-  await updateBulkInventoryStatusUseCase("BOUGHT_ITEM", inventory_ids);
+  await InventoryRepository.updateBulkInventoryStatus("BOUGHT_ITEM", inventory_ids);
 };

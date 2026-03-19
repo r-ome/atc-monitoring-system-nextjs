@@ -1,7 +1,7 @@
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-import { getTotalSalesUseCase } from "src/application/use-cases/reports/get-total-sales.use-case";
+import { ReportsRepository } from "src/infrastructure/di/repositories";
 import { AuctionWithSalesRow } from "src/entities/models/Auction";
 import { formatDate } from "@/app/lib/utils";
 
@@ -44,7 +44,7 @@ export const GetTotalSalesController = async (
   date: string,
 ) => {
   try {
-    const total_sales = await getTotalSalesUseCase(branch_id, date);
+    const total_sales = await ReportsRepository.getTotalSales(branch_id, date);
     return ok(presenter(total_sales));
   } catch (error) {
     logger("GetTotalSalesController", error);

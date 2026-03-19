@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { UpdateUserPasswordInput } from "src/entities/models/User";
-import { UserRepository } from "src/infrastructure/repositories/users.repository";
+import { UserRepository } from "src/infrastructure/di/repositories";
 
 export const updateUserPasswordUseCase = async (
   user_id: string,

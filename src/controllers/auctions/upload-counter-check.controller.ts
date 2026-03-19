@@ -1,6 +1,6 @@
 import { logger } from "@/app/lib/logger";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
-import { uploadCounterCheckUseCase } from "src/application/use-cases/auctions/upload-counter-check.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import {
   InputParseError,
   DatabaseOperationError,
@@ -52,7 +52,7 @@ export const UploadCounterCheckController = async (
       });
     }
 
-    const res = await uploadCounterCheckUseCase(
+    const res = await AuctionRepository.uploadCounterCheck(
       auction_id,
       data as CounterCheckRecord[],
     );

@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { recalculatePettyCashUseCase } from "src/application/use-cases/expenses/recalculate-petty-cash.use-case";
+import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -10,7 +10,7 @@ import { err, ok } from "src/entities/models/Result";
 export const RecalculatePettyCashController = async (input: PettyCash) => {
   try {
     logger("RecalculatePettyCashController", input, "info");
-    const res = await recalculatePettyCashUseCase(input);
+    const res = await ExpensesRepository.recalculatePettyCash(input);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

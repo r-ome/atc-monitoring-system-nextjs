@@ -1,16 +1,16 @@
 import { CreateBidderInput } from "src/entities/models/Bidder";
-import { BidderRepository } from "src/infrastructure/repositories/bidders.repository";
+import { BidderRepository } from "src/infrastructure/di/repositories";
 import { InputParseError, NotFoundError } from "src/entities/errors/common";
 import { formatNumberPadding } from "@/app/lib/utils";
 import { getBidderByBidderNumberUseCase } from "./get-bidder-by-bidder-number.use-case";
-import { getBranchUseCase } from "../branches/get-branch.use-case";
+import { BranchRepository } from "src/infrastructure/di/repositories";
 
 export const updateBidderUseCase = async (
   bidder_id: string,
   input: CreateBidderInput,
 ) => {
   input.bidder_number = formatNumberPadding(input.bidder_number, 4);
-  const branch = await getBranchUseCase(input.branch_id);
+  const branch = await BranchRepository.getBranch(input.branch_id);
 
   if (!branch) {
     throw new NotFoundError("Branch not found!");

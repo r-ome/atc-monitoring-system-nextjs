@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { AuctionsInventory, AuctionInventoryWithDetailsRow } from "./Auction";
 import { PaymentMethod } from "./PaymentMethod";
 
+export const ATC_DEFAULT_BIDDER_NUMBER = "5013" as const;
+
 export const BIDDER_STATUS = ["BANNED", "ACTIVE", "INACTIVE"] as const;
 export type BidderStatus = (typeof BIDDER_STATUS)[number];
 
@@ -102,6 +104,15 @@ export const registerBidderSchema = z.object({
 });
 
 export type RegisterBidderInput = z.infer<typeof registerBidderSchema>;
+
+export type AuctionBidderRow = Prisma.auctions_biddersGetPayload<object>;
+
+export type AuctionBidderWithInventoriesRow = Prisma.auctions_biddersGetPayload<{
+  include: {
+    bidder: true;
+    auctions_inventories: { include: { inventory: true } };
+  };
+}>;
 
 export type RegisteredBidderSchema = Prisma.auctions_biddersGetPayload<{
   include: {

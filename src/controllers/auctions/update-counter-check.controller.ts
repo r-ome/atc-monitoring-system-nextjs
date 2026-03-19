@@ -4,7 +4,7 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
-import { updateCounterCheckUseCase } from "src/application/use-cases/auctions/update-counter-check.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { logger } from "@/app/lib/logger";
 import {
   updateCounterCheckSchema,
@@ -37,7 +37,7 @@ export const UpdateCounterCheckController = async (
       });
     }
 
-    const updated = await updateCounterCheckUseCase(counter_check_id, data);
+    const updated = await AuctionRepository.updateCounterCheck(counter_check_id, data);
     return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

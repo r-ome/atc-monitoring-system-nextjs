@@ -1,5 +1,5 @@
 import { logger } from "@/app/lib/logger";
-import { handleBidderPullOutUseCase } from "src/application/use-cases/payments/handle-bidder-pullout.use-case";
+import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -38,7 +38,7 @@ export const HandleBidderPullOutController = async (
       });
     }
 
-    const res = await handleBidderPullOutUseCase(data);
+    const res = await PaymentRepository.handleBidderPullOut(data);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

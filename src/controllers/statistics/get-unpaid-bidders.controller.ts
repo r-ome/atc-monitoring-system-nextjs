@@ -3,7 +3,7 @@ import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { UnpaidAuctionsBiddersSchema } from "src/entities/models/Bidder";
-import { getUnpaidBiddersUseCase } from "src/application/use-cases/statistics/get-unpaid-bidders.use-case";
+import { StatisticsRepository } from "src/infrastructure/di/repositories";
 
 function presenter(bidders: UnpaidAuctionsBiddersSchema[]) {
   const date_format = "MMM d, yyyy";
@@ -22,7 +22,7 @@ function presenter(bidders: UnpaidAuctionsBiddersSchema[]) {
 
 export const GetUnpaidBiddersController = async () => {
   try {
-    const unpaid_bidders = await getUnpaidBiddersUseCase();
+    const unpaid_bidders = await StatisticsRepository.getUnpaidBidders();
     return ok(presenter(unpaid_bidders));
   } catch (error) {
     logger("GetUnpaidBiddersController", error);

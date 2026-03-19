@@ -1,4 +1,4 @@
-import { getSuppliersUseCase } from "src/application/use-cases/suppliers/get-suppliers.use-case";
+import { SupplierRepository } from "src/infrastructure/di/repositories";
 import { SupplierRow } from "src/entities/models/Supplier";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
@@ -27,7 +27,7 @@ const presenter = (suppliers: SupplierRow[]) => {
 
 export const GetSuppliersController = async () => {
   try {
-    const supplier = await getSuppliersUseCase();
+    const supplier = await SupplierRepository.getSuppliers();
     return ok(presenter(supplier));
   } catch (error) {
     logger("GetSuppliersController", error);

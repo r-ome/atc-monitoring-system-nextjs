@@ -1,4 +1,4 @@
-import { updatePettyCashUseCase } from "src/application/use-cases/expenses/update-petty-cash.use-case";
+import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   DatabaseOperationError,
@@ -46,7 +46,7 @@ export const UpdatePettyCashController = async (
       });
     }
 
-    const expense = await updatePettyCashUseCase(petty_cash_id, data);
+    const expense = await ExpensesRepository.updatePettyCash(petty_cash_id, data);
     logger("UpdatePettyCashController", { data, ...user_context }, "info");
     return ok(presenter(expense));
   } catch (error) {

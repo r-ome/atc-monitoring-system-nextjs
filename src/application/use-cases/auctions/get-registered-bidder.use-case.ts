@@ -1,12 +1,11 @@
-import { AuctionRepository } from "src/infrastructure/repositories/auctions.repository";
-import { getAuctionUseCase } from "./get-auction.use-case";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { NotFoundError } from "src/entities/errors/common";
 
 export async function getRegisteredBidderUseCase(
   bidder_number: string,
   auction_date: Date
 ) {
-  const auction = await getAuctionUseCase(auction_date);
+  const auction = await AuctionRepository.getAuction(auction_date);
   if (!auction) {
     throw new NotFoundError("Auction not found!");
   }
