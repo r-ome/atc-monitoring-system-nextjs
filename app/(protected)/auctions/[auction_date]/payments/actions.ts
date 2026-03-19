@@ -11,12 +11,15 @@ import { AddExpenseController } from "src/controllers/expenses/add-expense.contr
 import { GetBidderReceiptsController } from "src/controllers/payments/get-bidder-receipts.controller";
 import { UpdateRegistrationPaymentController } from "src/controllers/payments/update-registration-payment.controller";
 import { GetPettyCashBalanceController } from "src/controllers/expenses/get-petty-cash-balance.controller";
-import { UpdateExpenseController } from "src/controllers/payments/update-expense.controller";
+import { UpdateExpenseController } from "src/controllers/expenses/update-expense.controller";
 import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
 import { UpdatePettyCashController } from "src/controllers/expenses/update-petty-cash.controller";
 import { DeleteExpenseController } from "src/controllers/expenses/delete-expense.controller";
-import { PettyCash } from "src/entities/models/Expense";
-import { RecalculatePettyCashController } from "src/controllers/payments/recalculate-petty-cash.controller";
+import { PettyCash, PettyCashSnapshot } from "src/entities/models/Expense";
+import { RecalculatePettyCashController } from "src/controllers/expenses/recalculate-petty-cash.controller";
+import { CheckPettyCashConsistencyController } from "src/controllers/expenses/check-petty-cash-consistency.controller";
+import { RepairPettyCashConsistencyController } from "src/controllers/expenses/repair-petty-cash-consistency.controller";
+import { UndoPettyCashRepairController } from "src/controllers/expenses/undo-petty-cash-repair.controller";
 
 export const getPaymentsByDate = async (
   date: string,
@@ -103,8 +106,17 @@ export const updateExpense = async (
   expense_id: string,
   form_data: FormData,
 ) => {
+  const user = await requireUser();
   const data = Object.fromEntries(form_data.entries());
-  return await UpdateExpenseController(expense_id, data);
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await UpdateExpenseController(expense_id, data),
+  );
 };
 
 export const undoPayment = async (receipt_id: string) => {
@@ -139,6 +151,38 @@ export const deleteExpense = async (expense_id: string) => {
     },
     async () => await DeleteExpenseController(expense_id),
   );
+};
+
+export const checkPettyCashConsistency = async (
+  branch_id: string,
+  startDate: string,
+  endDate: string,
+) => {
+  await requireUser();
+  return await CheckPettyCashConsistencyController(branch_id, startDate, endDate);
+};
+
+export const repairPettyCashConsistency = async (
+  branch_id: string,
+  startDate: string,
+  endDate: string,
+) => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () =>
+      await RepairPettyCashConsistencyController(branch_id, startDate, endDate),
+  );
+};
+
+export const undoPettyCashRepair = async (snapshot: PettyCashSnapshot) => {
+  await requireUser();
+  return await UndoPettyCashRepairController(snapshot);
 };
 
 export const recalculatePettyCash = async (petty_cash: PettyCash) => {

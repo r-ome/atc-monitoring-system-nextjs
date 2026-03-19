@@ -23,7 +23,7 @@ function presenter(expense: ExpenseWithBranchRow) {
       branch_id: expense.branch.branch_id,
       name: expense.branch.name,
     },
-    created_at: formatDate(expense.created_at, "MMMM dd hh:mm a"),
+    created_at: formatDate(expense.created_at, "MMMM dd, yyyy hh:mm a"),
   };
 }
 

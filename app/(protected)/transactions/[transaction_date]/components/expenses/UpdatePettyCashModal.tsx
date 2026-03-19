@@ -38,6 +38,7 @@ export const UpdatePettyCashModal: React.FC<UpdatePettyCashModalProps> = ({
   const { transaction_date } = useParams();
   const [open, setOpenDialog] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [amount, setAmount] = useState<number>(pettyCash ? pettyCash.amount : 0);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -89,7 +90,8 @@ export const UpdatePettyCashModal: React.FC<UpdatePettyCashModalProps> = ({
               <div className="w-full">
                 <InputNumber
                   name="amount"
-                  defaultValue={pettyCash ? pettyCash.amount : 0}
+                  value={amount}
+                  onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
                   min={0}
                   decimalScale={2}
                   required

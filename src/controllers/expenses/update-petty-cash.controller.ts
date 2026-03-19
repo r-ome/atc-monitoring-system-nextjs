@@ -13,16 +13,19 @@ import { err, ok } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
+const DATE_FORMAT = "MMMM dd, yyyy hh:mm a";
+
 function presenter(petty_cash: PettyCashWithBranchRow) {
   return {
     petty_cash_id: petty_cash.petty_cash_id,
+    amount: petty_cash.amount.toNumber(),
     remarks: petty_cash.remarks,
     branch: {
       branch_id: petty_cash.branch.branch_id,
       name: petty_cash.branch.name,
     },
-    created_at: formatDate(petty_cash.created_at, "MMMM dd hh:mm a"),
-    updated_at: formatDate(petty_cash.updated_at, "MMMM dd hh:mm a"),
+    created_at: formatDate(petty_cash.created_at, DATE_FORMAT),
+    updated_at: formatDate(petty_cash.updated_at, DATE_FORMAT),
   };
 }
 

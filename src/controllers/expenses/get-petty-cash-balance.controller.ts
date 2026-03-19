@@ -9,7 +9,7 @@ import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
 
 function presenter(petty_cash: PettyCashWithBranchRow) {
-  const date_format = "MMM dd, yyyy HH:mm:ss";
+  const DATE_FORMAT = "MMM dd, yyyy hh:mm a";
 
   return {
     petty_cash_id: petty_cash.petty_cash_id,
@@ -19,8 +19,8 @@ function presenter(petty_cash: PettyCashWithBranchRow) {
       branch_id: petty_cash.branch.branch_id,
       name: petty_cash.branch.name,
     },
-    created_at: formatDate(petty_cash.created_at, date_format),
-    updated_at: formatDate(petty_cash.updated_at, date_format),
+    created_at: formatDate(petty_cash.created_at, DATE_FORMAT),
+    updated_at: formatDate(petty_cash.updated_at, DATE_FORMAT),
   };
 }
 

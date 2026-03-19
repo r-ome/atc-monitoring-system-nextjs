@@ -35,8 +35,8 @@ export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
 
 export const updateExpenseSchema = z.object({
   amount: z.coerce.number(),
-  purpose: z.string(),
-  remarks: z.string(),
+  purpose: z.enum(["ADD_PETTY_CASH", "EXPENSE"]),
+  remarks: z.string().min(1),
   branch_id: z.string(),
 });
 
@@ -62,3 +62,18 @@ export const createPettyCashSchema = z.object({
 });
 
 export type CreatePettyCashInput = z.infer<typeof createPettyCashSchema>;
+
+export type ConsistencyIssue = {
+  day: string;
+  stored: number;
+  expected: number;
+  drift: number;
+};
+
+export type PettyCashSnapshot = { petty_cash_id: string; amount: number }[];
+
+export type RepairResult = {
+  repaired_from: string;
+  days_fixed: number;
+  snapshot: PettyCashSnapshot;
+};
