@@ -4,26 +4,26 @@ import { useRouter } from "next/navigation";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/registered-bidders-columns";
-import { RegisteredBidder } from "src/entities/models/Bidder";
+import type { RegisteredBidderSummary } from "src/entities/models/Bidder";
 
-interface RegisteredBiddersProps {
-  registeredBidders: RegisteredBidder[];
+interface RegisteredBiddersSummaryProps {
+  registeredBidders: RegisteredBidderSummary[];
 }
 
 export const RegisteredBiddersTable = ({
   registeredBidders,
-}: RegisteredBiddersProps) => {
+}: RegisteredBiddersSummaryProps) => {
   const router = useRouter();
   const globalFilterFn = (
-    row: CoreRow<RegisteredBidder>,
+    row: CoreRow<RegisteredBidderSummary>,
     columnId?: string,
     filterValue?: string
   ) => {
     const fullName = (
-      row.original as RegisteredBidder
+      row.original as RegisteredBidderSummary
     ).bidder.full_name.toLowerCase();
     const bidderNumber = (
-      row.original as RegisteredBidder
+      row.original as RegisteredBidderSummary
     ).bidder.bidder_number.toLowerCase();
     const search = (filterValue ?? "").toLowerCase();
 

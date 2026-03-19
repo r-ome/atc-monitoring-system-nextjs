@@ -36,13 +36,12 @@ import { registerBidder } from "@/app/(protected)/auctions/actions";
 import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
-import { Auction } from "src/entities/models/Auction";
-import { RegisteredBidder } from "src/entities/models/Bidder";
+import { RegisteredBidderSummary } from "src/entities/models/Bidder";
 import { toast } from "sonner";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
 interface RegisterBidderModalProps {
-  auction: Auction;
-  registeredBidders: RegisteredBidder[];
+  auction_id: string;
+  registeredBidders: RegisteredBidderSummary[];
 }
 
 type PaymentEntry = {
@@ -52,7 +51,7 @@ type PaymentEntry = {
 const initialState = [{ method: "Cash" as PaymentMethod["name"], amount: 0 }];
 
 export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
-  auction,
+  auction_id,
   registeredBidders,
 }) => {
   const router = useRouter();
@@ -118,10 +117,10 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
-    if (!selectedBidder || !auction) return;
+    if (!selectedBidder) return;
 
     const formData = new FormData(event.currentTarget);
-    formData.append("auction_id", auction.auction_id);
+    formData.append("auction_id", auction_id);
     formData.append("bidder_id", selectedBidder.value as string);
     const registration_fee = parseInt(
       (formData.get("registration_fee") as string) || "0",

@@ -1,12 +1,12 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import type { RegisteredBidder } from "src/entities/models/Bidder";
+import type { RegisteredBidderSummary } from "src/entities/models/Bidder";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 
-export const columns: ColumnDef<RegisteredBidder>[] = [
+export const columns: ColumnDef<RegisteredBidderSummary>[] = [
   {
     accessorKey: "bidder.bidder_number",
     header: ({ column }) => {
@@ -103,7 +103,7 @@ export const columns: ColumnDef<RegisteredBidder>[] = [
       const registeredBidder = row.original;
       return (
         <div className="flex justify-center">
-          {registeredBidder.auction_inventories.length} items
+          {registeredBidder.auction_inventories_count} items
         </div>
       );
     },

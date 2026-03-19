@@ -142,6 +142,13 @@ export type RegisteredBidderSchema = Prisma.auctions_biddersGetPayload<{
   };
 }>;
 
+export type RegisteredBidderSummaryRow = Prisma.auctions_biddersGetPayload<{
+  include: {
+    bidder: true;
+    _count: { select: { auctions_inventories: true } };
+  };
+}>;
+
 export type RegisteredBidder = {
   auction_bidder_id: string;
   auction_id: string;
@@ -160,6 +167,25 @@ export type RegisteredBidder = {
     registration_fee: number;
   };
   auction_inventories: Omit<AuctionsInventory, "bidder" | "histories">[];
+};
+
+export type RegisteredBidderSummary = {
+  auction_bidder_id: string;
+  auction_id: string;
+  auction_date: string;
+  created_at: string;
+  service_charge: number;
+  registration_fee: number;
+  already_consumed: number;
+  balance: number;
+  bidder: {
+    bidder_id: string;
+    bidder_number: string;
+    full_name: string;
+    service_charge: number;
+    registration_fee: number;
+  };
+  auction_inventories_count: number;
 };
 
 export type AuctionBidderSchema = {
