@@ -130,7 +130,7 @@ export type AuctionBidderWithInventoriesRow = Prisma.auctions_biddersGetPayload<
   };
 }>;
 
-export type RegisteredBidderSchema = Prisma.auctions_biddersGetPayload<{
+export type AuctionBidderWithFullDetailsRow = Prisma.auctions_biddersGetPayload<{
   include: {
     auctions_inventories: {
       include: {
@@ -189,7 +189,7 @@ export type RegisteredBidderSummary = {
   auction_inventories_count: number;
 };
 
-export type AuctionBidderSchema = {
+export type AuctionBidder = {
   auction_bidder_id: string;
   auction_id: string;
   bidder_id: string;
@@ -211,7 +211,7 @@ export type BiddersWithBirthdatesAndRecentAuctionSchema = {
   last_auction_date: string;
 };
 
-export type UnpaidAuctionsBiddersSchema = Prisma.auctions_biddersGetPayload<{
+export type AuctionBidderWithBidderInventoriesRow = Prisma.auctions_biddersGetPayload<{
   include: { auctions_inventories: true; bidder: true };
 }>;
 

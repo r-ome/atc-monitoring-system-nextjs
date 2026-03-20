@@ -1,11 +1,11 @@
 import { AuctionRepository } from "src/infrastructure/di/repositories";
-import { RegisteredBidderSchema } from "src/entities/models/Bidder";
+import { AuctionBidderWithFullDetailsRow } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 
-function presenter(registeredBidders: RegisteredBidderSchema[]) {
+function presenter(registeredBidders: AuctionBidderWithFullDetailsRow[]) {
   const date_format = "hh:mm a";
   return registeredBidders.map((registeredBidder) => ({
     auction_id: registeredBidder.auction_id,

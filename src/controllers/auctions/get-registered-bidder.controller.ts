@@ -1,5 +1,5 @@
 import { getRegisteredBidderUseCase } from "src/application/use-cases/auctions/get-registered-bidder.use-case";
-import { RegisteredBidderSchema } from "src/entities/models/Bidder";
+import { AuctionBidderWithFullDetailsRow } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
 import {
   DatabaseOperationError,
@@ -8,7 +8,7 @@ import {
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-function presenter(registeredBidder: RegisteredBidderSchema) {
+function presenter(registeredBidder: AuctionBidderWithFullDetailsRow) {
   const date_format = "MMMM dd, yyyy";
   return {
     auction_id: registeredBidder.auction_id,
