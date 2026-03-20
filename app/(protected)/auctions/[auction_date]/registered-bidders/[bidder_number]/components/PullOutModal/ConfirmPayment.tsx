@@ -28,15 +28,9 @@ import { useBidderPullOutModalContext } from "../../context/BidderPullOutModalCo
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
 import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 
-type PaymentEntry = {
-  method: PaymentMethod["name"] | "";
-  amount: number;
-};
-const initialState = [{ method: "Cash", amount: 0 }];
-
 export const ConfirmPayment: React.FC = () => {
-  const { grandTotal } = useBidderPullOutModalContext();
-  const [payments, setPayments] = useState<PaymentEntry[]>(initialState);
+  const { grandTotal, payments, setPayments } =
+    useBidderPullOutModalContext();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
   useEffect(() => {
@@ -50,31 +44,34 @@ export const ConfirmPayment: React.FC = () => {
 
   const handleAdd = () => {
     if (payments.length < paymentMethods.length) {
-      setPayments([...payments, { method: "", amount: 0 }]);
+      setPayments([...payments, { payment_method: "", amount_paid: 0 }]);
     }
   };
 
-  const handleMethodChange = (
-    index: number,
-    newMethod: PaymentMethod["name"]
-  ) => {
+  const handleMethodChange = (index: number, newMethod: string) => {
     setPayments((prev) => {
       const updated = [...prev];
-      updated[index].method = newMethod;
+      updated[index] = { ...updated[index], payment_method: newMethod };
       return updated;
     });
   };
 
   const handleAmountChange = (index: number, newAmount: number) => {
-    const updated = [...payments];
-    updated[index].amount = newAmount;
-    setPayments(updated);
+    setPayments((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], amount_paid: newAmount };
+      return updated;
+    });
   };
 
   const handleRemove = (index: number) => {
     const updated = [...payments];
     updated.splice(index, 1);
     setPayments(updated);
+  };
+
+  const resetToSingle = () => {
+    setPayments([{ payment_method: "", amount_paid: 0 }]);
   };
 
   return (
@@ -89,10 +86,7 @@ export const ConfirmPayment: React.FC = () => {
           </TableRow>
         </TableFooter>
       </Table>
-      <Tabs
-        defaultValue="single"
-        onValueChange={() => setPayments([...initialState])}
-      >
+      <Tabs defaultValue="single" onValueChange={resetToSingle}>
         <TabsList className="w-full">
           <TabsTrigger value="single">Single/Full Payment</TabsTrigger>
           <TabsTrigger value="multiple">Multiple Payments</TabsTrigger>
@@ -101,7 +95,9 @@ export const ConfirmPayment: React.FC = () => {
         <TabsContent value="single">
           <Select
             required
-            onValueChange={(value) => handleMethodChange(0, value)}
+            onValueChange={(value) => {
+              setPayments([{ payment_method: value, amount_paid: grandTotal }]);
+            }}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Payment Type"></SelectValue>
@@ -119,14 +115,6 @@ export const ConfirmPayment: React.FC = () => {
               </SelectGroup>
             </SelectContent>
           </Select>
-
-          {payments.length ? (
-            <input
-              type="hidden"
-              value={grandTotal}
-              name={`PAYMENT_${payments[0].method}`}
-            />
-          ) : null}
         </TabsContent>
 
         <TabsContent value="multiple">
@@ -136,7 +124,7 @@ export const ConfirmPayment: React.FC = () => {
                 <div className="flex-1">
                   <Select
                     required
-                    value={payments[index].method}
+                    value={item.payment_method}
                     onValueChange={(value) => handleMethodChange(index, value)}
                   >
                     <SelectTrigger className="w-full">
@@ -159,7 +147,6 @@ export const ConfirmPayment: React.FC = () => {
 
                 <div className="flex-1">
                   <InputNumber
-                    name={`PAYMENT_${item.method}_${index}`}
                     required
                     onChange={(e) =>
                       handleAmountChange(index, Number(e.target.value))
@@ -181,7 +168,7 @@ export const ConfirmPayment: React.FC = () => {
                 type="button"
                 variant="outline"
                 onClick={handleAdd}
-                disabled={payments.some((item) => item.method === "")}
+                disabled={payments.some((item) => item.payment_method === "")}
               >
                 Add Payment Method
               </Button>

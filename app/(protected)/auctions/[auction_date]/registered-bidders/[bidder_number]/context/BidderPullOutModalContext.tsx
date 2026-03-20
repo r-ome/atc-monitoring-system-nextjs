@@ -4,6 +4,11 @@ import { createContext, useState, useContext } from "react";
 import { RegisteredBidder } from "src/entities/models/Bidder";
 import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 
+export type PaymentEntry = {
+  payment_method: string;
+  amount_paid: number;
+};
+
 type BidderPullOutModalContextType = {
   serviceCharge: number;
   selectedItems: RegisteredBidder["auction_inventories"];
@@ -14,6 +19,8 @@ type BidderPullOutModalContextType = {
   registrationFeeAmount: number;
   totalItemPrice: number;
   grandTotal: number;
+  payments: PaymentEntry[];
+  setPayments: React.Dispatch<React.SetStateAction<PaymentEntry[]>>;
 };
 
 const BidderPullOutModalContext = createContext<
@@ -31,6 +38,9 @@ export const BidderPullOutModalProvider = ({
   const [registeredBidder, setRegisteredBidder] = useState<
     RegisteredBidder | undefined
   >();
+  const [payments, setPayments] = useState<PaymentEntry[]>([
+    { payment_method: "", amount_paid: 0 },
+  ]);
 
   const totalItemPrice = selectedItems.reduce(
     (acc, item) => (acc += item.price),
@@ -62,6 +72,8 @@ export const BidderPullOutModalProvider = ({
         setSelectedItems,
         registeredBidder,
         setRegisteredBidder,
+        payments,
+        setPayments,
       }}
     >
       {children}
