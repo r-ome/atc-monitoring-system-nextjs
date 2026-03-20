@@ -1,10 +1,10 @@
 import { AuctionRepository, ContainerRepository, InventoryRepository } from "src/infrastructure/di/repositories";
-import { InventoryWithDetailsRow } from "src/entities/models/Inventory";
+import { InventoryForManifestRow } from "src/entities/models/Inventory";
 import { UpdateManifestInput } from "src/entities/models/Manifest";
-import { AuctionBidderWithFullDetailsRow } from "src/entities/models/Bidder";
+import { AuctionBidderForManifestRow } from "src/entities/models/Bidder";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
-import { ContainerWithAllRow } from "src/entities/models/Container";
-import { divideIntoHundreds, divideQuantites } from "src/application/use-cases/auctions/manifest-pipeline";
+import { ContainerBarcodeRow } from "src/entities/models/Container";
+import { divideIntoHundreds, divideQuantites, getContainerBarcode, isThreePartBarcode } from "src/application/use-cases/auctions/manifest-pipeline";
 import { formatNumberPadding } from "@/app/lib/utils";
 
 export const updateManifestUseCase = async (
@@ -12,18 +12,13 @@ export const updateManifestUseCase = async (
   manifest_id: string,
   data: UpdateManifestInput
 ) => {
-  const registered_bidders = await AuctionRepository.getRegisteredBidders(
-    auction_id
-  );
-
-  const existing_inventories = await InventoryRepository.getAllInventories();
-  const containers = await ContainerRepository.getContainers();
-  const monitoring = await AuctionRepository.getMonitoring(auction_id, [
-    "UNPAID",
-    "PAID",
-    "CANCELLED",
-    "REFUNDED",
-  ]);
+  const [registered_bidders, existing_inventories, containers, monitoring] =
+    await Promise.all([
+      AuctionRepository.getRegisteredBiddersForManifest(auction_id),
+      InventoryRepository.getAllInventoriesForManifest(),
+      ContainerRepository.getContainerBarcodes(),
+      AuctionRepository.getMonitoring(auction_id, ["UNPAID", "PAID", "CANCELLED", "REFUNDED"]),
+    ]);
 
   const withFormattedBarcodes = formatSlashedBarcodes(data);
   const withValidatedBidders = validateBidders(withFormattedBarcodes, registered_bidders);
@@ -45,13 +40,14 @@ export const updateManifestUseCase = async (
 
 const validateBidders = (
   data: UpdateManifestInput[],
-  registeredBidders: AuctionBidderWithFullDetailsRow[]
+  registeredBidders: AuctionBidderForManifestRow[]
 ) => {
+  const bidderMap = new Map(
+    registeredBidders.map((b) => [b.bidder.bidder_number, b]),
+  );
+
   return data.map((item) => {
-    const bidder = registeredBidders.find(
-      (registered_bidder) =>
-        registered_bidder.bidder.bidder_number === item.bidder_number
-    );
+    const bidder = bidderMap.get(item.bidder_number);
 
     if (!bidder) {
       return {
@@ -69,24 +65,20 @@ const validateBidders = (
 
 const formatExistingInventories = (
   data: UpdateManifestInput[],
-  existing_inventories: Omit<
-    InventoryWithDetailsRow,
-    "histories" | "container" | "auctions_inventory"
-  >[]
+  existing_inventories: InventoryForManifestRow[],
 ): UpdateManifestInput[] => {
+  const inventoryByBarcode = new Map(
+    existing_inventories.map((inv) => [inv.barcode, inv]),
+  );
+
   return data.map((item) => {
     if (!item.isValid) return item;
-    // check if it has inventory barcode (e.g. 27-01-01) (the 3 digit from the combination)
-    // if barcode is only a combination of container barcode we skip it and consider it as new inventory
-    const has_inventory_barcode = item.barcode.split("-").length === 3;
-    if (!has_inventory_barcode) return item;
+    if (!isThreePartBarcode(item.barcode)) return item;
 
-    const existing_inventory = existing_inventories.find(
-      (inventory) => inventory.barcode === item.barcode
-    );
+    const existing_inventory = inventoryByBarcode.get(item.barcode);
 
     if (existing_inventory)
-      if (["SOLD"].includes(existing_inventory.status)) {
+      if (existing_inventory.status === "SOLD") {
         item.isValid = false;
         item.error = "Item already exists and SOLD in inventories";
       } else {
@@ -101,34 +93,26 @@ const formatExistingInventories = (
 
 const addContainerIdForNewInventories = (
   data: UpdateManifestInput[],
-  containers: ContainerWithAllRow[],
+  containers: ContainerBarcodeRow[],
 ): UpdateManifestInput[] => {
+  const containerMap = new Map(
+    containers.map((c) => [c.barcode, c.container_id]),
+  );
+
   return data.map((item) => {
     if (!item.isValid) return item;
     if (item.inventory_id) return item;
 
-    const container_barcodes = containers.map((container) => ({
-      container_id: container.container_id,
-      barcode: container.barcode,
-    }));
+    const item_container_barcode = getContainerBarcode(item.barcode);
+    const container_id = containerMap.get(item_container_barcode.trim());
 
-    const item_container_barcode =
-      item.barcode.split("-").length === 3
-        ? item.barcode.split("-").slice(0, -1).join("-")
-        : item.barcode;
-
-    const container = container_barcodes.find(
-      (container_barcode) =>
-        container_barcode.barcode === item_container_barcode.trim()
-    );
-
-    if (!container) {
+    if (!container_id) {
       item.isValid = false;
       item.error = `${item_container_barcode} does not exist in Containers`;
       return item;
     }
 
-    item.container_id = container.container_id;
+    item.container_id = container_id;
     return item;
   });
 };
@@ -139,10 +123,7 @@ const formatSlashedBarcodes = (
   const new_barcodes = data.barcode.split("/");
   const new_control = data.control.split("/");
 
-  const parent =
-    new_barcodes[0].split("-").length === 3
-      ? new_barcodes[0].split("-").slice(0, -1).join("-")
-      : new_barcodes[0];
+  const parent = getContainerBarcode(new_barcodes[0]);
 
   const new_prices = divideIntoHundreds(
     parseInt(data.price, 10),
@@ -151,7 +132,7 @@ const formatSlashedBarcodes = (
   const new_quantities = divideQuantites(data.qty, new_barcodes.length);
 
   const new_rows = new_barcodes.map((new_barcode, i) => {
-    const is_inventory = new_barcode.split("-").length === 1;
+    const is_inventory = !new_barcode.includes("-");
     new_barcode = formatNumberPadding(new_barcode, 3);
 
     return {
@@ -176,32 +157,18 @@ const removeMonitoringDuplicates = (
   data: UpdateManifestInput[],
   monitoring: AuctionInventoryWithDetailsRow[]
 ) => {
-  const existing_monitoring = monitoring.map((item) =>
-    JSON.stringify({
-      BARCODE: item.inventory.barcode,
-      CONTROL: item.inventory.control,
-      DESCRIPTION: item.description,
-      BIDDER: item.auction_bidder.bidder.bidder_number,
-      QTY: item.qty,
-      PRICE: item.price.toString(),
-    })
+  const existing_monitoring = new Set(
+    monitoring.map((item) =>
+      `${item.inventory.barcode}:${item.inventory.control}:${item.description}:${item.auction_bidder.bidder.bidder_number}:${item.qty}:${item.price}`,
+    ),
   );
 
   return data.map((item) => {
     if (!item.isValid) return item;
 
-    const fields = JSON.stringify({
-      BARCODE: item.barcode,
-      CONTROL: item.control,
-      DESCRIPTION: item.description,
-      BIDDER: item.bidder_number,
-      QTY: item.qty,
-      PRICE: item.price.toString(),
-    });
+    const key = `${item.barcode}:${item.control}:${item.description}:${item.bidder_number}:${item.qty}:${item.price}`;
 
-    // if items exists in monitoring but has a cancelled or refunded status, reassign item to new bidder
-
-    if (existing_monitoring.includes(fields)) {
+    if (existing_monitoring.has(key)) {
       item.isValid = false;
       item.error = "DUPLICATE ENCODE";
       return item;

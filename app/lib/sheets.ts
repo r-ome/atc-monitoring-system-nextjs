@@ -76,7 +76,8 @@ export const getSheetData = (
           QTY: item.QTY,
           MANIFEST: item["MANIFEST NUMBER"],
         }))
-        .filter((item) => Object.values(item).some(Boolean));
+        .filter((item) => Object.values(item).some(Boolean))
+        .filter((item) => /^\d/.test(item.BARCODE));
     }
 
     if (type === "bidders") {

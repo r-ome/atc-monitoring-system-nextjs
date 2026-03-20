@@ -21,6 +21,10 @@ import { UpdateManifestController } from "src/controllers/auctions/update-manife
 import { InsertAuctionInventoryController } from "src/controllers/auctions/insert-auction-inventory.controller";
 import { UpdateBidderRegistrationController } from "src/controllers/auctions/update-bidder-registration.controller";
 import { UnregisterBidderController } from "src/controllers/auctions/unregister-bidder.controller";
+import { PreviewManifestController } from "src/controllers/auctions/preview-manifest.controller";
+import { ConfirmUploadManifestController } from "src/controllers/auctions/confirm-upload-manifest.controller";
+import { RevalidateManifestController } from "src/controllers/auctions/revalidate-manifest.controller";
+import { type UploadManifestInput, type ManifestSheetRecord } from "src/entities/models/Manifest";
 
 export const startAuction = async (auctionDate: string) => {
   const user = await requireUser();
@@ -98,6 +102,44 @@ export const getMonitoring = async (auctionId: string) => {
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
     async () => await GetMonitoringController(auctionId),
+  );
+};
+
+export const previewManifest = async (auctionId: string, formData: FormData) => {
+  const user = await requireUser();
+  const file = formData.get("file");
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => PreviewManifestController(auctionId, file as File),
+  );
+};
+
+export const revalidateManifest = async (
+  auctionId: string,
+  data: ManifestSheetRecord[],
+) => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => RevalidateManifestController(auctionId, data),
+  );
+};
+
+export const confirmUploadManifest = async (
+  auctionId: string,
+  data: UploadManifestInput[],
+) => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => ConfirmUploadManifestController(auctionId, data),
   );
 };
 

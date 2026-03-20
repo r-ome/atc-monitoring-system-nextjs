@@ -79,6 +79,20 @@ export const ContainerRepository: IContainerRepository = {
       throw error;
     }
   },
+  getContainerBarcodes: async () => {
+    try {
+      return await prisma.containers.findMany({
+        select: { container_id: true, barcode: true },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting Container barcodes!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
   getContainersList: async () => {
     try {
       return await prisma.containers.findMany({

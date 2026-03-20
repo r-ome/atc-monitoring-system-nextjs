@@ -13,6 +13,16 @@ export type InventoryStatus = (typeof INVENTORY_STATUS)[number];
 
 export type InventoryRow = Prisma.inventoriesGetPayload<object>;
 
+export type InventoryForManifestRow = Prisma.inventoriesGetPayload<{
+  select: {
+    inventory_id: true;
+    container_id: true;
+    barcode: true;
+    control: true;
+    status: true;
+  };
+}>;
+
 export type InventoryWithDetailsRow = Prisma.inventoriesGetPayload<{
   include: {
     histories: { include: { receipt: true } };

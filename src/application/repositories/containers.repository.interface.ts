@@ -1,5 +1,6 @@
 import {
   ContainerRow,
+  ContainerBarcodeRow,
   ContainerListRow,
   ContainerWithAllRow,
   ContainerWithDetailsRow,
@@ -18,6 +19,7 @@ export interface IContainerRepository {
     container_id: string,
   ) => Promise<ContainerWithDetailsRow | null>;
   getContainers: () => Promise<ContainerWithAllRow[]>;
+  getContainerBarcodes: () => Promise<ContainerBarcodeRow[]>;
   getContainersList: () => Promise<ContainerListRow[]>;
   createContainer: (container: CreateContainerInput) => Promise<ContainerRow>;
   getInventoriesByContainerBarcode: (barcode: string) => Promise<ContainerWithInventoriesRow>;

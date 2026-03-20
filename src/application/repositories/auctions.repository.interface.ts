@@ -10,6 +10,7 @@ import {
 import {
   RegisterBidderInput,
   AuctionBidderWithFullDetailsRow,
+  AuctionBidderForManifestRow,
   RegisteredBidderSummaryRow,
   UpdateBidderRegistrationInput,
   AuctionBidderRow,
@@ -42,6 +43,9 @@ export interface IAuctionRepository {
   getRegisteredBidders: (
     auction_id: string,
   ) => Promise<AuctionBidderWithFullDetailsRow[]>;
+  getRegisteredBiddersForManifest: (
+    auction_id: string,
+  ) => Promise<AuctionBidderForManifestRow[]>;
   getRegisteredBiddersSummary: (
     auction_id: string,
   ) => Promise<RegisteredBidderSummaryRow[]>;

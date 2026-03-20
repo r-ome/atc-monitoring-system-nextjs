@@ -1,10 +1,18 @@
 import { ManifestSheetRecord, UploadManifestInput } from "src/entities/models/Manifest";
-import { InventoryRow } from "src/entities/models/Inventory";
-import { ContainerWithAllRow } from "src/entities/models/Container";
+import { InventoryForManifestRow } from "src/entities/models/Inventory";
+import { ContainerBarcodeRow } from "src/entities/models/Container";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
-import { AuctionBidderWithFullDetailsRow } from "src/entities/models/Bidder";
+import { AuctionBidderForManifestRow } from "src/entities/models/Bidder";
 import { formatNumberPadding } from "@/app/lib/utils";
 import { v4 as uuidv4 } from "uuid";
+
+export const isThreePartBarcode = (barcode: string) =>
+  barcode.split("-").length === 3;
+
+export const getContainerBarcode = (barcode: string) =>
+  isThreePartBarcode(barcode)
+    ? barcode.split("-").slice(0, -1).join("-")
+    : barcode;
 
 export const validateEmptyFields = (
   data: ManifestSheetRecord[],
@@ -117,10 +125,7 @@ export const formatSlashedBarcodes = (
     const new_barcodes = item.BARCODE.split("/");
     const new_control = item.CONTROL.split("/");
 
-    const parent =
-      new_barcodes[0].split("-").length === 3
-        ? new_barcodes[0].split("-").slice(0, -1).join("-")
-        : new_barcodes[0];
+    const parent = getContainerBarcode(new_barcodes[0]);
 
     const new_prices = divideIntoHundreds(
       parseInt(item.PRICE, 10),
@@ -130,7 +135,7 @@ export const formatSlashedBarcodes = (
     const slashGroupUuid = new_barcodes.length > 1 ? uuidv4() : null;
 
     const new_rows = new_barcodes.map((new_barcode, i) => {
-      const is_inventory = new_barcode.split("-").length === 1;
+      const is_inventory = !new_barcode.includes("-");
       new_barcode = formatNumberPadding(new_barcode, 3);
 
       return {
@@ -152,14 +157,15 @@ export const formatSlashedBarcodes = (
 
 export const validateBidders = (
   data: UploadManifestInput[],
-  registeredBidders: AuctionBidderWithFullDetailsRow[],
+  registeredBidders: AuctionBidderForManifestRow[],
 ) => {
+  const bidderMap = new Map(
+    registeredBidders.map((b) => [b.bidder.bidder_number, b]),
+  );
+
   return data.map((item) => {
     if (!item.isValid) return item;
-    const bidder = registeredBidders.find(
-      (registered_bidder) =>
-        registered_bidder.bidder.bidder_number === item.BIDDER,
-    );
+    const bidder = bidderMap.get(item.BIDDER);
 
     if (!bidder) {
       return {
@@ -194,7 +200,7 @@ export const removeManifestDuplicates = (
     if (!item.isValid) return item;
     let key = item.BARCODE;
 
-    if (item.BARCODE.split("-").length === 2) {
+    if (!isThreePartBarcode(item.BARCODE)) {
       key = `${item.BARCODE}-${item.CONTROL}`;
     }
 
@@ -219,24 +225,26 @@ export const removeManifestDuplicates = (
  */
 export const formatExistingInventories = (
   data: UploadManifestInput[],
-  existing_inventories: InventoryRow[],
+  existing_inventories: InventoryForManifestRow[],
 ): UploadManifestInput[] => {
+  const byBarcode = new Map<string, InventoryForManifestRow>();
+  const byBarcodeControl = new Map<string, InventoryForManifestRow>();
+
+  for (const inv of existing_inventories) {
+    byBarcode.set(inv.barcode, inv);
+    byBarcodeControl.set(`${inv.barcode}:${inv.control}`, inv);
+  }
+
   return data.map((item) => {
     if (!item.isValid) return item;
 
-    const existing_inventory = existing_inventories.find((inventory) => {
-      if (item.BARCODE.split("-").length === 3) {
-        return inventory.barcode === item.BARCODE;
-      }
-
-      return (
-        inventory.barcode === item.BARCODE && inventory.control === item.CONTROL
-      );
-    });
+    const existing_inventory = isThreePartBarcode(item.BARCODE)
+      ? byBarcode.get(item.BARCODE)
+      : byBarcodeControl.get(`${item.BARCODE}:${item.CONTROL}`);
 
     if (!existing_inventory) return item;
 
-    if (["SOLD"].includes(existing_inventory.status)) {
+    if (existing_inventory.status === "SOLD") {
       return { ...item, isValid: false, error: "Item already exists and SOLD in inventories" };
     }
 
@@ -251,32 +259,24 @@ export const formatExistingInventories = (
 
 export const addContainerIdForNewInventories = (
   data: UploadManifestInput[],
-  containers: ContainerWithAllRow[],
+  containers: ContainerBarcodeRow[],
 ): UploadManifestInput[] => {
-  const container_barcodes = containers.map((container) => ({
-    container_id: container.container_id,
-    barcode: container.barcode,
-  }));
+  const containerMap = new Map(
+    containers.map((c) => [c.barcode, c.container_id]),
+  );
 
   return data.map((item) => {
     if (!item.isValid) return item;
     if (item.inventory_id) return item;
 
-    const item_container_barcode =
-      item.BARCODE.split("-").length === 3
-        ? item.BARCODE.split("-").slice(0, -1).join("-")
-        : item.BARCODE;
+    const item_container_barcode = getContainerBarcode(item.BARCODE);
+    const container_id = containerMap.get(item_container_barcode);
 
-    const container = container_barcodes.find(
-      (container_barcode) =>
-        container_barcode.barcode === item_container_barcode,
-    );
-
-    if (!container) {
+    if (!container_id) {
       return { ...item, isValid: false, error: `${item_container_barcode} does not exist in Containers` };
     }
 
-    return { ...item, container_id: container.container_id };
+    return { ...item, container_id };
   });
 };
 
@@ -286,10 +286,7 @@ export const removeMonitoringDuplicates = (
 ) => {
   const existing_monitoring = new Set(
     monitoring.map((item) =>
-      JSON.stringify({
-        BARCODE: item.inventory.barcode,
-        CONTROL: item.inventory.control,
-      }),
+      `${item.inventory.barcode}:${item.inventory.control}`,
     ),
   );
 
@@ -297,43 +294,44 @@ export const removeMonitoringDuplicates = (
    * If item already exists but has CANCELLED, REFUNDED, or BOUGHT_ITEM status,
    * update the auction_inventory instead of creating a new one.
    */
-  const existing_cancelled_items = monitoring.filter(
-    (item) =>
+  const cancelledByBarcode = new Map<string, AuctionInventoryWithDetailsRow>();
+  const cancelledByBarcodeControl = new Map<string, AuctionInventoryWithDetailsRow>();
+
+  const monitoringByBarcode = new Map<string, AuctionInventoryWithDetailsRow>();
+  const monitoringByBarcodeControl = new Map<string, AuctionInventoryWithDetailsRow>();
+
+  for (const item of monitoring) {
+    monitoringByBarcode.set(item.inventory.barcode, item);
+    monitoringByBarcodeControl.set(
+      `${item.inventory.barcode}:${item.inventory.control}`,
+      item,
+    );
+
+    if (
       ["CANCELLED", "REFUNDED"].includes(item.status) ||
-      ["BOUGHT_ITEM"].includes(item.inventory.status),
-  );
+      ["BOUGHT_ITEM"].includes(item.inventory.status)
+    ) {
+      cancelledByBarcode.set(item.inventory.barcode, item);
+      cancelledByBarcodeControl.set(
+        `${item.inventory.barcode}:${item.inventory.control}`,
+        item,
+      );
+    }
+  }
 
   return data.map((sheet_item) => {
     if (!sheet_item.isValid) return sheet_item;
 
-    const fields = JSON.stringify({
-      BARCODE: sheet_item.BARCODE,
-      CONTROL: sheet_item.CONTROL,
-    });
+    const key = `${sheet_item.BARCODE}:${sheet_item.CONTROL}`;
 
-    const already_existing_cancelled_items = existing_cancelled_items.find(
-      (item) => {
-        if (item.inventory.barcode.split("-").length === 3) {
-          return item.inventory.barcode === sheet_item.BARCODE;
-        }
-        return (
-          item.inventory.barcode === sheet_item.BARCODE &&
-          item.inventory.control === sheet_item.CONTROL
-        );
-      },
-    );
+    const cancelled = isThreePartBarcode(sheet_item.BARCODE)
+      ? cancelledByBarcode.get(sheet_item.BARCODE)
+      : cancelledByBarcodeControl.get(key);
 
-    if (already_existing_cancelled_items) {
-      const matched_item = monitoring.find((item) => {
-        if (item.inventory.barcode.split("-").length === 3) {
-          return item.inventory.barcode === sheet_item.BARCODE;
-        }
-
-        return (
-          item.inventory.barcode === sheet_item.BARCODE &&
-          item.inventory.control === sheet_item.CONTROL
-        );
-      });
+    if (cancelled) {
+      const matched_item = isThreePartBarcode(sheet_item.BARCODE)
+        ? monitoringByBarcode.get(sheet_item.BARCODE)
+        : monitoringByBarcodeControl.get(key);
 
       return {
         ...sheet_item,
@@ -342,7 +340,7 @@ export const removeMonitoringDuplicates = (
       };
     }
 
-    if (existing_monitoring.has(fields)) {
+    if (existing_monitoring.has(key)) {
       return { ...sheet_item, isValid: false, error: "DUPLICATE ENCODE" };
     }
 

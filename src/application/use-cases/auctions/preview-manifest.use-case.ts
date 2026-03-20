@@ -11,10 +11,9 @@ import {
   removeManifestDuplicates,
 } from "src/application/use-cases/auctions/manifest-pipeline";
 
-export const uploadManifestUseCase = async (
+export const previewManifestUseCase = async (
   auction_id: string,
   data: ManifestSheetRecord[],
-  is_bought_items: boolean = false,
 ) => {
   const [monitoring, registered_bidders, existing_inventories, containers] =
     await Promise.all([
@@ -37,9 +36,5 @@ export const uploadManifestUseCase = async (
   const withContainerIds = addContainerIdForNewInventories(withExistingInventories, containers);
   const withoutMonitoringDuplicates = removeMonitoringDuplicates(withContainerIds, monitoring);
 
-  return await AuctionRepository.uploadManifest(
-    auction_id,
-    withoutMonitoringDuplicates,
-    is_bought_items,
-  );
+  return withoutMonitoringDuplicates;
 };
