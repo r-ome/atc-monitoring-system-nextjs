@@ -93,7 +93,12 @@ export const uploadManifest = async (auctionId: string, formData: FormData) => {
 };
 
 export const getManifestRecords = async (auctionId: string) => {
-  return await GetManifestRecordsController(auctionId);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => GetManifestRecordsController(auctionId),
+  );
 };
 
 export const getRegisteredBidderByBidderNumber = async (
@@ -168,9 +173,17 @@ export const updateManifest = async (
   manifest_id: string,
   formData: FormData,
 ) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
-  return await UpdateManifestController(auction_id, manifest_id, data);
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => UpdateManifestController(auction_id, manifest_id, data),
+  );
 };
 
 export const insertAuctionInventory = async (
