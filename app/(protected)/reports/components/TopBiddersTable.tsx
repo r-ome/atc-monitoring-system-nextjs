@@ -1,33 +1,22 @@
 "use client";
 
+import { DataTable } from "@/app/components/data-table/data-table";
 import { ColumnDef } from "@tanstack/react-table";
+import { TopBidderEntry } from "src/entities/models/Report";
+import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { SalesRowType } from "./SalesTable";
-import { formatNumberToCurrency } from "@/app/lib/utils";
 
-export const columns: ColumnDef<SalesRowType>[] = [
+const columns: ColumnDef<TopBidderEntry>[] = [
   {
-    accessorKey: "label",
-    size: 100,
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          className="cursor-pointer"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Period
-          <ArrowUpDown />
-        </Button>
-      </div>
-    ),
+    id: "rank",
+    header: () => <div className="text-center">#</div>,
     cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.label}</div>
+      <div className="flex justify-center font-semibold">{row.index + 1}</div>
     ),
   },
   {
-    accessorKey: "total_sales",
+    accessorKey: "bidder_number",
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -35,19 +24,19 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Total Sales
+          Bidder #
           <ArrowUpDown />
         </Button>
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center text-green-500">
-        {formatNumberToCurrency(row.original.total_sales)}
+      <div className="flex justify-center font-medium">
+        {row.original.bidder_number}
       </div>
     ),
   },
   {
-    accessorKey: "total_registration_fee",
+    accessorKey: "full_name",
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -55,19 +44,37 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Total Registration Fee
+          Name
           <ArrowUpDown />
         </Button>
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center text-green-500">
-        {formatNumberToCurrency(row.original.total_registration_fee)}
+      <div className="flex justify-center">{row.original.full_name}</div>
+    ),
+  },
+  {
+    accessorKey: "total_spent",
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Total Spent
+          <ArrowUpDown />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center text-green-500 font-semibold">
+        {formatNumberToCurrency(row.original.total_spent)}
       </div>
     ),
   },
   {
-    accessorKey: "total_expenses",
+    accessorKey: "items_won",
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -75,19 +82,17 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Total Expenses
+          Items Won
           <ArrowUpDown />
         </Button>
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center text-red-500">
-        {formatNumberToCurrency(row.original.total_expenses)}
-      </div>
+      <div className="flex justify-center">{row.original.items_won}</div>
     ),
   },
   {
-    accessorKey: "total_bidders",
+    accessorKey: "auctions_attended",
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -95,31 +100,33 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Total Bidders
+          Auctions
           <ArrowUpDown />
         </Button>
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.total_bidders}</div>
-    ),
-  },
-  {
-    accessorKey: "total_items",
-    header: ({ column }) => (
       <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          className="cursor-pointer"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Total Items
-          <ArrowUpDown />
-        </Button>
+        {row.original.auctions_attended}
       </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.total_items}</div>
     ),
   },
 ];
+
+interface Props {
+  data: TopBidderEntry[];
+}
+
+export const TopBiddersTable = ({ data }: Props) => {
+  return (
+    <DataTable
+      title={
+        <span>
+          Top {data.length} Bidders by Total Spend
+        </span>
+      }
+      columns={columns}
+      data={data}
+    />
+  );
+};
