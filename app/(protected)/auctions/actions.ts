@@ -36,12 +36,18 @@ export const startAuction = async (auctionDate: string) => {
 };
 
 export const getAuctionId = async (auctionDate: string) => {
-  await requireUser();
-  const result = await AuctionRepository.getAuctionId(new Date(auctionDate));
-  if (!result) {
-    return { ok: false as const, error: { message: "Auction not found!" } };
-  }
-  return { ok: true as const, value: result.auction_id };
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => {
+      const result = await AuctionRepository.getAuctionId(new Date(auctionDate));
+      if (!result) {
+        return { ok: false as const, error: { message: "Auction not found!" } };
+      }
+      return { ok: true as const, value: result.auction_id };
+    },
+  );
 };
 
 export const getAuction = async (auctionDate: string) => {
@@ -54,19 +60,36 @@ export const getAuction = async (auctionDate: string) => {
 };
 
 export const registerBidder = async (input: FormData) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(input.entries());
   data.payments = JSON.parse(data.payments as string);
 
-  return await RegisterBidderController(data);
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => RegisterBidderController(data),
+  );
 };
 
 export const getRegisteredBidders = async (auctionId: string) => {
-  return await GetRegisteredBiddersController(auctionId);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => GetRegisteredBiddersController(auctionId),
+  );
 };
 
 export const getRegisteredBiddersSummary = async (auctionId: string) => {
-  return await GetRegisteredBiddersSummaryController(auctionId);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => GetRegisteredBiddersSummaryController(auctionId),
+  );
 };
 
 export const getMonitoring = async (auctionId: string) => {
@@ -105,19 +128,32 @@ export const getRegisteredBidderByBidderNumber = async (
   bidderNumber: string,
   auctionDate: string,
 ) => {
-  return await GetRegisteredBidderController(bidderNumber, auctionDate);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => GetRegisteredBidderController(bidderNumber, auctionDate),
+  );
 };
 
 export const handleBidderPullOut = async (formData: FormData) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
   data.payments = JSON.parse(data.payments as string);
   data.auction_inventory_ids = JSON.parse(data.auction_inventory_ids as string);
-  return await HandleBidderPullOutController(data);
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => HandleBidderPullOutController(data),
+  );
 };
 
 export const cancelItems = async (formData: FormData) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
 
   const auction_inventory_ids =
@@ -143,7 +179,10 @@ export const cancelItems = async (formData: FormData) => {
     reason: (data.reason as string).toUpperCase(),
   };
 
-  return await CancelItemsController(input);
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => CancelItemsController(input),
+  );
 };
 
 export const uploadCounterCheck = async (
@@ -203,21 +242,37 @@ export const insertAuctionInventory = async (
   auction_id: string,
   formData: FormData,
 ) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
-  return await InsertAuctionInventoryController(auction_id, data);
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => InsertAuctionInventoryController(auction_id, data),
+  );
 };
 
 export const updateBidderRegistration = async (
   auction_bidder_id: string,
   formData: FormData,
 ) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
-  return await UpdateBidderRegistrationController(auction_bidder_id, data);
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => UpdateBidderRegistrationController(auction_bidder_id, data),
+  );
 };
 
 export const unregisterBidder = async (auction_bidder_id: string) => {
-  await requireUser();
-  return await UnregisterBidderController(auction_bidder_id);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => UnregisterBidderController(auction_bidder_id),
+  );
 };
