@@ -16,7 +16,7 @@ export const StatisticsRepository: IStatisticsRepository = {
 
       const bidder_with_birthdates = await tenantQuery({
         sql: `
-          SELECT 
+          SELECT
             b.bidder_id,
             b.first_name,
             b.last_name,
@@ -27,12 +27,18 @@ export const StatisticsRepository: IStatisticsRepository = {
           FROM bidders b
           LEFT JOIN auctions_bidders ab
             ON ab.bidder_id = b.bidder_id
+            AND ab.auction_id IN (
+              SELECT auction_id FROM auctions WHERE branch_id = b.branch_id
+            )
             AND ab.created_at = (
-              SELECT MAX(created_at)
-              FROM auctions_bidders
-              WHERE bidder_id = b.bidder_id
+              SELECT MAX(ab2.created_at)
+              FROM auctions_bidders ab2
+              INNER JOIN auctions a2 ON a2.auction_id = ab2.auction_id
+              WHERE ab2.bidder_id = b.bidder_id
+                AND a2.branch_id = b.branch_id
             )
           WHERE MONTH(b.birthdate) = ${month}
+            AND ab.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
           ORDER BY DAY(b.birthdate);
         `,
         table: "b",
