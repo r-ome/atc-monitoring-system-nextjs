@@ -150,22 +150,35 @@ export const uploadCounterCheck = async (
   auctionId: string,
   formData: FormData,
 ) => {
-  await requireUser();
+  const user = await requireUser();
   const file = formData.get("file");
-  return await UploadCounterCheckController(auctionId, file as File);
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => UploadCounterCheckController(auctionId, file as File),
+  );
 };
 
 export const getCounterCheck = async (auction_id: string) => {
-  return await GetCounterCheckController(auction_id);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => GetCounterCheckController(auction_id),
+  );
 };
 
 export const updateCounterCheck = async (
   counterCheckId: string,
   formData: FormData,
 ) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
-  return await UpdateCounterCheckController(counterCheckId, data);
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => UpdateCounterCheckController(counterCheckId, data),
+  );
 };
 
 export const updateManifest = async (
