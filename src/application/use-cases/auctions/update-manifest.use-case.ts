@@ -4,9 +4,8 @@ import { UpdateManifestInput } from "src/entities/models/Manifest";
 import { AuctionBidderWithFullDetailsRow } from "src/entities/models/Bidder";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { ContainerWithAllRow } from "src/entities/models/Container";
-import { divideIntoHundreds, divideQuantites } from "@/app/lib/sheets";
+import { divideIntoHundreds, divideQuantites } from "src/application/use-cases/auctions/manifest-pipeline";
 import { formatNumberPadding } from "@/app/lib/utils";
-import { winston_logger } from "@/app/lib/logger";
 
 export const updateManifestUseCase = async (
   auction_id: string,
@@ -39,12 +38,6 @@ export const updateManifestUseCase = async (
     manifest_id,
     withoutMonitoringDuplicates,
     data
-  );
-
-  winston_logger.info(
-    withoutMonitoringDuplicates.filter((item) =>
-      item.error.includes("Required Fields: BARCODE, BIDDER, PRICE")
-    )
   );
 
   return result;
@@ -170,11 +163,9 @@ const formatSlashedBarcodes = (
       barcode: is_inventory ? `${parent}-${new_barcode}` : new_barcode,
       qty: new_quantities[i].toString(),
       control:
-        new_control && new_control.length > 1
-          ? new_control[i]
-            ? new_control[i]
-            : "NC"
-          : new_control && new_control.join(""),
+        new_control.length > 1
+          ? new_control[i] ?? new_control[new_control.length - 1]
+          : new_control.join(""),
     };
   });
 

@@ -39,7 +39,7 @@ export const UploadManifestController = async (
       });
     }
 
-    const validManifestHeaders = [
+    const hasInvalidHeaders = [
       "BARCODE",
       "CONTROL #",
       "DESCRIPTION",
@@ -51,7 +51,7 @@ export const UploadManifestController = async (
       .map((item) => headers.includes(item))
       .some((item) => !item);
 
-    if (validManifestHeaders) {
+    if (hasInvalidHeaders) {
       throw new InputParseError("Invalid Data!", {
         cause: { file: ["Headers didn't match expected manifest"] },
       });
@@ -65,12 +65,7 @@ export const UploadManifestController = async (
     logger("UploadManifestController", { auction_id, records: res.length, ...user_context }, "info");
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
-    if (error instanceof InputParseError) {
-      logger("UploadManifestController", error, "warn", user_context);
-      return err({ message: error.message, cause: error.cause });
-    }
-
-    if (error instanceof NotFoundError) {
+    if (error instanceof InputParseError || error instanceof NotFoundError) {
       logger("UploadManifestController", error, "warn", user_context);
       return err({ message: error.message, cause: error.cause });
     }
