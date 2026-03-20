@@ -48,7 +48,7 @@ export const BidderRepository: IBidderRepository = {
             include: {
               auctions_inventories: true,
               receipt_records: {
-                where: { purpose: { not: payments_purpose.REFUNDED } },
+                where: { purpose: { notIn: [payments_purpose.REFUNDED, payments_purpose.LESS] } },
                 include: { payments: true },
               },
             },

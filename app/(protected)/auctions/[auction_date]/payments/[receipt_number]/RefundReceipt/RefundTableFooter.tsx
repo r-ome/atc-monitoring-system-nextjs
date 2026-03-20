@@ -21,9 +21,10 @@ const styles = StyleSheet.create({
 
 interface RefundTableFooterProps {
   reason?: string | null;
+  purpose: string;
 }
 
-const RefundTableFooter: React.FC<RefundTableFooterProps> = ({ reason }) => {
+const RefundTableFooter: React.FC<RefundTableFooterProps> = ({ reason, purpose }) => {
   return (
     <View style={styles.container}>
       <View style={{ ...styles.row, height: 40 }} wrap={false}>
@@ -65,7 +66,11 @@ const RefundTableFooter: React.FC<RefundTableFooterProps> = ({ reason }) => {
             <Text>{item}</Text>
             <View
               style={{
-                backgroundColor: item === "REFUND" ? "green" : "white",
+                backgroundColor:
+                  (item === "REFUND" && purpose === "REFUNDED") ||
+                  (item === "LESS" && purpose === "LESS")
+                    ? "green"
+                    : "white",
                 width: 25,
                 height: 12,
                 borderRight: 1,

@@ -69,7 +69,7 @@ const RefundDocument: React.FC<RefundDocumentProps> = ({ receipt }) => {
           <RefundTableRow items={receipt.auctions_inventories} />
         </View>
         <View>
-          <RefundTableFooter reason={reason} />
+          <RefundTableFooter reason={reason} purpose={receipt.purpose} />
           <RefundSignatories />
         </View>
       </Page>

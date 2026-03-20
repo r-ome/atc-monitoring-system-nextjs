@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { pdf, PDFViewer } from "@react-pdf/renderer";
 import { getAuction } from "@/app/(protected)/auctions/actions";
 import { getReceiptDetails } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
-import { ReceiptRecords } from "src/entities/models/Payment";
+import { ReceiptRecords, REFUND_PURPOSES } from "src/entities/models/Payment";
 import BidderInvoiceDocument from "../OfficialReceiptPage/BidderInvoiceDocument";
 import RefundDocument from "../RefundReceipt/RefundDocument";
 import { Button } from "@/app/components/ui/button";
@@ -45,7 +45,7 @@ export default function ReceiptViewer() {
   }
 
   const ReceiptDocument = () => {
-    if (receipt.purpose === "REFUNDED")
+    if (REFUND_PURPOSES.includes(receipt.purpose))
       return <RefundDocument receipt={receipt} />;
     if (receipt.purpose === "PULL_OUT") {
       const total_item_price = receipt.auctions_inventories.reduce(

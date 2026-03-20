@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { AuctionTransaction } from "src/entities/models/Payment";
+import { AuctionTransaction, REFUND_PURPOSES } from "src/entities/models/Payment";
 import { Badge } from "@/app/components/ui/badge";
 import { cn } from "@/app/lib/utils";
 
@@ -59,11 +59,11 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
         <div
           className={cn(
             "flex justify-center",
-            receipt.purpose === "REFUNDED" ? "text-red-500" : "text-green-500"
+            REFUND_PURPOSES.includes(receipt.purpose) ? "text-red-500" : "text-green-500"
           )}
         >
           ₱{" "}
-          {receipt.purpose === "REFUNDED"
+          {REFUND_PURPOSES.includes(receipt.purpose)
             ? `(${receipt.total_amount_paid.toLocaleString()})`
             : receipt.total_amount_paid.toLocaleString()}
         </div>
@@ -140,7 +140,7 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
         <div className="flex justify-center">
           <Badge
             variant={
-              ["REFUNDED"].includes(receipt.purpose) ? "destructive" : "success"
+              REFUND_PURPOSES.includes(receipt.purpose) ? "destructive" : "success"
             }
           >
             {receipt.purpose.replace(/_/g, " ")}

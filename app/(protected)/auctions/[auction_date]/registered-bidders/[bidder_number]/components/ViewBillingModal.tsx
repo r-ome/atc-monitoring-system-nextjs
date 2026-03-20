@@ -4,7 +4,7 @@ import { useState, useEffect, SetStateAction } from "react";
 import { safeSetItem } from "@/app/lib/local-storage";
 import { pdf, PDFViewer } from "@react-pdf/renderer";
 import { getBidderReceipts } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
-import { PaymentPurpose, ReceiptRecords } from "src/entities/models/Payment";
+import { PaymentPurpose, ReceiptRecords, REFUND_PURPOSES } from "src/entities/models/Payment";
 import { Button } from "@/app/components/ui/button";
 import BidderInvoiceDocument from "@/app/(protected)/auctions/[auction_date]/payments/[receipt_number]/OfficialReceiptPage/BidderInvoiceDocument";
 import RefundDocument from "@/app/(protected)/auctions/[auction_date]/payments/[receipt_number]/RefundReceipt/RefundDocument";
@@ -113,7 +113,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
   if (!receipt) return;
 
   const ReceiptDocument = () => {
-    if (receipt.purpose === "REFUNDED")
+    if (REFUND_PURPOSES.includes(receipt.purpose))
       return <RefundDocument receipt={receipt} />;
     if (receipt.purpose === "PULL_OUT") {
       const total_item_price = receipt.auctions_inventories.reduce(

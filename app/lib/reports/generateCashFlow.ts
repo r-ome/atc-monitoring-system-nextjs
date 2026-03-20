@@ -1,6 +1,6 @@
 import * as xlsx from "xlsx-js-style";
 import { formatDate } from "@/app/lib/utils";
-import { Payment } from "src/entities/models/Payment";
+import { Payment, REFUND_PURPOSES } from "src/entities/models/Payment";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Expense, PettyCash } from "src/entities/models/Expense";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
@@ -26,13 +26,13 @@ const generateCashFlow = ({
     payment_method: item.payment_method.name,
   }));
   const totalTransactaionsExcludingRefund = payments.filter(
-    (item) => item.receipt.purpose !== "REFUNDED",
+    (item) => !REFUND_PURPOSES.includes(item.receipt.purpose),
   ).length;
 
   const normalizeAction = (purpose: string) => {
     const p = purpose.trim().toUpperCase();
     if (p === "PULL OUT") return "PULLOUT";
-    if (p === "REFUNDED") return "REFUND";
+    if (p === "REFUNDED" || p === "LESS") return "REFUND";
     return p;
   };
   const date = rawData[0]?.date || "";
@@ -73,7 +73,7 @@ const generateCashFlow = ({
     payments
       .filter((item) => item.payment_method.name === paymentType)
       .reduce((acc, item) => {
-        if (item.receipt.purpose === "REFUNDED") {
+        if (REFUND_PURPOSES.includes(item.receipt.purpose)) {
           acc -= item.amount_paid;
         } else {
           acc += item.amount_paid;
@@ -82,7 +82,7 @@ const generateCashFlow = ({
       }, 0);
 
   const refundAmount = payments
-    .filter((item) => item.receipt.purpose === "REFUNDED")
+    .filter((item) => REFUND_PURPOSES.includes(item.receipt.purpose))
     .reduce((acc, item) => (acc += item.amount_paid), 0);
 
   const total_payments = paymentMethods.reduce(

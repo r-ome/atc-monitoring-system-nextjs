@@ -34,19 +34,34 @@ export const getPaymentsByDate = async (
 };
 
 export const getAuctionTransactions = async (auction_id: string) => {
-  return await GetAuctionTransactionsController(auction_id);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetAuctionTransactionsController(auction_id),
+  );
 };
 
 export const refundAuctionsInventories = async (form_data: FormData) => {
+  const user = await requireUser();
   const input = Object.fromEntries(form_data.entries());
-  return await RefundAuctionsInventoriesController(input);
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await RefundAuctionsInventoriesController(input),
+  );
 };
 
 export const getReceiptDetails = async (
   auctionId: string,
   receiptNumber: string,
 ) => {
-  return await GetReceiptDetailsController(auctionId, receiptNumber);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetReceiptDetailsController(auctionId, receiptNumber),
+  );
 };
 
 export const getExpensesByDate = async (
@@ -79,15 +94,25 @@ export const addExpense = async (
 };
 
 export const getBidderReceipts = async (auction_bidder_id: string) => {
-  return await GetBidderReceiptsController(auction_bidder_id);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetBidderReceiptsController(auction_bidder_id),
+  );
 };
 
 export const updateRegistrationPayment = async (
   payment_id: string,
   form_data: FormData,
 ) => {
+  const user = await requireUser();
   const input = Object.fromEntries(form_data.entries());
-  return await UpdateRegistrationPaymentController(payment_id, input);
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await UpdateRegistrationPaymentController(payment_id, input),
+  );
 };
 
 export const getPettyCashBalance = async (
@@ -120,7 +145,12 @@ export const updateExpense = async (
 };
 
 export const undoPayment = async (receipt_id: string) => {
-  return await UndoPaymentController(receipt_id);
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await UndoPaymentController(receipt_id),
+  );
 };
 
 export const updatePettyCash = async (
