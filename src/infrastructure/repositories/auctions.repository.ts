@@ -327,12 +327,22 @@ export const AuctionRepository: IAuctionRepository = {
           })),
         });
 
-        const new_inventories = data
+        const { new_inventories, for_updating } = data
           .filter((item) => item.isValid)
-          .filter((item) => !item.forUpdating);
-        const for_updating = data
-          .filter((item) => item.isValid)
-          .filter((item) => item.forUpdating);
+          .reduce(
+            (acc, item) => {
+              if (item.forUpdating) {
+                acc.for_updating.push(item);
+              } else {
+                acc.new_inventories.push(item);
+              }
+              return acc;
+            },
+            {
+              new_inventories: [] as UploadManifestInput[],
+              for_updating: [] as UploadManifestInput[],
+            },
+          );
 
         // create new inventories (items that has no record in container inventories)
         await tx.inventories.createMany({
@@ -375,8 +385,8 @@ export const AuctionRepository: IAuctionRepository = {
           );
         }
 
-        // modify data for inserting into auctions_inventories table
-        const auction_inventories = [...new_inventories, ...for_updating].map(
+        // link valid items to their inventory_id (newly created or existing)
+        const items_for_insert = [...new_inventories, ...for_updating].map(
           (item) => {
             const match = newly_created_inventories.find((inventory) => {
               if (inventory.barcode.split("-").length === 3) {
@@ -393,9 +403,10 @@ export const AuctionRepository: IAuctionRepository = {
               throw new Error("Auction Bidder ID does not exist");
             }
 
-            item.inventory_id = item.inventory_id ?? match?.inventory_id;
-            item.auction_inventory_id = item?.auction_inventory_id;
-            return item as Override<
+            return {
+              ...item,
+              inventory_id: item.inventory_id ?? match?.inventory_id,
+            } as Override<
               UploadManifestInput,
               {
                 auction_bidder_id: string;
@@ -408,7 +419,7 @@ export const AuctionRepository: IAuctionRepository = {
 
         // insert data in auctions_inventories table
         const created_auctions_inventories = await Promise.all(
-          auction_inventories
+          items_for_insert
             .filter((item) => !item.auction_inventory_id)
             .map((item) =>
               tx.auctions_inventories.create({
@@ -449,8 +460,9 @@ export const AuctionRepository: IAuctionRepository = {
           })),
         });
 
-        const for_updating_with_auction_inventories = for_updating.map(
-          (item) => {
+        // match for_updating items to their cancelled/refunded/bought_item auction_inventories
+        const cancelled_items_to_reencode = for_updating
+          .map((item) => {
             const match = auctions_inventories.find((auction_inventory) => {
               return (
                 auction_inventory.inventory_id === item.inventory_id &&
@@ -458,11 +470,16 @@ export const AuctionRepository: IAuctionRepository = {
                   ["BOUGHT_ITEM"].includes(auction_inventory.inventory.status))
               );
             });
-            item.auction_inventory_id = match?.auction_inventory_id;
-            item.status = match?.status;
-            return item;
-          },
-        );
+
+            if (!match) return null;
+
+            return {
+              ...item,
+              auction_inventory_id: match.auction_inventory_id,
+              status: match.status,
+            };
+          })
+          .filter((item) => item !== null);
 
         /**
          * If item is CANCELLED or REFUNDED or BOUGHT ITEM(inventory_status) but was encoded again:
@@ -484,14 +501,9 @@ export const AuctionRepository: IAuctionRepository = {
             },
           });
 
-          const has_auction_inventory_update =
-            for_updating_with_auction_inventories.filter(
-              (item) => item.auction_inventory_id,
-            );
-
-          if (!is_bought_items && has_auction_inventory_update.length) {
+          if (!is_bought_items && cancelled_items_to_reencode.length) {
             await Promise.all(
-              for_updating_with_auction_inventories.map((item) =>
+              cancelled_items_to_reencode.map((item) =>
                 tx.auctions_inventories.update({
                   data: {
                     auction_bidder_id: item.auction_bidder_id as string,
@@ -502,30 +514,25 @@ export const AuctionRepository: IAuctionRepository = {
                     auction_date: auction.created_at,
                   },
                   where: {
-                    auction_inventory_id: item.auction_inventory_id!,
+                    auction_inventory_id: item.auction_inventory_id,
                   },
                 }),
               ),
             );
             // ADD HISTORY FOR ENCODING AGAIN
-            await Promise.all(
-              for_updating_with_auction_inventories.map((item) => {
-                const remarks = `Updated item from ${item.status} to UNPAID. ITEM ENCODED AGAIN`;
-                return tx.inventory_histories.create({
-                  data: {
-                    auction_inventory_id: item.auction_inventory_id,
-                    inventory_id: item.inventory_id!,
-                    auction_status: "UNPAID",
-                    inventory_status: "SOLD",
-                    remarks,
-                  },
-                });
-              }),
-            );
+            await tx.inventory_histories.createMany({
+              data: cancelled_items_to_reencode.map((item) => ({
+                auction_inventory_id: item.auction_inventory_id,
+                inventory_id: item.inventory_id!,
+                auction_status: "UNPAID",
+                inventory_status: "SOLD",
+                remarks: `Updated item from ${item.status} to UNPAID. ITEM ENCODED AGAIN`,
+              })),
+            });
           }
         }
 
-        const update_balance = auction_inventories.reduce(
+        const update_balance = items_for_insert.reduce(
           (acc: Record<string, number>, item) => {
             const price = parseInt(item.PRICE, 10);
             const service_charge_amount = (price * item.service_charge) / 100;

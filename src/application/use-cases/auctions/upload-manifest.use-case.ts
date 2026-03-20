@@ -9,8 +9,7 @@ import {
   addContainerIdForNewInventories,
   removeMonitoringDuplicates,
   removeManifestDuplicates,
-} from "@/app/lib/sheets";
-import { winston_logger } from "@/app/lib/logger";
+} from "src/application/use-cases/auctions/manifest-pipeline";
 
 export const uploadManifestUseCase = async (
   auction_id: string,
@@ -40,12 +39,6 @@ export const uploadManifestUseCase = async (
 
   const withContainerIds = addContainerIdForNewInventories(withExistingInventories, containers);
   const withoutMonitoringDuplicates = removeMonitoringDuplicates(withContainerIds, monitoring);
-
-  winston_logger.info(
-    withoutMonitoringDuplicates.filter((item) =>
-      item.error.includes("Required Fields: BARCODE, BIDDER, PRICE"),
-    ),
-  );
 
   return await AuctionRepository.uploadManifest(
     auction_id,
