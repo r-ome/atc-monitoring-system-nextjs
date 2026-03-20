@@ -11,6 +11,9 @@ import { GetBidderActivityController } from "src/controllers/reports/get-bidder-
 import { GetTopBiddersController } from "src/controllers/reports/get-top-bidders.controller";
 import { GetSellThroughController } from "src/controllers/reports/get-sell-through.controller";
 import { GetRefundCancellationController } from "src/controllers/reports/get-refund-cancellation.controller";
+import { GetSupplierRevenueController } from "src/controllers/reports/get-supplier-revenue.controller";
+import { GetContainerStatusController } from "src/controllers/reports/get-container-status.controller";
+import { GetAuctionComparisonController } from "src/controllers/reports/get-auction-comparison.controller";
 import { FilterMode } from "src/entities/models/Report";
 
 async function withContext<T>(fn: () => Promise<T>): Promise<T> {
@@ -47,3 +50,13 @@ export const getSellThrough = async (branch_id: string, date: string) =>
 
 export const getRefundCancellation = async (branch_id: string, date: string) =>
   withContext(() => GetRefundCancellationController(branch_id, date));
+
+export const getSupplierRevenueSummary = async (branch_id: string, date: string) =>
+  withContext(() => GetSupplierRevenueController(branch_id, date));
+
+export const getContainerStatusOverview = async (branch_id: string) =>
+  withContext(() => GetContainerStatusController(branch_id));
+
+export const getAuctionComparison = async (branch_id: string, date: string) =>
+  withContext(() => GetAuctionComparisonController(branch_id, date));
+
