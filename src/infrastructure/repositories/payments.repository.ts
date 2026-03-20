@@ -402,11 +402,15 @@ export const PaymentRepository: IPaymentRepository = {
       });
 
       if (current_payment) {
+        const new_payment_method = await prisma.payment_methods.findFirst({
+          where: { payment_method_id: data.payment_method },
+        });
+
         await prisma.payments.update({
           where: { payment_id },
           data: {
             payment_method_id: data.payment_method,
-            remarks: `Updated payment type from ${current_payment?.payment_method?.name} to ${data.payment_method}`,
+            remarks: `Updated payment type from ${current_payment?.payment_method?.name} to ${new_payment_method?.name}`,
           },
         });
       }

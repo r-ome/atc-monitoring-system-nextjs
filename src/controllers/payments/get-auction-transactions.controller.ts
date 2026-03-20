@@ -1,16 +1,11 @@
 import { PaymentRepository } from "src/infrastructure/di/repositories";
 import { formatDate } from "@/app/lib/utils";
-import { ReceiptRecordWithDetailsRow } from "src/entities/models/Payment";
+import { ReceiptRecordWithInventoriesRow } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 
-function presenter(
-  transactions: Omit<
-    ReceiptRecordWithDetailsRow,
-    "auctions_inventories" | "inventory_histories"
-  >[],
-) {
+function presenter(transactions: ReceiptRecordWithInventoriesRow[]) {
   const date_format = "MMMM dd, yyyy hh:mm:ss a";
   return transactions.map((item) => ({
     receipt_id: item.receipt_id,

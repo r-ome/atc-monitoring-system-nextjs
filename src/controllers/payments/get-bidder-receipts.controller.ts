@@ -1,16 +1,11 @@
 import { logger } from "@/app/lib/logger";
 import { PaymentRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { ReceiptRecordWithDetailsRow } from "src/entities/models/Payment";
+import { ReceiptRecordWithPaymentsRow } from "src/entities/models/Payment";
 import { err, ok } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 
-function presenter(
-  receipts: Omit<
-    ReceiptRecordWithDetailsRow,
-    "auctions_inventories" | "inventory_histories"
-  >[],
-) {
+function presenter(receipts: ReceiptRecordWithPaymentsRow[]) {
   return receipts.map((receipt) => ({
     receipt_id: receipt.receipt_id,
     receipt_number: receipt.receipt_number,

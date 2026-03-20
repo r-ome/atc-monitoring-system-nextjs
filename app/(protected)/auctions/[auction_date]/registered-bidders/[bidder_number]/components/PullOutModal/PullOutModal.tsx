@@ -1,6 +1,6 @@
 "use client";
 
-import { SetStateAction, useState } from "react";
+import { SetStateAction, useRef, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { OctagonAlert, Loader2Icon } from "lucide-react";
@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/app/components/ui/alert-dialog";
 import { formatDate } from "@/app/lib/utils";
+import { PullOutPaymentInput } from "src/entities/models/Payment";
 
 interface PullOutModalProps {
   open: boolean;
@@ -70,9 +71,11 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
     selectedItems,
     registeredBidder: bidderPaymentDetails,
     grandTotal,
+    payments,
   } = useBidderPullOutModalContext();
 
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
@@ -86,35 +89,21 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
     setIsLoading(true);
-    formData.append(
-      "auction_bidder_id",
-      bidderPaymentDetails.auction_bidder_id,
-    );
 
-    formData.append(
-      "auction_inventory_ids",
-      JSON.stringify(selectedItems.map((item) => item.auction_inventory_id)),
-    );
+    const input: PullOutPaymentInput = {
+      auction_bidder_id: bidderPaymentDetails.auction_bidder_id,
+      auction_inventory_ids: selectedItems.map(
+        (item) => item.auction_inventory_id,
+      ),
+      amount_to_be_paid: grandTotal,
+      payments: payments.map((p) => ({
+        payment_method: p.payment_method,
+        amount_paid: p.amount_paid,
+      })),
+    };
 
-    formData.append("amount_to_be_paid", grandTotal.toString());
-    const data = Object.fromEntries(formData.entries());
-    const bidder_payments = Object.keys(data)
-      .filter((key) => key.includes("PAYMENT_"))
-      .map((key) => ({
-        payment_method: key.replace("PAYMENT_", "").split("_")[0],
-        amount_paid: typeof data[key] === "string" ? parseInt(data[key]) : 0,
-      }));
-
-    formData.append("payments", JSON.stringify(bidder_payments));
-    for (const key of Array.from(formData.keys())) {
-      if (key.startsWith("PAYMENT_")) {
-        formData.delete(key);
-      }
-    }
-
-    const res = await handleBidderPullOut(formData);
+    const res = await handleBidderPullOut(input);
 
     if (res) {
       if (res.ok) {
@@ -148,7 +137,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="min-w-[800px]">
-        <form id="bidder-payment-form" onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Pull Out</DialogTitle>
           </DialogHeader>
@@ -225,13 +214,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
                   <Button
                     type="button"
                     disabled={isLoading}
-                    onClick={() => {
-                      const form = document.getElementById(
-                        "bidder-payment-form",
-                      ) as HTMLFormElement;
-
-                      form.requestSubmit();
-                    }}
+                    onClick={() => formRef.current?.requestSubmit()}
                   >
                     {isLoading && <Loader2Icon className="animate-spin" />}
                     Confirm

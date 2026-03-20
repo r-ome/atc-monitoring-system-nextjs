@@ -25,6 +25,7 @@ import { PreviewManifestController } from "src/controllers/auctions/preview-mani
 import { ConfirmUploadManifestController } from "src/controllers/auctions/confirm-upload-manifest.controller";
 import { RevalidateManifestController } from "src/controllers/auctions/revalidate-manifest.controller";
 import { type UploadManifestInput, type ManifestSheetRecord } from "src/entities/models/Manifest";
+import { type PullOutPaymentInput } from "src/entities/models/Payment";
 
 export const startAuction = async (auctionDate: string) => {
   const user = await requireUser();
@@ -178,11 +179,8 @@ export const getRegisteredBidderByBidderNumber = async (
   );
 };
 
-export const handleBidderPullOut = async (formData: FormData) => {
+export const handleBidderPullOut = async (input: PullOutPaymentInput) => {
   const user = await requireUser();
-  const data = Object.fromEntries(formData.entries());
-  data.payments = JSON.parse(data.payments as string);
-  data.auction_inventory_ids = JSON.parse(data.auction_inventory_ids as string);
 
   return await RequestContext.run(
     {
@@ -190,7 +188,7 @@ export const handleBidderPullOut = async (formData: FormData) => {
       username: user.username ?? "",
       branch_name: user.branch.name ?? "",
     },
-    async () => HandleBidderPullOutController(data),
+    async () => HandleBidderPullOutController(input),
   );
 };
 
