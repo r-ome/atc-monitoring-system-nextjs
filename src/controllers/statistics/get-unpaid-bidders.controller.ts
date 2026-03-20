@@ -2,10 +2,10 @@ import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-import { UnpaidAuctionsBiddersSchema } from "src/entities/models/Bidder";
+import { AuctionBidderWithBidderInventoriesRow } from "src/entities/models/Bidder";
 import { StatisticsRepository } from "src/infrastructure/di/repositories";
 
-function presenter(bidders: UnpaidAuctionsBiddersSchema[]) {
+function presenter(bidders: AuctionBidderWithBidderInventoriesRow[]) {
   const date_format = "MMM d, yyyy";
   return bidders.map((bidder) => ({
     bidder_id: bidder.bidder_id,

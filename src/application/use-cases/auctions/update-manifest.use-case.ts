@@ -1,7 +1,7 @@
 import { AuctionRepository, ContainerRepository, InventoryRepository } from "src/infrastructure/di/repositories";
 import { InventoryWithDetailsRow } from "src/entities/models/Inventory";
 import { UpdateManifestInput } from "src/entities/models/Manifest";
-import { RegisteredBidderSchema } from "src/entities/models/Bidder";
+import { AuctionBidderWithFullDetailsRow } from "src/entities/models/Bidder";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { ContainerWithAllRow } from "src/entities/models/Container";
 import { divideIntoHundreds, divideQuantites } from "@/app/lib/sheets";
@@ -52,7 +52,7 @@ export const updateManifestUseCase = async (
 
 const validateBidders = (
   data: UpdateManifestInput[],
-  registeredBidders: RegisteredBidderSchema[]
+  registeredBidders: AuctionBidderWithFullDetailsRow[]
 ) => {
   return data.map((item) => {
     const bidder = registeredBidders.find(

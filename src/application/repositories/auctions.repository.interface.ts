@@ -9,7 +9,7 @@ import {
 } from "src/entities/models/Auction";
 import {
   RegisterBidderInput,
-  RegisteredBidderSchema,
+  AuctionBidderWithFullDetailsRow,
   RegisteredBidderSummaryRow,
   UpdateBidderRegistrationInput,
   AuctionBidderRow,
@@ -41,17 +41,17 @@ export interface IAuctionRepository {
   ) => Promise<AuctionBidderRow>;
   getRegisteredBidders: (
     auction_id: string,
-  ) => Promise<RegisteredBidderSchema[]>;
+  ) => Promise<AuctionBidderWithFullDetailsRow[]>;
   getRegisteredBiddersSummary: (
     auction_id: string,
   ) => Promise<RegisteredBidderSummaryRow[]>;
   getRegisteredBidder: (
     bidder_number: string,
     auction_id: string,
-  ) => Promise<RegisteredBidderSchema | null>;
+  ) => Promise<AuctionBidderWithFullDetailsRow | null>;
   getRegisteredBidderById: (
     auction_bidder_id: string,
-  ) => Promise<RegisteredBidderSchema | null>;
+  ) => Promise<AuctionBidderWithFullDetailsRow | null>;
   getMonitoring: (
     auction_id: string,
     status: AuctionItemStatus[],

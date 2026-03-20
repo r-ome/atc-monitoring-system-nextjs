@@ -7,7 +7,7 @@ import { formatNumberPadding } from "./utils";
 import { InventoryRow, InventorySheetRecord } from "src/entities/models/Inventory";
 import { ContainerWithAllRow } from "src/entities/models/Container";
 import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
-import { RegisteredBidderSchema } from "src/entities/models/Bidder";
+import { AuctionBidderWithFullDetailsRow } from "src/entities/models/Bidder";
 import { InputParseError } from "src/entities/errors/common";
 import { logger } from "./logger";
 import { v4 as uuidv4 } from "uuid";
@@ -308,7 +308,7 @@ export const formatSlashedBarcodes = (
 
 export const validateBidders = (
   data: UploadManifestInput[],
-  registeredBidders: RegisteredBidderSchema[],
+  registeredBidders: AuctionBidderWithFullDetailsRow[],
 ) => {
   return data.map((item) => {
     if (!item.isValid) return item;
