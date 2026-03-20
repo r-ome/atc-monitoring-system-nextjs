@@ -14,6 +14,9 @@ export const PAYMENT_PURPOSE = [
 
 export type PaymentPurpose = typeof PAYMENT_PURPOSE[number];
 
+/** Purposes that represent a refund (full or partial) */
+export const REFUND_PURPOSES: PaymentPurpose[] = ["REFUNDED", "LESS"] as const;
+
 export type PaymentWithDetailsRow = Prisma.paymentsGetPayload<{
   include: {
     payment_method: true;

@@ -236,10 +236,16 @@ export const PaymentRepository: IPaymentRepository = {
           where: { name: "CASH" },
         });
 
+        const is_all_full_refund = data.auction_inventories.every(
+          (item) => item.prev_price === item.new_price,
+        );
+        const receipt_purpose = is_all_full_refund ? "REFUNDED" : "LESS";
+        const receipt_prefix = is_all_full_refund ? "REF" : "LESS";
+
         const refunded_receipts = await tx.receipt_records.findMany({
           select: { receipt_number: true },
           where: {
-            purpose: "REFUNDED",
+            purpose: receipt_purpose,
             auction_bidder_id: data.auction_bidder_id,
           },
         });
@@ -257,11 +263,11 @@ export const PaymentRepository: IPaymentRepository = {
 
         const receipt = await tx.receipt_records.create({
           data: {
-            receipt_number: `${auction_bidder.bidder.bidder_number}REF${
+            receipt_number: `${auction_bidder.bidder.bidder_number}${receipt_prefix}${
               current_refunded_receipt_count + 1
             }`,
             auction_bidder_id: data.auction_bidder_id,
-            purpose: "REFUNDED",
+            purpose: receipt_purpose,
             remarks: data.reason,
             payments: {
               create: {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CoreRow } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
-import { Payment } from "src/entities/models/Payment";
+import { Payment, REFUND_PURPOSES } from "src/entities/models/Payment";
 import { columns } from "./transactions-columns";
 import { Card, CardDescription, CardTitle } from "@/app/components/ui/card";
 import { cn } from "@/app/lib/utils";
@@ -49,18 +49,18 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
   };
 
   const totalRefund = transactions
-    .filter((item) => item.receipt.purpose === "REFUNDED")
+    .filter((item) => REFUND_PURPOSES.includes(item.receipt.purpose))
     .reduce(getTotal, 0);
   const totalInwardCash =
     transactions
-      .filter((item) => item.receipt.purpose !== "REFUNDED")
+      .filter((item) => !REFUND_PURPOSES.includes(item.receipt.purpose))
       .reduce(getTotal, 0) - totalRefund;
 
   const something = paymentMethods
     .map((item) => {
       const aaa = () => {
         return transactions
-          .filter((item) => item.receipt.purpose !== "REFUNDED")
+          .filter((item) => !REFUND_PURPOSES.includes(item.receipt.purpose))
           .filter(
             (tx) =>
               tx.payment_method.payment_method_id === item.payment_method_id,

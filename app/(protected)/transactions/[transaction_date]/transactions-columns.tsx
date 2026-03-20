@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { Payment } from "src/entities/models/Payment";
+import { Payment, REFUND_PURPOSES } from "src/entities/models/Payment";
 import { Badge } from "@/app/components/ui/badge";
 import { cn, formatDate } from "@/app/lib/utils";
 
@@ -107,12 +107,12 @@ export const columns: ColumnDef<Payment>[] = [
         <div
           className={cn(
             "flex justify-center",
-            payment.receipt.purpose === "REFUNDED"
+            REFUND_PURPOSES.includes(payment.receipt.purpose)
               ? "text-red-500"
               : "text-green-500"
           )}
         >
-          {payment.receipt.purpose === "REFUNDED"
+          {REFUND_PURPOSES.includes(payment.receipt.purpose)
             ? `(${amountPaid})`
             : amountPaid}
           {}
