@@ -381,6 +381,29 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
+  getAllInventoriesForManifest: async (
+    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD", "VOID"],
+  ) => {
+    try {
+      return await prisma.inventories.findMany({
+        where: { status: { in: status } },
+        select: {
+          inventory_id: true,
+          container_id: true,
+          barcode: true,
+          control: true,
+          status: true,
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting inventories for manifest", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
   updateBulkInventoryStatus: async (status, inventory_ids) => {
     try {
       return await prisma.inventories.updateMany({

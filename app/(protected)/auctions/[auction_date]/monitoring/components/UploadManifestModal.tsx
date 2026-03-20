@@ -1,9 +1,6 @@
 "use client";
 
 import { Loader2Icon } from "lucide-react";
-import { useRef, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { uploadManifest } from "@/app/(protected)/auctions/actions";
 import { Button } from "@/app/components/ui/button";
 import {
   Dialog,
@@ -26,8 +23,10 @@ import {
   AlertDialogTitle,
 } from "@/app/components/ui/alert-dialog";
 import { Input } from "@/app/components/ui/input";
-import { toast } from "sonner";
 import { format, isPast } from "date-fns";
+import { useParams } from "next/navigation";
+import { useUploadManifest } from "./useUploadManifest";
+import { ManifestPreviewTable } from "./ManifestPreviewTable";
 
 interface UploadManifestModalProps {
   auction_id: string;
@@ -36,101 +35,130 @@ interface UploadManifestModalProps {
 export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
   auction_id,
 }) => {
-  const router = useRouter();
   const { auction_date } = useParams();
   const auctionDate = new Date(auction_date as string);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(false);
-  const [showConfirm, setShowConfirm] = useState<boolean>(false);
-  const [errors, setErrors] = useState<Record<string, string[]>>();
-  const pendingFormData = useRef<FormData | null>(null);
+  const manifest = useUploadManifest(auction_id);
 
-  const performUpload = async (formData: FormData) => {
-    setIsLoading(true);
-    try {
-      const res = await uploadManifest(auction_id, formData);
-
-      if (res.ok) {
-        toast.success("Successfully uploaded manifest!", {
-          description:
-            res.value +
-            ". Please check the Manifest Page for more information.",
-        });
-        setOpen(false);
-        router.refresh();
-      } else {
-        const description =
-          typeof res.error?.cause === "string" ? res.error?.cause : null;
-        toast.error(res.error.message, { description });
-        if (res.error.message === "Invalid Data!") {
-          setErrors(res.error.cause as Record<string, string[]>);
-        }
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-
+  const handleConfirmUpload = async () => {
     if (isPast(auctionDate)) {
-      pendingFormData.current = formData;
-      setShowConfirm(true);
+      manifest.setShowConfirm(true);
       return;
     }
-
-    await performUpload(formData);
+    await manifest.handleConfirmUpload();
   };
 
-  const handleConfirm = async () => {
-    setShowConfirm(false);
-    if (pendingFormData.current) {
-      await performUpload(pendingFormData.current);
-      pendingFormData.current = null;
-    }
+  const handlePastAuctionConfirm = async () => {
+    manifest.setShowConfirm(false);
+    await manifest.handleConfirmUpload();
   };
+
+  const validCount = manifest.previewData.filter((r) => r.isValid).length;
+  const invalidCount = manifest.previewData.length - validCount;
 
   return (
     <div>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={manifest.open} onOpenChange={manifest.handleOpenChange}>
         <DialogTrigger asChild>
           <Button>Encode Manifest</Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent
+          className={
+            manifest.step === "preview"
+              ? "sm:max-w-5xl max-h-[80vh] flex flex-col"
+              : ""
+          }
+        >
           <DialogHeader>
             <DialogTitle>
-              Upload Manifest{" "}
-              <a href="/MANIFEST_TEMPLATE.xlsx" download>
-                (DOWNLOAD TEMPLATE HERE)
-              </a>
+              {manifest.step === "upload" ? (
+                <>
+                  Upload Manifest{" "}
+                  <a href="/MANIFEST_TEMPLATE.xlsx" download>
+                    (DOWNLOAD TEMPLATE HERE)
+                  </a>
+                </>
+              ) : (
+                "Preview Manifest Data"
+              )}
             </DialogTitle>
             <DialogDescription>
-              Upload manifest sheet here for monitoring.{" "}
+              {manifest.step === "upload"
+                ? "Upload manifest sheet here for monitoring."
+                : `${manifest.previewData.length} record(s) found — ${validCount} valid, ${invalidCount} invalid. Please review before uploading.`}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              id="file"
-              name="file"
-              type="file"
-              className="cursor-pointer"
-              required
-              error={errors}
-            />
-            <DialogFooter>
-              <DialogClose className="cursor-pointer">Cancel</DialogClose>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2Icon className="animate-spin" />}
-                Submit
-              </Button>
-            </DialogFooter>
-          </form>
+
+          {manifest.step === "upload" ? (
+            <form onSubmit={manifest.handlePreview} className="space-y-4">
+              <Input
+                id="file"
+                name="file"
+                type="file"
+                className="cursor-pointer"
+                required
+                error={manifest.errors}
+              />
+              <DialogFooter>
+                <DialogClose className="cursor-pointer">Cancel</DialogClose>
+                <Button type="submit" disabled={manifest.isLoading}>
+                  Preview
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="flex flex-col gap-4 overflow-hidden">
+              <ManifestPreviewTable
+                data={manifest.previewData}
+                editingIndex={manifest.editingIndex}
+                editingValues={manifest.editingValues}
+                onStartEdit={manifest.handleStartEdit}
+                onEditChange={manifest.handleEditChange}
+                onSaveEdit={manifest.handleSaveEdit}
+                onCancelEdit={manifest.handleCancelEdit}
+                onRemoveRow={manifest.handleRemoveRow}
+              />
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={manifest.resetState}
+                  disabled={manifest.isLoading}
+                >
+                  Back
+                </Button>
+                {manifest.isDirty ? (
+                  <Button
+                    onClick={manifest.handleRevalidate}
+                    disabled={manifest.isLoading}
+                  >
+                    Re-validate
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleConfirmUpload}
+                    disabled={manifest.isLoading}
+                  >
+                    Confirm Upload
+                  </Button>
+                )}
+              </DialogFooter>
+            </div>
+          )}
+
+          {manifest.isLoading && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-background/80 backdrop-blur-sm">
+              <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                {manifest.loadingMessage}
+              </p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+      <AlertDialog
+        open={manifest.showConfirm}
+        onOpenChange={manifest.setShowConfirm}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Upload to Past Auction?</AlertDialogTitle>
@@ -145,7 +173,7 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm}>
+            <AlertDialogAction onClick={handlePastAuctionConfirm}>
               Yes, upload anyway
             </AlertDialogAction>
           </AlertDialogFooter>

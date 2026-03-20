@@ -143,6 +143,14 @@ export type AuctionBidderWithFullDetailsRow = Prisma.auctions_biddersGetPayload<
   };
 }>;
 
+export type AuctionBidderForManifestRow = Prisma.auctions_biddersGetPayload<{
+  select: {
+    auction_bidder_id: true;
+    service_charge: true;
+    bidder: { select: { bidder_number: true; status: true } };
+  };
+}>;
+
 export type RegisteredBidderSummaryRow = Prisma.auctions_biddersGetPayload<{
   include: {
     bidder: true;

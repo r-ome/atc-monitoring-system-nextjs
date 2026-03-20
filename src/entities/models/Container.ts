@@ -21,6 +21,10 @@ export type ContainerWithAllRow = Prisma.containersGetPayload<{
   include: { branch: true; inventories: true; supplier: true };
 }>;
 
+export type ContainerBarcodeRow = Prisma.containersGetPayload<{
+  select: { container_id: true; barcode: true };
+}>;
+
 export type ContainerListRow = Prisma.containersGetPayload<{
   include: {
     branch: { select: { branch_id: true; name: true } };

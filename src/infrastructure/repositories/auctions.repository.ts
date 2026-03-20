@@ -213,6 +213,7 @@ export const AuctionRepository: IAuctionRepository = {
     try {
       if (auction_id === "ALL") {
         const result = (await prisma.auctions_inventories.findMany({
+          where: status.length ? { status: { in: status } } : {},
           select: {
             auction_inventory_id: true,
             auction_bidder_id: true,
@@ -631,6 +632,25 @@ export const AuctionRepository: IAuctionRepository = {
         });
       }
 
+      throw error;
+    }
+  },
+  getRegisteredBiddersForManifest: async (auction_id) => {
+    try {
+      return await prisma.auctions_bidders.findMany({
+        where: { auction_id },
+        select: {
+          auction_bidder_id: true,
+          service_charge: true,
+          bidder: { select: { bidder_number: true, status: true } },
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error fetching registered bidders for manifest", {
+          cause: error.message,
+        });
+      }
       throw error;
     }
   },

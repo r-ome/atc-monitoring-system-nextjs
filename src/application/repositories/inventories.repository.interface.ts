@@ -3,6 +3,7 @@ import type {
   InventoryWithDetailsRow,
   InventoryWithAuctionsInventoryRow,
   InventoryRow,
+  InventoryForManifestRow,
   UpdateAuctionInventoryInput,
   CreateInventoryInput,
   MergeInventoriesInput,
@@ -31,6 +32,9 @@ export interface IInventoryRepository {
   getAllInventories: (
     status?: InventoryStatus[],
   ) => Promise<InventoryRow[]>;
+  getAllInventoriesForManifest: (
+    status?: InventoryStatus[],
+  ) => Promise<InventoryForManifestRow[]>;
   updateBulkInventoryStatus: (
     status: InventoryStatus,
     data: string[],
