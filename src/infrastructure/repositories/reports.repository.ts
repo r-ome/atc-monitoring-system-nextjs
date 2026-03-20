@@ -177,4 +177,56 @@ export const ReportsRepository: IReportsRepository = {
       handleError("Error getting refund/cancellation items", error);
     }
   },
+
+  getSupplierRevenueSummary: async (branch_id, date) => {
+    try {
+      const { start, end } = parseDateRange(date);
+      return await prisma.suppliers.findMany({
+        where: {
+          deleted_at: null,
+          containers: { some: { branch_id, deleted_at: null } },
+        },
+        include: {
+          containers: {
+            where: { branch_id, deleted_at: null },
+            include: {
+              inventories: {
+                where: { deleted_at: null },
+                include: {
+                  auctions_inventory: {
+                    where: {
+                      status: "PAID",
+                      auction_date: { gte: start, lt: end },
+                      deleted_at: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: { name: "asc" },
+      });
+    } catch (error) {
+      handleError("Error getting supplier revenue summary", error);
+    }
+  },
+
+  getContainerStatusOverview: async (branch_id) => {
+    try {
+      return await prisma.containers.findMany({
+        where: { branch_id, deleted_at: null },
+        include: {
+          supplier: true,
+          inventories: {
+            where: { deleted_at: null },
+            include: { auctions_inventory: true },
+          },
+        },
+        orderBy: [{ status: "asc" }, { arrival_date: "asc" }],
+      });
+    } catch (error) {
+      handleError("Error getting container status overview", error);
+    }
+  },
 };

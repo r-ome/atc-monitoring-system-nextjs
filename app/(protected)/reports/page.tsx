@@ -12,6 +12,9 @@ import {
   getTopBidders,
   getSellThrough,
   getRefundCancellation,
+  getSupplierRevenueSummary,
+  getContainerStatusOverview,
+  getAuctionComparison,
 } from "./actions";
 import { SalesTable } from "./components/SalesTable";
 import { SalesFilter } from "./components/SalesFilter";
@@ -22,6 +25,9 @@ import { BidderActivityTable } from "./components/BidderActivityTable";
 import { TopBiddersTable } from "./components/TopBiddersTable";
 import { SellThroughTable } from "./components/SellThroughTable";
 import { RefundCancellationTable } from "./components/RefundCancellationTable";
+import { SupplierRevenueTable } from "./components/SupplierRevenueTable";
+import { ContainerStatusTable } from "./components/ContainerStatusTable";
+import { AuctionComparisonChart } from "./components/AuctionComparisonChart";
 import { ReportTabs } from "./components/ReportTabs";
 import { getBranches } from "../branches/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -66,6 +72,9 @@ const Page = async ({
     top_bidders_res,
     sell_through_res,
     refund_cancellation_res,
+    supplier_revenue_res,
+    container_status_res,
+    auction_comparison_res,
   ] = await Promise.all([
     getTotalSales(selected_branch.branch_id, dateParam, filterMode),
     getTotalExpenses(selected_branch.branch_id, dateParam, filterMode),
@@ -76,6 +85,9 @@ const Page = async ({
     getTopBidders(selected_branch.branch_id, dateParam),
     getSellThrough(selected_branch.branch_id, dateParam),
     getRefundCancellation(selected_branch.branch_id, dateParam),
+    getSupplierRevenueSummary(selected_branch.branch_id, dateParam),
+    getContainerStatusOverview(selected_branch.branch_id),
+    getAuctionComparison(selected_branch.branch_id, dateParam),
   ]);
 
   if (!total_sales_res.ok) return <ErrorComponent error={total_sales_res.error} />;
@@ -87,6 +99,9 @@ const Page = async ({
   if (!top_bidders_res.ok) return <ErrorComponent error={top_bidders_res.error} />;
   if (!sell_through_res.ok) return <ErrorComponent error={sell_through_res.error} />;
   if (!refund_cancellation_res.ok) return <ErrorComponent error={refund_cancellation_res.error} />;
+  if (!supplier_revenue_res.ok) return <ErrorComponent error={supplier_revenue_res.error} />;
+  if (!container_status_res.ok) return <ErrorComponent error={container_status_res.error} />;
+  if (!auction_comparison_res.ok) return <ErrorComponent error={auction_comparison_res.error} />;
 
   return (
     <div className="flex flex-col gap-6">
@@ -171,6 +186,40 @@ const Page = async ({
                   <CardHeader><CardTitle>Refunds & Cancellations</CardTitle></CardHeader>
                   <CardContent>
                     <RefundCancellationTable data={refund_cancellation_res.value} />
+                  </CardContent>
+                </Card>
+              </div>
+            ),
+          },
+          {
+            value: "operational",
+            label: "Operational",
+            content: (
+              <div className="flex flex-col gap-4 pt-2">
+                <Card>
+                  <CardHeader><CardTitle>Auction Comparison</CardTitle></CardHeader>
+                  <CardContent>
+                    <AuctionComparisonChart data={auction_comparison_res.value} />
+                  </CardContent>
+                </Card>
+              </div>
+            ),
+          },
+          {
+            value: "suppliers",
+            label: "Supplier Reports",
+            content: (
+              <div className="flex flex-col gap-4 pt-2">
+                <Card>
+                  <CardHeader><CardTitle>Supplier Revenue Summary</CardTitle></CardHeader>
+                  <CardContent>
+                    <SupplierRevenueTable data={supplier_revenue_res.value} />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader><CardTitle>Container Status Overview</CardTitle></CardHeader>
+                  <CardContent>
+                    <ContainerStatusTable data={container_status_res.value} />
                   </CardContent>
                 </Card>
               </div>

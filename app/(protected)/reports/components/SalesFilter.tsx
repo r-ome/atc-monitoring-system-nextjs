@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Branch } from "src/entities/models/Branch";
 import {
@@ -13,6 +14,7 @@ import {
 import { formatDate } from "@/app/lib/utils";
 import { getMonth } from "date-fns";
 import { FilterMode } from "src/entities/models/Report";
+import { Loader2 } from "lucide-react";
 
 interface SalesFilterProps {
   branches: Branch[];
@@ -31,6 +33,7 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const years = Array.from({ length: 10 }).map((_, index) => 2025 + index);
   const months = Array.from({ length: 12 }).map(
     (_, index) => new Date(Number(selectedYear), index, 1),
@@ -45,14 +48,21 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set(key, value);
-    router.push(`?${params.toString()}`);
+    startTransition(() => {
+      router.push(`?${params.toString()}`);
+    });
   }
 
   return (
     <div className="flex flex-wrap gap-4 items-end">
+      {isPending && (
+        <Loader2 className="text-muted-foreground h-4 w-4 animate-spin self-center" />
+      )}
+
       {/* Branch */}
       <div className="w-30">
         <Select
+          disabled={isPending}
           value={selectedBranch?.branch_id}
           onValueChange={(value) => updateParam("branch_id", value)}
         >
@@ -74,6 +84,7 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
       {/* Filter Mode */}
       <div className="w-30">
         <Select
+          disabled={isPending}
           value={filterMode}
           onValueChange={(value) => updateParam("filter_mode", value)}
         >
@@ -92,6 +103,7 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
       {/* Year */}
       <div className="w-30">
         <Select
+          disabled={isPending}
           value={selectedYear}
           onValueChange={(value) => updateParam("year", value)}
         >
@@ -114,6 +126,7 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
       {filterMode === "daily" && (
         <div className="w-30">
           <Select
+            disabled={isPending}
             value={getMonth(formattedSelectedMonth).toString()}
             onValueChange={(value) => updateParam("month", value)}
           >

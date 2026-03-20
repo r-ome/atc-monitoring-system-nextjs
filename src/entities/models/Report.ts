@@ -126,3 +126,64 @@ export type RefundCancellationEntry = {
   price: number;
   status: string;
 };
+
+// -- Supplier Revenue Summary --
+export type SupplierRevenueRow = Prisma.suppliersGetPayload<{
+  include: {
+    containers: {
+      include: {
+        inventories: {
+          include: {
+            auctions_inventory: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export type SupplierRevenueSummaryEntry = {
+  supplier_name: string;
+  supplier_code: string;
+  container_count: number;
+  items_sold: number;
+  total_revenue: number;
+  atc_com: number;
+  atc_group_com: number;
+};
+
+// -- Container Status Overview --
+export type ContainerStatusRow = Prisma.containersGetPayload<{
+  include: {
+    supplier: true;
+    inventories: {
+      include: {
+        auctions_inventory: true;
+      };
+    };
+  };
+}>;
+
+export type ContainerStatusEntry = {
+  barcode: string;
+  container_number: string | null;
+  supplier_name: string;
+  status: "PAID" | "UNPAID";
+  arrival_date: string | null;
+  due_date: string | null;
+  days_since_arrival: number | null;
+  duties_and_taxes: number;
+  total_items: number;
+  paid_items: number;
+};
+
+// -- Auction Comparison --
+export type AuctionComparisonEntry = {
+  auction_id: string;
+  auction_date: string;
+  total_sales: number;
+  total_registration_fee: number;
+  items_sold: number;
+  total_items: number;
+  bidder_count: number;
+};

@@ -6,6 +6,8 @@ import {
   BidderReportRow,
   SellThroughRow,
   RefundCancellationRow,
+  SupplierRevenueRow,
+  ContainerStatusRow,
 } from "src/entities/models/Report";
 
 export interface IReportsRepository {
@@ -37,4 +39,11 @@ export interface IReportsRepository {
     branch_id: string,
     date: string,
   ) => Promise<RefundCancellationRow[]>;
+  getSupplierRevenueSummary: (
+    branch_id: string,
+    date: string,
+  ) => Promise<SupplierRevenueRow[]>;
+  getContainerStatusOverview: (
+    branch_id: string,
+  ) => Promise<ContainerStatusRow[]>;
 }
