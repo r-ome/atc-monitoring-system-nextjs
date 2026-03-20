@@ -12,12 +12,14 @@ import {
 } from "@/app/components/ui/select";
 import { formatDate } from "@/app/lib/utils";
 import { getMonth } from "date-fns";
+import { FilterMode } from "src/entities/models/Report";
 
 interface SalesFilterProps {
   branches: Branch[];
   selectedBranch?: { branch_id: string; name: string } | null;
   selectedYear: string;
   selectedMonth: string;
+  filterMode: FilterMode;
 }
 
 export const SalesFilter: React.FC<SalesFilterProps> = ({
@@ -25,6 +27,7 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
   selectedBranch,
   selectedYear,
   selectedMonth,
+  filterMode,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,19 +42,22 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
     1,
   );
 
+  function updateParam(key: string, value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(key, value);
+    router.push(`?${params.toString()}`);
+  }
+
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-wrap gap-4 items-end">
+      {/* Branch */}
       <div className="w-30">
         <Select
           value={selectedBranch?.branch_id}
-          onValueChange={(value) => {
-            const params = new URLSearchParams(searchParams.toString());
-            params.set("branch_id", value);
-            router.push(`?${params.toString()}`);
-          }}
+          onValueChange={(value) => updateParam("branch_id", value)}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Branch"></SelectValue>
+            <SelectValue placeholder="Branch" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -64,17 +70,33 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Filter Mode */}
+      <div className="w-30">
+        <Select
+          value={filterMode}
+          onValueChange={(value) => updateParam("filter_mode", value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Mode" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="daily">Daily</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Year */}
       <div className="w-30">
         <Select
           value={selectedYear}
-          onValueChange={(value) => {
-            const params = new URLSearchParams(searchParams.toString());
-            params.set("year", value);
-            router.push(`?${params.toString()}`);
-          }}
+          onValueChange={(value) => updateParam("year", value)}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Year"></SelectValue>
+            <SelectValue placeholder="Year" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -87,29 +109,29 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
           </SelectContent>
         </Select>
       </div>
-      <div className="w-30">
-        <Select
-          value={getMonth(formattedSelectedMonth).toString()}
-          onValueChange={(value) => {
-            const params = new URLSearchParams(searchParams.toString());
-            params.set("month", value);
-            router.push(`?${params.toString()}`);
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Year"></SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {months.map((item, i) => (
-                <SelectItem key={i} value={i.toString()}>
-                  {formatDate(item, "MMMM")}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+
+      {/* Month (only visible in daily mode) */}
+      {filterMode === "daily" && (
+        <div className="w-30">
+          <Select
+            value={getMonth(formattedSelectedMonth).toString()}
+            onValueChange={(value) => updateParam("month", value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {months.map((item, i) => (
+                  <SelectItem key={i} value={i.toString()}>
+                    {formatDate(item, "MMMM")}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };
