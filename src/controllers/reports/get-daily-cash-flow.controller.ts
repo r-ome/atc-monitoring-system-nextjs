@@ -68,6 +68,16 @@ function buildEntries(
     });
 }
 
+export function presentCashFlow(
+  receipts: DailyCashFlowPaymentRow[],
+  expenses: ExpenseWithBranchRow[],
+  mode: FilterMode,
+): CashFlowEntry[] {
+  return mode === "monthly"
+    ? buildEntries(receipts, expenses, (d) => String(d.getMonth()).padStart(2, "0"), (d) => MONTHS[d.getMonth()])
+    : buildEntries(receipts, expenses, (d) => formatDate(d, "yyyy-MM-dd"), (d) => formatDate(d, "MMM dd, yyyy"));
+}
+
 export const GetCashFlowController = async (
   branch_id: string,
   date: string,

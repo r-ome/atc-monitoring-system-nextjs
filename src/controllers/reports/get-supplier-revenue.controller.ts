@@ -41,6 +41,10 @@ function presenter(rows: SupplierRevenueRow[]): SupplierRevenueSummaryEntry[] {
   });
 }
 
+export function presentSupplierRevenue(rows: SupplierRevenueRow[]): SupplierRevenueSummaryEntry[] {
+  return presenter(rows);
+}
+
 export const GetSupplierRevenueController = async (
   branch_id: string,
   date: string,

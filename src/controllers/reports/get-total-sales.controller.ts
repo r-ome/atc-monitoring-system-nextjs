@@ -82,6 +82,10 @@ function monthlyPresenter(auctions: AuctionWithSalesRow[]): SalesRow[] {
     );
 }
 
+export function presentTotalSales(auctions: AuctionWithSalesRow[], mode: FilterMode): SalesRow[] {
+  return mode === "monthly" ? monthlyPresenter(auctions) : dailyPresenter(auctions);
+}
+
 export const GetTotalSalesController = async (
   branch_id: string,
   date: string,

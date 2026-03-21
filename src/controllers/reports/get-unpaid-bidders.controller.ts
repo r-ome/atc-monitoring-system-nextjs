@@ -26,6 +26,10 @@ function presenter(bidders: BidderReportRow[]): UnpaidBidderEntry[] {
     .sort((a, b) => b.total_balance - a.total_balance);
 }
 
+export function presentUnpaidBidders(bidders: BidderReportRow[]): UnpaidBidderEntry[] {
+  return presenter(bidders);
+}
+
 export const GetUnpaidBiddersController = async (
   branch_id: string,
   date: string,

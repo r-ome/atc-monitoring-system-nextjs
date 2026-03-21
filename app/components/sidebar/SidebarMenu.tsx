@@ -97,7 +97,7 @@ const items = [
     title: "Reports",
     url: "/reports",
     icon: ChartPie,
-    allowed_roles: ["OWNER", "SUPER_ADMIN"],
+    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
   },
 ];
 

@@ -46,6 +46,10 @@ function presenter(rows: RefundCancellationRow[]): RefundCancellationEntry[] {
   });
 }
 
+export function presentRefundCancellation(rows: RefundCancellationRow[]): RefundCancellationEntry[] {
+  return presenter(rows);
+}
+
 export const GetRefundCancellationController = async (
   branch_id: string,
   date: string,

@@ -32,6 +32,10 @@ function presenter(auctions: AuctionWithSalesRow[]): AuctionComparisonEntry[] {
   });
 }
 
+export function presentAuctionComparison(auctions: AuctionWithSalesRow[]): AuctionComparisonEntry[] {
+  return presenter(auctions);
+}
+
 export const GetAuctionComparisonController = async (
   branch_id: string,
   date: string,
