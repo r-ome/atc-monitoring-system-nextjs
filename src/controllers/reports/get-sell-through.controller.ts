@@ -51,6 +51,10 @@ function presenter(rows: SellThroughRow[]): SellThroughEntry[] {
     .sort((a, b) => a.auction_date.localeCompare(b.auction_date));
 }
 
+export function presentSellThrough(rows: SellThroughRow[]): SellThroughEntry[] {
+  return presenter(rows);
+}
+
 export const GetSellThroughController = async (
   branch_id: string,
   date: string,

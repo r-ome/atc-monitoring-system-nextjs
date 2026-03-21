@@ -40,6 +40,10 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
   });
 }
 
+export function presentContainerStatus(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
+  return presenter(rows);
+}
+
 export const GetContainerStatusController = async (branch_id: string) => {
   try {
     const rows = await ReportsRepository.getContainerStatusOverview(branch_id);

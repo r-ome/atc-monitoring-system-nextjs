@@ -26,6 +26,10 @@ function presenter(payments: PaymentMethodBreakdownRow[]): PaymentMethodBreakdow
     .sort((a, b) => b.total_amount - a.total_amount);
 }
 
+export function presentPaymentMethodBreakdown(payments: PaymentMethodBreakdownRow[]): PaymentMethodBreakdown[] {
+  return presenter(payments);
+}
+
 export const GetPaymentMethodBreakdownController = async (
   branch_id: string,
   date: string,

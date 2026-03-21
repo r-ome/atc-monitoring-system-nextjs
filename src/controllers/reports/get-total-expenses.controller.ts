@@ -56,6 +56,10 @@ function monthlyPresenter(expenses: ExpenseWithBranchRow[]): ExpenseRow[] {
     .filter((row) => row.total_expenses > 0);
 }
 
+export function presentTotalExpenses(expenses: ExpenseWithBranchRow[], mode: FilterMode): ExpenseRow[] {
+  return mode === "monthly" ? monthlyPresenter(expenses) : dailyPresenter(expenses);
+}
+
 export const GetTotalExpensesController = async (
   branch_id: string,
   date: string,

@@ -25,6 +25,10 @@ function presenter(bidders: BidderReportRow[]): TopBidderEntry[] {
     .sort((a, b) => b.total_spent - a.total_spent);
 }
 
+export function presentTopBidders(bidders: BidderReportRow[]): TopBidderEntry[] {
+  return presenter(bidders);
+}
+
 export const GetTopBiddersController = async (
   branch_id: string,
   date: string,

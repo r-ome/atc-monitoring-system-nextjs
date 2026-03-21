@@ -24,6 +24,10 @@ function presenter(bidders: BidderReportRow[]): BidderActivityEntry[] {
   });
 }
 
+export function presentBidderActivity(bidders: BidderReportRow[]): BidderActivityEntry[] {
+  return presenter(bidders);
+}
+
 export const GetBidderActivityController = async (
   branch_id: string,
   date: string,
