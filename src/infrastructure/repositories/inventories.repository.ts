@@ -279,7 +279,6 @@ export const InventoryRepository: IInventoryRepository = {
               ? data?.manifest_number
               : undefined,
             inventory: {
-              connect: { inventory_id: data.inventory_id },
               update: {
                 container_id:
                   data.container_id !== auction_inventory.inventory.container_id
