@@ -10,6 +10,7 @@ import {
   generateMonthlyCommission,
   generateUnpaidBidders,
   generateBidderNumber,
+  generateDeductionsReport,
 } from ".";
 
 export type Monitoring = {
@@ -19,6 +20,14 @@ export type Monitoring = {
   bidder_number: string;
   qty: string;
   price: number;
+};
+
+export type DeductionItem = {
+  control: string;
+  description: string;
+  bidder_number: string;
+  original_price: number;
+  deducted_amount: number;
 };
 
 type ReportTypes =
@@ -31,7 +40,8 @@ type ReportTypes =
   | "cash_flow"
   | "monthly_commission"
   | "unpaid_bidders"
-  | "bidder_number";
+  | "bidder_number"
+  | "deductions";
 
 const generateReport = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,6 +142,14 @@ const generateReport = (
       workbook,
       generateBidderNumber(data),
       "Bidder Number",
+    );
+  }
+
+  if (reports.includes("deductions") && data.deductions?.length) {
+    xlsx.utils.book_append_sheet(
+      workbook,
+      generateDeductionsReport(data.deductions),
+      "DEDUCTIONS",
     );
   }
 

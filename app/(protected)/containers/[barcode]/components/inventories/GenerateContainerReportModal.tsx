@@ -13,6 +13,7 @@ import {
 } from "@/app/components/ui/dialog";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { generateReport } from "@/app/lib/reports";
+import { DeductionItem } from "@/app/lib/reports/generateReport";
 import { InventoryRowType } from "./ContainerInventoriesTable";
 import { DialogDescription } from "@radix-ui/react-dialog";
 
@@ -31,6 +32,7 @@ export const GenerateContainerReportModal = ({
   const [open, setOpen] = useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [excludeBidder740, setExcludeBidder740] = useState<boolean>(false);
+  const [deductThirtyK, setDeductThirtyK] = useState<boolean>(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -40,11 +42,19 @@ export const GenerateContainerReportModal = ({
     }
     generateReport(
       {
-        monitoring: for_monitoring_report,
+        monitoring: adjusted_monitoring,
         inventories: inventories,
         sheetDetails: container,
+        deductions: deductThirtyK ? deduction_items : undefined,
       },
-      ["monitoring", "final_computation", "unsold", "encode", "bill"],
+      [
+        "monitoring",
+        "final_computation",
+        "unsold",
+        "encode",
+        "bill",
+        ...(deductThirtyK ? (["deductions"] as const) : []),
+      ],
       filename,
     );
   };
@@ -94,6 +104,81 @@ export const GenerateContainerReportModal = ({
     })
     .sort((a, b) => a.control.localeCompare(b.control));
 
+  const bidder740_monitoring =
+    deductThirtyK && excludeBidder740
+      ? inventories
+          .filter((item) => item.status !== "VOID")
+          .filter((item) => {
+            if (!item.auctions_inventory) return false;
+            return !["CANCELLED", "REFUND"].includes(
+              item.auctions_inventory.status,
+            );
+          })
+          .filter((item) => selectedDates.includes(item?.auction_date || ""))
+          .filter(
+            (item) =>
+              item.auctions_inventory?.bidder.bidder_number === "740",
+          )
+          .map((item) => ({
+            control: item.control,
+            description:
+              item.auctions_inventory?.description ?? item.description,
+            bidder_number: "740",
+            price: item.auctions_inventory?.price ?? 0,
+          }))
+      : [];
+
+  const isEligibleForDeduction = (desc: string) => {
+    const upper = desc.toUpperCase();
+    const hasKeyword = ["KW", "GW", "ASSORTED", "ASSTD", "BAG", "LUGGAGE"].some(
+      (k) => upper.includes(k),
+    );
+    const notBranded =
+      !upper.includes("BRANDED") && !upper.includes(" DI ");
+    return hasKeyword || notBranded;
+  };
+
+  const { adjusted_monitoring, deduction_items } = (() => {
+    if (!deductThirtyK) {
+      return {
+        adjusted_monitoring: for_monitoring_report,
+        deduction_items: [] as DeductionItem[],
+      };
+    }
+
+    const bidder740Sum = bidder740_monitoring.reduce(
+      (acc, i) => acc + i.price,
+      0,
+    );
+    let remaining = Math.max(0, 30000 - bidder740Sum);
+
+    const deductions: DeductionItem[] = bidder740_monitoring.map((i) => ({
+      control: i.control,
+      description: i.description,
+      bidder_number: i.bidder_number,
+      original_price: i.price,
+      deducted_amount: i.price,
+    }));
+
+    const adjusted = for_monitoring_report.map((item) => {
+      if (remaining <= 0 || !isEligibleForDeduction(item.description))
+        return item;
+      const reduction = remaining >= 200 ? 200 : 100;
+      if (item.price < reduction) return item;
+      remaining -= reduction;
+      deductions.push({
+        control: item.control,
+        description: item.description,
+        bidder_number: item.bidder_number,
+        original_price: item.price,
+        deducted_amount: reduction,
+      });
+      return { ...item, price: item.price - reduction };
+    });
+
+    return { adjusted_monitoring: adjusted, deduction_items: deductions };
+  })();
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -140,6 +225,15 @@ export const GenerateContainerReportModal = ({
                 }
               />
               <span>Remove Bidder 740</span>
+            </label>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <Checkbox
+                checked={deductThirtyK}
+                onCheckedChange={(checked) =>
+                  setDeductThirtyK(checked === true)
+                }
+              />
+              <span>Less 30,000</span>
             </label>
           </div>
           <DialogFooter>
