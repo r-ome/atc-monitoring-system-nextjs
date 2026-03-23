@@ -17,13 +17,13 @@ import { createGroupSortingFn } from "@/app/lib/utils";
 const controlGroupSortingFn = createGroupSortingFn<Manifest, string>(
   (row) => row.is_slash_item ?? row.manifest_id,
   (row) => row.control ?? "",
-  (a, b) => a.localeCompare(b)
+  (a, b) => a.localeCompare(b),
 );
 
 export const columns = (
   setOpen: React.Dispatch<SetStateAction<boolean>>,
   setSelected: React.Dispatch<SetStateAction<Manifest>>,
-  groupIndexMap: Record<string, number>
+  groupIndexMap: Record<string, number>,
 ): ColumnDef<Manifest>[] => [
   {
     accessorKey: "barcode",
@@ -268,7 +268,7 @@ export const columns = (
         <div
           className={cn(
             "flex justify-center truncate",
-            manifest.error_message ? "text-red-500" : "text-green-500"
+            manifest.error_message ? "text-red-500" : "text-green-500",
           )}
         >
           <Tooltip>

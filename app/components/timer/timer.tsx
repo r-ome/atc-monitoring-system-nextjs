@@ -5,7 +5,7 @@ import { formatDate } from "@/app/lib/utils";
 
 export const AppTimer = () => {
   const [currentTime, setCurrentTime] = useState(
-    formatDate(new Date(), "HH:mm:ss a")
+    formatDate(new Date(), "hh:mm:ss a")
   );
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export const AppTimer = () => {
       <div className="hidden md:flex">
         {formatDate(new Date(), "eeee, MMMM dd, yyyy").toLocaleString()}
       </div>
-      <div className="flex justify-end">{currentTime}</div>
+      <div className="flex justify-end" suppressHydrationWarning>{currentTime}</div>
     </div>
   );
 };
