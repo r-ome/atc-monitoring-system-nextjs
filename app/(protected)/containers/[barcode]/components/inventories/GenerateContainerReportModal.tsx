@@ -130,12 +130,11 @@ export const GenerateContainerReportModal = ({
 
   const isEligibleForDeduction = (desc: string) => {
     const upper = desc.toUpperCase();
+    if (upper.includes("BRANDED") || /\bDI\b/.test(upper)) return false;
     const hasKeyword = ["KW", "GW", "ASSORTED", "ASSTD", "BAG", "LUGGAGE"].some(
       (k) => upper.includes(k),
     );
-    const notBranded =
-      !upper.includes("BRANDED") && !upper.includes(" DI ");
-    return hasKeyword || notBranded;
+    return hasKeyword || true; // all non-BRANDED, non-DI items are eligible
   };
 
   const { adjusted_monitoring, deduction_items } = (() => {
