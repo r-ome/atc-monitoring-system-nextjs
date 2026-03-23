@@ -72,6 +72,7 @@ export const updateManifestSchema = z.object({
   container_id: z.string().optional().nullable(),
   isValid: z.boolean().optional(),
   error: z.string(),
+  isSlashItem: z.string().nullable().optional(),
 });
 
 export type UpdateManifestInput = z.infer<typeof updateManifestSchema>;

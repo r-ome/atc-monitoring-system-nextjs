@@ -6,6 +6,7 @@ import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { ContainerBarcodeRow } from "src/entities/models/Container";
 import { divideIntoHundreds, divideQuantites, getContainerBarcode, isThreePartBarcode } from "src/application/use-cases/auctions/manifest-pipeline";
 import { formatNumberPadding } from "@/app/lib/utils";
+import { v4 as uuidv4 } from "uuid";
 
 export const updateManifestUseCase = async (
   auction_id: string,
@@ -131,6 +132,8 @@ const formatSlashedBarcodes = (
   );
   const new_quantities = divideQuantites(data.qty, new_barcodes.length);
 
+  const slashGroupUuid = new_barcodes.length > 1 ? uuidv4() : null;
+
   const new_rows = new_barcodes.map((new_barcode, i) => {
     const is_inventory = !new_barcode.includes("-");
     new_barcode = formatNumberPadding(new_barcode, 3);
@@ -140,6 +143,7 @@ const formatSlashedBarcodes = (
       bidder_number: formatNumberPadding(data.bidder_number, 4),
       isValid: true,
       error: "",
+      isSlashItem: slashGroupUuid,
       price: new_prices[i].toString(),
       barcode: is_inventory ? `${parent}-${new_barcode}` : new_barcode,
       qty: new_quantities[i].toString(),

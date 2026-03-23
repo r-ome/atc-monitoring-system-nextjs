@@ -72,7 +72,11 @@ export function createGroupSortingFn<TData, TValue>(
     const valueA = getSortValue(a);
     const valueB = getSortValue(b);
 
-    return compare(valueA, valueB); // TanStack flips sign for desc
+    const result = compare(valueA, valueB); // TanStack flips sign for desc
+    if (result !== 0) return result;
+
+    // Tiebreaker: cluster same-group rows when values are equal
+    return groupA < groupB ? -1 : groupA > groupB ? 1 : 0;
   };
 }
 

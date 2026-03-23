@@ -514,6 +514,7 @@ export const AuctionRepository: IAuctionRepository = {
                     qty: item.QTY,
                     status: "UNPAID",
                     auction_date: auction.created_at,
+                    is_slash_item: item.isSlashItem,
                   },
                   where: {
                     auction_inventory_id: item.auction_inventory_id,
@@ -1017,6 +1018,7 @@ export const AuctionRepository: IAuctionRepository = {
                   qty: item.qty,
                   manifest_number: item.manifest_number as string,
                   auction_date: auction.created_at,
+                  is_slash_item: item.isSlashItem,
                 },
               }),
             ),

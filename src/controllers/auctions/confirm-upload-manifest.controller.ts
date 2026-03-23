@@ -13,7 +13,7 @@ export const ConfirmUploadManifestController = async (
   const user_context = { username: ctx?.username, branch_name: ctx?.branch_name };
 
   try {
-    const res = await AuctionRepository.uploadManifest(auction_id, data, false);
+    const res = await AuctionRepository.uploadManifest(auction_id, data, false, ctx?.username);
 
     logger("ConfirmUploadManifestController", { auction_id, records: res.length, ...user_context }, "info");
     return ok(`${res.length} records uploaded!`);
