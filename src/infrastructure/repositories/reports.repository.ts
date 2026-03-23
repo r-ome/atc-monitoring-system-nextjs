@@ -229,4 +229,29 @@ export const ReportsRepository: IReportsRepository = {
       handleError("Error getting container status overview", error);
     }
   },
+
+  getPriceComparisonByMonth: async (branch_id, date) => {
+    try {
+      const { start, end } = parseDateRange(date);
+      return await prisma.inventories.findMany({
+        where: {
+          is_bought_item: { not: null },
+          auctions_inventory: {
+            auction_bidder: {
+              auctions: { branch_id, created_at: { gte: start, lt: end } },
+            },
+          },
+        },
+        include: {
+          auctions_inventory: {
+            include: {
+              auction_bidder: { include: { auctions: true } },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      handleError("Error getting price comparison", error);
+    }
+  },
 };

@@ -187,3 +187,23 @@ export type AuctionComparisonEntry = {
   total_items: number;
   bidder_count: number;
 };
+
+// -- Price Comparison (Bought Items) --
+export type PriceComparisonRow = Prisma.inventoriesGetPayload<{
+  include: {
+    auctions_inventory: {
+      include: {
+        auction_bidder: {
+          include: { auctions: true };
+        };
+      };
+    };
+  };
+}>;
+
+export type PriceComparisonEntry = {
+  month: string;
+  avg_old_price: number;
+  avg_new_price: number;
+  item_count: number;
+};

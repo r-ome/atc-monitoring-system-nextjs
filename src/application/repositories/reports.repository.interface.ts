@@ -8,6 +8,7 @@ import {
   RefundCancellationRow,
   SupplierRevenueRow,
   ContainerStatusRow,
+  PriceComparisonRow,
 } from "src/entities/models/Report";
 
 export interface IReportsRepository {
@@ -46,4 +47,8 @@ export interface IReportsRepository {
   getContainerStatusOverview: (
     branch_id: string,
   ) => Promise<ContainerStatusRow[]>;
+  getPriceComparisonByMonth: (
+    branch_id: string,
+    date: string,
+  ) => Promise<PriceComparisonRow[]>;
 }
