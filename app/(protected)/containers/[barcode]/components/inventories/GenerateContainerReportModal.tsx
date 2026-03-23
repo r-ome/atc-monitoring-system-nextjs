@@ -30,6 +30,7 @@ export const GenerateContainerReportModal = ({
 }: GenerateContainerReportModalProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [excludeBidder740, setExcludeBidder740] = useState<boolean>(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -70,6 +71,11 @@ export const GenerateContainerReportModal = ({
       return !["CANCELLED", "REFUND"].includes(auction_status);
     })
     .filter((item) => selectedDates.includes(item?.auction_date || ""))
+    .filter((item) =>
+      excludeBidder740
+        ? item.auctions_inventory?.bidder.bidder_number !== "740"
+        : true,
+    )
     .map((item) => {
       const auction_inventory = item.auctions_inventory;
       return {
@@ -123,6 +129,19 @@ export const GenerateContainerReportModal = ({
               </label>
             </div>
           ))}
+
+          <div className="border-t pt-2 space-y-1">
+            <p className="text-sm font-medium">Options</p>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <Checkbox
+                checked={excludeBidder740}
+                onCheckedChange={(checked) =>
+                  setExcludeBidder740(checked === true)
+                }
+              />
+              <span>Remove Bidder 740</span>
+            </label>
+          </div>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant={"outline"} className="cursor-pointer">
