@@ -145,9 +145,7 @@ const prisma = base.$extends({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data: dataArray.map((d: any) => ({
               ...d,
-              ...(BRANCH_FILTERS[model].branch_id !== undefined
-                ? { branch_id }
-                : {}),
+              ...(shouldInjectBranchId ? { branch_id } : {}),
             })),
           });
         }
