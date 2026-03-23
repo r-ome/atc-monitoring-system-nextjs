@@ -131,7 +131,7 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
-  updateAuctionItem: async (data) => {
+  updateAuctionItem: async (data, updated_by?) => {
     try {
       await prisma.$transaction(async (tx) => {
         const selected_bidder = await prisma.auctions_bidders.findFirst({
@@ -294,7 +294,7 @@ export const InventoryRepository: IInventoryRepository = {
                 inventory_id: data.inventory_id,
                 auction_status: "DISCREPANCY",
                 inventory_status: "SOLD",
-                remarks: `Updated ${remarks.filter((item) => item).join(", ")}`,
+                remarks: `Updated ${remarks.filter((item) => item).join(", ")}${updated_by ? ` | Updated by: ${updated_by}` : ""}`,
               },
             },
           },

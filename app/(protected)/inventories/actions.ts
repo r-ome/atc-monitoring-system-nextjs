@@ -11,6 +11,8 @@ import { UploadBoughtItemsController } from "src/controllers/inventories/upload-
 import { GetBoughtItemsController } from "src/controllers/inventories/get-bought-items.controller";
 import { GetInventoriesWithNoAuctionsInventoriesController } from "src/controllers/inventories/get-inventories-with-no-auctions-inventories.controller";
 import { DeleteInventoryController } from "src/controllers/inventories/delete-inventory.controller";
+import { requireUser } from "@/app/lib/auth";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 
 export const getAuctionItemDetails = async (auctionInventoryId: string) => {
   return await GetAuctionItemDetailsController(auctionInventoryId);
@@ -27,9 +29,17 @@ export const voidItems = async (formData: FormData) => {
 };
 
 export const updateAuctionInventory = async (formData: FormData) => {
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
   data.control = formatNumberPadding(data.control as string, 4);
-  return await UpdateAuctionItemController(data);
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => UpdateAuctionItemController(data),
+  );
 };
 
 export const getInventory = async (inventory_id: string) => {

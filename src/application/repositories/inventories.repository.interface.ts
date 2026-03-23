@@ -24,7 +24,7 @@ export interface IInventoryRepository {
     }[];
     reason: string;
   }) => Promise<AuctionInventoryWithDetailsRow[]>;
-  updateAuctionItem: (data: UpdateAuctionInventoryInput) => Promise<void>;
+  updateAuctionItem: (data: UpdateAuctionInventoryInput, updated_by?: string) => Promise<void>;
   updateInventory: (
     inventory_id: string,
     data: CreateInventoryInput,

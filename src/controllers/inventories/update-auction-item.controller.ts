@@ -10,10 +10,13 @@ import {
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 
 export const UpdateAuctionItemController = async (
   input: Partial<UpdateAuctionInventoryInput>,
 ) => {
+  const ctx = RequestContext.getStore();
+
   try {
     const { data, error: inputParseError } =
       updateAuctionInventorySchema.safeParse(input);
@@ -24,7 +27,7 @@ export const UpdateAuctionItemController = async (
       });
     }
 
-    const res = await updateAuctionItemUseCase(data);
+    const res = await updateAuctionItemUseCase(data, ctx?.username);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

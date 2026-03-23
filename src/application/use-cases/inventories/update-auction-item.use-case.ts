@@ -5,7 +5,8 @@ import { InputParseError } from "src/entities/errors/common";
 import { formatNumberPadding } from "@/app/lib/utils";
 
 export const updateAuctionItemUseCase = async (
-  data: UpdateAuctionInventoryInput
+  data: UpdateAuctionInventoryInput,
+  updated_by?: string
 ) => {
   const containers = await ContainerRepository.getContainers();
   const has_inventory_barcode = data.barcode.split("-").length === 3;
@@ -75,5 +76,5 @@ export const updateAuctionItemUseCase = async (
 
   data.container_id = container.container_id;
 
-  return await InventoryRepository.updateAuctionItem(data);
+  return await InventoryRepository.updateAuctionItem(data, updated_by);
 };
