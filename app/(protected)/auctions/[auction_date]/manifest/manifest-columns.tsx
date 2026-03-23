@@ -203,8 +203,20 @@ export const columns = (
     },
     cell: ({ row }) => {
       const manifest = row.original;
+      if (!manifest.remarks) {
+        return (
+          <div className="flex justify-center">{manifest.manifest_number}</div>
+        );
+      }
       return (
-        <div className="flex justify-center">{manifest.manifest_number}</div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex justify-center cursor-default">
+              {manifest.manifest_number}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>Uploaded by: {manifest.remarks}</TooltipContent>
+        </Tooltip>
       );
     },
   },

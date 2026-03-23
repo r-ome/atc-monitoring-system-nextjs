@@ -15,6 +15,7 @@ export const uploadManifestUseCase = async (
   auction_id: string,
   data: ManifestSheetRecord[],
   is_bought_items: boolean = false,
+  uploaded_by?: string,
 ) => {
   const [monitoring, registered_bidders, existing_inventories, containers] =
     await Promise.all([
@@ -41,5 +42,6 @@ export const uploadManifestUseCase = async (
     auction_id,
     withoutMonitoringDuplicates,
     is_bought_items,
+    uploaded_by,
   );
 };

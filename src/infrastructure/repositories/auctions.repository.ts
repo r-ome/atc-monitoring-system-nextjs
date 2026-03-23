@@ -285,7 +285,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  uploadManifest: async (auction_id, data, is_bought_items = false) => {
+  uploadManifest: async (auction_id, data, is_bought_items = false, uploaded_by) => {
     try {
       /**
        * steps:
@@ -325,6 +325,7 @@ export const AuctionRepository: IAuctionRepository = {
             manifest_number: item.MANIFEST?.toString(),
             is_slash_item: item.isSlashItem,
             error_message: item.error,
+            remarks: uploaded_by ?? null,
           })),
         });
 

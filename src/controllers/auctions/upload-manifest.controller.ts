@@ -60,6 +60,8 @@ export const UploadManifestController = async (
     const res = await uploadManifestUseCase(
       auction_id,
       data as ManifestSheetRecord[],
+      false,
+      ctx?.username,
     );
 
     logger("UploadManifestController", { auction_id, records: res.length, ...user_context }, "info");

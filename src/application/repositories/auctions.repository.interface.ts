@@ -64,6 +64,7 @@ export interface IAuctionRepository {
     auction_id: string,
     data: UploadManifestInput[],
     is_bought_items: boolean,
+    uploaded_by?: string,
   ) => Promise<AuctionInventoryWithHistoriesRow[]>;
   uploadCounterCheck: (
     auction_id: string,
