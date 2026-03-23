@@ -77,8 +77,8 @@ export const uploadBoughtItems = async (
   return await UploadBoughtItemsController(branch_id, file as File);
 };
 
-export const getBoughtItems = async () => {
-  return await GetBoughtItemsController();
+export const getBoughtItems = async (params: { year: string; month: string; branchId: string }) => {
+  return await GetBoughtItemsController(params);
 };
 
 export const getInventoriesWithNoAuctionsInventories = async () => {

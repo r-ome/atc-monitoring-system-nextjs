@@ -21,9 +21,9 @@ function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
   });
 }
 
-export const GetBoughtItemsController = async () => {
+export const GetBoughtItemsController = async (params: { year: string; month: string; branchId: string }) => {
   try {
-    const bought_items = await InventoryRepository.getBoughtItems();
+    const bought_items = await InventoryRepository.getBoughtItems(params);
     return ok(presenter(bought_items));
   } catch (error) {
     logger("GetBoughtItemsController", error);

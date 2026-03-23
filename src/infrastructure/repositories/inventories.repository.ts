@@ -418,10 +418,18 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
-  getBoughtItems: async () => {
+  getBoughtItems: async (params: { year: string; month: string; branchId: string }) => {
+    const year = Number(params.year);
+    const month = Number(params.month);
+    const start = new Date(year, month, 1);
+    const end = new Date(year, month + 1, 1);
     try {
       return await prisma.inventories.findMany({
-        where: { is_bought_item: { not: null, gt: 0 } },
+        where: {
+          is_bought_item: { not: null, gt: 0 },
+          auction_date: { gte: start, lt: end },
+          container: { branch_id: params.branchId },
+        },
         include: {
           auctions_inventory: {
             include: { auction_bidder: { include: { bidder: true } } },

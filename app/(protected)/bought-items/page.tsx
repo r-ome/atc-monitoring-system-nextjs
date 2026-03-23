@@ -8,22 +8,23 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import { BoughtItemsHeader } from "./BoughtItemsHeader";
+import { BoughtItemsFilter } from "./BoughtItemsFilter";
 
 export default async function Page({
   searchParams,
 }: Readonly<{ searchParams: Promise<Record<string, string>> }>) {
-  const { branch_id } = await searchParams;
+  const { branch_id, year, month } = await searchParams;
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/");
 
   const { user } = session;
 
-  const [branches_res, bought_items_res] = await Promise.all([
-    getBranches(),
-    getBoughtItems(),
-  ]);
+  const now = new Date();
+  const selectedYear = year ?? String(now.getFullYear());
+  const selectedMonth = month ?? String(now.getMonth());
 
-  if (!bought_items_res.ok || !branches_res.ok) {
+  const branches_res = await getBranches();
+  if (!branches_res.ok) {
     return <ErrorComponent error={{ message: "Server Error" }} />;
   }
 
@@ -39,16 +40,32 @@ export default async function Page({
   const selected_branch =
     branches.find((b) => b.branch_id === branchId) ?? fallbackBranch;
 
+  const bought_items_res = await getBoughtItems({
+    year: selectedYear,
+    month: selectedMonth,
+    branchId,
+  });
+
+  if (!bought_items_res.ok) {
+    return <ErrorComponent error={{ message: "Server Error" }} />;
+  }
+
   const bought_items = bought_items_res.value;
 
   return (
     <div className="flex flex-col gap-2">
       <BoughtItemsHeader
+        selectedBranch={selected_branch}
+      />
+      <h1 className="text-2xl text-center">Bought Items Master List</h1>
+
+      <BoughtItemsFilter
         user={user}
         selectedBranch={selected_branch}
         branches={branches}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
       />
-      <h1 className="text-2xl text-center">Bought Items Master List</h1>
 
       <div className="flex gap-4">
         <UploadBoughtItemsModal selectedBranch={selected_branch} />
