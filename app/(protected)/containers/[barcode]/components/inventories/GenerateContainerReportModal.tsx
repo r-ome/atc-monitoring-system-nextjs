@@ -83,7 +83,7 @@ export const GenerateContainerReportModal = ({
     .filter((item) => selectedDates.includes(item?.auction_date || ""))
     .filter((item) =>
       excludeBidder740
-        ? item.auctions_inventory?.bidder.bidder_number !== "740"
+        ? item.auctions_inventory?.bidder.bidder_number !== "0740"
         : true,
     )
     .map((item) => {
@@ -104,6 +104,49 @@ export const GenerateContainerReportModal = ({
     })
     .sort((a, b) => a.control.localeCompare(b.control));
 
+  const isEligibleForDeduction = (desc: string) => {
+    const upper = desc.toUpperCase();
+    if (
+      upper.includes("BRANDED") ||
+      upper.includes("B. BAG") ||
+      upper.includes("B.BAG") ||
+      upper.includes("IN BOX") ||
+      upper.includes("INBOX") ||
+      upper.includes("METAL") ||
+      upper.includes("SIZZLING") ||
+      upper.includes("FRAME") ||
+      /\bDI\b/.test(upper)
+    )
+      return false;
+    const EXCLUDED_KEYWORDS = [
+      "TABLE",
+      "CAB",
+      "CABINET",
+      "DRAWER",
+      "PARTITION",
+      "DISPLAYER",
+      "SHELF",
+      "SHELVES",
+      "RACK",
+      "CHAIR",
+      "SOFA",
+      "DESK",
+      "COUNTER",
+      "WARDROBE",
+      "CLOSET",
+      "BED",
+      "ACCESSORIES",
+      "ACC",
+      "KWL",
+      "KW2",
+    ];
+    if (EXCLUDED_KEYWORDS.some((k) => new RegExp(`\\b${k}\\b`).test(upper)))
+      return false;
+    return ["KW", "GW", "ASSORTED", "ASSTD", "BAG", "LUGGAGE", "SHOES"].some(
+      (k) => upper.includes(k),
+    );
+  };
+
   const bidder740_monitoring =
     deductThirtyK && excludeBidder740
       ? inventories
@@ -116,26 +159,16 @@ export const GenerateContainerReportModal = ({
           })
           .filter((item) => selectedDates.includes(item?.auction_date || ""))
           .filter(
-            (item) =>
-              item.auctions_inventory?.bidder.bidder_number === "740",
+            (item) => item.auctions_inventory?.bidder.bidder_number === "0740",
           )
           .map((item) => ({
             control: item.control,
             description:
               item.auctions_inventory?.description ?? item.description,
-            bidder_number: "740",
+            bidder_number: "0740",
             price: item.auctions_inventory?.price ?? 0,
           }))
       : [];
-
-  const isEligibleForDeduction = (desc: string) => {
-    const upper = desc.toUpperCase();
-    if (upper.includes("BRANDED") || /\bDI\b/.test(upper)) return false;
-    const hasKeyword = ["KW", "GW", "ASSORTED", "ASSTD", "BAG", "LUGGAGE"].some(
-      (k) => upper.includes(k),
-    );
-    return hasKeyword || true; // all non-BRANDED, non-DI items are eligible
-  };
 
   const { adjusted_monitoring, deduction_items } = (() => {
     if (!deductThirtyK) {
@@ -162,8 +195,10 @@ export const GenerateContainerReportModal = ({
     const adjusted = for_monitoring_report.map((item) => {
       if (remaining <= 0 || !isEligibleForDeduction(item.description))
         return item;
-      const reduction = remaining >= 200 ? 200 : 100;
-      if (item.price < reduction) return item;
+      const reduction = [500, 200, 100].find(
+        (step) => step <= remaining && item.price - step >= 100,
+      );
+      if (!reduction) return item;
       remaining -= reduction;
       deductions.push({
         control: item.control,
