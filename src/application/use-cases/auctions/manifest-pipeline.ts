@@ -226,6 +226,7 @@ export const removeManifestDuplicates = (
 export const formatExistingInventories = (
   data: UploadManifestInput[],
   existing_inventories: InventoryForManifestRow[],
+  is_bought_items = false,
 ): UploadManifestInput[] => {
   const byBarcode = new Map<string, InventoryForManifestRow>();
   const byBarcodeControl = new Map<string, InventoryForManifestRow>();
@@ -242,10 +243,19 @@ export const formatExistingInventories = (
       ? byBarcode.get(item.BARCODE)
       : byBarcodeControl.get(`${item.BARCODE}:${item.CONTROL}`);
 
-    if (!existing_inventory) return item;
+    if (!existing_inventory) {
+      if (is_bought_items) {
+        return { ...item, isValid: false, error: "Item not found in inventory" };
+      }
+      return item;
+    }
 
     if (existing_inventory.status === "SOLD") {
       return { ...item, isValid: false, error: "Item already exists and SOLD in inventories" };
+    }
+
+    if (is_bought_items && existing_inventory.status !== "UNSOLD") {
+      return { ...item, isValid: false, error: "Item must be UNSOLD to upload as a bought item" };
     }
 
     return {
@@ -283,6 +293,7 @@ export const addContainerIdForNewInventories = (
 export const removeMonitoringDuplicates = (
   data: UploadManifestInput[],
   monitoring: AuctionInventoryWithDetailsRow[],
+  is_bought_items = false,
 ) => {
   const existing_monitoring = new Set(
     monitoring.map((item) =>
@@ -293,6 +304,8 @@ export const removeMonitoringDuplicates = (
   /**
    * If item already exists but has CANCELLED, REFUNDED, or BOUGHT_ITEM status,
    * update the auction_inventory instead of creating a new one.
+   * In bought items mode, only CANCELLED/REFUNDED auction statuses qualify —
+   * BOUGHT_ITEM inventory status is excluded.
    */
   const cancelledByBarcode = new Map<string, AuctionInventoryWithDetailsRow>();
   const cancelledByBarcodeControl = new Map<string, AuctionInventoryWithDetailsRow>();
@@ -309,7 +322,7 @@ export const removeMonitoringDuplicates = (
 
     if (
       ["CANCELLED", "REFUNDED"].includes(item.status) ||
-      ["BOUGHT_ITEM"].includes(item.inventory.status)
+      (!is_bought_items && ["BOUGHT_ITEM"].includes(item.inventory.status))
     ) {
       cancelledByBarcode.set(item.inventory.barcode, item);
       cancelledByBarcodeControl.set(
@@ -338,6 +351,10 @@ export const removeMonitoringDuplicates = (
         forUpdating: true,
         ...(matched_item ? { auction_inventory_id: matched_item.auction_inventory_id } : {}),
       };
+    }
+
+    if (is_bought_items) {
+      return { ...sheet_item, isValid: false, error: "Item has no CANCELLED or REFUNDED auction record" };
     }
 
     if (existing_monitoring.has(key)) {

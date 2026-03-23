@@ -73,8 +73,9 @@ export const uploadBoughtItems = async (
   branch_id: string,
   formData: FormData,
 ) => {
+  const user = await requireUser();
   const file = formData.get("file");
-  return await UploadBoughtItemsController(branch_id, file as File);
+  return await UploadBoughtItemsController(branch_id, file as File, user.username);
 };
 
 export const getBoughtItems = async (params: { year: string; month: string; branchId: string }) => {

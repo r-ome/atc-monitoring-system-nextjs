@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { uploadManifestUseCase } from "src/application/use-cases/auctions/upload-manifest.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ManifestSheetRecord } from "src/entities/models/Manifest";
@@ -8,10 +9,12 @@ export const InsertAuctionInventoryController = async (
   auction_id: string,
   input: Partial<ManifestSheetRecord>,
 ) => {
+  const ctx = RequestContext.getStore();
+
   try {
     const res = await uploadManifestUseCase(auction_id, [
       input as ManifestSheetRecord,
-    ]);
+    ], false, ctx?.username);
 
     return ok(`${res.length} records uploaded!`);
   } catch (error) {

@@ -12,6 +12,7 @@ import { logger } from "@/app/lib/logger";
 export const UploadBoughtItemsController = async (
   branch_id: string,
   file: File,
+  uploaded_by?: string,
 ) => {
   try {
     if (!file) {
@@ -53,7 +54,7 @@ export const UploadBoughtItemsController = async (
       });
     }
 
-    await uploadBoughtItemsUseCase(branch_id, data as BoughtItemsSheetRecord[]);
+    await uploadBoughtItemsUseCase(branch_id, data as BoughtItemsSheetRecord[], uploaded_by);
     return ok({ success: true });
   } catch (error) {
     if (error instanceof InputParseError) {

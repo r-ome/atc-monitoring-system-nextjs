@@ -10,6 +10,7 @@ import { NotFoundError } from "src/entities/errors/common";
 export const uploadBoughtItemsUseCase = async (
   branch_id: string,
   data: BoughtItemsSheetRecord[],
+  uploaded_by?: string,
 ) => {
   const auctions = await AuctionRepository.getAuctionsByBranch(branch_id);
 
@@ -40,6 +41,7 @@ export const uploadBoughtItemsUseCase = async (
     recent_auction.auction_id,
     manifest_records as ManifestSheetRecord[],
     true,
+    uploaded_by,
   );
 
   const inventory_ids = created_auctions_inventories.map(
