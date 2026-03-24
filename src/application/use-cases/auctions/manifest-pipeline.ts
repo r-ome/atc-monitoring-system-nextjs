@@ -244,9 +244,6 @@ export const formatExistingInventories = (
       : byBarcodeControl.get(`${item.BARCODE}:${item.CONTROL}`);
 
     if (!existing_inventory) {
-      if (is_bought_items) {
-        return { ...item, isValid: false, error: "Item not found in inventory" };
-      }
       return item;
     }
 
@@ -351,10 +348,6 @@ export const removeMonitoringDuplicates = (
         forUpdating: true,
         ...(matched_item ? { auction_inventory_id: matched_item.auction_inventory_id } : {}),
       };
-    }
-
-    if (is_bought_items) {
-      return { ...sheet_item, isValid: false, error: "Item has no CANCELLED or REFUNDED auction record" };
     }
 
     if (existing_monitoring.has(key)) {

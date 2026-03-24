@@ -354,6 +354,7 @@ export const AuctionRepository: IAuctionRepository = {
             control: item.CONTROL,
             description: item.DESCRIPTION,
             status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
+            is_bought_item: is_bought_items ? parseInt(item.PRICE, 10) : undefined,
             auction_date: auction.created_at,
           })),
         });
