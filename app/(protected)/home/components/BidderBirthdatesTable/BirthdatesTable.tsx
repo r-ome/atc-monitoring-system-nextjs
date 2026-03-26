@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Cake } from "lucide-react";
+import { AlertCircle, Cake } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./birthdates-columns";
 import { BiddersWithBirthdatesAndRecentAuctionSchema } from "src/entities/models/Bidder";
@@ -28,9 +29,11 @@ export const BirthdatesTable = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-6 text-red-500">
-        Failed to load bidder birthdays: {error}
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="size-4" />
+        <AlertTitle>Failed to load bidder birthdays</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 

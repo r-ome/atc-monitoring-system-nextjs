@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldBanIcon } from "lucide-react";
+import { AlertCircle, ShieldBanIcon } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./banned-bidders-columns";
 import { BannedBidder } from "src/entities/models/Statistics";
@@ -27,9 +28,11 @@ export const BannedBiddersTable = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-6 text-red-500">
-        Failed to load banned bidders: {error}
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="size-4" />
+        <AlertTitle>Failed to load banned bidders</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 

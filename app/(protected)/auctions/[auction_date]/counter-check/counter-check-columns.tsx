@@ -95,7 +95,7 @@ export const columns = (): ColumnDef<CounterCheck>[] => [
         <div
           className={cn(
             "flex justify-center",
-            counter_check.bidder_number === "0000" ? "bg-red-500" : "",
+            counter_check.bidder_number === "0000" ? "bg-status-error text-status-error-foreground" : "",
           )}
         >
           {counter_check.bidder_number === "0000"
@@ -127,7 +127,7 @@ export const columns = (): ColumnDef<CounterCheck>[] => [
         <div
           className={cn(
             "flex justify-center",
-            counter_check.price ? "" : "bg-red-500",
+            counter_check.price ? "" : "bg-status-error text-status-error-foreground",
           )}
         >
           {counter_check.price

@@ -1,4 +1,5 @@
-import { Card, CardHeader, CardTitle } from "@/app/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
 
 interface ErrorComponent {
   error: { message: string; cause?: unknown };
@@ -6,17 +7,16 @@ interface ErrorComponent {
 
 export const ErrorComponent: React.FC<ErrorComponent> = ({ error }) => {
   return (
-    <>
-      <div className="h-screen flex items-center justify-center">
-        <Card className="p-4 text-center w-2/6">
-          <CardHeader>
-            <CardTitle className="text-red-500">{error.message}</CardTitle>
-            <p className="text-muted-foreground">
-              {typeof error.cause === "string" ? error.cause : ""}
-            </p>
-          </CardHeader>
-        </Card>
+    <div className="h-screen flex items-center justify-center">
+      <div className="w-full max-w-md">
+        <Alert variant="destructive">
+          <AlertCircle className="size-4" />
+          <AlertTitle>{error.message}</AlertTitle>
+          {typeof error.cause === "string" && (
+            <AlertDescription>{error.cause}</AlertDescription>
+          )}
+        </Alert>
       </div>
-    </>
+    </div>
   );
 };

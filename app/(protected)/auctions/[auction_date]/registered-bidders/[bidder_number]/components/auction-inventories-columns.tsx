@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import type { RegisteredBidder } from "src/entities/models/Bidder";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { Badge } from "@/app/components/ui/badge";
+import { StatusBadge } from "@/app/components/admin";
 import { cn, formatDate } from "@/app/lib/utils";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { redirect } from "next/navigation";
@@ -74,22 +74,26 @@ export const columns: ColumnDef<AuctionInventory>[] = [
       const status = getValue<string>();
       const variant =
         status === "PARTIAL"
-          ? "warning"
-          : ["CANCELLED", "UNPAID", "REFUNDED"].includes(status)
-            ? "destructive"
-            : "success";
+          ? "pending"
+          : status === "CANCELLED"
+            ? "cancelled"
+            : status === "REFUNDED"
+              ? "refunded"
+              : status === "UNPAID"
+                ? "unpaid"
+                : "paid";
 
       return (
         <>
           {["UNPAID", "CANCELLED"].includes(status) ? (
             <div className="flex justify-center">
-              <Badge variant={variant}>{status}</Badge>
+              <StatusBadge variant={variant}>{status}</StatusBadge>
             </div>
           ) : (
             <Popover>
               <PopoverTrigger asChild>
                 <div className="flex justify-center hover:cursor-pointer">
-                  <Badge variant={variant}>{status}</Badge>
+                  <StatusBadge variant={variant}>{status}</StatusBadge>
                 </div>
               </PopoverTrigger>
               <PopoverContent className="w-full">

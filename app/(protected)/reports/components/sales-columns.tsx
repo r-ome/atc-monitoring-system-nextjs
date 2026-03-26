@@ -41,7 +41,7 @@ export const columns: ColumnDef<SalesRowType>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center text-green-500">
+      <div className="flex justify-center text-status-success">
         {formatNumberToCurrency(row.original.total_sales)}
       </div>
     ),
@@ -61,7 +61,7 @@ export const columns: ColumnDef<SalesRowType>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center text-green-500">
+      <div className="flex justify-center text-status-success">
         {formatNumberToCurrency(row.original.total_registration_fee)}
       </div>
     ),
@@ -81,7 +81,7 @@ export const columns: ColumnDef<SalesRowType>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center text-red-500">
+      <div className="flex justify-center text-status-error">
         {formatNumberToCurrency(row.original.total_expenses)}
       </div>
     ),

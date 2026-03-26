@@ -268,7 +268,7 @@ export const columns = (
         <div
           className={cn(
             "flex justify-center truncate",
-            manifest.error_message ? "text-red-500" : "text-green-500",
+            manifest.error_message ? "text-status-error" : "text-status-success",
           )}
         >
           <Tooltip>

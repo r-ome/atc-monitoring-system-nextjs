@@ -5,7 +5,7 @@ import { PaymentMethod } from "src/entities/models/PaymentMethod";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { SetStateAction } from "react";
-import { Badge } from "@/app/components/ui/badge";
+import { StatusBadge } from "@/app/components/admin";
 
 export const columns = (
   setOpen: React.Dispatch<SetStateAction<boolean>>,
@@ -63,13 +63,13 @@ export const columns = (
       const payment_method = row.original;
       return (
         <div className="flex justify-center">
-          <Badge
+          <StatusBadge
             variant={
-              payment_method.state === "ENABLED" ? "success" : "destructive"
+              payment_method.state === "ENABLED" ? "active" : "inactive"
             }
           >
             {payment_method.state}
-          </Badge>
+          </StatusBadge>
         </div>
       );
     },

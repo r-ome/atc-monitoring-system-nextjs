@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Expense } from "src/entities/models/Expense";
-import { Badge } from "@/app/components/ui/badge";
+import { StatusBadge } from "@/app/components/admin";
 import { cn, formatDate } from "@/app/lib/utils";
 
 export const columns: ColumnDef<Expense>[] = [
@@ -28,13 +28,13 @@ export const columns: ColumnDef<Expense>[] = [
       const expense = row.original;
       return (
         <div className="flex justify-center">
-          <Badge
+          <StatusBadge
             variant={
-              expense.purpose === "ADD_PETTY_CASH" ? "success" : "destructive"
+              expense.purpose === "ADD_PETTY_CASH" ? "success" : "error"
             }
           >
             {expense.purpose.replace(/_/g, " ")}
-          </Badge>
+          </StatusBadge>
         </div>
       );
     },
@@ -63,7 +63,7 @@ export const columns: ColumnDef<Expense>[] = [
         <div
           className={cn(
             "flex justify-center",
-            expense.purpose === "EXPENSE" ? "text-red-500" : "text-green-500"
+            expense.purpose === "EXPENSE" ? "text-status-error" : "text-status-success"
           )}
         >
           {expense.purpose === "EXPENSE" ? `(${amount})` : amount}

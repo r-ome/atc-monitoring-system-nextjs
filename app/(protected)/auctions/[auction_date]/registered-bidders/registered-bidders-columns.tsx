@@ -131,8 +131,8 @@ export const columns: ColumnDef<RegisteredBidderSummary>[] = [
         <div
           className={cn(
             "flex justify-center",
-            registeredBidder.balance > 0 && "text-red-500",
-            registeredBidder.balance < 0 && "text-green-500"
+            registeredBidder.balance > 0 && "text-status-error",
+            registeredBidder.balance < 0 && "text-status-success"
           )}
         >
           {registeredBidder.balance.toLocaleString()}

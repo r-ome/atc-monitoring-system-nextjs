@@ -3,7 +3,8 @@
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { TriangleAlert } from "lucide-react";
+import { AlertCircle, TriangleAlert } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./unpaid-bidders-columns";
 import { UnpaidBidders } from "src/entities/models/Statistics";
@@ -35,9 +36,11 @@ export const UnpaidBiddersTable = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-6 text-red-500">
-        Failed to load unpaid bidders: {error}
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="size-4" />
+        <AlertTitle>Failed to load unpaid bidders</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 

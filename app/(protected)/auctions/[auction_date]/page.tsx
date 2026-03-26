@@ -7,7 +7,7 @@ import { AuctionNavigation } from "@/app/(protected)/auctions/components/Auction
 import {
   Card,
   CardHeader,
-  CardDescription,
+  CardContent,
   CardTitle,
 } from "@/app/components/ui/card";
 import {
@@ -20,11 +20,14 @@ import {
 } from "@/app/components/ui/table";
 import { cn } from "@/app/lib/utils";
 import { StartAuctionButton } from "../components/StartAuctionButton";
-import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import { AuctionContainerSummaryTable } from "../components/AuctionContainerSummaryTable";
+import { PageHeader, StatCard, StatCardGroup } from "@/app/components/admin";
+import { Users, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 type AuctionItemSchema = AuctionInventoryRow[];
 
@@ -48,19 +51,20 @@ export default async function Page({
     if (res.error.message === "Auction not found!")
       return (
         <div className="h-40 flex items-center justify-center">
-          <Card className="p-4 text-center w-2/6">
-            <CardHeader>
-              <CardTitle className="text-red-500 text-lg">
-                No Auction on this day.
-              </CardTitle>
-              <p className="text-muted-foreground text-sm">
-                if you want you can start an auction today!
-              </p>
-              {!["ENCODER", "MODERATOR"].includes(session.user.role) && (
+          <div className="w-full max-w-md">
+            <Alert>
+              <AlertCircle className="size-4" />
+              <AlertTitle>No Auction on this day.</AlertTitle>
+              <AlertDescription>
+                If you want, you can start an auction today!
+              </AlertDescription>
+            </Alert>
+            {!["ENCODER", "MODERATOR"].includes(session.user.role) && (
+              <div className="mt-4 flex justify-center">
                 <StartAuctionButton />
-              )}
-            </CardHeader>
-          </Card>
+              </div>
+            )}
+          </div>
         </div>
       );
 
@@ -68,7 +72,7 @@ export default async function Page({
   }
 
   const auction = res.value;
-  const total_registered_bidders = auction.registered_bidders.length - 1; // minus one for the atc_default_bidder
+  const total_registered_bidders = auction.registered_bidders.length - 1;
   const total_registration_fee = auction.registered_bidders.reduce(
     (acc, item) => (acc += item.registration_fee),
     0,
@@ -135,95 +139,79 @@ export default async function Page({
     .sort((a, b) => b.total_sale - a.total_sale);
 
   return (
-    <div>
-      <h1 className="text-4xl font-extrabold tracking-tight text-balance">
-        {formatDate(new Date(auction_date), "EEEE, MMMM dd, yyyy")}
-      </h1>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={formatDate(new Date(auction_date), "EEEE, MMMM dd, yyyy")}
+      />
 
       {session.user.role !== "MODERATOR" ? <AuctionNavigation /> : null}
 
       <div
         className={cn(
-          "flex flex-col gap-4 mt-4",
+          "flex flex-col gap-6",
           session.user.role === "ENCODER" && "hidden",
           session.user.role === "MODERATOR" && "show",
         )}
       >
-        <div className="flex flex-col gap-2 md:flex-row">
-          <Card className="w-full shadow-md">
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">
-                {total_registered_bidders} Registered Bidders
-              </CardTitle>
-              <CardDescription>Total Registered Bidders</CardDescription>
+        <StatCardGroup columns={3}>
+          <StatCard
+            title="Registered Bidders"
+            value={total_registered_bidders}
+            description="Total Registered Bidders"
+            icon={Users}
+            variant="default"
+          />
+          <StatCard
+            title="Total Registration Fee"
+            value={`₱${total_registration_fee.toLocaleString()}`}
+            description="Total Registration Fee"
+            icon={DollarSign}
+            variant="primary"
+          />
+          <StatCard
+            title="Total Sales"
+            value={`₱${total_item_price.toLocaleString()}`}
+            description={`₱${total_service_charge_amount.toLocaleString()} Service Charge Amount`}
+            icon={TrendingUp}
+            variant="success"
+          />
+        </StatCardGroup>
+
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
+          <AuctionContainerSummaryTable
+            containerSummary={container_summary}
+          />
+
+          {/* Item Summary */}
+          <Card className="h-fit">
+            <CardHeader className="pb-3">
+              <CardTitle>Item Summary</CardTitle>
             </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-8">
+                  <p className="text-sm text-muted-foreground uppercase">Total Items</p>
+                  <p className="text-2xl font-bold">{total_items}</p>
+                </div>
+                <div className="flex items-center justify-between gap-8">
+                  <p className="text-sm text-muted-foreground uppercase">Paid</p>
+                  <p className="text-2xl font-bold text-status-success">{filtered_items.paid_items.length}</p>
+                </div>
+                <div className="flex items-center justify-between gap-8">
+                  <p className="text-sm text-muted-foreground uppercase">Unpaid</p>
+                  <p className="text-2xl font-bold text-status-error">{filtered_items.unpaid_items.length}</p>
+                </div>
+                <div className="flex items-center justify-between gap-8">
+                  <p className="text-sm text-muted-foreground uppercase">Cancelled</p>
+                  <p className="text-2xl font-bold text-muted-foreground">{filtered_items.cancelled_items.length}</p>
+                </div>
+                <div className="flex items-center justify-between gap-8">
+                  <p className="text-sm text-muted-foreground uppercase">Refunded</p>
+                  <p className="text-2xl font-bold text-status-info">{filtered_items.refunded_items.length}</p>
+                </div>
+              </div>
+            </CardContent>
           </Card>
-
-          <Card className="w-full shadow-md">
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">
-                ₱{total_registration_fee.toLocaleString()} Total Registration
-                Fee
-              </CardTitle>
-              <CardDescription>Total Registration Fee</CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="w-full shadow-md">
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">
-                ₱{total_item_price.toLocaleString()} Total Sales
-              </CardTitle>
-              <CardDescription>
-                ₱{total_service_charge_amount.toLocaleString()} Service Charge
-                Amount
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 items-start h-[400px]">
-          <div className="flex w-full sm:w-3/5">
-            <AuctionContainerSummaryTable
-              containerSummary={container_summary}
-            />
-          </div>
-
-          <div className="flex w-full sm:w-1/5 gap-4">
-            <Table className="border">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right font-bold">TOTAL</TableHead>
-                  <TableHead className="text-right font-bold">
-                    {total_items} ITEMS
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(Object.keys(filtered_items) as (keyof AuctionItems)[]).map(
-                  (item) => (
-                    <TableRow key={item}>
-                      <TableCell
-                        className={cn(
-                          "text-right font-semibold",
-                          item === "paid_items" && "text-green-500",
-                          ["cancelled_items", "refunded_items"].includes(
-                            item,
-                          ) && "text-red-500",
-                          item === "unpaid_items" && "text-orange-500",
-                        )}
-                      >
-                        {item.replace(/_items/g, " ").toLocaleUpperCase()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {filtered_items[item].length} ITEMS
-                      </TableCell>
-                    </TableRow>
-                  ),
-                )}
-              </TableBody>
-            </Table>
-          </div>
         </div>
       </div>
     </div>

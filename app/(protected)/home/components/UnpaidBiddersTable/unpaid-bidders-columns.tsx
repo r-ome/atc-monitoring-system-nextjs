@@ -65,7 +65,7 @@ export const columns: ColumnDef<UnpaidBidders>[] = [
       const bidder = row.original;
 
       return (
-        <div className="flex justify-center text-red-500">
+        <div className="flex justify-center text-status-error">
           {bidder.balance.toLocaleString()}
         </div>
       );

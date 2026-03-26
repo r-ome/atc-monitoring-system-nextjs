@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
+import { StatusBadge } from "@/app/components/admin";
 import { ArrowUpDown } from "lucide-react";
 import { parse } from "date-fns";
 import { ContainerRowType } from "./container-table";
@@ -106,11 +106,11 @@ export const columns: ColumnDef<ContainerRowType>[] = [
       const container = row.original;
       return (
         <div className="flex justify-center">
-          <Badge
-            variant={container.branch.name === "TARLAC" ? "success" : "warning"}
+          <StatusBadge
+            variant={container.branch.name === "TARLAC" ? "tarlac" : "binan"}
           >
             {container.branch.name}
-          </Badge>
+          </StatusBadge>
         </div>
       );
     },

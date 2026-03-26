@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { AuctionTransaction, REFUND_PURPOSES } from "src/entities/models/Payment";
-import { Badge } from "@/app/components/ui/badge";
+import { StatusBadge } from "@/app/components/admin";
 import { cn } from "@/app/lib/utils";
 
 export const columns: ColumnDef<AuctionTransaction>[] = [
@@ -59,7 +59,7 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
         <div
           className={cn(
             "flex justify-center",
-            REFUND_PURPOSES.includes(receipt.purpose) ? "text-red-500" : "text-green-500"
+            REFUND_PURPOSES.includes(receipt.purpose) ? "text-status-error" : "text-status-success"
           )}
         >
           ₱{" "}
@@ -138,13 +138,13 @@ export const columns: ColumnDef<AuctionTransaction>[] = [
       const receipt = row.original;
       return (
         <div className="flex justify-center">
-          <Badge
+          <StatusBadge
             variant={
-              REFUND_PURPOSES.includes(receipt.purpose) ? "destructive" : "success"
+              REFUND_PURPOSES.includes(receipt.purpose) ? "error" : "success"
             }
           >
             {receipt.purpose.replace(/_/g, " ")}
-          </Badge>
+          </StatusBadge>
         </div>
       );
     },

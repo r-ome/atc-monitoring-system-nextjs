@@ -123,8 +123,8 @@ export const columns: ColumnDef<BoughtItems>[] = [
             "flex justify-center",
             boughtItem.new_price && boughtItem.old_price
               ? boughtItem.new_price < boughtItem.old_price
-                ? "text-red-500"
-                : "text-green-500"
+                ? "text-status-error"
+                : "text-status-success"
               : ""
           )}
         >

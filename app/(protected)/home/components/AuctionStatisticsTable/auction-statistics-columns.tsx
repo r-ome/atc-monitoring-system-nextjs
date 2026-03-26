@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
-import { Badge } from "@/app/components/ui/badge";
+import { StatusBadge } from "@/app/components/admin";
 
 export const columns: ColumnDef<AuctionsStatistics>[] = [
   {
@@ -58,7 +58,7 @@ export const columns: ColumnDef<AuctionsStatistics>[] = [
       return (
         <div className="flex justify-center">
           {auction.total_bidders_with_balance === 0 ? (
-            <Badge variant="success">FULLY PAID ({registeredBidders})</Badge>
+            <StatusBadge variant="success">FULLY PAID ({registeredBidders})</StatusBadge>
           ) : (
             <div className="flex justify-center">
               <Tooltip>

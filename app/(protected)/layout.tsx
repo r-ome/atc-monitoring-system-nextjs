@@ -13,6 +13,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import { AppTimer } from "@/app/components/timer/timer";
+import { ThemeToggle } from "@/app/components/admin";
 
 export default async function RootLayout({
   children,
@@ -42,6 +43,7 @@ export default async function RootLayout({
               {session.user.name}
               <span className="hidden md:flex"> ({session.user.role})</span>
             </div>
+            <ThemeToggle />
             <Separator
               orientation="vertical"
               className="mx-2 h-5 bg-gray-400"

@@ -34,6 +34,8 @@ import { SearchComponent } from "@/app/components/data-table/SearchComponent";
 import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
+import { Empty, EmptyMedia, EmptyHeader, EmptyTitle, EmptyDescription } from "@/app/components/ui/empty";
+import { InboxIcon } from "lucide-react";
 
 export const DataTable = <TData, TValue>({
   columns,
@@ -212,8 +214,16 @@ export const DataTable = <TData, TValue>({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+              <TableCell colSpan={columns.length}>
+                <Empty className="py-8">
+                  <EmptyMedia variant="icon">
+                    <InboxIcon />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>No results</EmptyTitle>
+                    <EmptyDescription>No data to display.</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </TableCell>
             </TableRow>
           )}

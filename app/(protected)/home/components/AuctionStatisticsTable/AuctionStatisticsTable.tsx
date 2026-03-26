@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar } from "lucide-react";
+import { AlertCircle, Calendar } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./auction-statistics-columns";
 import { AuctionsStatistics } from "src/entities/models/Statistics";
@@ -29,9 +30,11 @@ export const AuctionStatisticsTable = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-6 text-red-500">
-        Failed to load auctions: {error}
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="size-4" />
+        <AlertTitle>Failed to load auctions</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 

@@ -1,71 +1,62 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { QuickNav } from "@/app/components/admin";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/app/components/ui/card";
-import { cn } from "@/app/lib/utils";
+  UserCheck,
+  BarChart3,
+  ClipboardCheck,
+  Receipt,
+  FileText,
+} from "lucide-react";
 
 export const AuctionNavigation = () => {
-  const router = useRouter();
   const pathname = usePathname();
   const session = useSession();
 
   if (!session.data) return null;
 
+  const role = session.data.user.role as string;
+
   const auctionNavigation = [
     {
       title: "Registered Bidders",
-      link: "registered-bidders",
+      href: `${pathname}/registered-bidders`,
       description: "Registered Bidders and their balances",
+      icon: UserCheck,
       not_allowed_roles: ["ENCODER"],
     },
     {
       title: "Monitoring",
-      link: "monitoring",
+      href: `${pathname}/monitoring`,
       description: "Monitoring Page",
+      icon: BarChart3,
     },
     {
       title: "Counter Check",
-      link: "counter-check",
+      href: `${pathname}/counter-check`,
       description: "Counter Check details",
+      icon: ClipboardCheck,
     },
     {
       title: "Payments",
-      link: "payments",
+      href: `${pathname}/payments`,
       description: "Bidder's balances and settle of payments",
+      icon: Receipt,
       not_allowed_roles: ["ENCODER"],
     },
     {
       title: "Manifest",
-      link: "manifest",
+      href: `${pathname}/manifest`,
       description: "List of manifest records",
+      icon: FileText,
     },
   ];
 
-  return (
-    <div className="flex flex-col gap-y-2 md:flex-row md:gap-2 mt-4 w-full">
-      {auctionNavigation.map((item, i) => (
-        <Card
-          className={cn(
-            "w-full cursor-pointer shadow-sm hover:shadow-lg",
-            item.not_allowed_roles?.includes(
-              session.data?.user.role as string
-            ) && "hidden"
-          )}
-          key={i}
-          onClick={() => router.push(`${pathname}/${item.link}`)}
-        >
-          <CardHeader>
-            <CardTitle>{item.title}</CardTitle>
-            <CardDescription>{item.description}</CardDescription>
-          </CardHeader>
-        </Card>
-      ))}
-    </div>
+  const filteredItems = auctionNavigation.filter(
+    (item) => !("not_allowed_roles" in item && item.not_allowed_roles?.includes(role))
   );
+
+  return <QuickNav items={filteredItems} columns={5} />;
 };

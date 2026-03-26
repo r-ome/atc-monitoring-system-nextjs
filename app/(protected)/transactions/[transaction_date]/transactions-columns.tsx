@@ -5,7 +5,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Payment, REFUND_PURPOSES } from "src/entities/models/Payment";
-import { Badge } from "@/app/components/ui/badge";
+import { StatusBadge } from "@/app/components/admin";
 import { cn, formatDate } from "@/app/lib/utils";
 
 const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
@@ -46,15 +46,15 @@ export const columns: ColumnDef<Payment>[] = [
       const payment = row.original;
       return (
         <div className="flex justify-center">
-          <Badge
+          <StatusBadge
             variant={
               ["PULL_OUT", "REGISTRATION"].includes(payment.receipt.purpose)
                 ? "success"
-                : "destructive"
+                : "error"
             }
           >
             {payment.receipt.purpose.replace(/_/g, " ")}
-          </Badge>
+          </StatusBadge>
         </div>
       );
     },
@@ -108,8 +108,8 @@ export const columns: ColumnDef<Payment>[] = [
           className={cn(
             "flex justify-center",
             REFUND_PURPOSES.includes(payment.receipt.purpose)
-              ? "text-red-500"
-              : "text-green-500"
+              ? "text-status-error"
+              : "text-status-success"
           )}
         >
           {REFUND_PURPOSES.includes(payment.receipt.purpose)
