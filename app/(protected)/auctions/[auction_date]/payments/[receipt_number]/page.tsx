@@ -23,6 +23,7 @@ import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Button } from "@/app/components/ui/button";
 import { UpdateRegistrationPaymentMethodModal } from "./UpdateRegistrationPaymentMethodModal/UpdateRegistrationPaymentMethodModal";
 import { UndoPaymentButton } from "./UndoReceiptButton";
+import { AddStorageFeeModal } from "./AddStorageFeeModal/AddStorageFeeModal";
 import { cn } from "@/app/lib/utils";
 import { REFUND_PURPOSES } from "src/entities/models/Payment";
 
@@ -63,7 +64,11 @@ export default async function Page({
                 <UndoPaymentButton receipt_id={receipt.receipt_id} />
               ) : null}
 
-              {!["REGISTRATION"].includes(receipt.purpose) ? (
+              {["PULL_OUT", "ADD_ON"].includes(receipt.purpose) ? (
+                <AddStorageFeeModal receipt_id={receipt.receipt_id} />
+              ) : null}
+
+              {!["REGISTRATION", "STORAGE_FEE"].includes(receipt.purpose) ? (
                 <Link href={`${receipt_number}/receipt`}>
                   <Button>View Receipt</Button>
                 </Link>
@@ -78,7 +83,9 @@ export default async function Page({
                 <div className="leading-7 text-md">
                   <Badge
                     variant={
-                      REFUND_PURPOSES.includes(receipt.purpose) ? "destructive" : "success"
+                      REFUND_PURPOSES.includes(receipt.purpose)
+                        ? "destructive"
+                        : "success"
                     }
                   >
                     {receipt.purpose.replace(/_/g, " ")}
@@ -135,7 +142,9 @@ export default async function Page({
                   <TableCell>
                     <div
                       className={cn(
-                        REFUND_PURPOSES.includes(receipt.purpose) ? "text-red-500" : "",
+                        REFUND_PURPOSES.includes(receipt.purpose)
+                          ? "text-red-500"
+                          : "",
                       )}
                     >
                       ₱ {item.amount_paid.toLocaleString()}
@@ -168,7 +177,9 @@ export default async function Page({
                 <TableCell className="font-bold">
                   <div
                     className={cn(
-                      REFUND_PURPOSES.includes(receipt.purpose) ? "text-red-500" : "",
+                      REFUND_PURPOSES.includes(receipt.purpose)
+                        ? "text-red-500"
+                        : "",
                     )}
                   >
                     ₱ {receipt.total_amount_paid.toLocaleString()}
@@ -181,7 +192,7 @@ export default async function Page({
             </TableFooter>
           </Table>
 
-          {receipt.purpose !== "REGISTRATION" ? (
+          {!["REGISTRATION", "STORAGE_FEE"].includes(receipt.purpose) ? (
             <div className="max-h-[400px] overflow-y-auto relative">
               <Table>
                 <TableCaption>

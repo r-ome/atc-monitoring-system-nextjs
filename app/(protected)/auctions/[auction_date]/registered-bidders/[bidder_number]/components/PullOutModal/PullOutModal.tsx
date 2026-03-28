@@ -72,6 +72,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
     registeredBidder: bidderPaymentDetails,
     grandTotal,
     payments,
+    storageFee,
   } = useBidderPullOutModalContext();
 
   const router = useRouter();
@@ -101,6 +102,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
         payment_method: p.payment_method,
         amount_paid: p.amount_paid,
       })),
+      storage_fee: storageFee,
     };
 
     const res = await handleBidderPullOut(input);

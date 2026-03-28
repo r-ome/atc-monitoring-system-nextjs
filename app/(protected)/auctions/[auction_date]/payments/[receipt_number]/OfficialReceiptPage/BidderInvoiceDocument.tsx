@@ -48,6 +48,7 @@ export type Computation = {
   service_charge: number;
   service_charge_amount: number;
   less: number;
+  storage_fee: number;
   grandTotal: number;
 };
 

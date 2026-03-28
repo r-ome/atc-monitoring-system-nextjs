@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -7,6 +8,8 @@ import {
   TableFooter,
   TableCell,
 } from "@/app/components/ui/table";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
 import { useBidderPullOutModalContext } from "../../context/BidderPullOutModalContext";
 
 export const PaymentBreakdownDetails: React.FC = () => {
@@ -16,7 +19,10 @@ export const PaymentBreakdownDetails: React.FC = () => {
     grandTotal,
     serviceChargeAmount,
     registeredBidder,
+    storageFee,
+    setStorageFee,
   } = useBidderPullOutModalContext();
+  const [showStorageFeeInput, setShowStorageFeeInput] = useState(false);
 
   const paymentDetails = [
     {
@@ -55,6 +61,25 @@ export const PaymentBreakdownDetails: React.FC = () => {
             </TableRow>
           ))}
 
+          {showStorageFeeInput ? (
+            <TableRow className="[&>td]:border-r last:border-r-0">
+              <TableCell className="text-right text-lg">Storage Fee</TableCell>
+              <TableCell className="text-right">
+                <Input
+                  type="number"
+                  min={0}
+                  className="text-right"
+                  value={storageFee === 0 ? "" : storageFee}
+                  onChange={(e) =>
+                    setStorageFee(
+                      e.target.value === "" ? 0 : Number(e.target.value),
+                    )
+                  }
+                />
+              </TableCell>
+            </TableRow>
+          ) : null}
+
           {!registeredBidder?.already_consumed && (
             <TableRow className="[&>td]:border-r last:border-r-0 bg-red-400 hover:bg-red-400">
               <TableCell className="text-right text-lg">
@@ -76,6 +101,19 @@ export const PaymentBreakdownDetails: React.FC = () => {
           </TableRow>
         </TableFooter>
       </Table>
+
+      {!showStorageFeeInput && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowStorageFeeInput(true)}
+          >
+            + Add Storage Fee
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

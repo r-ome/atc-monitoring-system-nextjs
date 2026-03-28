@@ -9,6 +9,7 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
+import { StorageFeePaymentInput } from "src/entities/models/Payment";
 import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 
 export const PaymentRepository: IPaymentRepository = {
@@ -140,17 +141,54 @@ export const PaymentRepository: IPaymentRepository = {
           },
         });
 
+        const storage_fee = data.storage_fee ?? 0;
+
         await Promise.all(
-          data.payments.map((item) =>
-            tx.payments.create({
+          data.payments.map((item) => {
+            const storage_portion =
+              storage_fee > 0
+                ? Math.round(
+                    (item.amount_paid * storage_fee) / data.amount_to_be_paid,
+                  )
+                : 0;
+            const pullout_portion = item.amount_paid - storage_portion;
+            return tx.payments.create({
               data: {
                 receipt_id: created_receipt.receipt_id,
-                amount_paid: item.amount_paid,
+                amount_paid: pullout_portion,
                 payment_method_id: item.payment_method,
               },
-            }),
-          ),
+            });
+          }),
         );
+
+        if (storage_fee > 0) {
+          const sf_count = await tx.receipt_records.count({
+            where: { receipt_number: { startsWith: `${receipt_number}SF` } },
+          });
+          const sf_receipt_number = `${receipt_number}SF${sf_count + 1}`;
+          const sf_receipt = await tx.receipt_records.create({
+            data: {
+              receipt_number: sf_receipt_number,
+              purpose: "STORAGE_FEE",
+              auction_bidder_id: data.auction_bidder_id,
+            },
+          });
+          await Promise.all(
+            data.payments.map((item) => {
+              const storage_portion = Math.round(
+                (item.amount_paid * storage_fee) / data.amount_to_be_paid,
+              );
+              return tx.payments.create({
+                data: {
+                  receipt_id: sf_receipt.receipt_id,
+                  amount_paid: storage_portion,
+                  payment_method_id: item.payment_method,
+                },
+              });
+            }),
+          );
+        }
 
         await tx.auctions_inventories.updateMany({
           data: {
@@ -424,6 +462,49 @@ export const PaymentRepository: IPaymentRepository = {
         );
       }
 
+      throw error;
+    }
+  },
+  addStorageFee: async (data: StorageFeePaymentInput) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const parent = await tx.receipt_records.findFirst({
+          where: { receipt_id: data.parent_receipt_id },
+          include: { auction_bidder: { include: { bidder: true } } },
+        });
+
+        if (!parent) {
+          throw new NotFoundError("Parent receipt not found!");
+        }
+
+        const sf_count = await tx.receipt_records.count({
+          where: {
+            receipt_number: { startsWith: `${parent.receipt_number}SF` },
+          },
+        });
+
+        const receipt_number = `${parent.receipt_number}SF${sf_count + 1}`;
+
+        await tx.receipt_records.create({
+          data: {
+            receipt_number,
+            purpose: "STORAGE_FEE",
+            auction_bidder_id: parent.auction_bidder_id,
+            payments: {
+              create: {
+                amount_paid: data.amount,
+                payment_method_id: data.payment_method_id,
+              },
+            },
+          },
+        });
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error adding storage fee!", {
+          cause: error.message,
+        });
+      }
       throw error;
     }
   },

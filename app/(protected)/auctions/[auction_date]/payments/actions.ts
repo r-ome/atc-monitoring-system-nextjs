@@ -13,6 +13,9 @@ import { UpdateRegistrationPaymentController } from "src/controllers/payments/up
 import { GetPettyCashBalanceController } from "src/controllers/expenses/get-petty-cash-balance.controller";
 import { UpdateExpenseController } from "src/controllers/expenses/update-expense.controller";
 import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
+import { AddStorageFeeController } from "src/controllers/payments/add-storage-fee.controller";
+import { StorageFeePaymentInput } from "src/entities/models/Payment";
+import prisma from "@/app/lib/prisma/prisma";
 import { UpdatePettyCashController } from "src/controllers/expenses/update-petty-cash.controller";
 import { DeleteExpenseController } from "src/controllers/expenses/delete-expense.controller";
 import { PettyCash, PettyCashSnapshot } from "src/entities/models/Expense";
@@ -141,6 +144,32 @@ export const updateExpense = async (
       branch_name: user.branch.name ?? "",
     },
     async () => await UpdateExpenseController(expense_id, data),
+  );
+};
+
+export const getStorageFeeTotal = async (
+  parent_receipt_number: string,
+): Promise<number> => {
+  await requireUser();
+  const records = await prisma.receipt_records.findMany({
+    where: {
+      receipt_number: { startsWith: `${parent_receipt_number}SF` },
+      purpose: "STORAGE_FEE",
+    },
+    include: { payments: true },
+  });
+  return records.reduce(
+    (acc, r) => acc + r.payments.reduce((s, p) => s + p.amount_paid, 0),
+    0,
+  );
+};
+
+export const addStorageFee = async (input: StorageFeePaymentInput) => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await AddStorageFeeController(input),
   );
 };
 

@@ -21,6 +21,8 @@ type BidderPullOutModalContextType = {
   grandTotal: number;
   payments: PaymentEntry[];
   setPayments: React.Dispatch<React.SetStateAction<PaymentEntry[]>>;
+  storageFee: number;
+  setStorageFee: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const BidderPullOutModalContext = createContext<
@@ -41,6 +43,7 @@ export const BidderPullOutModalProvider = ({
   const [payments, setPayments] = useState<PaymentEntry[]>([
     { payment_method: "", amount_paid: 0 },
   ]);
+  const [storageFee, setStorageFee] = useState<number>(0);
 
   const totalItemPrice = selectedItems.reduce(
     (acc, item) => (acc += item.price),
@@ -57,7 +60,8 @@ export const BidderPullOutModalProvider = ({
       getItemPriceWithServiceChargeAmount(totalItemPrice, service_charge) -
       totalItemPrice;
     registrationFeeAmount = already_consumed ? 0 : registration_fee;
-    grandTotal = totalItemPrice + serviceChargeAmount - registrationFeeAmount;
+    grandTotal =
+      totalItemPrice + serviceChargeAmount - registrationFeeAmount + storageFee;
   }
 
   return (
@@ -74,6 +78,8 @@ export const BidderPullOutModalProvider = ({
         setRegisteredBidder,
         payments,
         setPayments,
+        storageFee,
+        setStorageFee,
       }}
     >
       {children}

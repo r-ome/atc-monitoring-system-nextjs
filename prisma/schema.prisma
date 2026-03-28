@@ -355,6 +355,7 @@ enum payments_purpose {
   REFUNDED
   LESS
   ADD_ON
+  STORAGE_FEE
 }
 
 enum inventories_status {

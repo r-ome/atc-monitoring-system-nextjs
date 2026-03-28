@@ -7,6 +7,7 @@ import {
   ReceiptRecordWithHistoriesRow,
   ReceiptRecordWithInventoriesRow,
   ReceiptRecordWithPaymentsRow,
+  StorageFeePaymentInput,
 } from "src/entities/models/Payment";
 
 export interface IPaymentRepository {
@@ -33,4 +34,5 @@ export interface IPaymentRepository {
     data: UpdateRegistrationPaymentInput
   ) => Promise<void>;
   undoPayment: (receipt_id: string) => Promise<void>;
+  addStorageFee: (data: StorageFeePaymentInput) => Promise<void>;
 }

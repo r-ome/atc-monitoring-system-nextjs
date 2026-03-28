@@ -104,7 +104,11 @@ const InvoiceTableFooter: React.FC<InvoiceTableFooterProps> = ({
         >
           STORAGE FEE
         </Text>
-        <Text style={styles.totalValue}></Text>
+        <Text style={styles.totalValue}>
+          {computation.storage_fee > 0
+            ? computation.storage_fee.toLocaleString()
+            : ""}
+        </Text>
       </View>
 
       <View style={{ ...styles.row, backgroundColor: "#bff0fd" }}>

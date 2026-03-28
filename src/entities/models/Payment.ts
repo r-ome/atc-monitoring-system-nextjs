@@ -8,6 +8,7 @@ export const PAYMENT_PURPOSE = [
   "REFUNDED",
   "LESS",
   "ADD_ON",
+  "STORAGE_FEE",
 ] as const;
 
 export type PaymentPurpose = typeof PAYMENT_PURPOSE[number];
@@ -134,9 +135,18 @@ export const pullOutPaymentSchema = z.object({
     }),
   ),
   remarks: z.string().optional().nullable(),
+  storage_fee: z.coerce.number().min(0).optional().default(0),
 });
 
 export type PullOutPaymentInput = z.infer<typeof pullOutPaymentSchema>;
+
+export const storageFeePaymentSchema = z.object({
+  parent_receipt_id: z.string(),
+  amount: z.coerce.number().positive(),
+  payment_method_id: z.string(),
+});
+
+export type StorageFeePaymentInput = z.infer<typeof storageFeePaymentSchema>;
 
 export type AuctionTransaction = {
   receipt_id: string;

@@ -31,7 +31,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
   open,
   onOpenChange,
 }) => {
-  const { registeredBidder, selectedItems } = useBidderPullOutModalContext();
+  const { registeredBidder, selectedItems, storageFee } = useBidderPullOutModalContext();
   const [receipt, setReceipt] =
     useState<Omit<ReceiptRecords, "payments" | "created_at">>();
   const [receiptNumber, setReceiptNumber] = useState<string>("");
@@ -135,7 +135,9 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
         getItemPriceWithServiceChargeAmount(
           total_item_price,
           receipt.bidder.service_charge,
-        ) - less;
+        ) -
+        less +
+        storageFee;
       return (
         <BidderInvoiceDocument
           receipt={receipt}
@@ -145,6 +147,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
             less,
             number_of_items,
             total_item_price,
+            storage_fee: storageFee,
             grandTotal,
           }}
         />
