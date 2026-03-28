@@ -5,10 +5,30 @@ import { CoreRow } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { Payment, REFUND_PURPOSES } from "src/entities/models/Payment";
 import { columns } from "./transactions-columns";
-import { Card, CardDescription, CardTitle } from "@/app/components/ui/card";
-import { cn } from "@/app/lib/utils";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
 import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
+import { StatCard, StatCardGroup } from "@/app/components/admin/stat-card";
+import {
+  Wallet,
+  Banknote,
+  Smartphone,
+  QrCode,
+  Building2,
+  CreditCard,
+  CircleDollarSign,
+} from "lucide-react";
+import { LucideIcon } from "lucide-react";
+
+const PAYMENT_METHOD_ICONS: Record<string, LucideIcon> = {
+  CASH: Banknote,
+  GCASH: Smartphone,
+  "GCASH (QR CODE)": QrCode,
+  BDO: Building2,
+  BPI: CreditCard,
+};
+
+const GREEN_CARD = "gap-0 py-0 [&_[data-slot=card-content]]:p-4 [&_p.text-2xl]:text-base [&_p.text-2xl]:text-green-600 dark:[&_p.text-2xl]:text-green-400";
+const RED_CARD = "gap-0 py-0 [&_[data-slot=card-content]]:p-4 [&_p.text-2xl]:text-base [&_p.text-2xl]:text-red-600 dark:[&_p.text-2xl]:text-red-400";
 
 interface InwardTransactionsTabProps {
   transactions: Payment[];
@@ -56,60 +76,66 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
       .filter((item) => !REFUND_PURPOSES.includes(item.receipt.purpose))
       .reduce(getTotal, 0) - totalRefund;
 
-  const something = paymentMethods
+  const methodTotals = paymentMethods
     .map((item) => {
-      const aaa = () => {
-        return transactions
-          .filter((item) => !REFUND_PURPOSES.includes(item.receipt.purpose))
-          .filter(
-            (tx) =>
-              tx.payment_method.payment_method_id === item.payment_method_id,
-          )
-          .reduce(getTotal, 0);
-      };
+      const total = transactions
+        .filter((tx) => !REFUND_PURPOSES.includes(tx.receipt.purpose))
+        .filter(
+          (tx) =>
+            tx.payment_method.payment_method_id === item.payment_method_id,
+        )
+        .reduce(getTotal, 0);
 
-      return { [item.name]: aaa() };
+      return { name: item.name, total };
     })
-    .reduce<Record<string, number>>((acc, obj) => {
-      const [key, value] = Object.entries(obj)[0];
-      acc[key] = (acc[key] ?? 0) + value;
-      if (key === "CASH") {
-        acc[key] = acc[key] - totalRefund;
-      }
-      return acc;
-    }, {});
+    .map((item) => ({
+      ...item,
+      total: item.name === "CASH" ? item.total - totalRefund : item.total,
+    }))
+    .filter((item) => item.total !== 0);
 
-  const something1: Record<string, number> = {
-    INWARD_TOTAL_CASH: totalInwardCash,
-    REFUND: totalRefund,
-    ...something,
-  };
+  const nonRefundCount = transactions.filter(
+    (tx) => !REFUND_PURPOSES.includes(tx.receipt.purpose),
+  ).length;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col md:flex-row gap-2">
-        {Object.keys({
-          ...something1,
-          INWARD_TOTAL_CASH: totalInwardCash,
-          REFUND: totalRefund,
-        })
-          .filter((item) => something1[item] !== 0)
-          .map((item) => (
-            <Card key={item} className="flex-1 py-3 px-4">
-              <CardTitle
-                className={cn(
-                  "text-lg text-green-500",
-                  item === "REFUND" && "text-red-500",
-                )}
-              >
-                ₱{something1[item].toLocaleString()}
-              </CardTitle>
-              <CardDescription className="text-sm -mt-4">
-                {item.replace(/_/g, " ")}
-              </CardDescription>
-            </Card>
+      {/* Total Inward — prominent full-width banner */}
+      <StatCard
+        title="Total Inward"
+        value={`₱${totalInwardCash.toLocaleString()}`}
+        description={`${nonRefundCount} transactions`}
+        icon={Wallet}
+        variant="success"
+        className="gap-0 py-0 [&_[data-slot=card-content]]:p-4 [&_p.text-2xl]:text-xl"
+      />
+
+      {/* Payment method breakdown */}
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-0.5">
+          Breakdown by payment method
+        </p>
+        <StatCardGroup columns={Math.max(2, Math.min(methodTotals.length + (totalRefund !== 0 ? 1 : 0), 5)) as 2 | 3 | 4 | 5}>
+          {methodTotals.map((item) => (
+            <StatCard
+              key={item.name}
+              title={item.name}
+              value={`₱${item.total.toLocaleString()}`}
+              icon={PAYMENT_METHOD_ICONS[item.name] ?? CircleDollarSign}
+              className={GREEN_CARD}
+            />
           ))}
+          {totalRefund !== 0 && (
+            <StatCard
+              title="REFUND"
+              value={`₱${totalRefund.toLocaleString()}`}
+              variant="error"
+              className={RED_CARD}
+            />
+          )}
+        </StatCardGroup>
       </div>
+
       <DataTable
         columns={columns}
         data={transactions}
