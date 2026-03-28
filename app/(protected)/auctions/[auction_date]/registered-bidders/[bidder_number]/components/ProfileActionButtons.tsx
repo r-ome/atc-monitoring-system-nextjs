@@ -81,9 +81,12 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setOpenRefundModal(true)}
-            disabled={selectedItems.some(
-              (item) => !["PAID"].includes(item.status)
-            )}
+            disabled={
+              !selectedItems.length ||
+              selectedItems.some(
+                (item) => !["PAID"].includes(item.status),
+              )
+            }
           >
             Refund Items
           </DropdownMenuItem>

@@ -171,14 +171,16 @@ export type AuctionTransaction = {
 export const refundAuctionInventoriesSchema = z.object({
   auction_bidder_id: z.string(),
   reason: z.string().min(1, { message: "This field is required!" }),
-  auction_inventories: z.array(
-    z.object({
-      auction_inventory_id: z.string(),
-      inventory_id: z.string(),
-      prev_price: z.coerce.number(),
-      new_price: z.coerce.number(),
-    }),
-  ),
+  auction_inventories: z
+    .array(
+      z.object({
+        auction_inventory_id: z.string(),
+        inventory_id: z.string(),
+        prev_price: z.coerce.number(),
+        new_price: z.coerce.number(),
+      }),
+    )
+    .min(1, { message: "Select at least one item to refund!" }),
 });
 
 export type RefundAuctionInventoriesInput = z.infer<typeof refundAuctionInventoriesSchema>;

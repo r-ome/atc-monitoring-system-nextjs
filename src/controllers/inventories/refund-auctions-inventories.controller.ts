@@ -17,7 +17,7 @@ export const RefundAuctionsInventoriesController = async (
     const auction_inventories: RefundAuctionInventoriesInput["auction_inventories"] =
       typeof input.auction_inventories === "string"
         ? JSON.parse(input.auction_inventories)
-        : {};
+        : [];
 
     const formattedInput = {
       auction_bidder_id: input.auction_bidder_id,
