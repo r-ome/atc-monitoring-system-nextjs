@@ -1138,8 +1138,8 @@ export const AuctionRepository: IAuctionRepository = {
           .reduce((acc, item) => (acc += item.price), 0);
 
         const serviceChargeAmount =
-          (totalUnpaidItemsPrice * bidder.service_charge) / 100;
-        const registrationFeeAmount = bidder.already_consumed
+          (totalUnpaidItemsPrice * data.service_charge) / 100;
+        const registrationFeeAmount = auction_bidder.already_consumed
           ? 0
           : data.registration_fee;
 
