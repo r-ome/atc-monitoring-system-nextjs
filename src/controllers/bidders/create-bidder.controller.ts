@@ -11,6 +11,7 @@ import {
 import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 export const presentBidder = (bidder: BidderWithBranchRow) => {
   const date_format = "MMM dd, yyyy";
@@ -51,6 +52,7 @@ export const CreateBidderController = async (
 
     const bidder = await createBidderUseCase(data);
     logger("CreateBidderController", { data, ...user_context }, "info");
+    void logActivity("CREATE", "bidder", bidder.bidder_id, `Created bidder #${bidder.bidder_number} (${bidder.first_name} ${bidder.last_name})`);
     return ok(presentBidder(bidder));
   } catch (error) {
     if (error instanceof InputParseError) {

@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadBiddersUseCase } from "src/application/use-cases/bidders/upload-bidders.use-case";
@@ -69,6 +70,7 @@ export const UploadBiddersController = async (
     );
 
     logger("StartAuctionController", { ...user_context }, "info");
+    void logActivity("CREATE", "bidder", "bulk", `Bulk uploaded ${res.count} bidders`);
     return ok(`${res.count} records uploaded!`);
   } catch (error) {
     if (error instanceof InputParseError) {

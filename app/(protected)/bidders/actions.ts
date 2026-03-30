@@ -110,8 +110,15 @@ export const updateBidderRequirement = async (
 };
 
 export const deleteBidderRequirement = async (requirement_id: string) => {
-  await requireUser();
-  return await DeleteBidderRequirementController(requirement_id);
+  const user = await requireUser();
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await DeleteBidderRequirementController(requirement_id),
+  );
 };
 
 export const createBanHistory = async (
@@ -132,6 +139,13 @@ export const createBanHistory = async (
 };
 
 export const deleteBanHistory = async (bidder_ban_history_id: string) => {
-  await requireUser();
-  return await DeleteBanHistoryController(bidder_ban_history_id);
+  const user = await requireUser();
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await DeleteBanHistoryController(bidder_ban_history_id),
+  );
 };

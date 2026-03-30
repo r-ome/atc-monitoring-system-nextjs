@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import {
@@ -51,6 +52,7 @@ export const UpdateExpenseController = async (
 
     const expense = await ExpensesRepository.updateExpense(expense_id, data);
     logger("UpdateExpenseController", { data, ...user_context }, "info");
+    void logActivity("UPDATE", "expense", expense_id, `Updated expense to ₱${data.amount} - ${data.remarks}`);
     return ok(presenter(expense));
   } catch (error) {
     if (error instanceof InputParseError) {

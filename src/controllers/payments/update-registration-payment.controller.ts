@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
@@ -25,6 +26,7 @@ export const UpdateRegistrationPaymentController = async (
     }
 
     const res = await PaymentRepository.updateRegistrationPayment(payment_id, data);
+    void logActivity("UPDATE", "payment", payment_id, `Updated registration payment ${payment_id}`);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

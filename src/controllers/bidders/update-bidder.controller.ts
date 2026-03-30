@@ -8,6 +8,7 @@ import { updateBidderSchema } from "src/entities/models/Bidder";
 import { err, ok } from "src/entities/models/Result";
 import { updateBidderUseCase } from "src/application/use-cases/bidders/update-bidder.use-case";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { presentBidder } from "./create-bidder.controller";
 
 export const UpdateBidderController = async (
@@ -37,6 +38,7 @@ export const UpdateBidderController = async (
 
     const updated = await updateBidderUseCase(bidder_id, data);
     logger("UpdateBidderController", { data, ...user_context }, "info");
+    void logActivity("UPDATE", "bidder", bidder_id, `Updated bidder #${updated.bidder_number} (${updated.first_name} ${updated.last_name})`);
     return ok(presentBidder(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

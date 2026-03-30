@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { appendInventoriesUseCase } from "src/application/use-cases/inventories/append-inventories.use-case";
 import {
   DatabaseOperationError,
@@ -13,6 +14,7 @@ export const AppendInventoriesController = async (
 ) => {
   try {
     await appendInventoriesUseCase(container_barcode, inventory_ids);
+    void logActivity("UPDATE", "inventory", container_barcode, `Appended ${inventory_ids.length} inventories to container ${container_barcode}`);
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

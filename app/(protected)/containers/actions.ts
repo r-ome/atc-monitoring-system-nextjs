@@ -39,33 +39,70 @@ export const createContainer = async (form_data: FormData) => {
 };
 
 export const updateContainer = async (containerId: string, input: FormData) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(input.entries());
-  return await UpdateContainerController(containerId, data);
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await UpdateContainerController(containerId, data),
+  );
 };
 
 export const uploadInventoryFile = async (
   barcode: string,
   form_data: FormData,
 ) => {
+  const user = await requireUser();
   const file = form_data.get("file");
-  return await UploadInventoryFileController(barcode, file as File);
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await UploadInventoryFileController(barcode, file as File),
+  );
 };
 
 export const deleteContainer = async (container_id: string) => {
-  await requireUser();
-  return await DeleteContainerController(container_id);
+  const user = await requireUser();
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await DeleteContainerController(container_id),
+  );
 };
 
 export const mergeInventories = async (input: FormData) => {
-  await requireUser();
+  const user = await requireUser();
   const data = Object.fromEntries(input.entries());
-  return await MergeInventoriesController(data);
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await MergeInventoriesController(data),
+  );
 };
 
 export const appendInventories = async (
   container_barcode: string,
   inventory_ids: string[],
 ) => {
-  return await AppendInventoriesController(container_barcode, inventory_ids);
+  const user = await requireUser();
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await AppendInventoriesController(container_barcode, inventory_ids),
+  );
 };

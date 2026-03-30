@@ -24,6 +24,12 @@ export const ConfigurationNavigation = () => {
       description: "Add or Remove payment methods",
       not_allowed_roles: ["ENCODER"],
     },
+    {
+      title: "Activity Logs",
+      link: "activity-logs",
+      description: "View audit trail of all user actions",
+      not_allowed_roles: ["CASHIER", "ENCODER", "OWNER", "ADMIN", "MODERATOR"],
+    },
   ];
 
   return (

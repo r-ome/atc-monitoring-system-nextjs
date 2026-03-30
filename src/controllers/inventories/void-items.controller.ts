@@ -12,6 +12,7 @@ import {
 } from "src/entities/models/Auction";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 const presenter = (auctionInventories: AuctionInventoryRow[]) => {
   const date_format = "MMMM dd, yyyy";
@@ -33,6 +34,7 @@ export const VoidItemsController = async (input: Partial<VoidItemsInput>) => {
     }
 
     const res = await InventoryRepository.voidItems(data);
+    void logActivity("UPDATE", "auction_inventory", "bulk", `Voided ${res.length} auction inventory items`);
     return ok(presenter(res));
   } catch (error) {
     if (error instanceof InputParseError) {

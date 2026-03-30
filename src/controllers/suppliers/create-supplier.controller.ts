@@ -10,6 +10,7 @@ import {
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 const DATE_FORMAT = "MMM dd, yyyy hh:mm a";
 
@@ -36,6 +37,7 @@ export const CreateSupplierController = async (
     }
 
     const supplier = await SupplierRepository.createSupplier(data);
+    void logActivity("CREATE", "supplier", supplier.supplier_id, `Created supplier ${supplier.name}`);
     return ok(presentSupplier(supplier));
   } catch (error) {
     if (error instanceof InputParseError) {

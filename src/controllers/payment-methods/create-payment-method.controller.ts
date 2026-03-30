@@ -10,6 +10,7 @@ import {
 import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 const DATE_FORMAT = "MMM dd, yyyy hh:mm a";
 
@@ -36,6 +37,7 @@ export const CreatePaymentMethodController = async (
     }
 
     const payment_method = await createPaymentMethodUseCase(data);
+    void logActivity("CREATE", "payment_method", payment_method.payment_method_id, `Created payment method ${payment_method.name}`);
     return ok(presentPaymentMethod(payment_method));
   } catch (error) {
     if (error instanceof InputParseError) {

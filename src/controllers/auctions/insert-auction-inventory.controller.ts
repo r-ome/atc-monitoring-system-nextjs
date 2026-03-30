@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { uploadManifestUseCase } from "src/application/use-cases/auctions/upload-manifest.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
@@ -16,6 +17,7 @@ export const InsertAuctionInventoryController = async (
       input as ManifestSheetRecord,
     ], false, ctx?.username);
 
+    void logActivity("CREATE", "auction_inventory", auction_id, `Inserted inventory item into auction`);
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
     logger("InsertAuctionInventoryController", error);

@@ -7,6 +7,7 @@ import { err, ok } from "src/entities/models/Result";
 import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { cancelItemsSchema, CancelItemsInput } from "src/entities/models/Inventory";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 export const CancelItemsController = async (
   input: Partial<CancelItemsInput>,
@@ -21,6 +22,7 @@ export const CancelItemsController = async (
     }
 
     const res = await AuctionRepository.cancelItems(data);
+    void logActivity("UPDATE", "auction_inventory", data.auction_bidder_id, `Cancelled items for auction bidder`);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

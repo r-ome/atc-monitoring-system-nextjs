@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
@@ -39,6 +40,7 @@ export const HandleBidderPullOutController = async (
     }
 
     const res = await PaymentRepository.handleBidderPullOut(data);
+    void logActivity("CREATE", "payment", res.receipt_id, `Pull-out payment ₱${data.amount_to_be_paid.toLocaleString()} for bidder`);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

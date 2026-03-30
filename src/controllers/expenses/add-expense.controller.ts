@@ -12,6 +12,7 @@ import {
 import { err, ok } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 function presenter(expense: ExpenseWithBranchRow) {
   return {
@@ -48,6 +49,7 @@ export const AddExpenseController = async (
 
     const expense = await ExpensesRepository.addExpense(petty_cash_id, data);
     logger("AddExpenseController", { data, ...user_context }, "info");
+    void logActivity("CREATE", "expense", expense.expense_id, `Added expense ₱${data.amount} - ${data.remarks}`);
     return ok(presenter(expense));
   } catch (error) {
     if (error instanceof InputParseError) {

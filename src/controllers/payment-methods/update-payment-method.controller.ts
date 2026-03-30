@@ -6,6 +6,7 @@ import { updatePaymentMethodUseCase } from "src/application/use-cases/payment-me
 import { updatePaymentMethodSchema } from "src/entities/models/PaymentMethod";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { presentPaymentMethod } from "./create-payment-method.controller";
 
 export const UpdatePaymentMethodController = async (
@@ -26,6 +27,7 @@ export const UpdatePaymentMethodController = async (
       payment_method_id,
       data,
     );
+    void logActivity("UPDATE", "payment_method", payment_method_id, `Updated payment method ${payment_method.name}`);
     return ok(presentPaymentMethod(payment_method));
   } catch (error) {
     if (error instanceof InputParseError) {

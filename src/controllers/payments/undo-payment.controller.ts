@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
@@ -9,6 +10,7 @@ import { err, ok } from "src/entities/models/Result";
 export const UndoPaymentController = async (receipt_id: string) => {
   try {
     const res = await PaymentRepository.undoPayment(receipt_id);
+    void logActivity("DELETE", "payment", receipt_id, `Undid payment receipt ${receipt_id}`);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

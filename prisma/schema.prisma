@@ -121,17 +121,18 @@ model bidder_ban_histories {
 }
 
 model branches {
-  branch_id   String       @id @default(uuid())
-  name        String
-  created_at  DateTime     @default(now()) @db.Timestamp(0)
-  updated_at  DateTime     @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at  DateTime?
-  containers  containers[]
-  users       users[]
-  bidders     bidders[]
-  auctions    auctions[]
-  expenses    expenses[]
-  pettyCashes petty_cash[]
+  branch_id      String           @id @default(uuid())
+  name           String
+  created_at     DateTime         @default(now()) @db.Timestamp(0)
+  updated_at     DateTime         @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at     DateTime?
+  containers     containers[]
+  users          users[]
+  bidders        bidders[]
+  auctions       auctions[]
+  expenses       expenses[]
+  pettyCashes    petty_cash[]
+  activity_logs  activity_logs[]
 }
 
 model containers {
@@ -393,4 +394,27 @@ enum bidder_status {
 enum expense_purpose {
   ADD_PETTY_CASH
   EXPENSE
+}
+
+enum activity_action {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+model activity_logs {
+  activity_log_id String          @id @default(uuid())
+  username        String
+  branch_id       String
+  branch_name     String
+  action          activity_action
+  entity_type     String
+  entity_id       String
+  description     String          @db.Text
+  created_at      DateTime        @default(now()) @db.Timestamp(0)
+  branch          branches        @relation(fields: [branch_id], references: [branch_id])
+
+  @@index([branch_id])
+  @@index([created_at])
+  @@index([entity_type])
 }

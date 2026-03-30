@@ -7,6 +7,7 @@ import { err, ok } from "src/entities/models/Result";
 import { updateSupplierSchema } from "src/entities/models/Supplier";
 import { updateSupplierUseCase } from "src/application/use-cases/suppliers/update-supplier.use-case";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { presentSupplier } from "./create-supplier.controller";
 
 export const UpdateSupplierController = async (
@@ -24,6 +25,7 @@ export const UpdateSupplierController = async (
     }
 
     const supplier = await updateSupplierUseCase(supplier_id, data);
+    void logActivity("UPDATE", "supplier", supplier_id, `Updated supplier ${supplier.name}`);
     return ok(presentSupplier(supplier));
   } catch (error) {
     if (error instanceof InputParseError) {

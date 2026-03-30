@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
@@ -17,6 +18,7 @@ export const StartAuctionController = async (auction_date: string) => {
     const input = new Date(auction_date);
     const auction = await AuctionRepository.startAuction(input);
     logger("StartAuctionController", { auction_date, ...user_context }, "info");
+    void logActivity("CREATE", "auction", auction.auction_id, `Started auction on ${auction_date}`);
     return ok(presenter(auction));
   } catch (error) {
     logger("StartAuctionController", error, "error", user_context);

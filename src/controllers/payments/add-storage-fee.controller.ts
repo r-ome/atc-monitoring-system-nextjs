@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
@@ -23,6 +24,7 @@ export const AddStorageFeeController = async (
 
   try {
     await PaymentRepository.addStorageFee(parsed.data);
+    void logActivity("CREATE", "payment", parsed.data.parent_receipt_id, `Added storage fee ₱${parsed.data.amount.toLocaleString()}`);
     return ok(undefined);
   } catch (error) {
     if (error instanceof InputParseError) {

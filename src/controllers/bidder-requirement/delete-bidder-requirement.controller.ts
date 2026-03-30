@@ -2,6 +2,7 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { BidderRequirementRepository } from "src/infrastructure/di/repositories";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 export const DeleteBidderRequirementController = async (
   requirement_id: string,
@@ -9,6 +10,7 @@ export const DeleteBidderRequirementController = async (
   try {
     await BidderRequirementRepository.delete(requirement_id);
     logger("DeleteBidderRequirementController", { requirement_id }, "info");
+    void logActivity("DELETE", "bidder_requirement", requirement_id, `Deleted bidder requirement ${requirement_id}`);
     return ok(null);
   } catch (error) {
     logger("DeleteBidderRequirementController", error);

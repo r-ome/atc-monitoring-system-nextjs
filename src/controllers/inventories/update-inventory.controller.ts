@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { updateInventoryUseCase } from "src/application/use-cases/inventories/update-inventory.use-case";
 import {
   DatabaseOperationError,
@@ -31,6 +32,7 @@ export const UpdateInventoryController = async (
     }
 
     const updated = await updateInventoryUseCase(inventory_id, data);
+    void logActivity("UPDATE", "inventory", inventory_id, `Updated inventory ${updated.barcode}`);
     return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

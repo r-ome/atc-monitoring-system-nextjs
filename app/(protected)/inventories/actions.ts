@@ -19,13 +19,21 @@ export const getAuctionItemDetails = async (auctionInventoryId: string) => {
 };
 
 export const voidItems = async (formData: FormData) => {
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
   data.auction_inventories =
     typeof data.auction_inventories === "string"
       ? JSON.parse(data.auction_inventories as string)
       : [];
 
-  return await VoidItemsController(data);
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await VoidItemsController(data),
+  );
 };
 
 export const updateAuctionInventory = async (formData: FormData) => {
@@ -50,12 +58,21 @@ export const updateInventory = async (
   inventory_id: string,
   formData: FormData,
 ) => {
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
   data.control = formatNumberPadding(data.control as string, 4);
-  return await UpdateInventoryController(inventory_id, data);
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await UpdateInventoryController(inventory_id, data),
+  );
 };
 
 export const createInventory = async (formData: FormData) => {
+  const user = await requireUser();
   const data = Object.fromEntries(formData.entries());
   const container_barcode = data.barcode.toString().split("-");
 
@@ -66,7 +83,14 @@ export const createInventory = async (formData: FormData) => {
   }
   data.control = formatNumberPadding(data.control as string, 4);
   data.description = data.description.toString().toUpperCase();
-  return await CreateInventoryController(data);
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await CreateInventoryController(data),
+  );
 };
 
 export const uploadBoughtItems = async (
@@ -87,5 +111,13 @@ export const getInventoriesWithNoAuctionsInventories = async () => {
 };
 
 export const deleteInventory = async (inventory_id: string) => {
-  return await DeleteInventoryController(inventory_id);
+  const user = await requireUser();
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await DeleteInventoryController(inventory_id),
+  );
 };

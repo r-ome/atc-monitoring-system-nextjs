@@ -1,4 +1,5 @@
 // Wiring layer — all infrastructure implementations, re-exported as interface-typed constants
+export { ActivityLogRepository } from "../repositories/activity-logs.repository";
 export { AuctionRepository } from "../repositories/auctions.repository";
 export { BidderRequirementRepository } from "../repositories/bidder-requirement.repository";
 export { BidderBanHistoryRepository } from "../repositories/bidder-ban-history.repository";

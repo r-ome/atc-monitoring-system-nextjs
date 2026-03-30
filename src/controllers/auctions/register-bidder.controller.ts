@@ -9,6 +9,7 @@ import {
 import { registerBidderUseCase } from "src/application/use-cases/auctions/register-bidder.use-case";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 export const RegisterBidderController = async (
   input: Partial<RegisterBidderInput>,
@@ -39,6 +40,7 @@ export const RegisterBidderController = async (
     }
 
     const res = await registerBidderUseCase(data);
+    void logActivity("CREATE", "auction_bidder", res.auction_bidder_id, `Registered bidder to auction`);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

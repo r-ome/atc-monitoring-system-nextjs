@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { InventoryRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
@@ -22,6 +23,7 @@ export const MergeInventoriesController = async (
     }
 
     await InventoryRepository.mergeInventories(data);
+    void logActivity("UPDATE", "inventory", "bulk", `Merged inventories into container`);
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

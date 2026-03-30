@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { InventoryRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
@@ -10,6 +11,7 @@ import { ok, err } from "src/entities/models/Result";
 export const DeleteInventoryController = async (inventory_id: string) => {
   try {
     await InventoryRepository.deleteInventory(inventory_id);
+    void logActivity("DELETE", "inventory", inventory_id, `Deleted inventory ${inventory_id}`);
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

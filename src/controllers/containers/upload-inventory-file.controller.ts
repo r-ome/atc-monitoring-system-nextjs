@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { getInventorySheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadInventoryFileUseCase } from "src/application/use-cases/containers/upload-inventory-file.use-case";
 import {
@@ -49,6 +50,7 @@ export const UploadInventoryFileController = async (
     }
 
     await uploadInventoryFileUseCase(barcode, data);
+    void logActivity("CREATE", "inventory", barcode, `Uploaded inventory file for container ${barcode} (${data.length} items)`);
     return ok({ success: true });
   } catch (error) {
     if (error instanceof InputParseError) {
