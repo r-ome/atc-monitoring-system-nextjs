@@ -10,6 +10,8 @@ import { registerBidderUseCase } from "src/application/use-cases/auctions/regist
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { formatDate } from "@/app/lib/utils";
+import { AuctionRepository, BidderRepository } from "src/infrastructure/di/repositories";
 
 export const RegisterBidderController = async (
   input: Partial<RegisterBidderInput>,
@@ -40,7 +42,18 @@ export const RegisterBidderController = async (
     }
 
     const res = await registerBidderUseCase(data);
-    await logActivity("CREATE", "auction_bidder", res.auction_bidder_id, `Registered bidder to auction`);
+
+    const [auction, bidder] = await Promise.all([
+      AuctionRepository.getAuctionById(data.auction_id),
+      BidderRepository.getBidder(data.bidder_id),
+    ]);
+    const auctionDate = auction ? formatDate(auction.created_at, "MMM dd, yyyy") : data.auction_id;
+    await logActivity(
+      "CREATE",
+      "auction_bidder",
+      res.auction_bidder_id,
+      `Registered bidder ${bidder.bidder_number} to auction on ${auctionDate}`,
+    );
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

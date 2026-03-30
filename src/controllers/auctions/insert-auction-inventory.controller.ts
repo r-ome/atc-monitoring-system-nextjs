@@ -1,6 +1,8 @@
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { formatDate } from "@/app/lib/utils";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { uploadManifestUseCase } from "src/application/use-cases/auctions/upload-manifest.use-case";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { ManifestSheetRecord } from "src/entities/models/Manifest";
@@ -13,11 +15,18 @@ export const InsertAuctionInventoryController = async (
   const ctx = RequestContext.getStore();
 
   try {
-    const res = await uploadManifestUseCase(auction_id, [
-      input as ManifestSheetRecord,
-    ], false, ctx?.username);
+    const [res, auction] = await Promise.all([
+      uploadManifestUseCase(auction_id, [input as ManifestSheetRecord], false, ctx?.username),
+      AuctionRepository.getAuctionById(auction_id),
+    ]);
 
-    await logActivity("CREATE", "auction_inventory", auction_id, `Inserted inventory item into auction`);
+    const auctionDate = auction ? formatDate(auction.created_at, "MMM dd, yyyy") : auction_id;
+    await logActivity(
+      "CREATE",
+      "auction_inventory",
+      `${input.BARCODE}-${input.CONTROL}`,
+      `Inserted inventory item into auction on ${auctionDate}: barcode: ${input.BARCODE}, control: ${input.CONTROL}`,
+    );
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
     logger("InsertAuctionInventoryController", error);

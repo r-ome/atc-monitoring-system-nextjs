@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { PaymentRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
@@ -39,9 +40,14 @@ export const RefundAuctionsInventoriesController = async (
       });
     }
 
-    const res = await PaymentRepository.refundAuctionInventories(data);
-
-    return ok(res);
+    await PaymentRepository.refundAuctionInventories(data);
+    await logActivity(
+      "UPDATE",
+      "auction_inventory",
+      data.auction_bidder_id,
+      `Refunded ${data.auction_inventories.length} item(s): ${data.reason}`,
+    );
+    return ok(undefined);
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("RefundAuctionsInventoriesController", error, "warn");

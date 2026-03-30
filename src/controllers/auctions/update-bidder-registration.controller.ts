@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { AuctionRepository } from "src/infrastructure/di/repositories";
 import {
   InputParseError,
@@ -24,9 +25,16 @@ export const UpdateBidderRegistrationController = async (
       });
     }
 
+    const current = await AuctionRepository.getRegisteredBidderById(auction_bidder_id);
     const auction_bidder = await AuctionRepository.updateBidderRegistration(
       auction_bidder_id,
       data,
+    );
+    await logActivity(
+      "UPDATE",
+      "auction_bidder",
+      auction_bidder_id,
+      `Updated bidder registration fee from ₱${current?.registration_fee.toLocaleString() ?? "?"} to ₱${data.registration_fee.toLocaleString()}`,
     );
     return ok(auction_bidder);
   } catch (error) {

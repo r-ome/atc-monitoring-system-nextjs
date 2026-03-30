@@ -10,6 +10,9 @@ import {
 } from "src/entities/errors/common";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
+import { formatDate } from "@/app/lib/utils";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 
 export const UpdateAuctionItemController = async (
@@ -27,8 +30,17 @@ export const UpdateAuctionItemController = async (
       });
     }
 
-    const res = await updateAuctionItemUseCase(data, ctx?.username);
-    return ok(res);
+    await updateAuctionItemUseCase(data, ctx?.username);
+
+    const auction = await AuctionRepository.getAuctionById(data.auction_id);
+    const auctionDate = auction ? formatDate(auction.created_at, "MMM dd, yyyy") : data.auction_id;
+    await logActivity(
+      "UPDATE",
+      "auction_inventory",
+      `${data.barcode}-${data.control}`,
+      `Updated auction item barcode: ${data.barcode}, control: ${data.control} on ${auctionDate}`,
+    );
+    return ok(undefined);
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateAuctionItemController", error, "warn");

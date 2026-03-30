@@ -4,6 +4,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { StatusBadge } from "@/app/components/admin";
 import { ActivityLog, ActivityAction } from "src/entities/models/ActivityLog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 function actionVariant(action: ActivityAction) {
   if (action === "CREATE") return "success";
@@ -40,12 +45,24 @@ const columns: ColumnDef<ActivityLog>[] = [
     accessorKey: "entity_type",
     header: "Entity",
     cell: ({ row }) => (
-      <span className="capitalize">{row.original.entity_type.replace(/_/g, " ")}</span>
+      <span className="capitalize">
+        {row.original.entity_type.replace(/_/g, " ")}
+      </span>
     ),
   },
   {
     accessorKey: "description",
     header: "Description",
+    cell: ({ row }) => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="truncate">
+            <span>{row.original.description}</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>{row.original.description}</TooltipContent>
+      </Tooltip>
+    ),
   },
 ];
 

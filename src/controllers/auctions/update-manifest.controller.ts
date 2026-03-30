@@ -41,7 +41,7 @@ export const UpdateManifestController = async (
     }
 
     const updated = await updateManifestUseCase(auction_id, manifest_id, data);
-    await logActivity("UPDATE", "manifest", manifest_id, `Updated manifest record ${manifest_id}`);
+    await logActivity("UPDATE", "manifest", `${updated.barcode}-${updated.control}`, `Updated manifest record barcode: ${updated.barcode}, control: ${updated.control}`);
     return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

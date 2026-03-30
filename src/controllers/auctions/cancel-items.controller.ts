@@ -22,7 +22,7 @@ export const CancelItemsController = async (
     }
 
     const res = await AuctionRepository.cancelItems(data);
-    await logActivity("UPDATE", "auction_inventory", data.auction_bidder_id, `Cancelled items for auction bidder`);
+    await logActivity("UPDATE", "auction_inventory", data.auction_bidder_id, `Cancelled ${data.auction_inventory_ids.length} item(s): ${data.reason}`);
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {
