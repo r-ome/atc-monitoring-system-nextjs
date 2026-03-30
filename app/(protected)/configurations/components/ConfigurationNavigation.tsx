@@ -28,7 +28,7 @@ export const ConfigurationNavigation = () => {
       title: "Activity Logs",
       link: "activity-logs",
       description: "View audit trail of all user actions",
-      not_allowed_roles: ["CASHIER", "ENCODER", "OWNER", "ADMIN", "MODERATOR"],
+      not_allowed_roles: ["CASHIER", "ENCODER", "ADMIN", "MODERATOR"],
     },
   ];
 
@@ -39,8 +39,8 @@ export const ConfigurationNavigation = () => {
           className={cn(
             "w-full cursor-pointer shadow-sm hover:shadow-md",
             item.not_allowed_roles?.includes(
-              session.data?.user.role as string
-            ) && "hidden"
+              session.data?.user.role as string,
+            ) && "hidden",
           )}
           key={i}
           onClick={() => router.push(`${pathname}/${item.link}`)}
