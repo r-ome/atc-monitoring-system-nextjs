@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { StatusBadge } from "@/app/components/admin";
@@ -12,6 +13,8 @@ import {
 } from "@/app/components/ui/tooltip";
 import { SearchComponent } from "@/app/components/data-table/SearchComponent";
 import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
+import { Button } from "@/app/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 function actionVariant(action: ActivityAction) {
   if (action === "CREATE") return "success";
@@ -74,6 +77,8 @@ interface ActivityLogsTableProps {
 }
 
 export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
   const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -112,7 +117,7 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2 md:flex-row">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center">
         <div className="w-full md:w-2/4">
           <SearchComponent
             value={search}
@@ -130,6 +135,15 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
           onChangeEvent={setSelectedUsers}
           placeholder="Filter by user"
         />
+        <Button
+          variant="outline"
+          size="icon"
+          disabled={isPending}
+          onClick={() => startTransition(() => router.refresh())}
+          title="Refresh"
+        >
+          <RefreshCw className={isPending ? "animate-spin" : ""} />
+        </Button>
       </div>
       <DataTable columns={columns} data={filtered} />
     </div>
