@@ -52,7 +52,8 @@ export const UpdateExpenseController = async (
 
     const expense = await ExpensesRepository.updateExpense(expense_id, data);
     logger("UpdateExpenseController", { data, ...user_context }, "info");
-    await logActivity("UPDATE", "expense", expense_id, `Updated expense to ₱${data.amount} - ${data.remarks}`);
+    const expenseDate = formatDate(expense.created_at, "MMMM dd, yyyy");
+    await logActivity("UPDATE", "expense", expense_id, `Updated expense to ₱${data.amount} - ${data.remarks} (${expenseDate})`);
     return ok(presenter(expense));
   } catch (error) {
     if (error instanceof InputParseError) {
