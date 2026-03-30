@@ -26,7 +26,7 @@ export interface IExpenseRepository {
   updateExpense: (
     expense_id: string,
     data: UpdateExpenseInput,
-  ) => Promise<ExpenseWithBranchRow>;
+  ) => Promise<{ updated: ExpenseWithBranchRow; previous: { amount: number; remarks: string | null } }>;
   updatePettyCash: (
     petty_cash_id: string,
     data: CreatePettyCashInput,

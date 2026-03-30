@@ -259,6 +259,8 @@ export const ExpensesRepository: IExpenseRepository = {
   updateExpense: async (expense_id, data) => {
     try {
       return await prisma.$transaction(async (tx) => {
+        const previous_expense = await tx.expenses.findFirst({ where: { expense_id } });
+
         const updated_expense = await tx.expenses.update({
           include: { branch: true },
           where: { expense_id },
@@ -285,7 +287,10 @@ export const ExpensesRepository: IExpenseRepository = {
           updated_expense.branch_id,
         );
 
-        return updated_expense;
+        return {
+          updated: updated_expense,
+          previous: { amount: previous_expense?.amount.toNumber() ?? 0, remarks: previous_expense?.remarks ?? null },
+        };
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

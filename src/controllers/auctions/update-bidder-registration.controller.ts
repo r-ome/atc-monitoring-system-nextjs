@@ -34,7 +34,7 @@ export const UpdateBidderRegistrationController = async (
       "UPDATE",
       "auction_bidder",
       auction_bidder_id,
-      `Updated bidder registration fee from ₱${current?.registration_fee.toLocaleString() ?? "?"} to ₱${data.registration_fee.toLocaleString()}`,
+      `Updated bidder registration — Fee: ₱${current?.registration_fee.toLocaleString() ?? "?"} → ₱${data.registration_fee.toLocaleString()} | Service charge: ₱${current?.service_charge.toLocaleString() ?? "?"} → ₱${data.service_charge.toLocaleString()}`,
     );
     return ok(auction_bidder);
   } catch (error) {

@@ -25,7 +25,7 @@ export const InsertAuctionInventoryController = async (
       "CREATE",
       "auction_inventory",
       `${input.BARCODE}-${input.CONTROL}`,
-      `Inserted inventory item into auction on ${auctionDate}: barcode: ${input.BARCODE}, control: ${input.CONTROL}`,
+      `ADD ON into auction on ${auctionDate}: barcode: ${input.BARCODE}, control: ${input.CONTROL}`,
     );
     return ok(`${res.length} records uploaded!`);
   } catch (error) {

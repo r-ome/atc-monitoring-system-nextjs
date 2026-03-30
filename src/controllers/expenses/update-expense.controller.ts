@@ -50,11 +50,11 @@ export const UpdateExpenseController = async (
       });
     }
 
-    const expense = await ExpensesRepository.updateExpense(expense_id, data);
+    const { updated, previous } = await ExpensesRepository.updateExpense(expense_id, data);
     logger("UpdateExpenseController", { data, ...user_context }, "info");
-    const expenseDate = formatDate(expense.created_at, "MMMM dd, yyyy");
-    await logActivity("UPDATE", "expense", expense_id, `Updated expense to ₱${data.amount} - ${data.remarks} (${expenseDate})`);
-    return ok(presenter(expense));
+    const expenseDate = formatDate(updated.created_at, "MMMM dd, yyyy");
+    await logActivity("UPDATE", "expense", expense_id, `Updated expense (${expenseDate}) — Amount: ₱${previous.amount} → ₱${data.amount} | Remarks: ${previous.remarks} → ${data.remarks}`);
+    return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateExpenseController", error, "warn");
