@@ -30,5 +30,9 @@ export interface IContainerRepository {
   uploadInventoryFile: (
     rows: CreateInventoryInput[],
   ) => Promise<{ count: number }>;
+  updateContainerStatus: (
+    container_id: string,
+    status: "PAID" | "UNPAID",
+  ) => Promise<ContainerRow>;
   deleteContainer: (container_id: string) => Promise<ContainerRow>;
 }

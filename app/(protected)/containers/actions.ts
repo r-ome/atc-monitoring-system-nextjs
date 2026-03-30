@@ -5,6 +5,7 @@ import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { CreateContainerController } from "src/controllers/containers/create-container.controller";
 import { GetContainersController } from "src/controllers/containers/get-containers.controller";
 import { UpdateContainerController } from "src/controllers/containers/update-container.controller";
+import { UpdateContainerStatusController } from "src/controllers/containers/update-container-status.controller";
 import { GetContainerByBarcodeController } from "src/controllers/containers/get-container-by-barcode.controller";
 import { UploadInventoryFileController } from "src/controllers/containers/upload-inventory-file.controller";
 import { DeleteContainerController } from "src/controllers/containers/delete-container.controller";
@@ -64,6 +65,21 @@ export const uploadInventoryFile = async (
       branch_name: user.branch.name ?? "",
     },
     async () => await UploadInventoryFileController(barcode, file as File),
+  );
+};
+
+export const updateContainerStatus = async (
+  container_id: string,
+  status: "PAID" | "UNPAID",
+) => {
+  const user = await requireUser();
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => await UpdateContainerStatusController(container_id, status),
   );
 };
 

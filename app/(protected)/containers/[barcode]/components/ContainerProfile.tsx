@@ -5,6 +5,7 @@ import {
 import { Separator } from "@/app/components/ui/separator";
 import { Container } from "src/entities/models/Container";
 import { UpdateContainerModal } from "./UpdateContainerModal";
+import { UpdateContainerStatusButton } from "./UpdateContainerStatusButton";
 import { DeleteContainerModal } from "./DeleteContainerModal";
 
 type Field =
@@ -96,6 +97,10 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
         <div className="flex h-full items-center justify-between gap-4 p-6">
           <span className="font-semibold">Container: {container.barcode}</span>
           <div className="flex gap-2">
+            <UpdateContainerStatusButton
+              container_id={container.container_id}
+              status={container.status}
+            />
             <UpdateContainerModal container={container} />
             <DeleteContainerModal container={container} />
           </div>

@@ -252,6 +252,22 @@ export const ContainerRepository: IContainerRepository = {
       throw error;
     }
   },
+  updateContainerStatus: async (container_id, status) => {
+    try {
+      return await prisma.containers.update({
+        where: { container_id },
+        data: { status },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error updating container status!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
   deleteContainer: async (container_id) => {
     try {
       return await prisma.containers.delete({
