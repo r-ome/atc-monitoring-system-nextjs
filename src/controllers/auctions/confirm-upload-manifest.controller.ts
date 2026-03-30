@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
@@ -16,6 +17,7 @@ export const ConfirmUploadManifestController = async (
     const res = await AuctionRepository.uploadManifest(auction_id, data, false, ctx?.username);
 
     logger("ConfirmUploadManifestController", { auction_id, records: res.length, ...user_context }, "info");
+    await logActivity("CREATE", "manifest", auction_id, `Confirmed manifest upload: ${res.length} records`);
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
     logger("ConfirmUploadManifestController", error, "error", user_context);

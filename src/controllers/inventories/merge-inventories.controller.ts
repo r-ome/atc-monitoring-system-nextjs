@@ -23,7 +23,7 @@ export const MergeInventoriesController = async (
     }
 
     await InventoryRepository.mergeInventories(data);
-    void logActivity("UPDATE", "inventory", "bulk", `Merged inventories into container`);
+    await logActivity("UPDATE", "inventory", "bulk", `Merged inventories into container`);
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

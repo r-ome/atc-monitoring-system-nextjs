@@ -1,6 +1,6 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -12,6 +12,8 @@ import { FullScreenCalendar } from "@/app/components/fullscreen-calendar/fullscr
 import { formatDate } from "@/app/lib/utils";
 
 export default function Page() {
+  const router = useRouter();
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -22,7 +24,7 @@ export default function Page() {
         <FullScreenCalendar
           onDayClick={(date) => {
             const formattedDate = formatDate(date, "yyyy-MM-dd");
-            redirect(`/configurations/activity-logs/${formattedDate}`);
+            router.push(`/configurations/activity-logs/${formattedDate}`);
           }}
         />
       </CardContent>

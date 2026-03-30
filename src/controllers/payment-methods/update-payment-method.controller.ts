@@ -27,7 +27,7 @@ export const UpdatePaymentMethodController = async (
       payment_method_id,
       data,
     );
-    void logActivity("UPDATE", "payment_method", payment_method_id, `Updated payment method ${payment_method.name}`);
+    await logActivity("UPDATE", "payment_method", payment_method_id, `Updated payment method ${payment_method.name}`);
     return ok(presentPaymentMethod(payment_method));
   } catch (error) {
     if (error instanceof InputParseError) {

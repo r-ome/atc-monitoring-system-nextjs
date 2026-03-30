@@ -1,4 +1,5 @@
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadManifestUseCase } from "src/application/use-cases/auctions/upload-manifest.use-case";
@@ -65,6 +66,7 @@ export const UploadManifestController = async (
     );
 
     logger("UploadManifestController", { auction_id, records: res.length, ...user_context }, "info");
+    await logActivity("CREATE", "manifest", auction_id, `Uploaded manifest: ${res.length} records`);
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
     if (error instanceof InputParseError || error instanceof NotFoundError) {

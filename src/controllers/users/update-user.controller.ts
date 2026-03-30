@@ -31,7 +31,7 @@ export const UpdateUserController = async (
     }
 
     const created = await UserRepository.updateUser(user_id, data);
-    void logActivity("UPDATE", "user", user_id, `Updated user ${created.username}`);
+    await logActivity("UPDATE", "user", user_id, `Updated user ${created.username}`);
     return ok(presenter(created));
   } catch (error) {
     if (error instanceof InputParseError) {

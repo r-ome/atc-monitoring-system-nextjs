@@ -17,7 +17,7 @@ export const InsertAuctionInventoryController = async (
       input as ManifestSheetRecord,
     ], false, ctx?.username);
 
-    void logActivity("CREATE", "auction_inventory", auction_id, `Inserted inventory item into auction`);
+    await logActivity("CREATE", "auction_inventory", auction_id, `Inserted inventory item into auction`);
     return ok(`${res.length} records uploaded!`);
   } catch (error) {
     logger("InsertAuctionInventoryController", error);

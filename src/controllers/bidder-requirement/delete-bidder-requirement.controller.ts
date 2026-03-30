@@ -10,7 +10,7 @@ export const DeleteBidderRequirementController = async (
   try {
     await BidderRequirementRepository.delete(requirement_id);
     logger("DeleteBidderRequirementController", { requirement_id }, "info");
-    void logActivity("DELETE", "bidder_requirement", requirement_id, `Deleted bidder requirement ${requirement_id}`);
+    await logActivity("DELETE", "bidder_requirement", requirement_id, `Deleted bidder requirement ${requirement_id}`);
     return ok(null);
   } catch (error) {
     logger("DeleteBidderRequirementController", error);

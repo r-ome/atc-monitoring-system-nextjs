@@ -37,7 +37,7 @@ export const CreatePaymentMethodController = async (
     }
 
     const payment_method = await createPaymentMethodUseCase(data);
-    void logActivity("CREATE", "payment_method", payment_method.payment_method_id, `Created payment method ${payment_method.name}`);
+    await logActivity("CREATE", "payment_method", payment_method.payment_method_id, `Created payment method ${payment_method.name}`);
     return ok(presentPaymentMethod(payment_method));
   } catch (error) {
     if (error instanceof InputParseError) {

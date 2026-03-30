@@ -10,7 +10,7 @@ import { logActivity } from "@/app/lib/log-activity";
 export const DeleteContainerController = async (container_id: string) => {
   try {
     const container = await ContainerRepository.deleteContainer(container_id);
-    void logActivity("DELETE", "container", container_id, `Deleted container ${container.barcode}`);
+    await logActivity("DELETE", "container", container_id, `Deleted container ${container.barcode}`);
     return ok(container);
   } catch (error) {
     if (error instanceof NotFoundError) {

@@ -50,7 +50,7 @@ export const UploadInventoryFileController = async (
     }
 
     await uploadInventoryFileUseCase(barcode, data);
-    void logActivity("CREATE", "inventory", barcode, `Uploaded inventory file for container ${barcode} (${data.length} items)`);
+    await logActivity("CREATE", "inventory", barcode, `Uploaded inventory file for container ${barcode} (${data.length} items)`);
     return ok({ success: true });
   } catch (error) {
     if (error instanceof InputParseError) {

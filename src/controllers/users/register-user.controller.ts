@@ -30,7 +30,7 @@ export const RegisterUserController = async (
     }
 
     const created = await registerUserUseCase(data);
-    void logActivity("CREATE", "user", created.user_id, `Registered user ${created.username} (${created.role})`);
+    await logActivity("CREATE", "user", created.user_id, `Registered user ${created.username} (${created.role})`);
     return ok(presenter(created));
   } catch (error) {
     if (error instanceof InputParseError) {

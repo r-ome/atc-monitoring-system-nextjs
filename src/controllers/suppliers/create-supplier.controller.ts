@@ -37,7 +37,7 @@ export const CreateSupplierController = async (
     }
 
     const supplier = await SupplierRepository.createSupplier(data);
-    void logActivity("CREATE", "supplier", supplier.supplier_id, `Created supplier ${supplier.name}`);
+    await logActivity("CREATE", "supplier", supplier.supplier_id, `Created supplier ${supplier.name}`);
     return ok(presentSupplier(supplier));
   } catch (error) {
     if (error instanceof InputParseError) {

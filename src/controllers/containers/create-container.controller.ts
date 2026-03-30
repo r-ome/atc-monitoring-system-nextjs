@@ -61,7 +61,7 @@ export const CreateContainerController = async (
 
     const container = await createContainerUseCase(data);
     logger("CreateContainerController", { data, ...user_context }, "info");
-    void logActivity("CREATE", "container", container.container_id, `Added container ${container.barcode}`);
+    await logActivity("CREATE", "container", container.container_id, `Added container ${container.barcode}`);
     return ok(presentContainer(container));
   } catch (error) {
     if (error instanceof InputParseError) {

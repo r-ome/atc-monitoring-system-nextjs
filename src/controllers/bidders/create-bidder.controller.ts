@@ -52,7 +52,7 @@ export const CreateBidderController = async (
 
     const bidder = await createBidderUseCase(data);
     logger("CreateBidderController", { data, ...user_context }, "info");
-    void logActivity("CREATE", "bidder", bidder.bidder_id, `Created bidder #${bidder.bidder_number} (${bidder.first_name} ${bidder.last_name})`);
+    await logActivity("CREATE", "bidder", bidder.bidder_id, `Created bidder #${bidder.bidder_number} (${bidder.first_name} ${bidder.last_name})`);
     return ok(presentBidder(bidder));
   } catch (error) {
     if (error instanceof InputParseError) {

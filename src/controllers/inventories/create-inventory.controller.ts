@@ -31,7 +31,7 @@ export const CreateInventoryController = async (
     }
 
     const updated = await createInventoryUseCase(data);
-    void logActivity("CREATE", "inventory", updated.inventory_id, `Created inventory ${updated.barcode}`);
+    await logActivity("CREATE", "inventory", updated.inventory_id, `Created inventory ${updated.barcode}`);
     return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

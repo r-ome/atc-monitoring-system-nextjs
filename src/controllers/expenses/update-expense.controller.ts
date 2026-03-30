@@ -52,7 +52,7 @@ export const UpdateExpenseController = async (
 
     const expense = await ExpensesRepository.updateExpense(expense_id, data);
     logger("UpdateExpenseController", { data, ...user_context }, "info");
-    void logActivity("UPDATE", "expense", expense_id, `Updated expense to ₱${data.amount} - ${data.remarks}`);
+    await logActivity("UPDATE", "expense", expense_id, `Updated expense to ₱${data.amount} - ${data.remarks}`);
     return ok(presenter(expense));
   } catch (error) {
     if (error instanceof InputParseError) {

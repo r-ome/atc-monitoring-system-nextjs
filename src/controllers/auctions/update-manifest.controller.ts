@@ -6,6 +6,7 @@ import {
 import { err, ok } from "src/entities/models/Result";
 import { updateManifestUseCase } from "src/application/use-cases/auctions/update-manifest.use-case";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import {
   updateManifestSchema,
   UpdateManifestInput,
@@ -40,6 +41,7 @@ export const UpdateManifestController = async (
     }
 
     const updated = await updateManifestUseCase(auction_id, manifest_id, data);
+    await logActivity("UPDATE", "manifest", manifest_id, `Updated manifest record ${manifest_id}`);
     return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

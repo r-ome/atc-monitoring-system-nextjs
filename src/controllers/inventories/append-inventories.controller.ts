@@ -14,7 +14,7 @@ export const AppendInventoriesController = async (
 ) => {
   try {
     await appendInventoriesUseCase(container_barcode, inventory_ids);
-    void logActivity("UPDATE", "inventory", container_barcode, `Appended ${inventory_ids.length} inventories to container ${container_barcode}`);
+    await logActivity("UPDATE", "inventory", container_barcode, `Appended ${inventory_ids.length} inventories to container ${container_barcode}`);
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

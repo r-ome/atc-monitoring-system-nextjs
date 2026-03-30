@@ -70,7 +70,7 @@ export const UploadBiddersController = async (
     );
 
     logger("StartAuctionController", { ...user_context }, "info");
-    void logActivity("CREATE", "bidder", "bulk", `Bulk uploaded ${res.count} bidders`);
+    await logActivity("CREATE", "bidder", "bulk", `Bulk uploaded ${res.count} bidders`);
     return ok(`${res.count} records uploaded!`);
   } catch (error) {
     if (error instanceof InputParseError) {

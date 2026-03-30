@@ -25,7 +25,7 @@ export const UpdateSupplierController = async (
     }
 
     const supplier = await updateSupplierUseCase(supplier_id, data);
-    void logActivity("UPDATE", "supplier", supplier_id, `Updated supplier ${supplier.name}`);
+    await logActivity("UPDATE", "supplier", supplier_id, `Updated supplier ${supplier.name}`);
     return ok(presentSupplier(supplier));
   } catch (error) {
     if (error instanceof InputParseError) {
