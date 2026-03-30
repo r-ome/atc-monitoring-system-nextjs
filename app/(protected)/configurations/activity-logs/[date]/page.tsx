@@ -18,7 +18,8 @@ export default async function Page({
   const { date } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/");
-  if (session.user.role !== "SUPER_ADMIN") redirect("/configurations");
+  if (!["SUPER_ADMIN", "OWNER"].includes(session.user.role))
+    redirect("/configurations");
 
   const res = await getActivityLogs(date);
 
