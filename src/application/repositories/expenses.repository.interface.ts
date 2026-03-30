@@ -31,7 +31,7 @@ export interface IExpenseRepository {
     petty_cash_id: string,
     data: CreatePettyCashInput,
   ) => Promise<PettyCashWithBranchRow>;
-  deleteExpense: (expense_id: string) => Promise<void>;
+  deleteExpense: (expense_id: string) => Promise<{ amount: number; remarks: string | null; created_at: Date }>;
   recalculatePettyCash: (petty_cash: PettyCash) => Promise<void>;
   checkConsistency: (
     branch_id: string,

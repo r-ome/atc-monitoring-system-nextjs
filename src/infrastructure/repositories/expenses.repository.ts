@@ -336,7 +336,7 @@ export const ExpensesRepository: IExpenseRepository = {
 
   deleteExpense: async (expense_id) => {
     try {
-      await prisma.$transaction(async (tx) => {
+      return await prisma.$transaction(async (tx) => {
         const expense = await tx.expenses.findFirst({ where: { expense_id } });
 
         if (!expense)
@@ -359,6 +359,8 @@ export const ExpensesRepository: IExpenseRepository = {
           petty_cash.petty_cash_id,
           expense.branch_id,
         );
+
+        return { amount: expense.amount.toNumber(), remarks: expense.remarks, created_at: expense.created_at };
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

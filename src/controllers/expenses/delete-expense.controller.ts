@@ -4,6 +4,7 @@ import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { formatDate } from "@/app/lib/utils";
 
 export const DeleteExpenseController = async (expense_id: string) => {
   const ctx = RequestContext.getStore();
@@ -12,9 +13,10 @@ export const DeleteExpenseController = async (expense_id: string) => {
     branch_name: ctx?.branch_name,
   };
   try {
-    await ExpensesRepository.deleteExpense(expense_id);
+    const deleted = await ExpensesRepository.deleteExpense(expense_id);
     logger("DeleteExpenseController", { ...user_context }, "info");
-    await logActivity("DELETE", "expense", expense_id, `Deleted expense ${expense_id}`);
+    const expenseDate = formatDate(deleted.created_at, "MMMM dd, yyyy");
+    await logActivity("DELETE", "expense", expense_id, `Deleted expense ₱${deleted.amount} - ${deleted.remarks} (${expenseDate})`);
     return ok({ message: "expense deleted" });
   } catch (error) {
     logger("DeleteExpenseController", error);

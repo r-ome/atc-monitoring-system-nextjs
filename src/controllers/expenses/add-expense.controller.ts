@@ -49,7 +49,8 @@ export const AddExpenseController = async (
 
     const expense = await ExpensesRepository.addExpense(petty_cash_id, data);
     logger("AddExpenseController", { data, ...user_context }, "info");
-    await logActivity("CREATE", "expense", expense.expense_id, `Added expense ₱${data.amount} - ${data.remarks}`);
+    const expenseDate = formatDate(expense.created_at, "MMMM dd, yyyy");
+    await logActivity("CREATE", "expense", expense.expense_id, `Added expense ₱${data.amount} - ${data.remarks} (${expenseDate})`);
     return ok(presenter(expense));
   } catch (error) {
     if (error instanceof InputParseError) {
