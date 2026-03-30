@@ -717,7 +717,7 @@ export const AuctionRepository: IAuctionRepository = {
   },
   cancelItems: async (data) => {
     try {
-      await prisma.$transaction(async (tx) => {
+      return await prisma.$transaction(async (tx) => {
         const bidder = await tx.auctions_bidders.findFirst({
           where: { auction_bidder_id: data.auction_bidder_id },
           include: { bidder: true },
@@ -791,7 +791,7 @@ export const AuctionRepository: IAuctionRepository = {
                     inventory_id: paid_item.inventory_id,
                     auction_status: "CANCELLED",
                     inventory_status: "UNSOLD",
-                    remarks: `REFUNDED: ${data.reason}`,
+                    remarks: `REFUNDED from bidder #${bidder.bidder.bidder_number} (${bidder.bidder.first_name} ${bidder.bidder.last_name}): ${data.reason}`,
                   })),
                 },
               },
@@ -829,12 +829,18 @@ export const AuctionRepository: IAuctionRepository = {
                   inventory_id: auction_inventory.inventory_id,
                   auction_status: "CANCELLED",
                   inventory_status: "UNSOLD",
-                  remarks: data.reason,
+                  remarks: `Cancelled from bidder #${bidder.bidder.bidder_number} (${bidder.bidder.first_name} ${bidder.bidder.last_name}): ${data.reason}`,
                 },
               }),
             ),
           );
         }
+
+        return {
+          bidder_number: bidder.bidder.bidder_number,
+          first_name: bidder.bidder.first_name,
+          last_name: bidder.bidder.last_name,
+        };
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

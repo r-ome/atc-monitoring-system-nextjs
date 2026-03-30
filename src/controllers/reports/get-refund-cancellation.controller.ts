@@ -15,12 +15,21 @@ function resolveOriginalBidder(row: RefundCancellationRow): {
   // If current holder is 5013, look through histories for the original bidder
   if (currentBidder.bidder_number === ATC_DEFAULT_BIDDER_NUMBER) {
     for (const history of row.histories) {
+      // Paid items: trace via receipt → auction_bidder
       const historyBidder = history.receipt?.auction_bidder?.bidder;
       if (historyBidder && historyBidder.bidder_number !== ATC_DEFAULT_BIDDER_NUMBER) {
         return {
           bidder_number: historyBidder.bidder_number,
           bidder_name: `${historyBidder.first_name} ${historyBidder.last_name}`,
         };
+      }
+
+      // Unpaid items: parse from remarks (e.g. "Cancelled from bidder #5013 (John Doe): REASON")
+      if (!history.receipt && history.remarks) {
+        const match = history.remarks.match(/^Cancelled from bidder #(\S+) \((.+?)\):/);
+        if (match) {
+          return { bidder_number: match[1], bidder_name: match[2] };
+        }
       }
     }
   }
@@ -29,6 +38,22 @@ function resolveOriginalBidder(row: RefundCancellationRow): {
     bidder_number: currentBidder.bidder_number,
     bidder_name: `${currentBidder.first_name} ${currentBidder.last_name}`,
   };
+}
+
+function resolveReason(row: RefundCancellationRow): string {
+  for (const history of row.histories) {
+    if (history.auction_status !== "CANCELLED") continue;
+    // Paid items: receipt.remarks contains the raw reason
+    if (history.receipt?.remarks) return history.receipt.remarks;
+    // Unpaid items (new format): parse reason after the bidder prefix
+    if (history.remarks) {
+      const match = history.remarks.match(/^(?:Cancelled|REFUNDED) from bidder #\S+ \(.+?\): (.+)$/);
+      if (match) return match[1];
+      // Old format: remarks IS the reason
+      return history.remarks;
+    }
+  }
+  return "";
 }
 
 function presenter(rows: RefundCancellationRow[]): RefundCancellationEntry[] {
@@ -40,8 +65,11 @@ function presenter(rows: RefundCancellationRow[]): RefundCancellationEntry[] {
       bidder_number,
       bidder_name,
       description: row.description,
+      barcode: row.inventory.barcode,
+      control: row.inventory.control,
       price: row.price,
       status: row.status,
+      reason: resolveReason(row),
     };
   });
 }

@@ -6,6 +6,11 @@ import { RefundCancellationEntry } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 const columns: ColumnDef<RefundCancellationEntry>[] = [
   {
@@ -44,7 +49,19 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
   {
     accessorKey: "description",
     header: () => <div className="text-center">Description</div>,
-    cell: ({ row }) => <div>{row.original.description}</div>,
+    cell: ({ row }) => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="cursor-default">{row.original.description}</div>
+        </TooltipTrigger>
+        <TooltipContent className="space-y-1 text-xs">
+          <div><span className="font-semibold">Barcode:</span> {row.original.barcode}</div>
+          {row.original.control && (
+            <div><span className="font-semibold">Control:</span> {row.original.control}</div>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    ),
   },
   {
     accessorKey: "price",
@@ -69,6 +86,15 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
       const color = status === "REFUNDED" ? "text-orange-500" : "text-muted-foreground";
       return <div className={`flex justify-center font-medium ${color}`}>{status}</div>;
     },
+  },
+  {
+    accessorKey: "reason",
+    header: () => <div className="text-center">Reason</div>,
+    cell: ({ row }) => (
+      <div className="flex justify-center text-muted-foreground text-sm">
+        {row.original.reason || "—"}
+      </div>
+    ),
   },
 ];
 

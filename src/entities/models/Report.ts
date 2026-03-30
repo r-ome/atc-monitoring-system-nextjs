@@ -123,8 +123,11 @@ export type RefundCancellationEntry = {
   bidder_number: string;
   bidder_name: string;
   description: string;
+  barcode: string;
+  control: string | null;
   price: number;
   status: string;
+  reason: string;
 };
 
 // -- Supplier Revenue Summary --
