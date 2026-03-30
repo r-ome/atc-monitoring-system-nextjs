@@ -98,7 +98,9 @@ export const ContainerRepository: IContainerRepository = {
       return await prisma.containers.findMany({
         include: {
           branch: { select: { branch_id: true, name: true } },
-          supplier: { select: { supplier_id: true, supplier_code: true, name: true } },
+          supplier: {
+            select: { supplier_id: true, supplier_code: true, name: true },
+          },
           _count: { select: { inventories: true } },
         },
         orderBy: { due_date: { sort: "desc", nulls: "last" } },
@@ -202,6 +204,7 @@ export const ContainerRepository: IContainerRepository = {
             arrival_date: data.arrival_date,
             due_date: data.due_date,
             gross_weight: data.gross_weight,
+            duties_and_taxes: data.duties_and_taxes ?? 0,
             auction_or_sell: data.auction_or_sell,
             // status: data.status
           },
@@ -224,12 +227,13 @@ export const ContainerRepository: IContainerRepository = {
               tx.inventories.update({
                 where: { inventory_id: inv.inventory_id },
                 data: {
-                  barcode: inv.barcode === current.barcode
-                    ? data.barcode
-                    : inv.barcode.replace(
-                        `${current.barcode}-`,
-                        `${data.barcode}-`,
-                      ),
+                  barcode:
+                    inv.barcode === current.barcode
+                      ? data.barcode
+                      : inv.barcode.replace(
+                          `${current.barcode}-`,
+                          `${data.barcode}-`,
+                        ),
                 },
               }),
             ),
