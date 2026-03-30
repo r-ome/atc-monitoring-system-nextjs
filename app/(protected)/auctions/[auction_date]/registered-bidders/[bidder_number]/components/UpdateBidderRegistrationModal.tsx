@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, TriangleAlert } from "lucide-react";
 import { SetStateAction, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateBidderRegistration } from "@/app/(protected)/auctions/actions";
@@ -15,6 +15,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/app/components/ui/dialog";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
 import { toast } from "sonner";
 import { InputNumber } from "@/app/components/ui/InputNumber";
 
@@ -33,6 +34,11 @@ export const UpdateBidderRegistrationModal: React.FC<
 > = ({ open, onOpenChange, bidder }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentServiceCharge, setCurrentServiceCharge] = useState<number>(
+    bidder.service_charge
+  );
+
+  const serviceChargeChanged = currentServiceCharge !== bidder.service_charge;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,9 +82,20 @@ export const UpdateBidderRegistrationModal: React.FC<
               <InputNumber
                 id="service_charge"
                 name="service_charge"
-                value={bidder?.service_charge as number}
+                value={currentServiceCharge}
+                onValueChange={(v) => setCurrentServiceCharge(v ?? bidder.service_charge)}
               />
             </div>
+            {serviceChargeChanged && (
+              <Alert className="border-yellow-500 bg-yellow-50 text-yellow-800">
+                <TriangleAlert className="!text-yellow-600" />
+                <AlertDescription className="text-yellow-800">
+                  Changing the service charge will recalculate the balance for
+                  all unpaid items using the new rate. Items already paid will
+                  not be affected.
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="flex flex-col gap-2">
               <Label>Registration Fee:</Label>
 
