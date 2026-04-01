@@ -16,9 +16,9 @@ export const BoughtItemsTable = ({ boughtItems }: BoughtItemsTableProps) => {
     filterValue?: string
   ) => {
     const search = (filterValue ?? "").toLowerCase();
-    const { barcode, control, description, new_price } = row.original;
+    const { barcode, control, description, auction_date, created_at, new_price } = row.original;
 
-    return [barcode, control, description, new_price]
+    return [barcode, control, description, auction_date, created_at, new_price]
       .filter(Boolean)
       .some((field) => field!.toString().toLowerCase().includes(search));
   };

@@ -111,6 +111,8 @@ export type BoughtItems = {
   barcode: string;
   description?: string;
   control: string;
+  auction_date: string | null;
+  created_at: string | null;
   new_price?: number;
   old_price: number | null;
   bidder_number: string | null;

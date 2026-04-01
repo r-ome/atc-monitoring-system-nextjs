@@ -418,11 +418,17 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
-  getBoughtItems: async (params: { year: string; month: string; branchId: string }) => {
+  getBoughtItems: async (params: {
+    year: string;
+    month?: string;
+    view?: string;
+    branchId: string;
+  }) => {
     const year = Number(params.year);
-    const month = Number(params.month);
-    const start = new Date(year, month, 1);
-    const end = new Date(year, month + 1, 1);
+    const isYearlyView = params.view === "yearly";
+    const month = Number(params.month ?? 0);
+    const start = isYearlyView ? new Date(year, 0, 1) : new Date(year, month, 1);
+    const end = isYearlyView ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
     try {
       return await prisma.inventories.findMany({
         where: {

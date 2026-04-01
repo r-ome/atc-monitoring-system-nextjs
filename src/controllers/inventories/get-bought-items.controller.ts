@@ -4,6 +4,7 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { InventoryWithAuctionsInventoryRow } from "src/entities/models/Inventory";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { err, ok } from "src/entities/models/Result";
+import { formatDate } from "@/app/lib/utils";
 
 function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
   return bought_items.map((item) => {
@@ -12,6 +13,8 @@ function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
       barcode: item.barcode,
       control: item.control || "NC",
       description: item.auctions_inventory?.description,
+      auction_date: item.auction_date ? formatDate(item.auction_date) : null,
+      created_at: item.created_at ? formatDate(item.created_at) : null,
       old_price: item.is_bought_item,
       qty: item.auctions_inventory?.qty ?? null,
       bidder_number: ATC_DEFAULT_BIDDER_NUMBER,
@@ -21,7 +24,12 @@ function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
   });
 }
 
-export const GetBoughtItemsController = async (params: { year: string; month: string; branchId: string }) => {
+export const GetBoughtItemsController = async (params: {
+  year: string;
+  month?: string;
+  view?: string;
+  branchId: string;
+}) => {
   try {
     const bought_items = await InventoryRepository.getBoughtItems(params);
     return ok(presenter(bought_items));

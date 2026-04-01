@@ -73,6 +73,54 @@ export const columns: ColumnDef<BoughtItems>[] = [
     },
   },
   {
+    accessorKey: "created_at",
+    size: 140,
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Created At
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const boughtItem = row.original;
+      return <div className="flex justify-center">{boughtItem.created_at}</div>;
+    },
+  },
+  {
+    accessorKey: "auction_date",
+    size: 140,
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Auction Date
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const boughtItem = row.original;
+      return (
+        <div className="flex justify-center">
+          {!boughtItem.new_price ? "" : boughtItem.auction_date}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "old_price",
     size: 100,
     header: ({ column }) => {

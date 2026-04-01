@@ -20,6 +20,7 @@ interface BoughtItemsFilterProps {
   branches: Branch[];
   selectedBranch?: { branch_id: string; name: string } | null;
   selectedYear: string;
+  selectedView: string;
   selectedMonth: string;
 }
 
@@ -28,6 +29,7 @@ export const BoughtItemsFilter: React.FC<BoughtItemsFilterProps> = ({
   branches,
   selectedBranch,
   selectedYear,
+  selectedView,
   selectedMonth,
 }) => {
   const router = useRouter();
@@ -47,6 +49,9 @@ export const BoughtItemsFilter: React.FC<BoughtItemsFilterProps> = ({
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set(key, value);
+    if (key === "view" && value === "yearly") {
+      params.delete("month");
+    }
     startTransition(() => {
       router.push(`?${params.toString()}`);
     });
@@ -88,6 +93,24 @@ export const BoughtItemsFilter: React.FC<BoughtItemsFilterProps> = ({
       <div className="w-30">
         <Select
           disabled={isPending}
+          value={selectedView}
+          onValueChange={(value) => updateParam("view", value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="View" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="yearly">Yearly</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="w-30">
+        <Select
+          disabled={isPending}
           value={selectedYear}
           onValueChange={(value) => updateParam("year", value)}
         >
@@ -107,26 +130,28 @@ export const BoughtItemsFilter: React.FC<BoughtItemsFilterProps> = ({
       </div>
 
       {/* Month */}
-      <div className="w-30">
-        <Select
-          disabled={isPending}
-          value={getMonth(formattedSelectedMonth).toString()}
-          onValueChange={(value) => updateParam("month", value)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Month" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {months.map((item, i) => (
-                <SelectItem key={i} value={i.toString()}>
-                  {formatDate(item, "MMMM")}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      {selectedView === "monthly" ? (
+        <div className="w-30">
+          <Select
+            disabled={isPending}
+            value={getMonth(formattedSelectedMonth).toString()}
+            onValueChange={(value) => updateParam("month", value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {months.map((item, i) => (
+                  <SelectItem key={i} value={i.toString()}>
+                    {formatDate(item, "MMMM")}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      ) : null}
     </div>
   );
 };

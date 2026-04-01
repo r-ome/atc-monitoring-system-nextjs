@@ -102,7 +102,12 @@ export const uploadBoughtItems = async (
   return await UploadBoughtItemsController(branch_id, file as File, user.username);
 };
 
-export const getBoughtItems = async (params: { year: string; month: string; branchId: string }) => {
+export const getBoughtItems = async (params: {
+  year: string;
+  month?: string;
+  view?: string;
+  branchId: string;
+}) => {
   return await GetBoughtItemsController(params);
 };
 
