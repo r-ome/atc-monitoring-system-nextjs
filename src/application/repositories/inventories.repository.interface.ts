@@ -39,7 +39,12 @@ export interface IInventoryRepository {
     status: InventoryStatus,
     data: string[],
   ) => Promise<Prisma.BatchPayload>;
-  getBoughtItems: (params: { year: string; month: string; branchId: string }) => Promise<InventoryWithAuctionsInventoryRow[]>;
+  getBoughtItems: (params: {
+    year: string;
+    month?: string;
+    view?: string;
+    branchId: string;
+  }) => Promise<InventoryWithAuctionsInventoryRow[]>;
   getInventoryWithNoAuctionInventory: () => Promise<
     InventoryWithAuctionsInventoryRow[]
   >;
