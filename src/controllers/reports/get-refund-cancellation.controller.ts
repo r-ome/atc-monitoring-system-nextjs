@@ -42,14 +42,14 @@ function resolveOriginalBidder(row: RefundCancellationRow): {
 
 function resolveReason(row: RefundCancellationRow): string {
   for (const history of row.histories) {
-    if (history.auction_status !== "CANCELLED") continue;
-    // Paid items: receipt.remarks contains the raw reason
+    if (!["CANCELLED", "REFUNDED"].includes(history.auction_status)) continue;
+    // Paid cancelled/refunded items: receipt.remarks contains the raw reason
     if (history.receipt?.remarks) return history.receipt.remarks;
     // Unpaid items (new format): parse reason after the bidder prefix
     if (history.remarks) {
       const match = history.remarks.match(/^(?:Cancelled|REFUNDED) from bidder #\S+ \(.+?\): (.+)$/);
       if (match) return match[1];
-      // Old format: remarks IS the reason
+      // Older/full refund format stores the reason directly in remarks text.
       return history.remarks;
     }
   }

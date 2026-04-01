@@ -52,7 +52,9 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
     cell: ({ row }) => (
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="cursor-default">{row.original.description}</div>
+          <div className="flex justify-center text-center cursor-default">
+            {row.original.description}
+          </div>
         </TooltipTrigger>
         <TooltipContent className="space-y-1 text-xs">
           <div><span className="font-semibold">Barcode:</span> {row.original.barcode}</div>
@@ -89,11 +91,22 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
   },
   {
     accessorKey: "reason",
+    size: 240,
     header: () => <div className="text-center">Reason</div>,
     cell: ({ row }) => (
-      <div className="flex justify-center text-muted-foreground text-sm">
-        {row.original.reason || "—"}
-      </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="mx-auto block max-w-[240px] cursor-help overflow-hidden text-ellipsis whitespace-nowrap text-center text-sm text-muted-foreground"
+          >
+            {row.original.reason || "—"}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-80 whitespace-normal break-words text-center">
+          {row.original.reason || "—"}
+        </TooltipContent>
+      </Tooltip>
     ),
   },
 ];
@@ -118,6 +131,7 @@ export const RefundCancellationTable = ({ data }: Props) => {
       }
       columns={columns}
       data={data}
+      initialSorting={[{ id: "auction_date", desc: true }]}
     />
   );
 };
