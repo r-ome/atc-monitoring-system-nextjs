@@ -130,6 +130,14 @@ export type RefundCancellationEntry = {
   reason: string;
 };
 
+export type RefundCancellationBidderEntry = {
+  bidder_number: string;
+  bidder_name: string;
+  refunded: number;
+  cancelled: number;
+  total: number;
+};
+
 // -- Supplier Revenue Summary --
 export type SupplierRevenueRow = Prisma.suppliersGetPayload<{
   include: {

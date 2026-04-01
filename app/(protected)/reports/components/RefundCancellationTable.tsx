@@ -123,7 +123,7 @@ export const RefundCancellationTable = ({ data }: Props) => {
   return (
     <DataTable
       title={
-        <div className="flex gap-6">
+        <div className="flex flex-wrap gap-6">
           <span>Refunded: <span className="text-orange-500 font-semibold">{refunded.length}</span></span>
           <span>Cancelled: <span className="text-muted-foreground font-semibold">{cancelled.length}</span></span>
           <span>Refunded Value: <span className="text-red-500 font-semibold">{formatNumberToCurrency(totalRefundedValue)}</span></span>

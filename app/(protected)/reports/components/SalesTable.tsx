@@ -50,9 +50,8 @@ export const SalesTable = ({ sales, expenses }: SalesTableProps) => {
   rows.sort((a, b) => a.key.localeCompare(b.key));
 
   const totalSales = rows.reduce((acc, r) => acc + r.total_sales, 0);
-  const totalRegistration = rows.reduce((acc, r) => acc + r.total_registration_fee, 0);
   const totalExpenses = rows.reduce((acc, r) => acc + r.total_expenses, 0);
-  const netIncome = totalSales + totalRegistration - totalExpenses;
+  const netIncome = totalSales - totalExpenses;
 
   return (
     <DataTable
@@ -61,10 +60,6 @@ export const SalesTable = ({ sales, expenses }: SalesTableProps) => {
           <div className="flex justify-between gap-8">
             <span>Total Sales:</span>
             <span className="text-green-500">{formatNumberToCurrency(totalSales)}</span>
-          </div>
-          <div className="flex justify-between gap-8">
-            <span>Total Registration:</span>
-            <span className="text-green-500">{formatNumberToCurrency(totalRegistration)}</span>
           </div>
           <div className="flex justify-between gap-8">
             <span>Total Expenses:</span>

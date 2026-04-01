@@ -5,6 +5,7 @@ import { presentRefundCancellation } from "src/controllers/reports/get-refund-ca
 import { presentPriceComparison } from "src/controllers/reports/get-price-comparison.controller";
 import { SellThroughTable } from "./SellThroughTable";
 import { RefundCancellationTable } from "./RefundCancellationTable";
+import { RefundCancellationBidderTable } from "./RefundCancellationBidderTable";
 import { PriceComparisonChart } from "./PriceComparisonChart";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -34,6 +35,12 @@ export const InventoryTabContent = async ({ branchId, dateParam }: Props) => {
           <CardHeader><CardTitle>Refunds & Cancellations</CardTitle></CardHeader>
           <CardContent>
             <RefundCancellationTable data={presentRefundCancellation(refundRows)} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Top Affected Bidders</CardTitle></CardHeader>
+          <CardContent>
+            <RefundCancellationBidderTable data={presentRefundCancellation(refundRows)} />
           </CardContent>
         </Card>
         <Card>
