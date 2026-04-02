@@ -117,7 +117,6 @@ export const getSheetData = (
         BARCODE: item.BARCODE,
         CONTROL: item.CONTROL !== "" ? item.CONTROL.toString() : "",
         DESCRIPTION: item.DESCRIPTION,
-        NEW_PRICE: item["NEW PRICE"],
         OLD_PRICE: item["OLD PRICE"],
       }));
     }

@@ -57,7 +57,7 @@ export default async function Page({
   const bought_items = bought_items_res.value;
   const totalOldPrice = bought_items.reduce((sum, item) => sum + (item.old_price ?? 0), 0);
   const totalNewPrice = bought_items.reduce((sum, item) => sum + (item.new_price ?? 0), 0);
-  const totalDifference = totalNewPrice - totalOldPrice;
+  const totalDifference = bought_items.reduce((sum, item) => sum + (item.profit_loss ?? 0), 0);
 
   return (
     <div className="flex flex-col gap-2">
@@ -88,15 +88,15 @@ export default async function Page({
           className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
         />
         <StatCard
-          title="Total New Price"
+          title="Total Resale Price"
           value={formatNumberToCurrency(totalNewPrice)}
-          description="Current resale value"
+          description="Actual bidder resale value"
           className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
         />
         <StatCard
-          title="Total Difference"
+          title="Total Profit/Loss"
           value={formatNumberToCurrency(totalDifference)}
-          description={totalDifference >= 0 ? "Profit from resale prices" : "Loss from resale prices"}
+          description={totalDifference >= 0 ? "Net owner profit from resale" : "Net owner loss from resale"}
           variant={totalDifference >= 0 ? "success" : "error"}
           className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
         />

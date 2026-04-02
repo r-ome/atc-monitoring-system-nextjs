@@ -8,6 +8,9 @@ import { formatDate } from "@/app/lib/utils";
 
 function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
   return bought_items.map((item) => {
+    const old_price = item.is_bought_item;
+    const new_price = item.status === "BOUGHT_ITEM" ? 0 : item.auctions_inventory?.price ?? 0;
+
     return {
       inventory_id: item.inventory_id,
       barcode: item.barcode,
@@ -15,11 +18,11 @@ function presenter(bought_items: InventoryWithAuctionsInventoryRow[]) {
       description: item.auctions_inventory?.description,
       auction_date: item.auction_date ? formatDate(item.auction_date) : null,
       created_at: item.created_at ? formatDate(item.created_at) : null,
-      old_price: item.is_bought_item,
+      old_price,
+      profit_loss: old_price !== null ? new_price - old_price : null,
       qty: item.auctions_inventory?.qty ?? null,
       bidder_number: ATC_DEFAULT_BIDDER_NUMBER,
-      new_price:
-        item.status === "BOUGHT_ITEM" ? 0 : item.auctions_inventory?.price,
+      new_price,
     };
   });
 }

@@ -157,7 +157,7 @@ export const columns: ColumnDef<BoughtItems>[] = [
             className="cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            New Price
+            Resale Price
             <ArrowUpDown />
           </Button>
         </div>
@@ -177,6 +177,45 @@ export const columns: ColumnDef<BoughtItems>[] = [
           )}
         >
           {boughtItem.new_price?.toLocaleString()}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "profit_loss",
+    size: 120,
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Profit / Loss
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const boughtItem = row.original;
+      const profitLoss = boughtItem.profit_loss;
+
+      return (
+        <div
+          className={cn(
+            "flex justify-center",
+            profitLoss === null
+              ? ""
+              : profitLoss < 0
+                ? "text-status-error"
+                : profitLoss > 0
+                  ? "text-status-success"
+                  : ""
+          )}
+        >
+          {profitLoss?.toLocaleString()}
         </div>
       );
     },

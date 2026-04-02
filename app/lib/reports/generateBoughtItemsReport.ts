@@ -10,6 +10,7 @@ const generateBoughtItemsReport = (boughtItems: BoughtItems[]) => {
     "DESCRIPTION",
     "OLD PRICE",
     "NEW PRICE",
+    "PROFIT / LOSS",
   ];
 
   const data = boughtItems.map((item) => [
@@ -18,6 +19,7 @@ const generateBoughtItemsReport = (boughtItems: BoughtItems[]) => {
     item.description,
     item.old_price,
     item.new_price || 0,
+    item.profit_loss ?? 0,
   ]);
 
   const containers = [
@@ -35,11 +37,12 @@ const generateBoughtItemsReport = (boughtItems: BoughtItems[]) => {
   ];
 
   const sheet = xlsx.utils.aoa_to_sheet([headers, ...data]);
-  sheet["!autofilter"] = { ref: "A1:E1" };
+  sheet["!autofilter"] = { ref: "A1:F1" };
   sheet["!cols"] = [
     { wch: 15 },
     { wch: 15 },
     { wch: 30 },
+    { wch: 15 },
     { wch: 15 },
     { wch: 15 },
   ];

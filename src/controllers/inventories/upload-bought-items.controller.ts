@@ -40,15 +40,24 @@ export const UploadBoughtItemsController = async (
       });
     }
 
-    const validInventoryHeaders = JSON.stringify([
+    const validLegacyHeaders = JSON.stringify([
       "BARCODE",
       "CONTROL",
       "DESCRIPTION",
       "OLD PRICE",
       "NEW PRICE",
     ]);
+    const validCurrentHeaders = JSON.stringify([
+      "BARCODE",
+      "CONTROL",
+      "DESCRIPTION",
+      "OLD PRICE",
+    ]);
 
-    if (validInventoryHeaders !== JSON.stringify(headers)) {
+    if (
+      validLegacyHeaders !== JSON.stringify(headers) &&
+      validCurrentHeaders !== JSON.stringify(headers)
+    ) {
       throw new InputParseError("Invalid Data!", {
         cause: { file: ["Sheet has invalid headers."] },
       });

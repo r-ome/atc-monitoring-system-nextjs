@@ -114,6 +114,7 @@ export type BoughtItems = {
   created_at: string | null;
   new_price?: number;
   old_price: number | null;
+  profit_loss: number | null;
   bidder_number: string | null;
   qty: string | null;
 };
