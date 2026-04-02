@@ -8,7 +8,6 @@ type InventoryHistoryAction =
   | "partial_refund"
   | "pullout_paid"
   | "item_updated"
-  | "item_voided"
   | "item_merged";
 
 type BidderIdentity = {
@@ -43,7 +42,6 @@ const HISTORY_PREFIXES = {
   partial_refund: "Partial refund",
   pullout_paid: "Pull-out paid",
   item_updated: "Item updated",
-  item_voided: "Item voided",
   item_merged: "Item merged",
 } as const;
 
@@ -113,10 +111,6 @@ export function buildItemUpdatedHistoryRemark(input: {
   return parts.join(" | ");
 }
 
-export function buildItemVoidedHistoryRemark() {
-  return HISTORY_PREFIXES.item_voided;
-}
-
 export function buildItemMergedHistoryRemark() {
   return HISTORY_PREFIXES.item_merged;
 }
@@ -157,7 +151,6 @@ export function parseInventoryHistoryRemark(
   if (trimmed === HISTORY_PREFIXES.encoded) return { action: "encoded" };
   if (trimmed === HISTORY_PREFIXES.reassigned) return { action: "reassigned" };
   if (trimmed === HISTORY_PREFIXES.pullout_paid) return { action: "pullout_paid" };
-  if (trimmed === HISTORY_PREFIXES.item_voided) return { action: "item_voided" };
   if (trimmed === HISTORY_PREFIXES.item_merged) return { action: "item_merged" };
 
   if (trimmed.startsWith(`${HISTORY_PREFIXES.encoded_again} | `)) {
@@ -253,6 +246,11 @@ export function parseInventoryHistoryRemark(
       previous_price: Number(price_update_match[1]),
       new_price: Number(price_update_match[2]),
     };
+  }
+
+  // Legacy compatibility for old stored history remarks after the VOID workflow removal.
+  if (trimmed === "Item voided") {
+    return {};
   }
 
   return {};
