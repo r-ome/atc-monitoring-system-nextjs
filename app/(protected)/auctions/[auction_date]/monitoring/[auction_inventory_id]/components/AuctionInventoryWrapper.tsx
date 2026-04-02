@@ -78,7 +78,7 @@ export const AuctionInventoryWrapper: React.FC<
         </Badge>
         <Badge
           variant={
-            ["UNSOLD", "VOID"].includes(auctionInventory.inventory.status)
+            auctionInventory.inventory.status === "UNSOLD"
               ? "destructive"
               : "success"
           }

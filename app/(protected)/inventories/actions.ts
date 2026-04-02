@@ -5,7 +5,6 @@ import { GetAuctionItemDetailsController } from "src/controllers/inventories/get
 import { UpdateAuctionItemController } from "src/controllers/inventories/update-auction-item.controller";
 import { UpdateInventoryController } from "src/controllers/inventories/update-inventory.controller";
 import { CreateInventoryController } from "src/controllers/inventories/create-inventory.controller";
-import { VoidItemsController } from "src/controllers/inventories/void-items.controller";
 import { formatNumberPadding } from "@/app/lib/utils";
 import { UploadBoughtItemsController } from "src/controllers/inventories/upload-bought-items.controller";
 import { GetBoughtItemsController } from "src/controllers/inventories/get-bought-items.controller";
@@ -23,22 +22,6 @@ export const getAuctionItemDetails = async (auctionInventoryId: string) => {
 
   return await runWithBranchContext(auth.value, async () =>
     GetAuctionItemDetailsController(auctionInventoryId),
-  );
-};
-
-export const voidItems = async (formData: FormData) => {
-  const auth = await authorizeAction();
-  if (!auth.ok) return auth;
-
-  const data = Object.fromEntries(formData.entries());
-  data.auction_inventories =
-    typeof data.auction_inventories === "string"
-      ? JSON.parse(data.auction_inventories as string)
-      : [];
-
-  return await runWithUserContext(
-    auth.value,
-    async () => await VoidItemsController(data),
   );
 };
 

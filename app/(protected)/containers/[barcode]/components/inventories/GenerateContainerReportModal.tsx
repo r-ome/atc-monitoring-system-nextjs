@@ -74,7 +74,6 @@ export const GenerateContainerReportModal = ({
   );
 
   const for_monitoring_report = inventories
-    .filter((item) => item.status !== "VOID")
     .filter((item) => {
       if (!item.auctions_inventory) return false;
       const auction_status = item.auctions_inventory.status;
@@ -150,7 +149,6 @@ export const GenerateContainerReportModal = ({
   const bidder740_monitoring =
     deductThirtyK && excludeBidder740
       ? inventories
-          .filter((item) => item.status !== "VOID")
           .filter((item) => {
             if (!item.auctions_inventory) return false;
             return !["CANCELLED", "REFUND"].includes(

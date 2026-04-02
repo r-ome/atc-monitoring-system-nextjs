@@ -5,13 +5,16 @@ import {
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
 import { IInventoryRepository } from "src/application/repositories/inventories.repository.interface";
-import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
+import {
+  buildItemMergedHistoryRemark,
+  buildItemUpdatedHistoryRemark,
+} from "src/entities/models/InventoryHistoryRemark";
 
 export const InventoryRepository: IInventoryRepository = {
   getAuctionItemDetails: async (auction_inventory_id) => {
@@ -48,83 +51,6 @@ export const InventoryRepository: IInventoryRepository = {
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error fetching unsold inventories", {
-          cause: error.message,
-        });
-      }
-
-      throw error;
-    }
-  },
-  voidItems: async (data) => {
-    try {
-      const auctions_inventory = await prisma.auctions_inventories.findFirst({
-        where: {
-          auction_inventory_id:
-            data.auction_inventories[0].auction_inventory_id,
-        },
-        include: { auction_bidder: true },
-      });
-
-      const atc_default_bidder = await prisma.auctions_bidders.findFirst({
-        where: {
-          auction_id: auctions_inventory?.auction_bidder.auction_id,
-          bidder: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
-        },
-      });
-
-      if (!atc_default_bidder) {
-        throw new DatabaseOperationError("Error voiding item!", {
-          cause: "ATC default bidder not found!",
-        });
-      }
-
-      await prisma.$transaction(
-        data.auction_inventories.map(
-          ({ auction_inventory_id, inventory_id }) => {
-            return prisma.auctions_inventories.update({
-              where: { auction_inventory_id },
-              data: {
-                status: "CANCELLED",
-                auction_bidder: {
-                  connect: {
-                    auction_bidder_id: atc_default_bidder.auction_bidder_id,
-                  },
-                },
-                inventory: { update: { status: "VOID" } },
-                histories: {
-                  create: {
-                    inventory_id,
-                    auction_status: "CANCELLED",
-                    inventory_status: "VOID",
-                    remarks: "ITEM VOIDED",
-                  },
-                },
-              },
-            });
-          },
-        ),
-      );
-
-      const auction_inventories = await prisma.auctions_inventories.findMany({
-        include: {
-          inventory: { include: { container: true } },
-          auction_bidder: { include: { bidder: true } },
-          receipt: true,
-          histories: { include: { receipt: true } },
-        },
-        where: {
-          auction_inventory_id: {
-            in: data.auction_inventories.map(
-              (item) => item.auction_inventory_id,
-            ),
-          },
-        },
-      });
-
-      return auction_inventories;
-    } catch (error) {
-      if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error voiding item!", {
           cause: error.message,
         });
       }
@@ -257,14 +183,31 @@ export const InventoryRepository: IInventoryRepository = {
           bidder_number: auction_inventory.auction_bidder.bidder.bidder_number,
         };
 
-        const remarks = Object.keys(previous_values).map((item) => {
-          const new_data = data[item as keyof typeof data];
-          if (previous_values[item] !== new_data) {
-            return `${item}: ${previous_values[item]} to ${new_data}`;
-          }
+        const remarks = Object.keys(previous_values)
+          .map((item) => {
+            const new_data = data[item as keyof typeof data];
+            if (previous_values[item] === new_data) return null;
 
-          return false;
-        });
+            switch (item) {
+              case "price":
+                return `Price: ${previous_values[item]} -> ${new_data}`;
+              case "bidder_number":
+                return `Bidder: #${previous_values[item]} -> #${new_data}`;
+              case "qty":
+                return `Qty: ${previous_values[item]} -> ${new_data}`;
+              case "manifest_number":
+                return `Manifest number: ${previous_values[item]} -> ${new_data}`;
+              case "barcode":
+                return `Barcode: ${previous_values[item]} -> ${new_data}`;
+              case "control":
+                return `Control: ${previous_values[item]} -> ${new_data}`;
+              case "description":
+                return `Description: ${previous_values[item]} -> ${new_data}`;
+              default:
+                return `${item}: ${previous_values[item]} -> ${new_data}`;
+            }
+          })
+          .filter((item): item is string => Boolean(item));
 
         await tx.auctions_inventories.update({
           where: { auction_inventory_id: data.auction_inventory_id },
@@ -295,7 +238,10 @@ export const InventoryRepository: IInventoryRepository = {
                 inventory_id: data.inventory_id,
                 auction_status: "DISCREPANCY",
                 inventory_status: "SOLD",
-                remarks: `Updated ${remarks.filter((item) => item).join(", ")}${updated_by ? ` | Updated by: ${updated_by}` : ""}`,
+                remarks: buildItemUpdatedHistoryRemark({
+                  changes: remarks,
+                  updated_by,
+                }),
               },
             },
           },
@@ -374,7 +320,7 @@ export const InventoryRepository: IInventoryRepository = {
     }
   },
   getAllInventories: async (
-    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD", "VOID"],
+    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD"],
   ) => {
     try {
       return await prisma.inventories.findMany({
@@ -391,7 +337,7 @@ export const InventoryRepository: IInventoryRepository = {
     }
   },
   getAllInventoriesForManifest: async (
-    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD", "VOID"],
+    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD"],
   ) => {
     try {
       return await prisma.inventories.findMany({
@@ -465,7 +411,7 @@ export const InventoryRepository: IInventoryRepository = {
     try {
       return await prisma.inventories.findMany({
         include: { auctions_inventory: true },
-        where: { auctions_inventory: { is: null }, status: { not: "VOID" } },
+        where: { auctions_inventory: { is: null } },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -547,7 +493,7 @@ export const InventoryRepository: IInventoryRepository = {
             inventory_id: data.new_inventory_id,
             auction_status: "DISCREPANCY",
             inventory_status: "SOLD",
-            remarks: "Item merged",
+            remarks: buildItemMergedHistoryRemark(),
           },
         });
 

@@ -5,6 +5,7 @@ import { ReportsRepository } from "src/infrastructure/di/repositories";
 import { RefundCancellationRow, RefundCancellationEntry } from "src/entities/models/Report";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
+import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
 
 function resolveOriginalBidder(row: RefundCancellationRow): {
   bidder_number: string;
@@ -26,9 +27,12 @@ function resolveOriginalBidder(row: RefundCancellationRow): {
 
       // Unpaid items: parse from remarks (e.g. "Cancelled from bidder #5013 (John Doe): REASON")
       if (!history.receipt && history.remarks) {
-        const match = history.remarks.match(/^Cancelled from bidder #(\S+) \((.+?)\):/);
-        if (match) {
-          return { bidder_number: match[1], bidder_name: match[2] };
+        const parsed = parseInventoryHistoryRemark(history.remarks);
+        if (parsed.bidder_number && parsed.bidder_name) {
+          return {
+            bidder_number: parsed.bidder_number,
+            bidder_name: parsed.bidder_name,
+          };
         }
       }
     }
@@ -45,11 +49,10 @@ function resolveReason(row: RefundCancellationRow): string {
     if (!["CANCELLED", "REFUNDED"].includes(history.auction_status)) continue;
     // Paid cancelled/refunded items: receipt.remarks contains the raw reason
     if (history.receipt?.remarks) return history.receipt.remarks;
-    // Unpaid items (new format): parse reason after the bidder prefix
+    // Unpaid items: parse the standardized remark first, with legacy fallback.
     if (history.remarks) {
-      const match = history.remarks.match(/^(?:Cancelled|REFUNDED) from bidder #\S+ \(.+?\): (.+)$/);
-      if (match) return match[1];
-      // Older/full refund format stores the reason directly in remarks text.
+      const parsed = parseInventoryHistoryRemark(history.remarks);
+      if (parsed.reason) return parsed.reason;
       return history.remarks;
     }
   }

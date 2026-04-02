@@ -7,6 +7,14 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import {
+  buildCancelledHistoryRemark,
+  buildEncodedAgainHistoryRemark,
+  buildEncodedHistoryRemark,
+  parseInventoryHistoryRemark,
+  buildReassignedHistoryRemark,
+  buildRefundedHistoryRemark,
+} from "src/entities/models/InventoryHistoryRemark";
+import {
   isPrismaError,
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
@@ -459,7 +467,9 @@ export const AuctionRepository: IAuctionRepository = {
             inventory_id: item.inventory_id,
             auction_status: is_bought_items ? "PAID" : "UNPAID",
             inventory_status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
-            remarks: is_bought_items ? "REASSIGNED" : "ENCODED",
+            remarks: is_bought_items
+              ? buildReassignedHistoryRemark()
+              : buildEncodedHistoryRemark(),
           })),
         });
 
@@ -530,7 +540,7 @@ export const AuctionRepository: IAuctionRepository = {
                 inventory_id: item.inventory_id!,
                 auction_status: "UNPAID",
                 inventory_status: "SOLD",
-                remarks: `Updated item from ${item.status} to UNPAID. ITEM ENCODED AGAIN`,
+                remarks: buildEncodedAgainHistoryRemark(item.status),
               })),
             });
           }
@@ -791,7 +801,13 @@ export const AuctionRepository: IAuctionRepository = {
                     inventory_id: paid_item.inventory_id,
                     auction_status: "CANCELLED",
                     inventory_status: "UNSOLD",
-                    remarks: `REFUNDED from bidder #${bidder.bidder.bidder_number} (${bidder.bidder.first_name} ${bidder.bidder.last_name}): ${data.reason}`,
+                    remarks: buildRefundedHistoryRemark(
+                      {
+                        bidder_number: bidder.bidder.bidder_number,
+                        bidder_name: `${bidder.bidder.first_name} ${bidder.bidder.last_name}`,
+                      },
+                      data.reason,
+                    ),
                   })),
                 },
               },
@@ -829,7 +845,13 @@ export const AuctionRepository: IAuctionRepository = {
                   inventory_id: auction_inventory.inventory_id,
                   auction_status: "CANCELLED",
                   inventory_status: "UNSOLD",
-                  remarks: `Cancelled from bidder #${bidder.bidder.bidder_number} (${bidder.bidder.first_name} ${bidder.bidder.last_name}): ${data.reason}`,
+                  remarks: buildCancelledHistoryRemark(
+                    {
+                      bidder_number: bidder.bidder.bidder_number,
+                      bidder_name: `${bidder.bidder.first_name} ${bidder.bidder.last_name}`,
+                    },
+                    data.reason,
+                  ),
                 },
               }),
             ),
@@ -1046,7 +1068,9 @@ export const AuctionRepository: IAuctionRepository = {
               inventory_id: item.inventory_id,
               auction_status: "UNPAID",
               inventory_status: "SOLD",
-              remarks: item.histories.length ? "REASSIGNED" : "ENCODED",
+              remarks: item.histories.length
+                ? buildReassignedHistoryRemark()
+                : buildEncodedHistoryRemark(),
             })),
           });
           // update bidder balance
@@ -1127,16 +1151,22 @@ export const AuctionRepository: IAuctionRepository = {
           .filter((item) => ["UNPAID", "PARTIAL"].includes(item.status))
           .map((item) => {
             if (item.status === "UNPAID") return item;
-            const historyWithUpdatedPrice = item.histories.find((history) =>
-              history.remarks?.includes("Updated price:"),
-            );
-            if (historyWithUpdatedPrice && historyWithUpdatedPrice.remarks) {
-              const prices = historyWithUpdatedPrice.remarks
-                .match(/\d+/g)
-                ?.map(Number);
-
-              if (prices) {
-                item.price = prices[1] - prices[0];
+            const historyWithUpdatedPrice = item.histories.find((history) => {
+              const parsed = parseInventoryHistoryRemark(history.remarks);
+              return (
+                typeof parsed.previous_price === "number" &&
+                typeof parsed.new_price === "number"
+              );
+            });
+            if (historyWithUpdatedPrice) {
+              const parsed = parseInventoryHistoryRemark(
+                historyWithUpdatedPrice.remarks,
+              );
+              if (
+                typeof parsed.previous_price === "number" &&
+                typeof parsed.new_price === "number"
+              ) {
+                item.price = parsed.new_price - parsed.previous_price;
               }
             }
             return item;

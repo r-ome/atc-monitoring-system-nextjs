@@ -5,6 +5,7 @@ import { formatDate } from "@/app/lib/utils";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { isBefore, isAfter } from "date-fns";
+import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
 
 function presenter(receipt: ReceiptRecordWithHistoriesRow) {
   const date_format = "MMMM dd, yyyy hh:mm:ss a";
@@ -14,8 +15,10 @@ function presenter(receipt: ReceiptRecordWithHistoriesRow) {
   ) => {
     if (!inventory_histories) return false;
     return (
-      inventory_histories.filter((item) =>
-        /paid/gi.test(item.remarks as string),
+      inventory_histories.filter(
+        (item) =>
+          parseInventoryHistoryRemark(item.remarks).action === "pullout_paid" ||
+          /paid/gi.test(item.remarks as string),
       ).length > 0
     );
   };
@@ -25,9 +28,13 @@ function presenter(receipt: ReceiptRecordWithHistoriesRow) {
   ) => {
     if (!inventory_histories) return false;
     return (
-      inventory_histories.filter((item) =>
-        /price|partial/gi.test(item.remarks as string),
-      ).length > 0
+      inventory_histories.filter((item) => {
+        const parsed = parseInventoryHistoryRemark(item.remarks);
+        return (
+          typeof parsed.previous_price === "number" &&
+          typeof parsed.new_price === "number"
+        );
+      }).length > 0
     );
   };
 
@@ -49,15 +56,13 @@ function presenter(receipt: ReceiptRecordWithHistoriesRow) {
       auction_inventory?.histories.forEach((history) => {
         if (isBefore(history.created_at, receipt.created_at)) return;
 
-        if (/price|partial/gi.test(history.remarks as string)) {
-          const price_remarks = (history.remarks ?? "").match(
-            /(?:price:|from)\s*(\d+)\s*to\s*(\d+)/i,
-          );
-
-          if (!price_remarks) return;
-
-          const prev = Number(price_remarks[1]);
-          const next = Number(price_remarks[2]);
+        const parsed = parseInventoryHistoryRemark(history.remarks);
+        if (
+          typeof parsed.previous_price === "number" &&
+          typeof parsed.new_price === "number"
+        ) {
+          const prev = parsed.previous_price;
+          const next = parsed.new_price;
 
           const price =
             isAfter(receipt.created_at, history.created_at) &&

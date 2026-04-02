@@ -17,13 +17,6 @@ export interface IInventoryRepository {
     auction_inventory_id: string,
   ) => Promise<AuctionInventoryWithDetailsRow | null>;
   getUnsoldInventories: () => Promise<InventoryRow[]>;
-  voidItems: (data: {
-    auction_inventories: {
-      auction_inventory_id: string;
-      inventory_id: string;
-    }[];
-    reason: string;
-  }) => Promise<AuctionInventoryWithDetailsRow[]>;
   updateAuctionItem: (data: UpdateAuctionInventoryInput, updated_by?: string) => Promise<void>;
   updateInventory: (
     inventory_id: string,

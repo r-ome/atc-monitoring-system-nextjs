@@ -6,7 +6,6 @@ export const INVENTORY_STATUS = [
   "SOLD",
   "UNSOLD",
   "BOUGHT_ITEM",
-  "VOID",
 ] as const;
 
 export type InventoryStatus = (typeof INVENTORY_STATUS)[number];

@@ -363,7 +363,6 @@ enum inventories_status {
   SOLD
   UNSOLD
   BOUGHT_ITEM
-  VOID
 }
 
 enum auction_inventory_status {

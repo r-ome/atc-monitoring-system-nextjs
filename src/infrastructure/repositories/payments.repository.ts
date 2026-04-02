@@ -12,6 +12,11 @@ import {
 } from "src/entities/errors/common";
 import { StorageFeePaymentInput } from "src/entities/models/Payment";
 import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
+import {
+  buildPartialRefundHistoryRemark,
+  buildPulloutPaidHistoryRemark,
+  buildRefundedHistoryRemark,
+} from "src/entities/models/InventoryHistoryRemark";
 
 export const PaymentRepository: IPaymentRepository = {
   getPaymentsByDate: async (date, branch_id) => {
@@ -147,7 +152,7 @@ export const PaymentRepository: IPaymentRepository = {
                 inventory_id: auction_inventory.inventory_id,
                 auction_status: "PAID",
                 inventory_status: "SOLD",
-                remarks: "PAID FOR PULLOUT",
+                remarks: buildPulloutPaidHistoryRemark(),
               })),
             },
           },
@@ -336,13 +341,25 @@ export const PaymentRepository: IPaymentRepository = {
             const is_full_refund = item.prev_price === item.new_price;
             const auction_status = is_full_refund ? "REFUNDED" : "PAID";
             const inventory_status = is_full_refund ? "UNSOLD" : "SOLD";
-            const remarks = `${is_full_refund ? "FULL" : "PARTIAL"} REFUND: ${
-              data.reason
-            }. ${
-              is_full_refund
-                ? ""
-                : `(LESS) From ${item.prev_price} to ${item.new_price}`
-            }`;
+            const remarks = is_full_refund
+              ? buildRefundedHistoryRemark(
+                  {
+                    bidder_number: auction_bidder.bidder.bidder_number,
+                    bidder_name: `${auction_bidder.bidder.first_name} ${auction_bidder.bidder.last_name}`,
+                  },
+                  data.reason,
+                )
+              : buildPartialRefundHistoryRemark(
+                  {
+                    bidder_number: auction_bidder.bidder.bidder_number,
+                    bidder_name: `${auction_bidder.bidder.first_name} ${auction_bidder.bidder.last_name}`,
+                  },
+                  data.reason,
+                  {
+                    previous_price: item.prev_price,
+                    new_price: item.new_price,
+                  },
+                );
 
             const auction_inventories = await tx.auctions_inventories.update({
               where: { auction_inventory_id: item.auction_inventory_id },

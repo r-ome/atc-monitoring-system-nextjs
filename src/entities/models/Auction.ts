@@ -114,15 +114,4 @@ export type AuctionsInventory = {
   }[];
 };
 
-export const voidItemsSchema = z.object({
-  auction_inventories: z.array(
-    z.object({
-      auction_inventory_id: z.string(),
-      inventory_id: z.string(),
-    }),
-  ),
-  reason: z.string(),
-});
-export type VoidItemsInput = z.infer<typeof voidItemsSchema>;
-
 export type AuctionDateRange = { start: Date; end: Date };
