@@ -1,4 +1,5 @@
 import prisma from "@/app/lib/prisma/prisma";
+import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
 import {
   isPrismaError,
   isPrismaValidationError,
@@ -343,6 +344,15 @@ export const InventoryRepository: IInventoryRepository = {
   },
   updateInventory: async (inventory_id, data) => {
     try {
+      const existingInventory = await prisma.inventories.findFirst({
+        where: buildTenantWhere("inventories", { inventory_id }),
+        select: { inventory_id: true },
+      });
+
+      if (!existingInventory) {
+        throw new NotFoundError("Inventory not found!");
+      }
+
       const updated = await prisma.inventories.update({
         where: { inventory_id },
         data: {
@@ -494,14 +504,20 @@ export const InventoryRepository: IInventoryRepository = {
       await prisma.$transaction(async (tx) => {
         const [old_inventory, new_inventory, old_auction_inventory] =
           await Promise.all([
-            tx.inventories.findUnique({
-              where: { inventory_id: data.old_inventory_id },
+            tx.inventories.findFirst({
+              where: buildTenantWhere("inventories", {
+                inventory_id: data.old_inventory_id,
+              }),
             }),
-            tx.inventories.findUnique({
-              where: { inventory_id: data.new_inventory_id },
+            tx.inventories.findFirst({
+              where: buildTenantWhere("inventories", {
+                inventory_id: data.new_inventory_id,
+              }),
             }),
-            tx.auctions_inventories.findUnique({
-              where: { inventory_id: data.old_inventory_id },
+            tx.auctions_inventories.findFirst({
+              where: buildTenantWhere("auctions_inventories", {
+                inventory_id: data.old_inventory_id,
+              }),
             }),
           ]);
 
@@ -555,6 +571,17 @@ export const InventoryRepository: IInventoryRepository = {
   appendInventories: async (data) => {
     try {
       await prisma.$transaction(async (tx) => {
+        const existingInventories = await tx.inventories.findMany({
+          where: buildTenantWhere("inventories", {
+            inventory_id: { in: data.map((inventory) => inventory.inventory_id) },
+          }),
+          select: { inventory_id: true },
+        });
+
+        if (existingInventories.length !== data.length) {
+          throw new NotFoundError("One or more inventories were not found!");
+        }
+
         await Promise.all(
           data.map((inventory) =>
             tx.inventories.update({
@@ -577,6 +604,15 @@ export const InventoryRepository: IInventoryRepository = {
   },
   deleteInventory: async (inventory_id) => {
     try {
+      const existingInventory = await prisma.inventories.findFirst({
+        where: buildTenantWhere("inventories", { inventory_id }),
+        select: { inventory_id: true },
+      });
+
+      if (!existingInventory) {
+        throw new NotFoundError("Inventory not found!");
+      }
+
       await prisma.inventories.delete({ where: { inventory_id } });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

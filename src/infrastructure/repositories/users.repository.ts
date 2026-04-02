@@ -1,5 +1,6 @@
 import { IUserRepository } from "src/application/repositories/users.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
+import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import {
   isPrismaError,
@@ -9,6 +10,7 @@ import {
   authUserWithBranchSelect,
   userWithBranchSelect,
 } from "src/entities/models/User";
+import { NotFoundError } from "src/entities/errors/common";
 
 export const UserRepository: IUserRepository = {
   getUserByUsername: async (username) => {
@@ -145,6 +147,15 @@ export const UserRepository: IUserRepository = {
   },
   updateUser: async (user_id, data) => {
     try {
+      const existingUser = await prisma.users.findFirst({
+        where: buildTenantWhere("users", { user_id }),
+        ...userWithBranchSelect,
+      });
+
+      if (!existingUser) {
+        throw new NotFoundError("User not found!");
+      }
+
       const user = await prisma.users.update({
         ...userWithBranchSelect,
         where: { user_id },
@@ -179,6 +190,15 @@ export const UserRepository: IUserRepository = {
   },
   updateUserPassword: async (user_id, data) => {
     try {
+      const existingUser = await prisma.users.findFirst({
+        where: buildTenantWhere("users", { user_id }),
+        ...userWithBranchSelect,
+      });
+
+      if (!existingUser) {
+        throw new NotFoundError("User not found!");
+      }
+
       const user = await prisma.users.update({
         ...userWithBranchSelect,
         where: { user_id },

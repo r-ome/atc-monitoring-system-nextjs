@@ -1,6 +1,7 @@
 import {
   DatabaseOperationError,
   InputParseError,
+  NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
 import {
@@ -31,6 +32,11 @@ export const UpdateUserController = async (
     return ok(userPresenter(created));
   } catch (error) {
     if (error instanceof InputParseError) {
+      logger("UpdateUserController", error, "warn");
+      return err({ message: error.message, cause: error.cause });
+    }
+
+    if (error instanceof NotFoundError) {
       logger("UpdateUserController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }

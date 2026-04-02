@@ -26,6 +26,7 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = base;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const BRANCH_FILTERS: Record<string, any> = {
+  users: { branch_id: undefined },
   bidders: { branch_id: undefined },
   containers: { branch_id: undefined },
   auctions: { branch_id: undefined },
@@ -51,7 +52,7 @@ const BRANCH_FILTERS: Record<string, any> = {
   activity_logs: { branch_id: undefined },
 };
 
-function buildBranchWhere(model: string, branch_id: string) {
+export function buildBranchWhere(model: string, branch_id: string) {
   const template = BRANCH_FILTERS[model];
   if (!template) return {};
 
@@ -64,7 +65,7 @@ function buildBranchWhere(model: string, branch_id: string) {
   return deepClone(template);
 }
 
-const SUPER_ADMIN_BRANCH = "31d71536-2a70-4087-ab7e-155ce3e23815";
+export const SUPER_ADMIN_BRANCH = "31d71536-2a70-4087-ab7e-155ce3e23815";
 
 const prisma = base.$extends({
   query: {

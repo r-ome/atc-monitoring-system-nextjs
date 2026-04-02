@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "@/app/lib/prisma/prisma";
+import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
 import {
   isPrismaError,
   isPrismaValidationError,
@@ -187,10 +188,14 @@ export const ContainerRepository: IContainerRepository = {
   updateContainer: async (container_id, data) => {
     try {
       return await prisma.$transaction(async (tx) => {
-        const current = await tx.containers.findUnique({
-          where: { container_id },
+        const current = await tx.containers.findFirst({
+          where: buildTenantWhere("containers", { container_id }),
           select: { barcode: true },
         });
+
+        if (!current) {
+          throw new NotFoundError("Container not found!");
+        }
 
         const updated = await tx.containers.update({
           where: { container_id },
@@ -254,6 +259,15 @@ export const ContainerRepository: IContainerRepository = {
   },
   updateContainerStatus: async (container_id, status) => {
     try {
+      const current = await prisma.containers.findFirst({
+        where: buildTenantWhere("containers", { container_id }),
+        select: { container_id: true },
+      });
+
+      if (!current) {
+        throw new NotFoundError("Container not found!");
+      }
+
       return await prisma.containers.update({
         where: { container_id },
         data: { status },
@@ -270,6 +284,15 @@ export const ContainerRepository: IContainerRepository = {
   },
   deleteContainer: async (container_id) => {
     try {
+      const current = await prisma.containers.findFirst({
+        where: buildTenantWhere("containers", { container_id }),
+        select: { container_id: true },
+      });
+
+      if (!current) {
+        throw new NotFoundError("Container not found!");
+      }
+
       return await prisma.containers.delete({
         where: { container_id },
       });
