@@ -1,0 +1,7 @@
+import "./application/use-cases/auctions/manifest-pipeline.test";
+import "./application/use-cases/auctions/register-bidder.use-case.test";
+import "./application/use-cases/inventories/upload-bought-items.use-case.test";
+import "./application/use-cases/inventories/update-auction-item.use-case.test";
+import "./controllers/auctions/register-bidder.controller.test";
+import "./controllers/inventories/refund-auctions-inventories.controller.test";
+import "./controllers/expenses/repair-petty-cash-consistency.controller.test";

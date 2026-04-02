@@ -7,6 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "test:regression": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' node --test --require ts-node/register/transpile-only --require tsconfig-paths/register src/regression.test.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
