@@ -6,22 +6,13 @@ import { BidderReportRow, UnpaidBidderEntry } from "src/entities/models/Report";
 
 function presenter(bidders: BidderReportRow[]): UnpaidBidderEntry[] {
   return bidders
-    .map((bidder) => {
-      const auctionsWithBalance = bidder.auctions_joined.filter(
-        (ab) => ab.balance > 0,
-      );
-      const totalBalance = auctionsWithBalance.reduce(
-        (sum, ab) => sum + ab.balance,
-        0,
-      );
-      return {
-        bidder_id: bidder.bidder_id,
-        bidder_number: bidder.bidder_number,
-        full_name: `${bidder.first_name} ${bidder.last_name}`,
-        total_balance: totalBalance,
-        auctions_with_balance: auctionsWithBalance.length,
-      };
-    })
+    .map((bidder) => ({
+      bidder_id: bidder.bidder_id,
+      bidder_number: bidder.bidder_number,
+      full_name: `${bidder.first_name} ${bidder.last_name}`,
+      total_balance: bidder.total_balance,
+      auctions_with_balance: bidder.auctions_with_balance,
+    }))
     .filter((entry) => entry.total_balance > 0)
     .sort((a, b) => b.total_balance - a.total_balance);
 }

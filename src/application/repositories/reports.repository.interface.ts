@@ -1,6 +1,6 @@
-import { AuctionWithSalesRow } from "src/entities/models/Auction";
-import { ExpenseWithBranchRow } from "src/entities/models/Expense";
 import {
+  AuctionSalesSummaryRow,
+  ExpenseSummaryRow,
   PaymentMethodBreakdownRow,
   DailyCashFlowPaymentRow,
   BidderReportRow,
@@ -15,11 +15,11 @@ export interface IReportsRepository {
   getTotalSales: (
     branch_id: string,
     date: string,
-  ) => Promise<AuctionWithSalesRow[]>;
+  ) => Promise<AuctionSalesSummaryRow[]>;
   getTotalExpenses: (
     branch_id: string,
     date: string,
-  ) => Promise<ExpenseWithBranchRow[]>;
+  ) => Promise<ExpenseSummaryRow[]>;
   getPaymentMethodBreakdown: (
     branch_id: string,
     date: string,

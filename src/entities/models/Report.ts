@@ -1,16 +1,11 @@
 import { Prisma } from "@prisma/client";
 
 // -- Payment Method Breakdown --
-export type PaymentMethodBreakdownRow = Prisma.paymentsGetPayload<{
-  include: {
-    payment_method: true;
-    receipt: {
-      include: {
-        auction_bidder: { include: { auctions: { include: { branch: true } } } };
-      };
-    };
-  };
-}>;
+export type PaymentMethodBreakdownRow = {
+  payment_method_name: string;
+  total_amount: number;
+  transaction_count: number;
+};
 
 export type PaymentMethodBreakdown = {
   payment_method_name: string;
@@ -19,12 +14,11 @@ export type PaymentMethodBreakdown = {
 };
 
 // -- Daily Cash Flow --
-export type DailyCashFlowPaymentRow = Prisma.receipt_recordsGetPayload<{
-  include: {
-    payments: { include: { payment_method: true } };
-    auction_bidder: { include: { auctions: true } };
-  };
-}>;
+export type DailyCashFlowPaymentRow = {
+  created_at: Date;
+  purpose: string;
+  total_amount: number;
+};
 
 export type CashFlowEntry = {
   date: string;
@@ -39,19 +33,36 @@ export type CashFlowEntry = {
 
 export type FilterMode = "monthly" | "daily";
 
+// -- Sales Reports --
+export type AuctionSalesSummaryRow = {
+  auction_id: string;
+  created_at: Date;
+  total_bidders: number;
+  total_items: number;
+  items_sold: number;
+  total_sales: number;
+  total_registration_fee: number;
+};
+
+// -- Expense Reports --
+export type ExpenseSummaryRow = {
+  created_at: Date;
+  total_amount: number;
+};
+
 // -- Bidder Reports --
-export type BidderReportRow = Prisma.biddersGetPayload<{
-  include: {
-    branch: true;
-    auctions_joined: {
-      include: {
-        auctions: true;
-        auctions_inventories: true;
-        receipt_records: { include: { payments: true } };
-      };
-    };
-  };
-}>;
+export type BidderReportRow = {
+  bidder_id: string;
+  bidder_number: string;
+  first_name: string;
+  last_name: string;
+  status: string;
+  auctions_attended: number;
+  auctions_with_balance: number;
+  items_won: number;
+  total_spent: number;
+  total_balance: number;
+};
 
 export type UnpaidBidderEntry = {
   bidder_id: string;

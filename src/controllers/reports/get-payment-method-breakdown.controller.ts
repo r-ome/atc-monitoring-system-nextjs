@@ -8,20 +8,11 @@ import {
 } from "src/entities/models/Report";
 
 function presenter(payments: PaymentMethodBreakdownRow[]): PaymentMethodBreakdown[] {
-  const map = new Map<string, { total_amount: number; transaction_count: number }>();
-
-  for (const payment of payments) {
-    const name = payment.payment_method?.name ?? "Unknown";
-    const existing = map.get(name) ?? { total_amount: 0, transaction_count: 0 };
-    existing.total_amount += payment.amount_paid;
-    existing.transaction_count += 1;
-    map.set(name, existing);
-  }
-
-  return Array.from(map.entries())
-    .map(([payment_method_name, data]) => ({
-      payment_method_name,
-      ...data,
+  return payments
+    .map((payment) => ({
+      payment_method_name: payment.payment_method_name,
+      total_amount: payment.total_amount,
+      transaction_count: payment.transaction_count,
     }))
     .sort((a, b) => b.total_amount - a.total_amount);
 }

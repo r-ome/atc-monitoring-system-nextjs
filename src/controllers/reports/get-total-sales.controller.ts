@@ -2,8 +2,10 @@ import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { ReportsRepository } from "src/infrastructure/di/repositories";
-import { AuctionWithSalesRow } from "src/entities/models/Auction";
-import { FilterMode } from "src/entities/models/Report";
+import {
+  AuctionSalesSummaryRow,
+  FilterMode,
+} from "src/entities/models/Report";
 import { formatDate } from "@/app/lib/utils";
 
 const MONTHS = [
@@ -20,37 +22,20 @@ type SalesRow = {
   total_registration_fee: number;
 };
 
-function computeAuction(auction: AuctionWithSalesRow) {
-  const items = auction.registered_bidders.flatMap(
-    (rb) => rb.auctions_inventories,
-  );
-  const sales = items
-    .filter((ai) => ai.status === "PAID")
-    .reduce((sum, ai) => sum + ai.price, 0);
-  const registrationFee = auction.registered_bidders.reduce(
-    (sum, rb) => sum + rb.registration_fee,
-    0,
-  );
-  return {
-    total_items: items.length,
-    total_sales: sales,
-    total_registration_fee: registrationFee,
-    total_bidders: auction.registered_bidders.length,
-  };
-}
-
-function dailyPresenter(auctions: AuctionWithSalesRow[]): SalesRow[] {
+function dailyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
   return auctions.map((auction) => {
-    const computed = computeAuction(auction);
     return {
       key: auction.auction_id,
       label: formatDate(auction.created_at, "MMM dd, yyyy"),
-      ...computed,
+      total_bidders: auction.total_bidders,
+      total_items: auction.total_items,
+      total_sales: auction.total_sales,
+      total_registration_fee: auction.total_registration_fee,
     };
   });
 }
 
-function monthlyPresenter(auctions: AuctionWithSalesRow[]): SalesRow[] {
+function monthlyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
   const monthBuckets = MONTHS.map(() => ({
     total_bidders: 0,
     total_items: 0,
@@ -60,11 +45,11 @@ function monthlyPresenter(auctions: AuctionWithSalesRow[]): SalesRow[] {
 
   for (const auction of auctions) {
     const monthIndex = auction.created_at.getMonth();
-    const computed = computeAuction(auction);
-    monthBuckets[monthIndex].total_bidders += computed.total_bidders;
-    monthBuckets[monthIndex].total_items += computed.total_items;
-    monthBuckets[monthIndex].total_sales += computed.total_sales;
-    monthBuckets[monthIndex].total_registration_fee += computed.total_registration_fee;
+    monthBuckets[monthIndex].total_bidders += auction.total_bidders;
+    monthBuckets[monthIndex].total_items += auction.total_items;
+    monthBuckets[monthIndex].total_sales += auction.total_sales;
+    monthBuckets[monthIndex].total_registration_fee +=
+      auction.total_registration_fee;
   }
 
   return monthBuckets
@@ -82,7 +67,10 @@ function monthlyPresenter(auctions: AuctionWithSalesRow[]): SalesRow[] {
     );
 }
 
-export function presentTotalSales(auctions: AuctionWithSalesRow[], mode: FilterMode): SalesRow[] {
+export function presentTotalSales(
+  auctions: AuctionSalesSummaryRow[],
+  mode: FilterMode,
+): SalesRow[] {
   return mode === "monthly" ? monthlyPresenter(auctions) : dailyPresenter(auctions);
 }
 

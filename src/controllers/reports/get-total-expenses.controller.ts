@@ -2,8 +2,10 @@ import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { ReportsRepository } from "src/infrastructure/di/repositories";
-import { ExpenseWithBranchRow } from "src/entities/models/Expense";
-import { FilterMode } from "src/entities/models/Report";
+import {
+  ExpenseSummaryRow,
+  FilterMode,
+} from "src/entities/models/Report";
 import { formatDate } from "@/app/lib/utils";
 
 const MONTHS = [
@@ -17,7 +19,7 @@ export type ExpenseRow = {
   total_expenses: number;
 };
 
-function dailyPresenter(expenses: ExpenseWithBranchRow[]): ExpenseRow[] {
+function dailyPresenter(expenses: ExpenseSummaryRow[]): ExpenseRow[] {
   const result = new Map<string, { label: string; total: number }>();
 
   for (const expense of expenses) {
@@ -26,7 +28,7 @@ function dailyPresenter(expenses: ExpenseWithBranchRow[]): ExpenseRow[] {
       label: formatDate(expense.created_at, "MMM dd, yyyy"),
       total: 0,
     };
-    existing.total += expense.amount.toNumber();
+    existing.total += expense.total_amount;
     result.set(key, existing);
   }
 
@@ -39,12 +41,12 @@ function dailyPresenter(expenses: ExpenseWithBranchRow[]): ExpenseRow[] {
     }));
 }
 
-function monthlyPresenter(expenses: ExpenseWithBranchRow[]): ExpenseRow[] {
+function monthlyPresenter(expenses: ExpenseSummaryRow[]): ExpenseRow[] {
   const monthBuckets = MONTHS.map(() => 0);
 
   for (const expense of expenses) {
     const monthIndex = expense.created_at.getMonth();
-    monthBuckets[monthIndex] += expense.amount.toNumber();
+    monthBuckets[monthIndex] += expense.total_amount;
   }
 
   return monthBuckets
@@ -56,7 +58,10 @@ function monthlyPresenter(expenses: ExpenseWithBranchRow[]): ExpenseRow[] {
     .filter((row) => row.total_expenses > 0);
 }
 
-export function presentTotalExpenses(expenses: ExpenseWithBranchRow[], mode: FilterMode): ExpenseRow[] {
+export function presentTotalExpenses(
+  expenses: ExpenseSummaryRow[],
+  mode: FilterMode,
+): ExpenseRow[] {
   return mode === "monthly" ? monthlyPresenter(expenses) : dailyPresenter(expenses);
 }
 

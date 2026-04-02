@@ -4,10 +4,10 @@ import { logger } from "@/app/lib/logger";
 import { ReportsRepository } from "src/infrastructure/di/repositories";
 import {
   DailyCashFlowPaymentRow,
+  ExpenseSummaryRow,
   CashFlowEntry,
   FilterMode,
 } from "src/entities/models/Report";
-import { ExpenseWithBranchRow } from "src/entities/models/Expense";
 import { formatDate } from "@/app/lib/utils";
 
 const MONTHS = [
@@ -17,7 +17,7 @@ const MONTHS = [
 
 function buildEntries(
   receipts: DailyCashFlowPaymentRow[],
-  expenses: ExpenseWithBranchRow[],
+  expenses: ExpenseSummaryRow[],
   keyFn: (date: Date) => string,
   labelFn: (date: Date) => string,
 ): CashFlowEntry[] {
@@ -41,19 +41,28 @@ function buildEntries(
   }
 
   for (const receipt of receipts) {
-    const totalPaid = receipt.payments.reduce((sum, p) => sum + p.amount_paid, 0);
     const entry = getOrCreate(receipt.created_at);
 
-    if (receipt.purpose === "REGISTRATION") entry.inflow_registration += totalPaid;
-    if (receipt.purpose === "PULL_OUT") entry.inflow_pull_out += totalPaid;
-    if (receipt.purpose === "ADD_ON") entry.inflow_add_on += totalPaid;
-    if (receipt.purpose === "REFUNDED") entry.outflow_refunded += totalPaid;
-    if (receipt.purpose === "LESS") entry.outflow_less += totalPaid;
+    if (receipt.purpose === "REGISTRATION") {
+      entry.inflow_registration += receipt.total_amount;
+    }
+    if (receipt.purpose === "PULL_OUT") {
+      entry.inflow_pull_out += receipt.total_amount;
+    }
+    if (receipt.purpose === "ADD_ON") {
+      entry.inflow_add_on += receipt.total_amount;
+    }
+    if (receipt.purpose === "REFUNDED") {
+      entry.outflow_refunded += receipt.total_amount;
+    }
+    if (receipt.purpose === "LESS") {
+      entry.outflow_less += receipt.total_amount;
+    }
   }
 
   for (const expense of expenses) {
     const entry = getOrCreate(expense.created_at);
-    entry.outflow_expenses += expense.amount.toNumber();
+    entry.outflow_expenses += expense.total_amount;
   }
 
   return Array.from(map.entries())
@@ -70,7 +79,7 @@ function buildEntries(
 
 export function presentCashFlow(
   receipts: DailyCashFlowPaymentRow[],
-  expenses: ExpenseWithBranchRow[],
+  expenses: ExpenseSummaryRow[],
   mode: FilterMode,
 ): CashFlowEntry[] {
   return mode === "monthly"
