@@ -10,67 +10,69 @@ import { UpdateBidderRequirementController } from "src/controllers/bidder-requir
 import { DeleteBidderRequirementController } from "src/controllers/bidder-requirement/delete-bidder-requirement.controller";
 import { CreateBanHistoryController } from "src/controllers/bidder-ban-history/create-ban-history.controller";
 import { DeleteBanHistoryController } from "src/controllers/bidder-ban-history/delete-ban-history.controller";
-import { RequestContext } from "@/app/lib/prisma/RequestContext";
-import { requireUser } from "@/app/lib/auth";
+import {
+  authorizeAction,
+  runWithBranchContext,
+  runWithUserContext,
+} from "@/app/lib/protected-action";
 
 export const createBidder = async (formData: FormData) => {
-  const user = await requireUser();
-  const data = Object.fromEntries(formData.entries());
-  data.branch_id = data.branch_id ? data.branch_id : user.branch.branch_id;
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  const data = Object.fromEntries(formData.entries());
+  data.branch_id = data.branch_id ? data.branch_id : auth.value.branch.branch_id;
+
+  return await runWithUserContext(
+    auth.value,
     async () => await CreateBidderController(data),
   );
 };
 
 export const getBidderByBidderNumber = async (bidderNumber: string) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const decoded_url = decodeURI(bidderNumber).split("-");
   const bidder_number = decoded_url[0];
   const branch_name = decoded_url[1];
-  return await GetBidderByBidderNumberController(bidder_number, branch_name);
+  return await runWithBranchContext(auth.value, async () =>
+    GetBidderByBidderNumberController(bidder_number, branch_name),
+  );
 };
 
 export const getBidders = async () => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await GetBiddersController(),
   );
 };
 
 export const updateBidder = async (bidder_id: string, formData: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
   const data = Object.fromEntries(formData.entries());
-  data.branch_id = data.branch_id ? data.branch_id : user.branch.branch_id;
+  data.branch_id = data.branch_id ? data.branch_id : auth.value.branch.branch_id;
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await UpdateBidderController(bidder_id, data),
   );
 };
 
 export const uploadBidders = async (formData: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const branch_id = formData.get("branch_id") as string;
   const file = formData.get("file");
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await UploadBiddersController(branch_id, file as File),
   );
 };
@@ -79,15 +81,13 @@ export const createBidderRequirement = async (
   bidder_id: string,
   formData: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(formData.entries());
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await CreateBidderRequirementController(bidder_id, data),
   );
 };
@@ -96,27 +96,23 @@ export const updateBidderRequirement = async (
   requirement_id: string,
   formData: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(formData.entries());
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await UpdateBidderRequirementController(requirement_id, data),
   );
 };
 
 export const deleteBidderRequirement = async (requirement_id: string) => {
-  const user = await requireUser();
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
     async () => await DeleteBidderRequirementController(requirement_id),
   );
 };
@@ -125,27 +121,23 @@ export const createBanHistory = async (
   bidder_id: string,
   formData: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(formData.entries());
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await CreateBanHistoryController(bidder_id, data),
   );
 };
 
 export const deleteBanHistory = async (bidder_ban_history_id: string) => {
-  const user = await requireUser();
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
     async () => await DeleteBanHistoryController(bidder_ban_history_id),
   );
 };

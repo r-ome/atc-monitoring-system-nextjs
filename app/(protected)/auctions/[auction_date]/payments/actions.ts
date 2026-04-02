@@ -1,7 +1,10 @@
 "use server";
 
-import { requireUser } from "@/app/lib/auth";
-import { RequestContext } from "@/app/lib/prisma/RequestContext";
+import {
+  authorizeAction,
+  runWithBranchContext,
+  runWithUserContext,
+} from "@/app/lib/protected-action";
 import { GetExpensesByDateController } from "src/controllers/expenses/get-expenses-by-date.controller";
 import { RefundAuctionsInventoriesController } from "src/controllers/inventories/refund-auctions-inventories.controller";
 import { GetAuctionTransactionsController } from "src/controllers/payments/get-auction-transactions.controller";
@@ -28,29 +31,32 @@ export const getPaymentsByDate = async (
   date: string,
   branch_id: string | undefined = undefined,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await GetPaymentsByDateController(new Date(date), branch_id),
   );
 };
 
 export const getAuctionTransactions = async (auction_id: string) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await GetAuctionTransactionsController(auction_id),
   );
 };
 
 export const refundAuctionsInventories = async (form_data: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
   const input = Object.fromEntries(form_data.entries());
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await RefundAuctionsInventoriesController(input),
   );
 };
@@ -59,10 +65,11 @@ export const getReceiptDetails = async (
   auctionId: string,
   receiptNumber: string,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await GetReceiptDetailsController(auctionId, receiptNumber),
   );
 };
@@ -71,10 +78,11 @@ export const getExpensesByDate = async (
   date: string,
   branch_id: string | undefined = undefined,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await GetExpensesByDateController(date, branch_id),
   );
 };
@@ -83,24 +91,22 @@ export const addExpense = async (
   petty_cash_id: string,
   form_data: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
   const input = Object.fromEntries(form_data.entries());
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await AddExpenseController(petty_cash_id, input),
   );
 };
 
 export const getBidderReceipts = async (auction_bidder_id: string) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await GetBidderReceiptsController(auction_bidder_id),
   );
 };
@@ -109,11 +115,12 @@ export const updateRegistrationPayment = async (
   payment_id: string,
   form_data: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
   const input = Object.fromEntries(form_data.entries());
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await UpdateRegistrationPaymentController(payment_id, input),
   );
 };
@@ -122,10 +129,11 @@ export const getPettyCashBalance = async (
   date: string,
   branch_id: string | undefined,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await GetPettyCashBalanceController(date, branch_id),
   );
 };
@@ -134,15 +142,12 @@ export const updateExpense = async (
   expense_id: string,
   form_data: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
   const data = Object.fromEntries(form_data.entries());
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await UpdateExpenseController(expense_id, data),
   );
 };
@@ -150,34 +155,39 @@ export const updateExpense = async (
 export const getStorageFeeTotal = async (
   parent_receipt_number: string,
 ): Promise<number> => {
-  await requireUser();
-  const records = await prisma.receipt_records.findMany({
-    where: {
-      receipt_number: { startsWith: `${parent_receipt_number}SF` },
-      purpose: "STORAGE_FEE",
-    },
-    include: { payments: true },
+  const auth = await authorizeAction();
+  if (!auth.ok) return 0;
+
+  return await runWithBranchContext(auth.value, async () => {
+    const records = await prisma.receipt_records.findMany({
+      where: {
+        receipt_number: { startsWith: `${parent_receipt_number}SF` },
+        purpose: "STORAGE_FEE",
+      },
+      include: { payments: true },
+    });
+    return records.reduce(
+      (acc, r) => acc + r.payments.reduce((s, p) => s + p.amount_paid, 0),
+      0,
+    );
   });
-  return records.reduce(
-    (acc, r) => acc + r.payments.reduce((s, p) => s + p.amount_paid, 0),
-    0,
-  );
 };
 
 export const addStorageFee = async (input: StorageFeePaymentInput) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
-    async () => await AddStorageFeeController(input),
+  return await runWithBranchContext(auth.value, async () =>
+    AddStorageFeeController(input),
   );
 };
 
 export const undoPayment = async (receipt_id: string) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await UndoPaymentController(receipt_id),
   );
 };
@@ -186,28 +196,22 @@ export const updatePettyCash = async (
   petty_cash_id: string,
   form_data: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
   const input = Object.fromEntries(form_data.entries());
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await UpdatePettyCashController(petty_cash_id, input),
   );
 };
 
 export const deleteExpense = async (expense_id: string) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await DeleteExpenseController(expense_id),
   );
 };
@@ -217,8 +221,12 @@ export const checkPettyCashConsistency = async (
   startDate: string,
   endDate: string,
 ) => {
-  await requireUser();
-  return await CheckPettyCashConsistencyController(branch_id, startDate, endDate);
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(auth.value, async () =>
+    CheckPettyCashConsistencyController(branch_id, startDate, endDate),
+  );
 };
 
 export const repairPettyCashConsistency = async (
@@ -226,33 +234,31 @@ export const repairPettyCashConsistency = async (
   startDate: string,
   endDate: string,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () =>
       await RepairPettyCashConsistencyController(branch_id, startDate, endDate),
   );
 };
 
 export const undoPettyCashRepair = async (snapshot: PettyCashSnapshot) => {
-  await requireUser();
-  return await UndoPettyCashRepairController(snapshot);
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(auth.value, async () =>
+    UndoPettyCashRepairController(snapshot),
+  );
 };
 
 export const recalculatePettyCash = async (petty_cash: PettyCash) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await RecalculatePettyCashController(petty_cash),
   );
 };

@@ -1,7 +1,10 @@
 "use server";
 
-import { requireUser } from "@/app/lib/auth";
-import { RequestContext } from "@/app/lib/prisma/RequestContext";
+import {
+  authorizeAction,
+  runWithBranchContext,
+  runWithUserContext,
+} from "@/app/lib/protected-action";
 import { CreateContainerController } from "src/controllers/containers/create-container.controller";
 import { GetContainersController } from "src/controllers/containers/get-containers.controller";
 import { UpdateContainerController } from "src/controllers/containers/update-container.controller";
@@ -13,41 +16,43 @@ import { MergeInventoriesController } from "src/controllers/inventories/merge-in
 import { AppendInventoriesController } from "src/controllers/inventories/append-inventories.controller";
 
 export const getContainerByBarcode = async (barcode: string) => {
-  return await GetContainerByBarcodeController(barcode);
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(auth.value, async () =>
+    GetContainerByBarcodeController(barcode),
+  );
 };
 
 export const getContainers = async () => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
 
-  return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+  return await runWithBranchContext(
+    auth.value,
     async () => await GetContainersController(),
   );
 };
 
 export const createContainer = async (form_data: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(form_data.entries());
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await CreateContainerController(data),
   );
 };
 
 export const updateContainer = async (containerId: string, input: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(input.entries());
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await UpdateContainerController(containerId, data),
   );
 };
@@ -56,14 +61,12 @@ export const uploadInventoryFile = async (
   barcode: string,
   form_data: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const file = form_data.get("file");
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await UploadInventoryFileController(barcode, file as File),
   );
 };
@@ -72,38 +75,32 @@ export const updateContainerStatus = async (
   container_id: string,
   status: "PAID" | "UNPAID",
 ) => {
-  const user = await requireUser();
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
     async () => await UpdateContainerStatusController(container_id, status),
   );
 };
 
 export const deleteContainer = async (container_id: string) => {
-  const user = await requireUser();
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
     async () => await DeleteContainerController(container_id),
   );
 };
 
 export const mergeInventories = async (input: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(input.entries());
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await MergeInventoriesController(data),
   );
 };
@@ -112,13 +109,12 @@ export const appendInventories = async (
   container_barcode: string,
   inventory_ids: string[],
 ) => {
-  const user = await requireUser();
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
-    async () => await AppendInventoriesController(container_barcode, inventory_ids),
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () =>
+      await AppendInventoriesController(container_barcode, inventory_ids),
   );
 };

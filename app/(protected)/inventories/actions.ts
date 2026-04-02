@@ -11,68 +11,77 @@ import { UploadBoughtItemsController } from "src/controllers/inventories/upload-
 import { GetBoughtItemsController } from "src/controllers/inventories/get-bought-items.controller";
 import { GetInventoriesWithNoAuctionsInventoriesController } from "src/controllers/inventories/get-inventories-with-no-auctions-inventories.controller";
 import { DeleteInventoryController } from "src/controllers/inventories/delete-inventory.controller";
-import { requireUser } from "@/app/lib/auth";
-import { RequestContext } from "@/app/lib/prisma/RequestContext";
+import {
+  authorizeAction,
+  runWithBranchContext,
+  runWithUserContext,
+} from "@/app/lib/protected-action";
 
 export const getAuctionItemDetails = async (auctionInventoryId: string) => {
-  return await GetAuctionItemDetailsController(auctionInventoryId);
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(auth.value, async () =>
+    GetAuctionItemDetailsController(auctionInventoryId),
+  );
 };
 
 export const voidItems = async (formData: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(formData.entries());
   data.auction_inventories =
     typeof data.auction_inventories === "string"
       ? JSON.parse(data.auction_inventories as string)
       : [];
 
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await VoidItemsController(data),
   );
 };
 
 export const updateAuctionInventory = async (formData: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(formData.entries());
   data.control = formatNumberPadding(data.control as string, 4);
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => UpdateAuctionItemController(data),
   );
 };
 
 export const getInventory = async (inventory_id: string) => {
-  return await GetInventoryController(inventory_id);
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(auth.value, async () =>
+    GetInventoryController(inventory_id),
+  );
 };
 
 export const updateInventory = async (
   inventory_id: string,
   formData: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(formData.entries());
   data.control = formatNumberPadding(data.control as string, 4);
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await UpdateInventoryController(inventory_id, data),
   );
 };
 
 export const createInventory = async (formData: FormData) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const data = Object.fromEntries(formData.entries());
   const container_barcode = data.barcode.toString().split("-");
 
@@ -83,12 +92,8 @@ export const createInventory = async (formData: FormData) => {
   }
   data.control = formatNumberPadding(data.control as string, 4);
   data.description = data.description.toString().toUpperCase();
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  return await runWithUserContext(
+    auth.value,
     async () => await CreateInventoryController(data),
   );
 };
@@ -97,9 +102,13 @@ export const uploadBoughtItems = async (
   branch_id: string,
   formData: FormData,
 ) => {
-  const user = await requireUser();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
   const file = formData.get("file");
-  return await UploadBoughtItemsController(branch_id, file as File, user.username);
+  return await runWithUserContext(auth.value, async () =>
+    UploadBoughtItemsController(branch_id, file as File, auth.value.username),
+  );
 };
 
 export const getBoughtItems = async (params: {
@@ -108,21 +117,29 @@ export const getBoughtItems = async (params: {
   view?: string;
   branchId: string;
 }) => {
-  return await GetBoughtItemsController(params);
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(auth.value, async () =>
+    GetBoughtItemsController(params),
+  );
 };
 
 export const getInventoriesWithNoAuctionsInventories = async () => {
-  return await GetInventoriesWithNoAuctionsInventoriesController();
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(auth.value, async () =>
+    GetInventoriesWithNoAuctionsInventoriesController(),
+  );
 };
 
 export const deleteInventory = async (inventory_id: string) => {
-  const user = await requireUser();
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
     async () => await DeleteInventoryController(inventory_id),
   );
 };
