@@ -2,6 +2,7 @@ type InventoryHistoryAction =
   | "encoded"
   | "reassigned"
   | "encoded_again"
+  | "manifest_reencoded"
   | "cancelled"
   | "refunded"
   | "partial_refund"
@@ -36,6 +37,7 @@ const HISTORY_PREFIXES = {
   encoded: "Item encoded",
   reassigned: "Item reassigned",
   encoded_again: "Item encoded again",
+  manifest_reencoded: "Manifest item re-encoded",
   cancelled: "Cancelled item",
   refunded: "Refunded item",
   partial_refund: "Partial refund",
@@ -63,6 +65,10 @@ export function buildReassignedHistoryRemark() {
 
 export function buildEncodedAgainHistoryRemark(previous_status: string) {
   return `${HISTORY_PREFIXES.encoded_again} | Previous status: ${previous_status}`;
+}
+
+export function buildManifestReencodedHistoryRemark(previous_status: string) {
+  return `${HISTORY_PREFIXES.manifest_reencoded} | Previous status: ${previous_status}`;
 }
 
 export function buildCancelledHistoryRemark(
@@ -157,6 +163,13 @@ export function parseInventoryHistoryRemark(
   if (trimmed.startsWith(`${HISTORY_PREFIXES.encoded_again} | `)) {
     return {
       action: "encoded_again",
+      previous_status: parseLabeledField(trimmed, "Previous status", []),
+    };
+  }
+
+  if (trimmed.startsWith(`${HISTORY_PREFIXES.manifest_reencoded} | `)) {
+    return {
+      action: "manifest_reencoded",
       previous_status: parseLabeledField(trimmed, "Previous status", []),
     };
   }

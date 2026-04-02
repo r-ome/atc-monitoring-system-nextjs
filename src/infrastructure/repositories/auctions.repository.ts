@@ -10,6 +10,7 @@ import {
   buildCancelledHistoryRemark,
   buildEncodedAgainHistoryRemark,
   buildEncodedHistoryRemark,
+  buildManifestReencodedHistoryRemark,
   parseInventoryHistoryRemark,
   buildReassignedHistoryRemark,
   buildRefundedHistoryRemark,
@@ -986,21 +987,30 @@ export const AuctionRepository: IAuctionRepository = {
             });
           }
 
+          const rows_for_existing_auction_inventory = valid_rows_in_sheet.filter(
+            (item) => item.auction_inventory_id,
+          );
+          const rows_for_new_auction_inventory = valid_rows_in_sheet.filter(
+            (item) => !item.auction_inventory_id,
+          );
+
           // insert newly created_inventories
-          const for_creating_inventories = valid_rows_in_sheet.filter(
+          const for_creating_inventories = rows_for_new_auction_inventory.filter(
             (item) => !item.inventory_id && item.container_id,
           );
 
-          await tx.inventories.createMany({
-            data: for_creating_inventories.map((item) => ({
-              container_id: item.container_id!,
-              control: item.control,
-              barcode: item.barcode,
-              description: item.description,
-              status: "SOLD",
-              auction_date: auction.created_at,
-            })),
-          });
+          if (for_creating_inventories.length) {
+            await tx.inventories.createMany({
+              data: for_creating_inventories.map((item) => ({
+                container_id: item.container_id!,
+                control: item.control,
+                barcode: item.barcode,
+                description: item.description,
+                status: "SOLD",
+                auction_date: auction.created_at,
+              })),
+            });
+          }
 
           const newly_created_inventories = await tx.inventories.findMany({
             where: {
@@ -1036,7 +1046,9 @@ export const AuctionRepository: IAuctionRepository = {
           });
 
           const created_auctions_inventories = await Promise.all(
-            auction_inventories.map((item) =>
+            auction_inventories
+              .filter((item) => !item.auction_inventory_id)
+              .map((item) =>
               tx.auctions_inventories.create({
                 data: {
                   auction_bidder_id: item.auction_bidder_id,
@@ -1052,24 +1064,77 @@ export const AuctionRepository: IAuctionRepository = {
               }),
             ),
           );
+
+          if (rows_for_existing_auction_inventory.length) {
+            await tx.inventories.updateMany({
+              data: {
+                status: "SOLD",
+                auction_date: auction.created_at,
+              },
+              where: {
+                inventory_id: {
+                  in: rows_for_existing_auction_inventory
+                    .map((item) => item.inventory_id)
+                    .filter((inventory_id): inventory_id is string => Boolean(inventory_id)),
+                },
+              },
+            });
+
+            await Promise.all(
+              auction_inventories
+                .filter(
+                  (
+                    item,
+                  ): item is typeof item & { auction_inventory_id: string } =>
+                    Boolean(item.auction_inventory_id),
+                )
+                .map((item) =>
+                  tx.auctions_inventories.update({
+                    data: {
+                      auction_bidder_id: item.auction_bidder_id,
+                      inventory_id: item.inventory_id,
+                      description: item.description,
+                      price: parseInt(item.price, 10),
+                      qty: item.qty,
+                      manifest_number: item.manifest_number as string,
+                      status: "UNPAID",
+                      auction_date: auction.created_at,
+                      is_slash_item: item.isSlashItem,
+                    },
+                    where: {
+                      auction_inventory_id: item.auction_inventory_id,
+                    },
+                  }),
+                ),
+            );
+          }
+
           const auctions_inventories = await tx.auctions_inventories.findMany({
             include: { histories: true },
             where: {
               auction_inventory_id: {
-                in: created_auctions_inventories.map(
-                  (item) => item.auction_inventory_id as string,
-                ),
+                in: [
+                  ...created_auctions_inventories.map(
+                    (item) => item.auction_inventory_id as string,
+                  ),
+                  ...auction_inventories
+                    .map((item) => item.auction_inventory_id)
+                    .filter(
+                      (auction_inventory_id): auction_inventory_id is string =>
+                        Boolean(auction_inventory_id),
+                    ),
+                ],
               },
             },
           });
           await tx.inventory_histories.createMany({
-            data: auctions_inventories.map((item) => ({
+            data: auction_inventories.map((item) => ({
               auction_inventory_id: item.auction_inventory_id,
               inventory_id: item.inventory_id,
               auction_status: "UNPAID",
               inventory_status: "SOLD",
-              remarks: item.histories.length
-                ? buildReassignedHistoryRemark()
+              remarks: item.auction_inventory_id && item.status
+                ? buildManifestReencodedHistoryRemark(item.status)
                 : buildEncodedHistoryRemark(),
             })),
           });

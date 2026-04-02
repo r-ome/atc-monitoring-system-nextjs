@@ -71,6 +71,9 @@ export const updateManifestSchema = z.object({
   inventory_id: z.string().optional().nullable(),
   container_id: z.string().optional().nullable(),
   isValid: z.boolean().optional(),
+  forUpdating: z.boolean().optional(),
+  status: z.string().optional(),
+  auction_inventory_id: z.string().optional().nullable(),
   error: z.string(),
   isSlashItem: z.string().nullable().optional(),
 });

@@ -18,7 +18,7 @@ export const updateManifestUseCase = async (
       AuctionRepository.getRegisteredBiddersForManifest(auction_id),
       InventoryRepository.getAllInventoriesForManifest(),
       ContainerRepository.getContainerBarcodes(),
-      AuctionRepository.getMonitoring(auction_id, ["UNPAID", "PAID", "CANCELLED", "REFUNDED"]),
+      AuctionRepository.getMonitoring("ALL", ["UNPAID", "PAID", "CANCELLED", "REFUNDED"]),
     ]);
 
   const withFormattedBarcodes = formatSlashedBarcodes(data);
@@ -68,25 +68,35 @@ const formatExistingInventories = (
   data: UpdateManifestInput[],
   existing_inventories: InventoryForManifestRow[],
 ): UpdateManifestInput[] => {
-  const inventoryByBarcode = new Map(
-    existing_inventories.map((inv) => [inv.barcode, inv]),
-  );
+  const inventoryByBarcode = new Map<string, InventoryForManifestRow>();
+  const inventoryByBarcodeControl = new Map<string, InventoryForManifestRow>();
+
+  for (const inventory of existing_inventories) {
+    inventoryByBarcode.set(inventory.barcode, inventory);
+    inventoryByBarcodeControl.set(
+      `${inventory.barcode}:${inventory.control}`,
+      inventory,
+    );
+  }
 
   return data.map((item) => {
     if (!item.isValid) return item;
-    if (!isThreePartBarcode(item.barcode)) return item;
 
-    const existing_inventory = inventoryByBarcode.get(item.barcode);
+    const existing_inventory = isThreePartBarcode(item.barcode)
+      ? inventoryByBarcode.get(item.barcode)
+      : inventoryByBarcodeControl.get(`${item.barcode}:${item.control}`);
 
-    if (existing_inventory)
-      if (existing_inventory.status === "SOLD") {
-        item.isValid = false;
-        item.error = "Item already exists and SOLD in inventories";
-      } else {
-        item.isValid = true;
-        item.error = "";
-        item.inventory_id = existing_inventory.inventory_id;
-      }
+    if (!existing_inventory) return item;
+
+    if (existing_inventory.status === "SOLD") {
+      item.isValid = false;
+      item.error = "Item already exists and SOLD in inventories";
+      return item;
+    }
+
+    item.isValid = true;
+    item.error = "";
+    item.inventory_id = existing_inventory.inventory_id;
 
     return item;
   });
@@ -161,7 +171,28 @@ const removeMonitoringDuplicates = (
   data: UpdateManifestInput[],
   monitoring: AuctionInventoryWithDetailsRow[]
 ) => {
-  const existing_monitoring = new Set(
+  const monitoringByBarcode = new Map<string, AuctionInventoryWithDetailsRow>();
+  const monitoringByBarcodeControl = new Map<string, AuctionInventoryWithDetailsRow>();
+  const reusableByBarcode = new Map<string, AuctionInventoryWithDetailsRow>();
+  const reusableByBarcodeControl = new Map<string, AuctionInventoryWithDetailsRow>();
+
+  for (const monitoringItem of monitoring) {
+    monitoringByBarcode.set(monitoringItem.inventory.barcode, monitoringItem);
+    monitoringByBarcodeControl.set(
+      `${monitoringItem.inventory.barcode}:${monitoringItem.inventory.control}`,
+      monitoringItem,
+    );
+
+    if (["CANCELLED", "REFUNDED"].includes(monitoringItem.status)) {
+      reusableByBarcode.set(monitoringItem.inventory.barcode, monitoringItem);
+      reusableByBarcodeControl.set(
+        `${monitoringItem.inventory.barcode}:${monitoringItem.inventory.control}`,
+        monitoringItem,
+      );
+    }
+  }
+
+  const existingMonitoring = new Set(
     monitoring.map((item) =>
       `${item.inventory.barcode}:${item.inventory.control}:${item.description}:${item.auction_bidder.bidder.bidder_number}:${item.qty}:${item.price}`,
     ),
@@ -170,9 +201,27 @@ const removeMonitoringDuplicates = (
   return data.map((item) => {
     if (!item.isValid) return item;
 
+    const logicalKey = `${item.barcode}:${item.control}`;
+    const reusableMonitoring = isThreePartBarcode(item.barcode)
+      ? reusableByBarcode.get(item.barcode)
+      : reusableByBarcodeControl.get(logicalKey);
+
+    if (reusableMonitoring) {
+      const matchedMonitoring = isThreePartBarcode(item.barcode)
+        ? monitoringByBarcode.get(item.barcode)
+        : monitoringByBarcodeControl.get(logicalKey);
+
+      item.forUpdating = true;
+      item.auction_inventory_id =
+        matchedMonitoring?.auction_inventory_id ?? reusableMonitoring.auction_inventory_id;
+      item.status = reusableMonitoring.status;
+      item.inventory_id = reusableMonitoring.inventory_id;
+      return item;
+    }
+
     const key = `${item.barcode}:${item.control}:${item.description}:${item.bidder_number}:${item.qty}:${item.price}`;
 
-    if (existing_monitoring.has(key)) {
+    if (existingMonitoring.has(key)) {
       item.isValid = false;
       item.error = "DUPLICATE ENCODE";
       return item;
