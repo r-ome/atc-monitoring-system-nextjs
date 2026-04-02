@@ -30,6 +30,20 @@ import {
 } from "src/entities/models/Auction";
 import { isRange } from "@/app/lib/utils";
 
+function resolvePartialBalancePriceFromLegacyHistoryRemark(
+  remarks: string | null | undefined,
+) {
+  const parsed = parseInventoryHistoryRemark(remarks);
+  if (
+    typeof parsed.previous_price !== "number" ||
+    typeof parsed.new_price !== "number"
+  ) {
+    return null;
+  }
+
+  return parsed.new_price - parsed.previous_price;
+}
+
 export const AuctionRepository: IAuctionRepository = {
   startAuction: async (auction_date) => {
     try {
@@ -1189,7 +1203,7 @@ export const AuctionRepository: IAuctionRepository = {
           include: {
             auctions_inventories: {
               include: { histories: true },
-              where: { status: "UNPAID" },
+              where: { status: { in: ["UNPAID", "PARTIAL"] } },
             },
           },
         });
@@ -1216,24 +1230,18 @@ export const AuctionRepository: IAuctionRepository = {
           .filter((item) => ["UNPAID", "PARTIAL"].includes(item.status))
           .map((item) => {
             if (item.status === "UNPAID") return item;
-            const historyWithUpdatedPrice = item.histories.find((history) => {
-              const parsed = parseInventoryHistoryRemark(history.remarks);
-              return (
-                typeof parsed.previous_price === "number" &&
-                typeof parsed.new_price === "number"
-              );
-            });
-            if (historyWithUpdatedPrice) {
-              const parsed = parseInventoryHistoryRemark(
-                historyWithUpdatedPrice.remarks,
-              );
-              if (
-                typeof parsed.previous_price === "number" &&
-                typeof parsed.new_price === "number"
-              ) {
-                item.price = parsed.new_price - parsed.previous_price;
-              }
+
+            const discrepancyHistory = item.histories.find(
+              (history) => history.auction_status === "DISCREPANCY",
+            );
+            const partialPrice = resolvePartialBalancePriceFromLegacyHistoryRemark(
+              discrepancyHistory?.remarks,
+            );
+
+            if (typeof partialPrice === "number") {
+              item.price = partialPrice;
             }
+
             return item;
           })
           .reduce((acc, item) => (acc += item.price), 0);

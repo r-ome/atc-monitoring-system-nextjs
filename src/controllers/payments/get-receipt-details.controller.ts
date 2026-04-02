@@ -4,78 +4,46 @@ import { ok, err } from "src/entities/models/Result";
 import { formatDate } from "@/app/lib/utils";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-import { isBefore, isAfter } from "date-fns";
 import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
+
+function resolveLegacyPriceChangeFromHistoryRemark(remarks: string | null | undefined) {
+  const parsed = parseInventoryHistoryRemark(remarks);
+  if (
+    typeof parsed.previous_price !== "number" ||
+    typeof parsed.new_price !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    previous_price: parsed.previous_price,
+    new_price: parsed.new_price,
+  };
+}
 
 function presenter(receipt: ReceiptRecordWithHistoriesRow) {
   const date_format = "MMMM dd, yyyy hh:mm:ss a";
-
-  const isPaid = (
-    inventory_histories: { remarks: string | null }[] | undefined,
-  ) => {
-    if (!inventory_histories) return false;
-    return (
-      inventory_histories.filter(
-        (item) =>
-          parseInventoryHistoryRemark(item.remarks).action === "pullout_paid" ||
-          /paid/gi.test(item.remarks as string),
-      ).length > 0
-    );
-  };
-
-  const isPriceUpdated = (
-    inventory_histories: { remarks: string | null }[] | undefined,
-  ) => {
-    if (!inventory_histories) return false;
-    return (
-      inventory_histories.filter((item) => {
-        const parsed = parseInventoryHistoryRemark(item.remarks);
-        return (
-          typeof parsed.previous_price === "number" &&
-          typeof parsed.new_price === "number"
-        );
-      }).length > 0
-    );
-  };
 
   const getReceiptPrice = (auction_inventory: {
     price: number;
     histories: {
       receipt_id: string | null;
       remarks: string | null;
-      created_at: Date;
     }[];
   }) => {
     if (!auction_inventory) return;
 
-    let receipt_price = auction_inventory.price;
-    const is_item_paid = isPaid(auction_inventory?.histories);
-    if (!is_item_paid) return;
-    const is_price_updated = isPriceUpdated(auction_inventory?.histories);
-    if (is_price_updated) {
-      auction_inventory?.histories.forEach((history) => {
-        if (isBefore(history.created_at, receipt.created_at)) return;
+    if (receipt.purpose !== "LESS") return auction_inventory.price;
 
-        const parsed = parseInventoryHistoryRemark(history.remarks);
-        if (
-          typeof parsed.previous_price === "number" &&
-          typeof parsed.new_price === "number"
-        ) {
-          const prev = parsed.previous_price;
-          const next = parsed.new_price;
+    const receiptHistory = auction_inventory.histories.find(
+      (history) => history.receipt_id === receipt.receipt_id,
+    );
+    if (!receiptHistory) return auction_inventory.price;
 
-          const price =
-            isAfter(receipt.created_at, history.created_at) &&
-            history.receipt_id === receipt.receipt_id
-              ? next
-              : prev;
-
-          receipt_price = price;
-        }
-      });
-    }
-
-    return receipt_price;
+    const priceChange = resolveLegacyPriceChangeFromHistoryRemark(
+      receiptHistory.remarks,
+    );
+    return priceChange?.previous_price ?? auction_inventory.price;
   };
 
   return {

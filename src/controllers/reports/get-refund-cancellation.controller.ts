@@ -7,6 +7,27 @@ import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { formatDate } from "@/app/lib/utils";
 import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
 
+function getRelevantHistories(row: RefundCancellationRow) {
+  return row.histories.filter((history) =>
+    ["CANCELLED", "REFUNDED"].includes(history.auction_status),
+  );
+}
+
+function resolveBidderFromLegacyHistoryRemark(remarks: string | null | undefined) {
+  const parsed = parseInventoryHistoryRemark(remarks);
+  if (!parsed.bidder_number || !parsed.bidder_name) return null;
+
+  return {
+    bidder_number: parsed.bidder_number,
+    bidder_name: parsed.bidder_name,
+  };
+}
+
+function resolveReasonFromLegacyHistoryRemark(remarks: string | null | undefined) {
+  const parsed = parseInventoryHistoryRemark(remarks);
+  return parsed.reason ?? remarks ?? "";
+}
+
 function resolveOriginalBidder(row: RefundCancellationRow): {
   bidder_number: string;
   bidder_name: string;
@@ -15,8 +36,8 @@ function resolveOriginalBidder(row: RefundCancellationRow): {
 
   // If current holder is 5013, look through histories for the original bidder
   if (currentBidder.bidder_number === ATC_DEFAULT_BIDDER_NUMBER) {
-    for (const history of row.histories) {
-      // Paid items: trace via receipt → auction_bidder
+    for (const history of getRelevantHistories(row)) {
+      // Structured source for paid refund/cancellation rows.
       const historyBidder = history.receipt?.auction_bidder?.bidder;
       if (historyBidder && historyBidder.bidder_number !== ATC_DEFAULT_BIDDER_NUMBER) {
         return {
@@ -24,16 +45,15 @@ function resolveOriginalBidder(row: RefundCancellationRow): {
           bidder_name: `${historyBidder.first_name} ${historyBidder.last_name}`,
         };
       }
+    }
 
-      // Unpaid items: parse from remarks (e.g. "Cancelled from bidder #5013 (John Doe): REASON")
-      if (!history.receipt && history.remarks) {
-        const parsed = parseInventoryHistoryRemark(history.remarks);
-        if (parsed.bidder_number && parsed.bidder_name) {
-          return {
-            bidder_number: parsed.bidder_number,
-            bidder_name: parsed.bidder_name,
-          };
-        }
+    for (const history of getRelevantHistories(row)) {
+      // Legacy fallback for unpaid rows after auction_bidder_id has been reassigned.
+      if (history.receipt) continue;
+
+      const bidder = resolveBidderFromLegacyHistoryRemark(history.remarks);
+      if (bidder) {
+        return bidder;
       }
     }
   }
@@ -45,17 +65,15 @@ function resolveOriginalBidder(row: RefundCancellationRow): {
 }
 
 function resolveReason(row: RefundCancellationRow): string {
-  for (const history of row.histories) {
-    if (!["CANCELLED", "REFUNDED"].includes(history.auction_status)) continue;
-    // Paid cancelled/refunded items: receipt.remarks contains the raw reason
+  for (const history of getRelevantHistories(row)) {
+    // Structured source for paid refund/cancellation rows.
     if (history.receipt?.remarks) return history.receipt.remarks;
-    // Unpaid items: parse the standardized remark first, with legacy fallback.
-    if (history.remarks) {
-      const parsed = parseInventoryHistoryRemark(history.remarks);
-      if (parsed.reason) return parsed.reason;
-      return history.remarks;
-    }
   }
+
+  for (const history of getRelevantHistories(row)) {
+    if (!history.receipt) return resolveReasonFromLegacyHistoryRemark(history.remarks);
+  }
+
   return "";
 }
 
