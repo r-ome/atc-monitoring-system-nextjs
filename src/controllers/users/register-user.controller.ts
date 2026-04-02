@@ -6,15 +6,11 @@ import { err, ok } from "src/entities/models/Result";
 import {
   registerUserSchema,
   RegisterUserInput,
-  UserWithBranchRow,
 } from "src/entities/models/User";
 import { registerUserUseCase } from "src/application/use-cases/users/register-user.use-case";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
-
-function presenter(user: UserWithBranchRow) {
-  return user;
-}
+import { userPresenter } from "./user.presenter";
 
 export const RegisterUserController = async (
   input: Partial<RegisterUserInput>,
@@ -31,7 +27,7 @@ export const RegisterUserController = async (
 
     const created = await registerUserUseCase(data);
     await logActivity("CREATE", "user", created.user_id, `Registered user ${created.username} (${created.role})`);
-    return ok(presenter(created));
+    return ok(userPresenter(created));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("RegisterUserController", error, "warn");

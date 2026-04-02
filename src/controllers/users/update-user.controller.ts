@@ -6,15 +6,11 @@ import { err, ok } from "src/entities/models/Result";
 import {
   updateUserSchema,
   UpdateUserInput,
-  UserWithBranchRow,
 } from "src/entities/models/User";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
 import { UserRepository } from "src/infrastructure/di/repositories";
-
-function presenter(user: UserWithBranchRow) {
-  return user;
-}
+import { userPresenter } from "./user.presenter";
 
 export const UpdateUserController = async (
   user_id: string,
@@ -32,7 +28,7 @@ export const UpdateUserController = async (
 
     const created = await UserRepository.updateUser(user_id, data);
     await logActivity("UPDATE", "user", user_id, `Updated user ${created.username}`);
-    return ok(presenter(created));
+    return ok(userPresenter(created));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateUserController", error, "warn");

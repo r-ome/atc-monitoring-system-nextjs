@@ -1,5 +1,4 @@
 import {
-  UserWithBranchRow,
   loginUserSchema,
   LoginUserInput,
 } from "src/entities/models/User";
@@ -10,10 +9,7 @@ import {
 import { err, ok } from "src/entities/models/Result";
 import { loginUseCase } from "src/application/use-cases/users/login.use-case";
 import { logger } from "@/app/lib/logger";
-
-function presenter(user: UserWithBranchRow) {
-  return user;
-}
+import { userPresenter } from "./user.presenter";
 
 export const LoginController = async (
   credentials: Partial<LoginUserInput>,
@@ -29,7 +25,7 @@ export const LoginController = async (
     }
 
     const user = await loginUseCase(data.username, data.password);
-    return ok(presenter(user));
+    return ok(userPresenter(user));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("LoginController", error, "warn");

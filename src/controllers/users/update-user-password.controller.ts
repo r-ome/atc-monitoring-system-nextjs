@@ -6,14 +6,10 @@ import { err, ok } from "src/entities/models/Result";
 import {
   updateUserPasswordSchema,
   UpdateUserPasswordInput,
-  UserWithBranchRow,
 } from "src/entities/models/User";
 import { logger } from "@/app/lib/logger";
 import { updateUserPasswordUseCase } from "src/application/use-cases/users/update-user-password.use-case";
-
-function presenter(user: UserWithBranchRow) {
-  return user;
-}
+import { userPresenter } from "./user.presenter";
 
 export const UpdateUserPasswordController = async (
   user_id: string,
@@ -30,7 +26,7 @@ export const UpdateUserPasswordController = async (
     }
 
     const created = await updateUserPasswordUseCase(user_id, data);
-    return ok(presenter(created));
+    return ok(userPresenter(created));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateUserPasswordController", error, "warn");

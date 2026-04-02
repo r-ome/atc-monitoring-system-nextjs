@@ -12,9 +12,51 @@ export const USER_ROLES = [
 
 export type UserRole = (typeof USER_ROLES)[number];
 
-export type UserWithBranchRow = Prisma.usersGetPayload<{
-  include: { branch: true };
-}>;
+export const userWithBranchSelect = Prisma.validator<Prisma.usersDefaultArgs>()({
+  select: {
+    user_id: true,
+    name: true,
+    username: true,
+    role: true,
+    branch_id: true,
+    branch: {
+      select: {
+        branch_id: true,
+        name: true,
+      },
+    },
+    created_at: true,
+    updated_at: true,
+  },
+});
+
+export const authUserWithBranchSelect =
+  Prisma.validator<Prisma.usersDefaultArgs>()({
+    select: {
+      user_id: true,
+      name: true,
+      username: true,
+      password: true,
+      role: true,
+      branch_id: true,
+      branch: {
+        select: {
+          branch_id: true,
+          name: true,
+        },
+      },
+      created_at: true,
+      updated_at: true,
+    },
+  });
+
+export type UserWithBranchRow = Prisma.usersGetPayload<
+  typeof userWithBranchSelect
+>;
+
+export type AuthUserWithBranchRow = Prisma.usersGetPayload<
+  typeof authUserWithBranchSelect
+>;
 
 export type User = {
   user_id: string;

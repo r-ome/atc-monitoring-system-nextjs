@@ -1,4 +1,5 @@
 import {
+  AuthUserWithBranchRow,
   RegisterUserInput,
   UserWithBranchRow,
   UpdateUserInput,
@@ -7,14 +8,17 @@ import {
 
 export interface IUserRepository {
   getUserByUsername: (username: string) => Promise<UserWithBranchRow | null>;
+  getAuthUserByUsername: (
+    username: string,
+  ) => Promise<AuthUserWithBranchRow | null>;
   getUsers: () => Promise<UserWithBranchRow[]>;
   registerUser: (input: RegisterUserInput) => Promise<UserWithBranchRow>;
   updateUser: (
     user_id: string,
-    data: UpdateUserInput
+    data: UpdateUserInput,
   ) => Promise<UserWithBranchRow>;
   updateUserPassword: (
     user_id: string,
-    data: UpdateUserPasswordInput
+    data: UpdateUserPasswordInput,
   ) => Promise<UserWithBranchRow>;
 }
