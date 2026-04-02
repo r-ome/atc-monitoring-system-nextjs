@@ -7,6 +7,7 @@ import { IPaymentRepository } from "src/application/repositories/payments.reposi
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import {
   DatabaseOperationError,
+  InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
 import { StorageFeePaymentInput } from "src/entities/models/Payment";
@@ -90,15 +91,30 @@ export const PaymentRepository: IPaymentRepository = {
           });
         }
 
-        // get status if PARTIAL or UNPAID
-        const auction_item = await tx.auctions_inventories.findFirst({
-          select: { status: true },
-          where: { auction_inventory_id: data.auction_inventory_ids[0] },
+        const auction_inventories = await tx.auctions_inventories.findMany({
+          where: { auction_inventory_id: { in: data.auction_inventory_ids } },
         });
 
+        const selected_statuses = new Set(
+          auction_inventories.map((auction_inventory) => auction_inventory.status),
+        );
+
+        if (
+          selected_statuses.has("UNPAID") &&
+          selected_statuses.has("PAID")
+        ) {
+          throw new InputParseError("Invalid pull-out selection!", {
+            cause: {
+              auction_inventory_ids: [
+                "Pull-out cannot mix UNPAID and PAID items. Please select only one payment status at a time.",
+              ],
+            },
+          });
+        }
+
         let status = "UNPAID";
-        if (auction_item) {
-          status = auction_item.status;
+        if (auction_inventories[0]) {
+          status = auction_inventories[0].status;
         }
 
         const receipt = await tx.receipt_records.findFirst({
@@ -119,10 +135,6 @@ export const PaymentRepository: IPaymentRepository = {
           status === "UNPAID"
             ? `${registered_bidder.bidder.bidder_number}-${pull_out_number}`
             : `${registered_bidder.bidder.bidder_number}(AO)-${pull_out_number}`;
-
-        const auction_inventories = await tx.auctions_inventories.findMany({
-          where: { auction_inventory_id: { in: data.auction_inventory_ids } },
-        });
 
         const created_receipt = await tx.receipt_records.create({
           data: {
