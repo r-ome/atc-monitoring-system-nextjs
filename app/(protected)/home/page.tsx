@@ -1,4 +1,9 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/app/components/ui/tabs";
 import { AuctionStatisticsTable } from "./components/AuctionStatisticsTable/AuctionStatisticsTable";
 import { BidderStatsCard } from "./components/BidderStatsCard";
 import { ContainersDueDateTable } from "./components/ContainersTable/ContainersDueDateTable";
@@ -7,7 +12,7 @@ import { HomeCalendar } from "./components/HomeCalendar";
 const Page = async () => {
   return (
     <div className="flex flex-col gap-4">
-      <Tabs defaultValue="list" className="gap-4">
+      <Tabs defaultValue="calendar" className="gap-4">
         <div className="flex justify-end">
           <TabsList>
             <TabsTrigger value="calendar">Calendar View</TabsTrigger>
