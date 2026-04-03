@@ -4,8 +4,7 @@ import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { BoughtItemsTable } from "./BoughtItemsTable";
 import { GenerateBoughtItemsReport } from "./GenerateBoughtItemsReport";
 import { getBranches } from "../branches/actions";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
+import { requireSession } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import { BoughtItemsHeader } from "./BoughtItemsHeader";
 import { BoughtItemsFilter } from "./BoughtItemsFilter";
@@ -17,8 +16,7 @@ export default async function Page({
   searchParams,
 }: Readonly<{ searchParams: Promise<Record<string, string>> }>) {
   const { branch_id, year, month, view } = await searchParams;
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/");
+  const session = await requireSession();
 
   const { user } = session;
 

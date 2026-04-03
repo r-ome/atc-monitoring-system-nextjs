@@ -9,25 +9,23 @@ import {
 import { AppSideBar } from "@/app/components/sidebar/sidebar";
 import { Separator } from "@/app/components/ui/separator";
 import { AppBreadcrumb } from "@/app/components/breadcrumbs/breadcrumbs";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
-import { redirect } from "next/navigation";
+import { requireSession } from "@/app/lib/auth";
 import { AppTimer } from "@/app/components/timer/timer";
 import { ThemeToggle } from "@/app/components/admin";
+import { SessionActivityWatcher } from "./SessionActivityWatcher";
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    redirect("/login");
-  }
+  const session = await requireSession();
 
   return (
     <SidebarProvider>
+      <SessionActivityWatcher
+        initialLastActivityAt={session.user.lastActivityAt ?? null}
+      />
       <AppSideBar />
 
       <SidebarInset>

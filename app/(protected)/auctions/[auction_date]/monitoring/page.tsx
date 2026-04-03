@@ -9,17 +9,14 @@ import { MonitoringTable } from "./MonitoringTable";
 import { GenerateReportButton } from "./components/GenerateReport";
 import { AddOnModal } from "./components/AddOnModal";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
-import { redirect } from "next/navigation";
+import { requireSession } from "@/app/lib/auth";
 
 export default async function Page({
   params,
 }: Readonly<{ params: Promise<{ auction_date: string }> }>) {
   const { auction_date } = await params;
   const auction_res = await getAuction(auction_date);
-  const session = await getServerSession(authOptions);
-  if (!session) redirect("/login");
+  const session = await requireSession();
 
   if (!auction_res.ok) {
     return <ErrorComponent error={auction_res.error} />;

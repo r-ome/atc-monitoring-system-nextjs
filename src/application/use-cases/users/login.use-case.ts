@@ -11,7 +11,15 @@ export const loginUseCase = async (username: string, password: string) => {
 
   const is_match = await bcrypt.compare(password, user.password);
   if (is_match) {
-    return user;
+    const updatedUser = await UserRepository.updateLastActivity(
+      user.user_id,
+      new Date(),
+    );
+
+    return {
+      ...user,
+      last_activity_at: updatedUser.last_activity_at,
+    };
   } else {
     throw new InputParseError("Invalid Data!", {
       cause: { password: ["The password you've entered is incorrect!"] },

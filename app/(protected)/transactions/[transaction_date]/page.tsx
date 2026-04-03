@@ -23,9 +23,8 @@ import { subDays } from "date-fns";
 import { formatDate } from "@/app/lib/utils";
 
 import { getBranches } from "../../branches/actions";
-import { getServerSession } from "next-auth";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-import { authOptions } from "@/app/lib/auth";
+import { requireSession } from "@/app/lib/auth";
 import { TransactionHeader } from "./components/TransactionHeader";
 import { InwardTransactionsTab } from "./InwardTransactionsTab";
 import { ExpensesTab } from "./ExpensesTab";
@@ -40,8 +39,7 @@ export default async function Page({
 }>) {
   const { branch_id } = await searchParams;
   const { transaction_date } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/");
+  const session = await requireSession();
 
   const { user } = session;
 

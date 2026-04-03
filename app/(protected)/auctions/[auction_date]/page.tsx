@@ -20,9 +20,7 @@ import {
 } from "@/app/components/ui/table";
 import { cn } from "@/app/lib/utils";
 import { StartAuctionButton } from "../components/StartAuctionButton";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
-import { redirect } from "next/navigation";
+import { requireSession } from "@/app/lib/auth";
 import { AuctionContainerSummaryTable } from "../components/AuctionContainerSummaryTable";
 import { PageHeader, StatCard, StatCardGroup } from "@/app/components/admin";
 import { Users, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
@@ -41,11 +39,9 @@ type AuctionItems = {
 export default async function Page({
   params,
 }: Readonly<{ params: Promise<{ auction_date: string }> }>) {
-  const session = await getServerSession(authOptions);
+  const session = await requireSession();
   const { auction_date } = await params;
   const res = await getAuction(auction_date);
-
-  if (!session) redirect("/login");
 
   if (!res.ok) {
     if (res.error.message === "Auction not found!")

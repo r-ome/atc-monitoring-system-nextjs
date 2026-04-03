@@ -4,19 +4,18 @@ import { Button } from "@/app/components/ui/button";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { BiddersTable } from "@/app/(protected)/bidders/components/bidders-table";
 import { UploadBiddersModal } from "./components/UploadBiddersModal";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
+import { requireSession } from "@/app/lib/auth";
 
 export default async function Page() {
   const res = await getBidders();
-  const session = await getServerSession(authOptions);
+  const session = await requireSession();
 
   if (!res.ok) {
     return <ErrorComponent error={res.error} />;
   }
 
   const bidders = res.value;
-  const user = session?.user;
+  const user = session.user;
 
   return (
     <>
@@ -25,7 +24,7 @@ export default async function Page() {
           <Button>Create Bidder</Button>
         </Link>
 
-        {["OWNER", "SUPER_ADMIN"].includes(user?.role ?? "") ? (
+        {["OWNER", "SUPER_ADMIN"].includes(user.role) ? (
           <UploadBiddersModal />
         ) : null}
       </div>

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
+import { requireSession } from "@/app/lib/auth";
 import {
   Card,
   CardHeader,
@@ -16,8 +15,7 @@ export default async function Page({
   params,
 }: Readonly<{ params: Promise<{ date: string }> }>) {
   const { date } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/");
+  const session = await requireSession();
   if (!["SUPER_ADMIN", "OWNER"].includes(session.user.role))
     redirect("/configurations");
 

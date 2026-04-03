@@ -5,6 +5,7 @@ import {
 import {
   DatabaseOperationError,
   InputParseError,
+  NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
 import { loginUseCase } from "src/application/use-cases/users/login.use-case";
@@ -27,9 +28,15 @@ export const LoginController = async (
     const user = await loginUseCase(data.username, data.password);
     return ok(userPresenter(user));
   } catch (error) {
-    if (error instanceof InputParseError) {
+    if (error instanceof InputParseError || error instanceof NotFoundError) {
       logger("LoginController", error, "warn");
-      return err({ message: error.message, cause: error.cause });
+      return err({
+        message: "Invalid credentials",
+        cause:
+          error instanceof InputParseError
+            ? error.cause
+            : { username: ["User not found."] },
+      });
     }
 
     logger("LoginController", error);

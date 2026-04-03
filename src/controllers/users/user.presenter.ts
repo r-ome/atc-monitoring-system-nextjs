@@ -7,6 +7,7 @@ export function userPresenter(user: UserWithBranchRow): User {
     name: user.name,
     username: user.username,
     role: user.role,
+    last_activity_at: user.last_activity_at?.toISOString() ?? null,
     branch: {
       branch_id: user.branch.branch_id,
       name: user.branch.name,

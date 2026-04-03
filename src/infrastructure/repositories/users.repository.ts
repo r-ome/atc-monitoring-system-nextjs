@@ -30,6 +30,7 @@ export const UserRepository: IUserRepository = {
         username: user.username,
         role: user.role,
         branch_id: user.branch_id,
+        last_activity_at: user.last_activity_at,
         branch: {
           branch_id: user.branch.branch_id,
           name: user.branch.name,
@@ -65,6 +66,7 @@ export const UserRepository: IUserRepository = {
         password: user.password,
         role: user.role,
         branch_id: user.branch_id,
+        last_activity_at: user.last_activity_at,
         branch: {
           branch_id: user.branch.branch_id,
           name: user.branch.name,
@@ -94,6 +96,7 @@ export const UserRepository: IUserRepository = {
         username: user.username,
         role: user.role,
         branch_id: user.branch_id,
+        last_activity_at: user.last_activity_at,
         branch: {
           branch_id: user.branch.branch_id,
           name: user.branch.name,
@@ -129,6 +132,7 @@ export const UserRepository: IUserRepository = {
         username: user.username,
         role: user.role,
         branch_id: user.branch_id,
+        last_activity_at: user.last_activity_at,
         branch: {
           branch_id: user.branch.branch_id,
           name: user.branch.name,
@@ -172,6 +176,7 @@ export const UserRepository: IUserRepository = {
         username: user.username,
         role: user.role,
         branch_id: user.branch_id,
+        last_activity_at: user.last_activity_at,
         branch: {
           branch_id: user.branch.branch_id,
           name: user.branch.name,
@@ -210,6 +215,7 @@ export const UserRepository: IUserRepository = {
         username: user.username,
         role: user.role,
         branch_id: user.branch_id,
+        last_activity_at: user.last_activity_at,
         branch: {
           branch_id: user.branch.branch_id,
           name: user.branch.name,
@@ -223,6 +229,38 @@ export const UserRepository: IUserRepository = {
           cause: error.message,
         });
       }
+      throw error;
+    }
+  },
+  updateLastActivity: async (user_id, last_activity_at) => {
+    try {
+      const user = await prisma.users.update({
+        ...userWithBranchSelect,
+        where: { user_id },
+        data: { last_activity_at },
+      });
+
+      return {
+        user_id: user.user_id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+        branch_id: user.branch_id,
+        last_activity_at: user.last_activity_at,
+        branch: {
+          branch_id: user.branch.branch_id,
+          name: user.branch.name,
+        },
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      };
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error updating user activity", {
+          cause: error.message,
+        });
+      }
+
       throw error;
     }
   },

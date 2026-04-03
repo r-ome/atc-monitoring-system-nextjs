@@ -19,6 +19,7 @@ export const userWithBranchSelect = Prisma.validator<Prisma.usersDefaultArgs>()(
     username: true,
     role: true,
     branch_id: true,
+    last_activity_at: true,
     branch: {
       select: {
         branch_id: true,
@@ -39,6 +40,7 @@ export const authUserWithBranchSelect =
       password: true,
       role: true,
       branch_id: true,
+      last_activity_at: true,
       branch: {
         select: {
           branch_id: true,
@@ -63,6 +65,7 @@ export type User = {
   name: string;
   username: string;
   role: UserRole;
+  last_activity_at?: string | null;
   branch: {
     branch_id: string;
     name: string;
@@ -80,7 +83,7 @@ export const createUserSchema = z.object({
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 
 export const loginUserSchema = z.object({
-  username: z.string().min(1),
+  username: z.string().trim().min(1),
   password: z.string().min(1),
 });
 export type LoginUserInput = z.infer<typeof loginUserSchema>;

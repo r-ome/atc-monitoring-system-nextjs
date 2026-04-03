@@ -2,7 +2,7 @@
 
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import {
   Card,
@@ -22,6 +22,14 @@ export default function Page() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+
+    if (searchParams.get("reason") === "inactive") {
+      toast.info("You were logged out due to inactivity.");
+    }
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

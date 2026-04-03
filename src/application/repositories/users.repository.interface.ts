@@ -21,4 +21,8 @@ export interface IUserRepository {
     user_id: string,
     data: UpdateUserPasswordInput,
   ) => Promise<UserWithBranchRow>;
+  updateLastActivity: (
+    user_id: string,
+    last_activity_at: Date,
+  ) => Promise<UserWithBranchRow>;
 }
