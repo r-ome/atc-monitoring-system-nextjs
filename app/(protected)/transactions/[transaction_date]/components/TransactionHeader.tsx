@@ -9,9 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
+import { BranchBadge } from "@/app/components/admin";
 import { Branch } from "src/entities/models/Branch";
 import { formatDate } from "@/app/lib/utils";
-import { Badge } from "@/app/components/ui/badge";
 
 interface TransactionHeaderProps {
   user: { role: string };
@@ -59,11 +59,7 @@ export const TransactionHeader: React.FC<TransactionHeaderProps> = ({
           ) : null}
           {formatDate(new Date(transaction_date), "MMMM dd, yyyy")} Cash Book{" "}
           {selectedBranch ? (
-            <Badge
-              variant={selectedBranch.name === "TARLAC" ? "success" : "warning"}
-            >
-              {selectedBranch.name}
-            </Badge>
+            <BranchBadge branch={selectedBranch.name} />
           ) : null}
         </h1>
       </div>

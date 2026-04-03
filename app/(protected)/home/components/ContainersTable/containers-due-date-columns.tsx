@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
-import { StatusBadge } from "@/app/components/admin";
+import { BranchBadge } from "@/app/components/admin";
 
 export const columns: ColumnDef<ContainerDueDate>[] = [
   {
@@ -74,11 +74,7 @@ export const columns: ColumnDef<ContainerDueDate>[] = [
       const container = row.original;
       return (
         <div className="flex justify-center">
-          <StatusBadge
-            variant={container.branch.name === "TARLAC" ? "tarlac" : "binan"}
-          >
-            {container.branch.name}
-          </StatusBadge>
+          <BranchBadge branch={container.branch.name} />
         </div>
       );
     },

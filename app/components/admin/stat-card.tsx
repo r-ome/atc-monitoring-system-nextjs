@@ -13,6 +13,7 @@ interface StatCardProps {
     isPositive?: boolean
   }
   className?: string
+  contentClassName?: string
   variant?: "default" | "primary" | "success" | "warning" | "error"
 }
 
@@ -23,6 +24,7 @@ export function StatCard({
   icon: Icon,
   trend,
   className,
+  contentClassName,
   variant = "default",
 }: StatCardProps) {
   const variantStyles = {
@@ -43,7 +45,7 @@ export function StatCard({
 
   return (
     <Card className={cn("relative overflow-hidden", variantStyles[variant], className)}>
-      <CardContent className="p-6">
+      <CardContent className={cn("p-6", contentClassName)}>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>

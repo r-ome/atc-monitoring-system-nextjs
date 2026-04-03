@@ -1,4 +1,4 @@
-import { Badge } from "@/app/components/ui/badge";
+import { BranchBadge } from "@/app/components/admin";
 
 interface BoughtItemsHeaderProps {
   selectedBranch: { branch_id: string; name: string } | null;
@@ -12,11 +12,7 @@ export const BoughtItemsHeader: React.FC<BoughtItemsHeaderProps> = ({
       <div>
         <h1 className="uppercase text-xl flex items-center gap-2">
           {selectedBranch ? (
-            <Badge
-              variant={selectedBranch.name === "TARLAC" ? "success" : "warning"}
-            >
-              {selectedBranch.name}
-            </Badge>
+            <BranchBadge branch={selectedBranch.name} />
           ) : null}
         </h1>
       </div>

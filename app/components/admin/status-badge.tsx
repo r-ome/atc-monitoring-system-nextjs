@@ -1,5 +1,16 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/app/lib/utils"
+import { type AuctionItemStatus } from "src/entities/models/Auction"
+import { type InventoryStatus } from "src/entities/models/Inventory"
+import {
+  type BranchBadgeValue,
+  formatAuctionStatusLabel,
+  formatBranchLabel,
+  formatInventoryStatusLabel,
+  getAuctionStatusVariant,
+  getBranchBadgeVariant,
+  getInventoryStatusVariant,
+} from "./status-badge.helpers"
 
 const statusBadgeVariants = cva(
   "inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide transition-colors",
@@ -70,6 +81,46 @@ export function StatusBadge({
   )
 }
 
+export function InventoryStatusBadge({
+  status,
+  className,
+  size,
+  ...props
+}: Omit<StatusBadgeProps, "children" | "variant"> & {
+  status: InventoryStatus
+}) {
+  return (
+    <StatusBadge
+      variant={getInventoryStatusVariant(status)}
+      size={size}
+      className={className}
+      {...props}
+    >
+      {formatInventoryStatusLabel(status)}
+    </StatusBadge>
+  )
+}
+
+export function AuctionStatusBadge({
+  status,
+  className,
+  size,
+  ...props
+}: Omit<StatusBadgeProps, "children" | "variant"> & {
+  status: AuctionItemStatus
+}) {
+  return (
+    <StatusBadge
+      variant={getAuctionStatusVariant(status)}
+      size={size}
+      className={className}
+      {...props}
+    >
+      {formatAuctionStatusLabel(status)}
+    </StatusBadge>
+  )
+}
+
 // Convenience components for common statuses
 export function PaidBadge({ className, ...props }: Omit<StatusBadgeProps, "variant" | "children">) {
   return <StatusBadge variant="paid" className={className} {...props}>Paid</StatusBadge>
@@ -96,14 +147,18 @@ export function BinanBadge({ className, ...props }: Omit<StatusBadgeProps, "vari
 }
 
 // Branch badge helper
-export function BranchBadge({ branch, className, ...props }: { branch: "tarlac" | "binan" } & Omit<StatusBadgeProps, "variant" | "children">) {
+export function BranchBadge({
+  branch,
+  className,
+  ...props
+}: { branch: BranchBadgeValue } & Omit<StatusBadgeProps, "variant" | "children">) {
   return (
     <StatusBadge
-      variant={branch}
+      variant={getBranchBadgeVariant(branch)}
       className={className}
       {...props}
     >
-      {branch === "tarlac" ? "Tarlac" : "Binan"}
+      {formatBranchLabel(branch)}
     </StatusBadge>
   )
 }

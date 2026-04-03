@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
-import { StatusBadge } from "@/app/components/admin";
+import { BranchBadge } from "@/app/components/admin";
 import { ArrowUpDown } from "lucide-react";
 import { formatDate } from "@/app/lib/utils";
 import { SupplierContainerRow } from "./SupplierContainersTable";
@@ -87,13 +87,7 @@ export const supplierContainerColumns: ColumnDef<SupplierContainerRow>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <StatusBadge
-          variant={
-            row.original.branch.name === "TARLAC" ? "tarlac" : "binan"
-          }
-        >
-          {row.original.branch.name}
-        </StatusBadge>
+        <BranchBadge branch={row.original.branch.name} />
       </div>
     ),
   },

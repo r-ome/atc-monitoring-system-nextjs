@@ -1,5 +1,9 @@
 import { getInventory } from "@/app/(protected)/inventories/actions";
 import {
+  AuctionStatusBadge,
+  InventoryStatusBadge,
+} from "@/app/components/admin";
+import {
   Card,
   CardHeader,
   CardTitle,
@@ -62,8 +66,12 @@ export default async function Page({
           {inventory.histories.map((item) => (
             <TableRow key={item.inventory_history_id}>
               <TableCell>{item.created_at}</TableCell>
-              <TableCell>{item.auction_status}</TableCell>
-              <TableCell>{item.inventory_status}</TableCell>
+              <TableCell>
+                <AuctionStatusBadge status={item.auction_status} />
+              </TableCell>
+              <TableCell>
+                <InventoryStatusBadge status={item.inventory_status} />
+              </TableCell>
               <TableCell>{item.receipt_number}</TableCell>
               <TableCell>{item.remarks}</TableCell>
             </TableRow>

@@ -4,12 +4,15 @@ import type { ReactNode } from "react";
 import { AuctionsInventory } from "src/entities/models/Auction";
 
 import {
+  AuctionStatusBadge,
+  InventoryStatusBadge,
+} from "@/app/components/admin";
+import {
   Card,
   CardHeader,
   CardDescription,
   CardContent,
 } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
 import { cn } from "@/app/lib/utils";
 import { InventoryHistoriesTable } from "./InventoryHistoriesTable";
 
@@ -17,20 +20,6 @@ interface AuctionInventoryDetailsViewProps {
   auctionInventory: AuctionsInventory;
   actions?: ReactNode;
 }
-
-const getAuctionInventoryStatusVariant = (
-  status: AuctionsInventory["status"],
-): "warning" | "destructive" | "success" =>
-  status === "PARTIAL"
-    ? "warning"
-    : ["UNPAID", "CANCELLED"].includes(status)
-      ? "destructive"
-      : "success";
-
-const getInventoryStatusVariant = (
-  status: AuctionsInventory["inventory"]["status"],
-): "destructive" | "success" =>
-  status === "UNSOLD" ? "destructive" : "success";
 
 export const AuctionInventoryDetailsView: React.FC<
   AuctionInventoryDetailsViewProps
@@ -42,20 +31,8 @@ export const AuctionInventoryDetailsView: React.FC<
           <div className="flex flex-wrap justify-between gap-2">
             <CardDescription>
               <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant={getAuctionInventoryStatusVariant(
-                    auctionInventory.status,
-                  )}
-                >
-                  {auctionInventory.status}
-                </Badge>
-                <Badge
-                  variant={getInventoryStatusVariant(
-                    auctionInventory.inventory.status,
-                  )}
-                >
-                  {auctionInventory.inventory.status}
-                </Badge>
+                <AuctionStatusBadge status={auctionInventory.status} />
+                <InventoryStatusBadge status={auctionInventory.inventory.status} />
               </div>
             </CardDescription>
             {actions ? <div>{actions}</div> : null}

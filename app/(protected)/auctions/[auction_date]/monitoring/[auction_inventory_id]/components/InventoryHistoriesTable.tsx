@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  AuctionStatusBadge,
+  InventoryStatusBadge,
+} from "@/app/components/admin";
+import {
   Table,
   TableHeader,
   TableBody,
@@ -38,8 +42,12 @@ export const InventoryHistoriesTable: React.FC<
           {histories.map((history) => (
             <TableRow key={history.inventory_history_id}>
               <TableCell>{history.created_at}</TableCell>
-              <TableCell>{history.auction_status}</TableCell>
-              <TableCell className="">{history.inventory_status}</TableCell>
+              <TableCell>
+                <AuctionStatusBadge status={history.auction_status} />
+              </TableCell>
+              <TableCell className="">
+                <InventoryStatusBadge status={history.inventory_status} />
+              </TableCell>
               <TableCell className="">{history.receipt_number}</TableCell>
               <TableCell className="max-w-[130px]">
                 <Tooltip>

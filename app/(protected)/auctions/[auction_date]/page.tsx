@@ -160,6 +160,7 @@ export default async function Page({
             description="Total Registered Bidders"
             icon={Users}
             variant="default"
+            contentClassName="py-0"
           />
           <StatCard
             title="Total Registration Fee"
@@ -167,6 +168,7 @@ export default async function Page({
             description="Total Registration Fee"
             icon={DollarSign}
             variant="primary"
+            contentClassName="py-0"
           />
           <StatCard
             title="Total Sales"
@@ -174,6 +176,7 @@ export default async function Page({
             description={`₱${total_service_charge_amount.toLocaleString()} Service Charge Amount`}
             icon={TrendingUp}
             variant="success"
+            contentClassName="py-0"
           />
         </StatCardGroup>
 

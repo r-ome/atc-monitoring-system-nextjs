@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { StatusBadge } from "@/app/components/admin";
+import { AuctionStatusBadge } from "@/app/components/admin";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { createGroupSortingFn } from "@/app/lib/utils";
 import { cn } from "@/app/lib/utils";
@@ -272,13 +272,7 @@ export const columns = (
       const auction_inventory = row.original;
       return (
         <div className="flex justify-center">
-          <StatusBadge
-            variant={
-              auction_inventory.status === "PAID" ? "paid" : "unpaid"
-            }
-          >
-            {auction_inventory.status}
-          </StatusBadge>
+          <AuctionStatusBadge status={auction_inventory.status} />
         </div>
       );
     },

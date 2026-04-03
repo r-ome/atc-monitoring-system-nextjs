@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { StatusBadge } from "@/app/components/admin";
+import { BranchBadge, StatusBadge } from "@/app/components/admin";
 import { BidderRowType } from "./bidders-table";
 import {
   Tooltip,
@@ -35,11 +35,7 @@ export const columns: ColumnDef<BidderRowType>[] = [
       const bidder = row.original;
       return (
         <div className="flex justify-center">
-          <StatusBadge
-            variant={bidder.branch.name === "TARLAC" ? "tarlac" : "binan"}
-          >
-            {bidder.branch.name}
-          </StatusBadge>
+          <BranchBadge branch={bidder.branch.name} />
         </div>
       );
     },

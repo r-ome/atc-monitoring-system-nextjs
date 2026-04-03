@@ -6,6 +6,7 @@ import {
   getAuctionItemDetails,
   searchAuctionItems,
 } from "@/app/(protected)/inventories/actions";
+import { AuctionStatusBadge } from "@/app/components/admin";
 import { AuctionInventoryDetailsView } from "@/app/(protected)/auctions/[auction_date]/monitoring/[auction_inventory_id]/components/AuctionInventoryDetailsView";
 import {
   AuctionsInventory,
@@ -22,7 +23,6 @@ import {
 } from "@/app/components/ui/command";
 import { Spinner } from "@/app/components/ui/spinner";
 import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
 
 const TARGET_ROUTE_PATTERNS = [
   /^\/auctions\/[^/]+\/manifest$/,
@@ -64,13 +64,6 @@ const getSearchErrorMessage = (error: unknown) => {
 
   return null;
 };
-
-const getStatusVariant = (status: AuctionInventorySearchResult["status"]) =>
-  status === "PARTIAL"
-    ? "warning"
-    : ["UNPAID", "CANCELLED"].includes(status)
-      ? "destructive"
-      : "success";
 
 export const AuctionItemSearchOverlay = () => {
   const pathname = usePathname();
@@ -302,9 +295,7 @@ export const AuctionItemSearchOverlay = () => {
                           <span className="font-mono text-sm">
                             {item.inventory.barcode}:{item.inventory.control}
                           </span>
-                          <Badge variant={getStatusVariant(item.status)}>
-                            {item.status}
-                          </Badge>
+                          <AuctionStatusBadge status={item.status} />
                         </div>
                         <div className="truncate text-sm">{item.description}</div>
                         <div className="text-muted-foreground text-xs">

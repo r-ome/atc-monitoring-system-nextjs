@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
-import { StatusBadge } from "@/app/components/admin";
+import { InventoryStatusBadge } from "@/app/components/admin";
 import { ArrowUpDown } from "lucide-react";
 import { InventoryRowType } from "./ContainerInventoriesTable";
 
@@ -107,15 +107,7 @@ export const columns: ColumnDef<InventoryRowType>[] = [
       const inventory = row.original;
       return (
         <div className="flex justify-center">
-          <StatusBadge
-            variant={
-              ["SOLD", "BOUGHT_ITEM"].includes(inventory.status)
-                ? "success"
-                : "error"
-            }
-          >
-            {inventory.status.replace("_", " ")}
-          </StatusBadge>
+          <InventoryStatusBadge status={inventory.status} />
         </div>
       );
     },

@@ -1,0 +1,56 @@
+import { type VariantProps } from "class-variance-authority"
+import { type AuctionItemStatus } from "src/entities/models/Auction"
+import { type InventoryStatus } from "src/entities/models/Inventory"
+import { type statusBadgeVariants } from "./status-badge"
+
+type StatusBadgeVariant = NonNullable<VariantProps<typeof statusBadgeVariants>["variant"]>
+
+export type BranchBadgeValue = string
+
+const INVENTORY_STATUS_VARIANTS: Record<InventoryStatus, StatusBadgeVariant> = {
+  SOLD: "success",
+  UNSOLD: "error",
+  BOUGHT_ITEM: "success",
+}
+
+const AUCTION_STATUS_VARIANTS: Record<AuctionItemStatus, StatusBadgeVariant> = {
+  PAID: "success",
+  UNPAID: "error",
+  CANCELLED: "neutral",
+  REFUNDED: "info",
+  DISCREPANCY: "warning",
+  PARTIAL: "warning",
+}
+
+const formatStatusLabel = (status: string) =>
+  status
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+
+export const getInventoryStatusVariant = (status: InventoryStatus) =>
+  INVENTORY_STATUS_VARIANTS[status]
+
+export const getAuctionStatusVariant = (status: AuctionItemStatus) =>
+  AUCTION_STATUS_VARIANTS[status]
+
+export const formatInventoryStatusLabel = (status: InventoryStatus) =>
+  formatStatusLabel(status)
+
+export const formatAuctionStatusLabel = (status: AuctionItemStatus) =>
+  formatStatusLabel(status)
+
+export const getBranchBadgeVariant = (
+  branch: BranchBadgeValue,
+): "tarlac" | "binan" | "neutral" => {
+  const normalizedBranch = branch.trim().toLowerCase()
+
+  if (normalizedBranch === "tarlac") return "tarlac"
+  if (normalizedBranch === "binan") return "binan"
+
+  return "neutral"
+}
+
+export const formatBranchLabel = (branch: BranchBadgeValue) =>
+  formatStatusLabel(branch.trim())
