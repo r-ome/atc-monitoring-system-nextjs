@@ -7,6 +7,7 @@ type InventoryHistoryAction =
   | "refunded"
   | "partial_refund"
   | "pullout_paid"
+  | "pullout_undone"
   | "item_updated"
   | "item_merged";
 
@@ -41,6 +42,7 @@ const HISTORY_PREFIXES = {
   refunded: "Refunded item",
   partial_refund: "Partial refund",
   pullout_paid: "Pull-out paid",
+  pullout_undone: "Pull-out undone",
   item_updated: "Item updated",
   item_merged: "Item merged",
 } as const;
@@ -129,6 +131,10 @@ export function buildPulloutPaidHistoryRemark() {
   return HISTORY_PREFIXES.pullout_paid;
 }
 
+export function buildPulloutUndoneHistoryRemark() {
+  return HISTORY_PREFIXES.pullout_undone;
+}
+
 export function buildItemUpdatedHistoryRemark(input: {
   changes: string[];
   updated_by?: string;
@@ -185,6 +191,7 @@ export function parseInventoryHistoryRemark(
   if (trimmed === HISTORY_PREFIXES.encoded) return { action: "encoded" };
   if (trimmed === HISTORY_PREFIXES.reassigned) return { action: "reassigned" };
   if (trimmed === HISTORY_PREFIXES.pullout_paid) return { action: "pullout_paid" };
+  if (trimmed === HISTORY_PREFIXES.pullout_undone) return { action: "pullout_undone" };
   if (trimmed === HISTORY_PREFIXES.item_merged) return { action: "item_merged" };
 
   if (trimmed.startsWith(`${HISTORY_PREFIXES.encoded_again} | `)) {

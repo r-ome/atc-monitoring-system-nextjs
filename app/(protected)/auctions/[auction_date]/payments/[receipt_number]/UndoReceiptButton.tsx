@@ -9,7 +9,6 @@ import { PasswordInput } from "@/app/components/ui/input-password";
 import { toast } from "sonner";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -28,17 +27,22 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
 }) => {
   const router = useRouter();
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
+  const [openFinalAlertDialog, setOpenFinalAlertDialog] =
+    useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
   const [disableConfirm, setDisableConfirm] = useState<boolean>(true);
 
   useEffect(() => {
-    if (password === "helloworld") {
-      setDisableConfirm(false);
-    }
+    setDisableConfirm(password !== "helloworld");
   }, [password]);
 
   const handleSubmit = async () => {
+    setOpenAlertDialog(false);
+    setOpenFinalAlertDialog(true);
+  };
+
+  const handleFinalSubmit = async () => {
     setIsLoading(true);
 
     const res = await undoPayment(receipt_id);
@@ -46,6 +50,8 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
       if (res.ok) {
         toast.success("Successfully UNDID the payment!");
         setOpenAlertDialog(false);
+        setOpenFinalAlertDialog(false);
+        setPassword("");
         router.back();
       }
 
@@ -62,12 +68,23 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
     <>
       <Button
         variant={"destructive"}
-        onClick={async () => setOpenAlertDialog(true)}
+        onClick={async () => {
+          setPassword("");
+          setOpenAlertDialog(true);
+        }}
       >
         UNDO PAYMENT
       </Button>
 
-      <AlertDialog open={openAlertDialog} onOpenChange={setOpenAlertDialog}>
+      <AlertDialog
+        open={openAlertDialog}
+        onOpenChange={(open) => {
+          setOpenAlertDialog(open);
+          if (!open) {
+            setIsLoading(false);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -104,16 +121,49 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
 
-            <AlertDialogAction asChild>
-              <Button
-                type="button"
-                disabled={disableConfirm || isLoading}
-                onClick={handleSubmit}
-              >
-                {isLoading && <Loader2Icon className="animate-spin" />}
-                CONFIRM
-              </Button>
-            </AlertDialogAction>
+            <Button
+              type="button"
+              disabled={disableConfirm || isLoading}
+              onClick={handleSubmit}
+            >
+              SUBMIT
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={openFinalAlertDialog}
+        onOpenChange={(open) => {
+          setOpenFinalAlertDialog(open);
+          if (!open) {
+            setIsLoading(false);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <div className="flex mx-auto gap-2 items-center">
+                <TriangleAlert className="h-7 w-7 text-destructive" />
+                FINAL WARNING
+              </div>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-black-500">
+              This will reset the receipt&apos;s paid items back to UNPAID and
+              restore the bidder&apos;s balance. Press CONFIRM again to proceed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Back</AlertDialogCancel>
+            <Button
+              type="button"
+              disabled={isLoading}
+              onClick={handleFinalSubmit}
+            >
+              {isLoading && <Loader2Icon className="animate-spin" />}
+              CONFIRM
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

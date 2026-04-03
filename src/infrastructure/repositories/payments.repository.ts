@@ -15,6 +15,7 @@ import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 import {
   buildPartialRefundHistoryRemark,
   buildPulloutPaidHistoryRemark,
+  buildPulloutUndoneHistoryRemark,
   buildRefundedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
 
@@ -541,7 +542,7 @@ export const PaymentRepository: IPaymentRepository = {
   },
   undoPayment: async (receipt_id) => {
     try {
-      await prisma.$transaction(async (tx) => {
+      return await prisma.$transaction(async (tx) => {
         const receipt = await tx.receipt_records.findFirst({
           where: { receipt_id },
           include: {
@@ -551,32 +552,73 @@ export const PaymentRepository: IPaymentRepository = {
           },
         });
 
+        if (!receipt) {
+          throw new NotFoundError("Error undoing payment!", {
+            cause: "Receipt not found!",
+          });
+        }
+
+        if (receipt.purpose !== "PULL_OUT") {
+          throw new InputParseError("Invalid undo payment request!", {
+            cause: {
+              receipt_id: ["Only PULL_OUT receipts can be undone."],
+            },
+          });
+        }
+
+        const has_storage_fee_receipts = await tx.receipt_records.count({
+          where: {
+            auction_bidder_id: receipt.auction_bidder_id,
+            purpose: "STORAGE_FEE",
+            receipt_number: { startsWith: `${receipt.receipt_number}SF` },
+          },
+        });
+
+        if (has_storage_fee_receipts > 0) {
+          throw new InputParseError("Cannot undo payment with storage fees!", {
+            cause: {
+              receipt_id: [
+                "Undo the linked storage fee receipt(s) first before undoing this pull-out payment.",
+              ],
+            },
+          });
+        }
+
+        const has_non_paid_items = receipt.auctions_inventories.some(
+          (auction_inventory) => auction_inventory.status !== "PAID",
+        );
+
+        if (has_non_paid_items) {
+          throw new InputParseError("Cannot undo payment with updated items!", {
+            cause: {
+              receipt_id: [
+                "This receipt already has cancelled, refunded, or otherwise updated items. Undo is blocked to prevent data corruption.",
+              ],
+            },
+          });
+        }
+
         const total_payment = receipt?.payments.reduce(
           (acc, item) => (acc += item.amount_paid),
           0,
         );
 
-        // to check if bidder already consumed his registration fee
-        const bidder_receipt_records = await tx.receipt_records.findMany({
+        const remaining_bidder_receipts = await tx.receipt_records.findMany({
           where: {
-            auction_bidder_id: receipt?.auction_bidder.auction_bidder_id,
-            purpose: "PULL_OUT",
+            auction_bidder_id: receipt.auction_bidder_id,
+            purpose: { in: ["PULL_OUT", "ADD_ON"] },
+            receipt_id: { not: receipt.receipt_id },
           },
-          select: { receipt_number: true },
+          select: { receipt_id: true },
         });
-
-        // check if already has dash two
-        const has_dash_two = bidder_receipt_records.filter((item) =>
-          item.receipt_number.includes("-2"),
-        ).length;
 
         await tx.auctions_bidders.update({
           where: {
-            auction_bidder_id: receipt?.auction_bidder.auction_bidder_id,
+            auction_bidder_id: receipt.auction_bidder_id,
           },
           data: {
             balance: { increment: total_payment },
-            already_consumed: !!has_dash_two ? 1 : 0,
+            already_consumed: remaining_bidder_receipts.length > 0 ? 1 : 0,
           },
         });
 
@@ -585,8 +627,33 @@ export const PaymentRepository: IPaymentRepository = {
           data: { status: "UNPAID", receipt_id: null },
         });
 
+        await tx.inventories.updateMany({
+          where: {
+            inventory_id: {
+              in: receipt.auctions_inventories.map((item) => item.inventory_id),
+            },
+          },
+          data: { status: "SOLD" },
+        });
+
         await tx.payments.deleteMany({ where: { receipt_id } });
         await tx.receipt_records.delete({ where: { receipt_id } });
+
+        await tx.inventory_histories.createMany({
+          data: receipt.auctions_inventories.map((item) => ({
+            auction_inventory_id: item.auction_inventory_id,
+            inventory_id: item.inventory_id,
+            auction_status: "UNPAID",
+            inventory_status: "SOLD",
+            remarks: buildPulloutUndoneHistoryRemark(),
+          })),
+        });
+
+        return {
+          receipt_id: receipt.receipt_id,
+          receipt_number: receipt.receipt_number,
+          restored_item_count: receipt.auctions_inventories.length,
+        };
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

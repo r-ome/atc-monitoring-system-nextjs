@@ -177,7 +177,7 @@ export const addStorageFee = async (input: StorageFeePaymentInput) => {
   const auth = await authorizeAction();
   if (!auth.ok) return auth;
 
-  return await runWithBranchContext(auth.value, async () =>
+  return await runWithUserContext(auth.value, async () =>
     AddStorageFeeController(input),
   );
 };
@@ -186,7 +186,7 @@ export const undoPayment = async (receipt_id: string) => {
   const auth = await authorizeAction();
   if (!auth.ok) return auth;
 
-  return await runWithBranchContext(
+  return await runWithUserContext(
     auth.value,
     async () => await UndoPaymentController(receipt_id),
   );

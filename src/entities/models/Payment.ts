@@ -168,6 +168,12 @@ export type AuctionTransaction = {
   created_at: string;
 };
 
+export type UndoPaymentResult = {
+  receipt_id: string;
+  receipt_number: string;
+  restored_item_count: number;
+};
+
 export const refundAuctionInventoriesSchema = z.object({
   auction_bidder_id: z.string(),
   reason: z.string().min(1, { message: "This field is required!" }),
