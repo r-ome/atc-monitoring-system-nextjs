@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 import {
   formatAuctionStatusLabel,
   formatBranchLabel,
+  formatExpenseTypeLabel,
   formatInventoryStatusLabel,
   getAuctionStatusVariant,
   getBranchBadgeVariant,
+  getExpenseTypeVariant,
   getInventoryStatusVariant,
 } from "@/app/components/admin/status-badge.helpers";
 
@@ -24,6 +26,13 @@ test("status badge helpers map auction statuses to the expected labels and varia
   assert.equal(getAuctionStatusVariant("DISCREPANCY"), "warning");
   assert.equal(getAuctionStatusVariant("PARTIAL"), "warning");
   assert.equal(formatAuctionStatusLabel("DISCREPANCY"), "Discrepancy");
+});
+
+test("status badge helpers map expense types to the expected labels and variants", () => {
+  assert.equal(getExpenseTypeVariant("ADD_PETTY_CASH"), "success");
+  assert.equal(getExpenseTypeVariant("EXPENSE"), "error");
+  assert.equal(formatExpenseTypeLabel("ADD_PETTY_CASH"), "Add Petty Cash");
+  assert.equal(formatExpenseTypeLabel("EXPENSE"), "Expense");
 });
 
 test("status badge helpers map known branches and fall back unknown branches to neutral", () => {

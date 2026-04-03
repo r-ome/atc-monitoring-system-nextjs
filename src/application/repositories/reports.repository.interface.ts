@@ -1,5 +1,6 @@
 import {
   AuctionSalesSummaryRow,
+  ExpenseSummaryDetailRow,
   ExpenseSummaryRow,
   PaymentMethodBreakdownRow,
   DailyCashFlowPaymentRow,
@@ -20,6 +21,10 @@ export interface IReportsRepository {
     branch_id: string,
     date: string,
   ) => Promise<ExpenseSummaryRow[]>;
+  getExpensesSummary: (
+    branch_id: string,
+    date: string,
+  ) => Promise<ExpenseSummaryDetailRow[]>;
   getPaymentMethodBreakdown: (
     branch_id: string,
     date: string,

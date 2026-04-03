@@ -66,6 +66,71 @@ const Page = async ({
       : `${selected_year}-${selected_month}`;
 
   const tabBranchId = selected_branch.branch_id;
+  const tabs = [
+    {
+      value: "financial",
+      label: "Financial Reports",
+      content: (
+        <Suspense fallback={<ReportTabFallback />}>
+          <FinancialTabContent
+            branchId={tabBranchId}
+            branchName={selected_branch.name}
+            dateParam={dateParam}
+            mode={filterMode}
+            userRole={user.role}
+          />
+        </Suspense>
+      ),
+    },
+    {
+      value: "bidders",
+      label: "Bidder Reports",
+      content: (
+        <Suspense fallback={<ReportTabFallback />}>
+          <BidderTabContent
+            branchId={tabBranchId}
+            dateParam={dateParam}
+          />
+        </Suspense>
+      ),
+    },
+    {
+      value: "inventory",
+      label: "Inventory Reports",
+      content: (
+        <Suspense fallback={<ReportTabFallback />}>
+          <InventoryTabContent
+            branchId={tabBranchId}
+            dateParam={dateParam}
+          />
+        </Suspense>
+      ),
+    },
+    {
+      value: "operational",
+      label: "Operational",
+      content: (
+        <Suspense fallback={<ReportTabFallback />}>
+          <OperationalTabContent
+            branchId={tabBranchId}
+            dateParam={dateParam}
+          />
+        </Suspense>
+      ),
+    },
+    {
+      value: "suppliers",
+      label: "Supplier Reports",
+      content: (
+        <Suspense fallback={<ReportTabFallback />}>
+          <SupplierTabContent
+            branchId={tabBranchId}
+            dateParam={dateParam}
+          />
+        </Suspense>
+      ),
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,71 +147,7 @@ const Page = async ({
         </CardHeader>
       </Card>
 
-      <ReportTabs
-        tabs={[
-          {
-            value: "financial",
-            label: "Financial Reports",
-            content: (
-              <Suspense fallback={<ReportTabFallback />}>
-                <FinancialTabContent
-                  branchId={tabBranchId}
-                  dateParam={dateParam}
-                  mode={filterMode}
-                />
-              </Suspense>
-            ),
-          },
-          {
-            value: "bidders",
-            label: "Bidder Reports",
-            content: (
-              <Suspense fallback={<ReportTabFallback />}>
-                <BidderTabContent
-                  branchId={tabBranchId}
-                  dateParam={dateParam}
-                />
-              </Suspense>
-            ),
-          },
-          {
-            value: "inventory",
-            label: "Inventory Reports",
-            content: (
-              <Suspense fallback={<ReportTabFallback />}>
-                <InventoryTabContent
-                  branchId={tabBranchId}
-                  dateParam={dateParam}
-                />
-              </Suspense>
-            ),
-          },
-          {
-            value: "operational",
-            label: "Operational",
-            content: (
-              <Suspense fallback={<ReportTabFallback />}>
-                <OperationalTabContent
-                  branchId={tabBranchId}
-                  dateParam={dateParam}
-                />
-              </Suspense>
-            ),
-          },
-          {
-            value: "suppliers",
-            label: "Supplier Reports",
-            content: (
-              <Suspense fallback={<ReportTabFallback />}>
-                <SupplierTabContent
-                  branchId={tabBranchId}
-                  dateParam={dateParam}
-                />
-              </Suspense>
-            ),
-          },
-        ]}
-      />
+      <ReportTabs tabs={tabs} />
     </div>
   );
 };

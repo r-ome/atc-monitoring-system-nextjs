@@ -11,6 +11,7 @@ import {
   generateUnpaidBidders,
   generateBidderNumber,
   generateDeductionsReport,
+  generateExpensesSummary,
 } from ".";
 
 export type Monitoring = {
@@ -41,7 +42,8 @@ type ReportTypes =
   | "monthly_commission"
   | "unpaid_bidders"
   | "bidder_number"
-  | "deductions";
+  | "deductions"
+  | "expenses_summary";
 
 const generateReport = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -150,6 +152,14 @@ const generateReport = (
       workbook,
       generateDeductionsReport(data.deductions),
       "DEDUCTIONS",
+    );
+  }
+
+  if (reports.includes("expenses_summary")) {
+    xlsx.utils.book_append_sheet(
+      workbook,
+      generateExpensesSummary(data.expensesSummary),
+      "EXPENSES SUMMARY",
     );
   }
 

@@ -9,6 +9,7 @@ import {
 import {
   AuctionSalesSummaryRow,
   BidderReportRow,
+  ExpenseSummaryDetailRow,
   ExpenseSummaryRow,
 } from "src/entities/models/Report";
 
@@ -149,6 +150,47 @@ export const ReportsRepository: IReportsRepository = {
       );
     } catch (error) {
       handleError("Error getting total expenses", error);
+    }
+  },
+
+  getExpensesSummary: async (branch_id, date) => {
+    try {
+      const { start, end } = parseDateRange(date);
+      const rows = await prisma.$queryRaw<
+        Array<{
+          expense_id: string;
+          created_at: Date;
+          amount: Prisma.Decimal | number | string | null;
+          purpose: "ADD_PETTY_CASH" | "EXPENSE";
+          remarks: string;
+        }>
+      >(Prisma.sql`
+        SELECT
+          e.expense_id,
+          e.created_at,
+          e.amount,
+          e.purpose,
+          e.remarks
+        FROM expenses e
+        WHERE e.deleted_at IS NULL
+          AND e.branch_id = ${branch_id}
+          AND e.purpose = 'EXPENSE'
+          AND e.created_at >= ${start}
+          AND e.created_at < ${end}
+        ORDER BY e.created_at DESC
+      `);
+
+      return rows.map(
+        (row): ExpenseSummaryDetailRow => ({
+          expense_id: row.expense_id,
+          created_at: row.created_at,
+          amount: toNumber(row.amount),
+          purpose: row.purpose,
+          remarks: row.remarks,
+        }),
+      );
+    } catch (error) {
+      handleError("Error getting expenses summary", error);
     }
   },
 

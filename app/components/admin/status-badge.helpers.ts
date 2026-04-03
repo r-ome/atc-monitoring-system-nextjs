@@ -1,5 +1,6 @@
 import { type VariantProps } from "class-variance-authority"
 import { type AuctionItemStatus } from "src/entities/models/Auction"
+import { type ExpensePurpose } from "src/entities/models/Expense"
 import { type InventoryStatus } from "src/entities/models/Inventory"
 import { type statusBadgeVariants } from "./status-badge"
 
@@ -20,6 +21,11 @@ const AUCTION_STATUS_VARIANTS: Record<AuctionItemStatus, StatusBadgeVariant> = {
   REFUNDED: "info",
   DISCREPANCY: "warning",
   PARTIAL: "warning",
+}
+
+const EXPENSE_TYPE_VARIANTS: Record<ExpensePurpose, StatusBadgeVariant> = {
+  ADD_PETTY_CASH: "success",
+  EXPENSE: "error",
 }
 
 const formatStatusLabel = (status: string) =>
@@ -47,6 +53,12 @@ export const formatInventoryStatusLabel = (status: InventoryStatus) =>
 
 export const formatAuctionStatusLabel = (status: AuctionItemStatus) =>
   formatStatusLabel(status)
+
+export const getExpenseTypeVariant = (expenseType: ExpensePurpose) =>
+  EXPENSE_TYPE_VARIANTS[expenseType]
+
+export const formatExpenseTypeLabel = (expenseType: ExpensePurpose) =>
+  formatStatusLabel(expenseType)
 
 export const getBranchBadgeVariant = (
   branch: BranchBadgeValue,

@@ -11,6 +11,7 @@ export {
   StatusBadge,
   InventoryStatusBadge,
   AuctionStatusBadge,
+  ExpenseTypeBadge,
   PaidBadge,
   UnpaidBadge,
   ActiveBadge,
@@ -23,9 +24,11 @@ export {
 export {
   getInventoryStatusVariant,
   getAuctionStatusVariant,
+  getExpenseTypeVariant,
   getBranchBadgeVariant,
   formatInventoryStatusLabel,
   formatAuctionStatusLabel,
+  formatExpenseTypeLabel,
   formatBranchLabel,
 } from "./status-badge.helpers"
 

@@ -1,14 +1,17 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/app/lib/utils"
 import { type AuctionItemStatus } from "src/entities/models/Auction"
+import { type ExpensePurpose } from "src/entities/models/Expense"
 import { type InventoryStatus } from "src/entities/models/Inventory"
 import {
   type BranchBadgeValue,
   formatAuctionStatusLabel,
   formatBranchLabel,
+  formatExpenseTypeLabel,
   formatInventoryStatusLabel,
   getAuctionStatusVariant,
   getBranchBadgeVariant,
+  getExpenseTypeVariant,
   getInventoryStatusVariant,
 } from "./status-badge.helpers"
 
@@ -117,6 +120,26 @@ export function AuctionStatusBadge({
       {...props}
     >
       {formatAuctionStatusLabel(status)}
+    </StatusBadge>
+  )
+}
+
+export function ExpenseTypeBadge({
+  expenseType,
+  className,
+  size,
+  ...props
+}: Omit<StatusBadgeProps, "children" | "variant"> & {
+  expenseType: ExpensePurpose
+}) {
+  return (
+    <StatusBadge
+      variant={getExpenseTypeVariant(expenseType)}
+      size={size}
+      className={className}
+      {...props}
+    >
+      {formatExpenseTypeLabel(expenseType)}
     </StatusBadge>
   )
 }
