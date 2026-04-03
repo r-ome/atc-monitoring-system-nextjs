@@ -50,20 +50,17 @@ import { BranchBadge } from "@/app/components/admin";
 type CalendarLegendItem = {
   value: HomeCalendarEventType;
   label: string;
-  className: string;
 };
 
 const LEGEND_ITEMS: CalendarLegendItem[] = [
-  { value: "AUCTION", label: "Auctions", className: "bg-blue-600" },
+  { value: "AUCTION", label: "Auctions" },
   {
     value: "CONTAINER_DUE",
     label: "Containers Due",
-    className: "bg-amber-600",
   },
   {
     value: "BIDDER_BIRTHDAY",
     label: "Bidder Birthdays",
-    className: "bg-pink-600",
   },
 ];
 
@@ -117,6 +114,17 @@ export function HomeCalendar() {
     () =>
       events.filter((event) => selectedTypes.includes(event.event_type)),
     [events, selectedTypes],
+  );
+  const legendColors = useMemo(
+    () =>
+      events.reduce(
+        (accumulator, event) => {
+          accumulator[event.event_type] = event.backgroundColor;
+          return accumulator;
+        },
+        {} as Partial<Record<HomeCalendarEventType, string>>,
+      ),
+    [events],
   );
 
   useEffect(() => {
@@ -187,7 +195,13 @@ export function HomeCalendar() {
             <div className="flex flex-wrap items-center gap-3">
               {LEGEND_ITEMS.map((item) => (
                 <div key={item.label} className="flex items-center gap-2">
-                  <span className={cn("size-3 rounded-full", item.className)} />
+                  <span
+                    className={cn("size-3 rounded-full")}
+                    style={{
+                      backgroundColor:
+                        legendColors[item.value] ?? "var(--muted-foreground)",
+                    }}
+                  />
                   <span>{item.label}</span>
                 </div>
               ))}
