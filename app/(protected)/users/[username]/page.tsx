@@ -6,6 +6,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/app/components/ui/card";
+import { BranchBadge } from "@/app/components/admin";
 import { Badge } from "@/app/components/ui/badge";
 import { UpdateUserPasswordModal } from "./UpdateUserPasswordModal";
 import { UpdateUserModal } from "./UpdateUserModal";
@@ -35,7 +36,9 @@ const Page = async ({
             </CardTitle>
             <CardDescription>
               <div>{user.username}</div>
-              <div>{user.branch.name}</div>
+              <div>
+                <BranchBadge branch={user.branch.name} />
+              </div>
             </CardDescription>
           </div>
           <div className="flex gap-2">

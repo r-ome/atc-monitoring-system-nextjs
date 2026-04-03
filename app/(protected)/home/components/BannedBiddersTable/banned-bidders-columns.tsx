@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import { BranchBadge } from "@/app/components/admin";
 import { BannedBidder } from "src/entities/models/Statistics";
 
 export const columns: ColumnDef<BannedBidder>[] = [
@@ -45,7 +46,9 @@ export const columns: ColumnDef<BannedBidder>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.branch_name}</div>
+      <div className="flex justify-center">
+        <BranchBadge branch={row.original.branch_name} />
+      </div>
     ),
   },
   {

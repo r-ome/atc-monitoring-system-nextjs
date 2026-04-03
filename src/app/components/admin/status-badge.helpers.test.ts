@@ -29,7 +29,8 @@ test("status badge helpers map auction statuses to the expected labels and varia
 test("status badge helpers map known branches and fall back unknown branches to neutral", () => {
   assert.equal(getBranchBadgeVariant("TARLAC"), "tarlac");
   assert.equal(getBranchBadgeVariant("binan"), "binan");
+  assert.equal(getBranchBadgeVariant("BIÑAN"), "binan");
   assert.equal(getBranchBadgeVariant("  unknown  "), "neutral");
   assert.equal(formatBranchLabel("TARLAC"), "Tarlac");
-  assert.equal(formatBranchLabel("binan"), "Binan");
+  assert.equal(formatBranchLabel("BIÑAN"), "Biñan");
 });

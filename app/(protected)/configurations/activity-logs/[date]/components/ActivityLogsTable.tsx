@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
-import { StatusBadge } from "@/app/components/admin";
+import { BranchBadge, StatusBadge } from "@/app/components/admin";
 import { ActivityLog, ActivityAction } from "src/entities/models/ActivityLog";
 import {
   Tooltip,
@@ -37,6 +37,7 @@ const columns: ColumnDef<ActivityLog>[] = [
   {
     accessorKey: "branch_name",
     header: "Branch",
+    cell: ({ row }) => <BranchBadge branch={row.original.branch_name} />,
   },
   {
     accessorKey: "action",

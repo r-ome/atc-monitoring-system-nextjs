@@ -29,6 +29,13 @@ const formatStatusLabel = (status: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
 
+const normalizeBranchName = (branch: string) =>
+  branch
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+
 export const getInventoryStatusVariant = (status: InventoryStatus) =>
   INVENTORY_STATUS_VARIANTS[status]
 
@@ -44,7 +51,7 @@ export const formatAuctionStatusLabel = (status: AuctionItemStatus) =>
 export const getBranchBadgeVariant = (
   branch: BranchBadgeValue,
 ): "tarlac" | "binan" | "neutral" => {
-  const normalizedBranch = branch.trim().toLowerCase()
+  const normalizedBranch = normalizeBranchName(branch)
 
   if (normalizedBranch === "tarlac") return "tarlac"
   if (normalizedBranch === "binan") return "binan"

@@ -5,6 +5,7 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { User } from "src/entities/models/User";
 import { Badge } from "@/app/components/ui/badge";
+import { BranchBadge } from "@/app/components/admin";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -96,9 +97,7 @@ export const columns: ColumnDef<User>[] = [
       const user = row.original;
       return (
         <div className="flex justify-center">
-          <Badge variant="outline">
-            {user.branch?.name}
-          </Badge>
+          <BranchBadge branch={user.branch?.name ?? ""} />
         </div>
       );
     },

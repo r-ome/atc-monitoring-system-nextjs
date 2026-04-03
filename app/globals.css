@@ -55,8 +55,8 @@ body {
   --status-info-foreground: oklch(1 0 0);
 
   /* Branch colors */
-  --branch-tarlac: oklch(0.65 0.2 145);
-  --branch-binan: oklch(0.75 0.18 75);
+  --branch-tarlac: oklch(0.76 0.11 255);
+  --branch-binan: oklch(0.88 0.08 92);
 }
 
 .dark {
@@ -104,8 +104,8 @@ body {
   --status-info-foreground: oklch(0.98 0 0);
 
   /* Branch colors - dark mode */
-  --branch-tarlac: oklch(0.6 0.2 150);
-  --branch-binan: oklch(0.7 0.17 80);
+  --branch-tarlac: oklch(0.69 0.1 255);
+  --branch-binan: oklch(0.8 0.08 92);
 }
 
 @theme inline {
