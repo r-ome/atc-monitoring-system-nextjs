@@ -9,13 +9,20 @@ import type {
   MergeInventoriesInput,
   InventoryStatus,
 } from "src/entities/models/Inventory";
-import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
+import {
+  AuctionInventorySearchInput,
+  AuctionInventorySearchRow,
+  AuctionInventoryWithDetailsRow,
+} from "src/entities/models/Auction";
 
 export interface IInventoryRepository {
   getInventory: (inventory_id: string) => Promise<InventoryWithDetailsRow>;
   getAuctionItemDetails: (
     auction_inventory_id: string,
   ) => Promise<AuctionInventoryWithDetailsRow | null>;
+  searchAuctionItems: (
+    input: AuctionInventorySearchInput,
+  ) => Promise<AuctionInventorySearchRow[]>;
   getUnsoldInventories: () => Promise<InventoryRow[]>;
   updateAuctionItem: (data: UpdateAuctionInventoryInput, updated_by?: string) => Promise<void>;
   updateInventory: (

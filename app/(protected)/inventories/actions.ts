@@ -2,6 +2,7 @@
 
 import { GetInventoryController } from "src/controllers/inventories/get-inventory.controller";
 import { GetAuctionItemDetailsController } from "src/controllers/inventories/get-auction-item-details.controller";
+import { SearchAuctionItemsController } from "src/controllers/inventories/search-auction-items.controller";
 import { UpdateAuctionItemController } from "src/controllers/inventories/update-auction-item.controller";
 import { UpdateInventoryController } from "src/controllers/inventories/update-inventory.controller";
 import { CreateInventoryController } from "src/controllers/inventories/create-inventory.controller";
@@ -22,6 +23,15 @@ export const getAuctionItemDetails = async (auctionInventoryId: string) => {
 
   return await runWithBranchContext(auth.value, async () =>
     GetAuctionItemDetailsController(auctionInventoryId),
+  );
+};
+
+export const searchAuctionItems = async (query: string) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(auth.value, async () =>
+    SearchAuctionItemsController(query),
   );
 };
 

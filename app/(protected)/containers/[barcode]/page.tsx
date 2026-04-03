@@ -8,6 +8,7 @@ import { ContainerProfile } from "./components/ContainerProfile";
 import { ContainerInventoriesTable } from "./components/inventories/ContainerInventoriesTable";
 import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { AuctionItemSearchOverlay } from "@/app/(protected)/auctions/[auction_date]/AuctionItemSearchOverlay";
 
 export default async function Page({
   params,
@@ -26,22 +27,25 @@ export default async function Page({
   const container = res.value;
 
   return (
-    <div className="h-full w-full p-4">
-      <Tabs defaultValue="inventory-list">
-        <TabsList>
-          <TabsTrigger value="inventory-list">Inventories</TabsTrigger>
-          <TabsTrigger value="profile">Container Profile</TabsTrigger>
-        </TabsList>
-        <TabsContent value="inventory-list">
-          <ContainerInventoriesTable
-            inventories={container.inventories}
-            container={container}
-          />
-        </TabsContent>
-        <TabsContent value="profile">
-          <ContainerProfile container={container} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <>
+      <AuctionItemSearchOverlay />
+      <div className="h-full w-full p-4">
+        <Tabs defaultValue="inventory-list">
+          <TabsList>
+            <TabsTrigger value="inventory-list">Inventories</TabsTrigger>
+            <TabsTrigger value="profile">Container Profile</TabsTrigger>
+          </TabsList>
+          <TabsContent value="inventory-list">
+            <ContainerInventoriesTable
+              inventories={container.inventories}
+              container={container}
+            />
+          </TabsContent>
+          <TabsContent value="profile">
+            <ContainerProfile container={container} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </>
   );
 }

@@ -8,7 +8,9 @@ import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
 
-const presenter = (auction_inventory: AuctionInventoryWithDetailsRow) => {
+export const presentAuctionInventoryDetails = (
+  auction_inventory: AuctionInventoryWithDetailsRow,
+) => {
   const date_format = "MMMM dd, yyyy";
   return {
     auction_inventory_id: auction_inventory.auction_inventory_id,
@@ -63,7 +65,7 @@ export const GetAuctionItemDetailsController = async (
     if (!auction_inventory) {
       throw new NotFoundError("Auction Item does not exist!");
     }
-    return ok(presenter(auction_inventory));
+    return ok(presentAuctionInventoryDetails(auction_inventory));
   } catch (error) {
     if (error instanceof NotFoundError) {
       logger("GetAuctionItemDetailsController", error, "warn");

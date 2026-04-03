@@ -11,6 +11,7 @@ import { BoughtItemsHeader } from "./BoughtItemsHeader";
 import { BoughtItemsFilter } from "./BoughtItemsFilter";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { StatCard, StatCardGroup } from "@/app/components/admin/stat-card";
+import { AuctionItemSearchOverlay } from "@/app/(protected)/auctions/[auction_date]/AuctionItemSearchOverlay";
 
 export default async function Page({
   searchParams,
@@ -60,49 +61,52 @@ export default async function Page({
   const totalDifference = bought_items.reduce((sum, item) => sum + (item.profit_loss ?? 0), 0);
 
   return (
-    <div className="flex flex-col gap-2">
-      <BoughtItemsHeader
-        selectedBranch={selected_branch}
-      />
-      <h1 className="text-2xl text-center">Bought Items Master List</h1>
+    <>
+      <AuctionItemSearchOverlay />
+      <div className="flex flex-col gap-2">
+        <BoughtItemsHeader
+          selectedBranch={selected_branch}
+        />
+        <h1 className="text-2xl text-center">Bought Items Master List</h1>
 
-      <BoughtItemsFilter
-        user={user}
-        selectedBranch={selected_branch}
-        branches={branches}
-        selectedYear={selectedYear}
-        selectedView={selectedView}
-        selectedMonth={selectedMonth}
-      />
+        <BoughtItemsFilter
+          user={user}
+          selectedBranch={selected_branch}
+          branches={branches}
+          selectedYear={selectedYear}
+          selectedView={selectedView}
+          selectedMonth={selectedMonth}
+        />
 
-      <div className="flex gap-4">
-        <UploadBoughtItemsModal selectedBranch={selected_branch} />
-        <GenerateBoughtItemsReport boughtItems={bought_items} />
+        <div className="flex gap-4">
+          <UploadBoughtItemsModal selectedBranch={selected_branch} />
+          <GenerateBoughtItemsReport boughtItems={bought_items} />
+        </div>
+
+        <StatCardGroup columns={3}>
+          <StatCard
+            title="Total Old Price"
+            value={formatNumberToCurrency(totalOldPrice)}
+            description="Original bought-item cost"
+            className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
+          />
+          <StatCard
+            title="Total Resale Price"
+            value={formatNumberToCurrency(totalNewPrice)}
+            description="Actual bidder resale value"
+            className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
+          />
+          <StatCard
+            title="Total Profit/Loss"
+            value={formatNumberToCurrency(totalDifference)}
+            description={totalDifference >= 0 ? "Net owner profit from resale" : "Net owner loss from resale"}
+            variant={totalDifference >= 0 ? "success" : "error"}
+            className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
+          />
+        </StatCardGroup>
+
+        <BoughtItemsTable boughtItems={bought_items} />
       </div>
-
-      <StatCardGroup columns={3}>
-        <StatCard
-          title="Total Old Price"
-          value={formatNumberToCurrency(totalOldPrice)}
-          description="Original bought-item cost"
-          className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
-        />
-        <StatCard
-          title="Total Resale Price"
-          value={formatNumberToCurrency(totalNewPrice)}
-          description="Actual bidder resale value"
-          className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
-        />
-        <StatCard
-          title="Total Profit/Loss"
-          value={formatNumberToCurrency(totalDifference)}
-          description={totalDifference >= 0 ? "Net owner profit from resale" : "Net owner loss from resale"}
-          variant={totalDifference >= 0 ? "success" : "error"}
-          className="gap-0 py-0 [&_[data-slot=card-content]]:p-3 [&_p.text-2xl]:text-lg"
-        />
-      </StatCardGroup>
-
-      <BoughtItemsTable boughtItems={bought_items} />
-    </div>
+    </>
   );
 }

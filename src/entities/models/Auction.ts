@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { RegisteredBidder } from "./Bidder";
 import { type InventoryStatus } from "./Inventory";
@@ -70,6 +69,151 @@ export type AuctionInventoryWithDetailsRow =
       histories: { include: { receipt: true } };
     };
   }>;
+
+export type AuctionInventorySearchRow =
+  Prisma.auctions_inventoriesGetPayload<{
+    include: {
+      auction_bidder: { include: { bidder: true } };
+      inventory: true;
+    };
+  }>;
+
+export const AUCTION_INVENTORY_SEARCH_MODE = [
+  "barcode",
+  "control",
+  "barcode_control",
+] as const;
+
+export type AuctionInventorySearchMode =
+  (typeof AUCTION_INVENTORY_SEARCH_MODE)[number];
+
+export type AuctionInventorySearchInput = {
+  raw: string;
+  mode: AuctionInventorySearchMode;
+  barcode?: string;
+  control?: string;
+};
+
+export type AuctionInventorySearchResult = {
+  auction_inventory_id: string;
+  description: string;
+  status: AuctionItemStatus;
+  price: number;
+  qty: string;
+  manifest_number: string;
+  auction_date: string;
+  created_at: string;
+  inventory: {
+    barcode: string;
+    control: string;
+    status: InventoryStatus;
+  };
+  bidder: {
+    bidder_number: string;
+    full_name: string;
+  };
+};
+
+const BARCODE_SEGMENT_PATTERN = /^[A-Z0-9]{2}$/;
+const BARCODE_ITEM_SEGMENT_PATTERN = /^\d{3}$/;
+const CONTROL_SEARCH_PATTERN = /^\d{1,4}$/;
+
+const normalizeControlSearch = (value: string) => value.padStart(4, "0");
+const normalizeBarcodeSearch = (value: string) => value.toUpperCase();
+
+const isValidBarcodeSearch = (value: string) => {
+  const segments = normalizeBarcodeSearch(value).split("-");
+
+  if (segments.length !== 2 && segments.length !== 3) {
+    return false;
+  }
+
+  if (!segments.every((segment) => segment.length > 0)) {
+    return false;
+  }
+
+  if (
+    !BARCODE_SEGMENT_PATTERN.test(segments[0]) ||
+    !BARCODE_SEGMENT_PATTERN.test(segments[1])
+  ) {
+    return false;
+  }
+
+  if (segments.length === 3 && !BARCODE_ITEM_SEGMENT_PATTERN.test(segments[2])) {
+    return false;
+  }
+
+  return true;
+};
+
+export const parseAuctionInventorySearchInput = (
+  rawInput: string,
+): AuctionInventorySearchInput => {
+  const input = rawInput.trim();
+
+  if (!input) {
+    throw new Error(
+      "Search is required. Use barcode, control, or barcode:control.",
+    );
+  }
+
+  const parts = input.split(":").map((part) => part.trim());
+
+  if (parts.length > 2) {
+    throw new Error(
+      "Only one ':' is allowed. Use barcode, control, or barcode:control.",
+    );
+  }
+
+  if (parts.length === 2) {
+    const [barcode, control] = parts;
+
+    if (!barcode || !control) {
+      throw new Error(
+        "Both barcode and control are required for barcode:control search.",
+      );
+    }
+
+    if (!isValidBarcodeSearch(barcode)) {
+      throw new Error(
+        "Barcode must match AA-00 or AA-00-000 format.",
+      );
+    }
+
+    if (!CONTROL_SEARCH_PATTERN.test(control)) {
+      throw new Error("Control must be a 1 to 4 digit number.");
+    }
+
+    return {
+      raw: input,
+      mode: "barcode_control",
+      barcode: normalizeBarcodeSearch(barcode),
+      control: normalizeControlSearch(control),
+    };
+  }
+
+  const [value] = parts;
+
+  if (isValidBarcodeSearch(value)) {
+    return {
+      raw: input,
+      mode: "barcode",
+      barcode: normalizeBarcodeSearch(value),
+    };
+  }
+
+  if (CONTROL_SEARCH_PATTERN.test(value)) {
+    return {
+      raw: input,
+      mode: "control",
+      control: normalizeControlSearch(value),
+    };
+  }
+
+  throw new Error(
+    "Search must be barcode, control, or barcode:control.",
+  );
+};
 
 export type AuctionsInventory = {
   auction_inventory_id: string;

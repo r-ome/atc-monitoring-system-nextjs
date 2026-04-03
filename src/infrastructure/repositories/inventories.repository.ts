@@ -15,6 +15,7 @@ import {
   buildItemMergedHistoryRemark,
   buildItemUpdatedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
+import { AuctionInventorySearchInput } from "src/entities/models/Auction";
 
 export const InventoryRepository: IInventoryRepository = {
   getAuctionItemDetails: async (auction_inventory_id) => {
@@ -40,6 +41,36 @@ export const InventoryRepository: IInventoryRepository = {
         logger("InventoryRepository.getAuctionItemDetails", error);
         throw new DatabaseOperationError("Error getting Auction Item details!");
       }
+      throw error;
+    }
+  },
+  searchAuctionItems: async (input: AuctionInventorySearchInput) => {
+    try {
+      const inventoryWhere =
+        input.mode === "barcode"
+          ? { barcode: input.barcode }
+          : input.mode === "control"
+            ? { control: input.control }
+            : { barcode: input.barcode, control: input.control };
+
+      return await prisma.auctions_inventories.findMany({
+        where: buildTenantWhere("auctions_inventories", {
+          inventory: inventoryWhere,
+        }),
+        include: {
+          inventory: true,
+          auction_bidder: { include: { bidder: true } },
+        },
+        orderBy: [{ auction_date: "desc" }, { created_at: "desc" }],
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        logger("InventoryRepository.searchAuctionItems", error);
+        throw new DatabaseOperationError("Error searching auction items!", {
+          cause: error.message,
+        });
+      }
+
       throw error;
     }
   },
