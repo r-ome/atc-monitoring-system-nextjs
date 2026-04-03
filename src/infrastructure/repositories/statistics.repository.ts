@@ -56,11 +56,10 @@ export const StatisticsRepository: IStatisticsRepository = {
   },
   getContainersDueDate: async () => {
     try {
-      const now = new Date();
       const containers = await prisma.containers.findMany({
         include: { branch: true },
-        where: { due_date: { not: null, gte: now } },
-        orderBy: { due_date: "asc" },
+        where: { due_date: { not: null } },
+        orderBy: { due_date: "desc" },
       });
 
       return containers;

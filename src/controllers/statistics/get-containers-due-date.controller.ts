@@ -18,6 +18,9 @@ function presenter(containers: ContainerWithBranchRow[]) {
     due_date: container.due_date
       ? formatDate(new Date(container.due_date), date_format)
       : "N/A",
+    due_date_iso: container.due_date
+      ? formatDate(new Date(container.due_date), "yyyy-MM-dd")
+      : "",
     branch: {
       ...container.branch,
       created_at: formatDate(container.branch.created_at, date_format),

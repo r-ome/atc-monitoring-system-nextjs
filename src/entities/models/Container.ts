@@ -112,5 +112,6 @@ export type ContainerDueDate = {
   container_number: string;
   arrival_date: string;
   due_date: string;
+  due_date_iso: string;
   branch: Branch;
 };

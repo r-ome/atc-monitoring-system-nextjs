@@ -16,9 +16,20 @@ export function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  month: monthProp,
+  onMonthChange,
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
-  const [month, setMonth] = useState(new Date());
+  const [internalMonth, setInternalMonth] = useState(monthProp ?? new Date());
+  const month = monthProp ?? internalMonth;
+
+  const handleMonthChange = (nextMonth: Date) => {
+    if (monthProp == null) {
+      setInternalMonth(nextMonth);
+    }
+
+    onMonthChange?.(nextMonth);
+  };
 
   const currentYear = new Date().getFullYear();
   const years = Array.from(
@@ -34,19 +45,19 @@ export function Calendar({
       const newDate = new Date(displayMonth);
       if (type === "month") newDate.setMonth(value);
       else newDate.setFullYear(value);
-      setMonth(newDate);
+      handleMonthChange(newDate);
     };
 
     const prevMonth = () => {
       const newDate = new Date(displayMonth);
       newDate.setMonth(displayMonth.getMonth() - 1);
-      setMonth(newDate);
+      handleMonthChange(newDate);
     };
 
     const nextMonth = () => {
       const newDate = new Date(displayMonth);
       newDate.setMonth(displayMonth.getMonth() + 1);
-      setMonth(newDate);
+      handleMonthChange(newDate);
     };
 
     return (
@@ -107,7 +118,7 @@ export function Calendar({
   return (
     <DayPicker
       month={month}
-      onMonthChange={setMonth}
+      onMonthChange={handleMonthChange}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
@@ -122,7 +133,7 @@ export function Calendar({
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
-        table: "w-full border-collapse space-x-1",
+        table: "mt-3 w-full border-collapse space-x-1",
         head_row: "flex",
         head_cell:
           "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
