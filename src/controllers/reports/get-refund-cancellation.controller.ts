@@ -13,6 +13,12 @@ function getRelevantHistories(row: RefundCancellationRow) {
   );
 }
 
+function getPrimaryRelevantHistory(row: RefundCancellationRow) {
+  return getRelevantHistories(row)
+    .slice()
+    .sort((a, b) => b.created_at.getTime() - a.created_at.getTime())[0] ?? null;
+}
+
 function resolveBidderFromLegacyHistoryRemark(remarks: string | null | undefined) {
   const parsed = parseInventoryHistoryRemark(remarks);
   if (!parsed.bidder_number || !parsed.bidder_name) return null;
@@ -26,6 +32,11 @@ function resolveBidderFromLegacyHistoryRemark(remarks: string | null | undefined
 function resolveReasonFromLegacyHistoryRemark(remarks: string | null | undefined) {
   const parsed = parseInventoryHistoryRemark(remarks);
   return parsed.reason ?? remarks ?? "";
+}
+
+function resolveUpdatedByFromHistoryRemark(remarks: string | null | undefined) {
+  const parsed = parseInventoryHistoryRemark(remarks);
+  return parsed.updated_by ?? null;
 }
 
 function resolveOriginalBidder(row: RefundCancellationRow): {
@@ -77,12 +88,25 @@ function resolveReason(row: RefundCancellationRow): string {
   return "";
 }
 
+function resolveUpdatedBy(row: RefundCancellationRow): string | null {
+  for (const history of getRelevantHistories(row)) {
+    const updated_by = resolveUpdatedByFromHistoryRemark(history.remarks);
+    if (updated_by) return updated_by;
+  }
+
+  return null;
+}
+
 function presenter(rows: RefundCancellationRow[]): RefundCancellationEntry[] {
   return rows.map((row) => {
     const { bidder_number, bidder_name } = resolveOriginalBidder(row);
     return {
       auction_inventory_id: row.auction_inventory_id,
       auction_date: formatDate(row.auction_bidder.auctions.created_at, "MMM dd, yyyy"),
+      status_date: formatDate(
+        getPrimaryRelevantHistory(row)?.created_at ?? row.updated_at,
+        "MMM dd, yyyy",
+      ),
       bidder_number,
       bidder_name,
       description: row.description,
@@ -91,6 +115,7 @@ function presenter(rows: RefundCancellationRow[]): RefundCancellationEntry[] {
       price: row.price,
       status: row.status,
       reason: resolveReason(row),
+      updated_by: resolveUpdatedBy(row),
     };
   });
 }

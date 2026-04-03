@@ -12,6 +12,7 @@ type SalesInput = {
   total_items: number;
   total_sales: number;
   total_registration_fee: number;
+  total_bidder_percentage_amount: number;
 };
 
 export type SalesRowType = SalesInput & {
@@ -42,6 +43,7 @@ export const SalesTable = ({ sales, expenses }: SalesTableProps) => {
         total_items: 0,
         total_sales: 0,
         total_registration_fee: 0,
+        total_bidder_percentage_amount: 0,
         total_expenses: expense.total_expenses,
       });
     }
@@ -49,7 +51,12 @@ export const SalesTable = ({ sales, expenses }: SalesTableProps) => {
 
   rows.sort((a, b) => a.key.localeCompare(b.key));
 
-  const totalSales = rows.reduce((acc, r) => acc + r.total_sales, 0);
+  const totalItemSales = rows.reduce((acc, r) => acc + r.total_sales, 0);
+  const totalServiceCharge = rows.reduce(
+    (acc, r) => acc + r.total_bidder_percentage_amount,
+    0,
+  );
+  const totalSales = totalItemSales + totalServiceCharge;
   const totalExpenses = rows.reduce((acc, r) => acc + r.total_expenses, 0);
   const netIncome = totalSales - totalExpenses;
 
@@ -60,6 +67,14 @@ export const SalesTable = ({ sales, expenses }: SalesTableProps) => {
           <div className="flex justify-between gap-8">
             <span>Total Sales:</span>
             <span className="text-green-500">{formatNumberToCurrency(totalSales)}</span>
+          </div>
+          <div className="flex justify-between gap-8">
+            <span>Item Sales:</span>
+            <span>{formatNumberToCurrency(totalItemSales)}</span>
+          </div>
+          <div className="flex justify-between gap-8">
+            <span>Service Charge:</span>
+            <span>{formatNumberToCurrency(totalServiceCharge)}</span>
           </div>
           <div className="flex justify-between gap-8">
             <span>Total Expenses:</span>

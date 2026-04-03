@@ -7,11 +7,27 @@ import {
   FilterMode,
 } from "src/entities/models/Report";
 import { formatDate } from "@/app/lib/utils";
+import { endOfWeek, max, min, startOfWeek } from "date-fns";
 
 const MONTHS = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
 ] as const;
+
+function getWeekBucket(date: Date) {
+  const year = Number(formatDate(date, "yyyy"));
+  const yearStart = new Date(year, 0, 1);
+  const yearEnd = new Date(year, 11, 31);
+  const weekStart = max([startOfWeek(date, { weekStartsOn: 0 }), yearStart]);
+  const weekEnd = min([endOfWeek(date, { weekStartsOn: 0 }), yearEnd]);
+  const startLabel = formatDate(weekStart, "MMM d");
+  const endLabel = formatDate(weekEnd, "MMM d");
+
+  return {
+    key: formatDate(weekStart, "yyyy-MM-dd"),
+    label: `${startLabel} - ${endLabel}`,
+  };
+}
 
 export type ExpenseRow = {
   key: string;
@@ -58,11 +74,33 @@ function monthlyPresenter(expenses: ExpenseSummaryRow[]): ExpenseRow[] {
     .filter((row) => row.total_expenses > 0);
 }
 
+function weeklyPresenter(expenses: ExpenseSummaryRow[]): ExpenseRow[] {
+  const weekBuckets = new Map<string, ExpenseRow>();
+
+  for (const expense of expenses) {
+    const { key, label } = getWeekBucket(expense.created_at);
+    const existing = weekBuckets.get(key) ?? {
+      key,
+      label,
+      total_expenses: 0,
+    };
+
+    existing.total_expenses += expense.total_amount;
+    weekBuckets.set(key, existing);
+  }
+
+  return Array.from(weekBuckets.values())
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .filter((row) => row.total_expenses > 0);
+}
+
 export function presentTotalExpenses(
   expenses: ExpenseSummaryRow[],
   mode: FilterMode,
 ): ExpenseRow[] {
-  return mode === "monthly" ? monthlyPresenter(expenses) : dailyPresenter(expenses);
+  if (mode === "monthly") return monthlyPresenter(expenses);
+  if (mode === "weekly") return weeklyPresenter(expenses);
+  return dailyPresenter(expenses);
 }
 
 export const GetTotalExpensesController = async (
@@ -72,10 +110,7 @@ export const GetTotalExpensesController = async (
 ) => {
   try {
     const expenses = await ReportsRepository.getTotalExpenses(branch_id, date);
-    const rows =
-      mode === "monthly"
-        ? monthlyPresenter(expenses)
-        : dailyPresenter(expenses);
+    const rows = presentTotalExpenses(expenses, mode);
     return ok(rows);
   } catch (error) {
     logger("GetTotalExpensesController", error);

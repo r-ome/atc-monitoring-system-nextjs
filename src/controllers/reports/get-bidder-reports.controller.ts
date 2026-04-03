@@ -3,7 +3,6 @@ import { ReportsRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
 import { presentBidderActivity } from "./get-bidder-activity.controller";
-import { presentTopBidders } from "./get-top-bidders.controller";
 import { presentUnpaidBidders } from "./get-unpaid-bidders.controller";
 
 export const GetBidderReportsController = async (
@@ -19,7 +18,6 @@ export const GetBidderReportsController = async (
     return ok({
       unpaid: presentUnpaidBidders(bidders),
       activity: presentBidderActivity(bidders),
-      topBidders: presentTopBidders(bidders),
     });
   } catch (error) {
     logger("GetBidderReportsController", error);

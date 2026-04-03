@@ -308,7 +308,12 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  uploadManifest: async (auction_id, data, is_bought_items = false, uploaded_by) => {
+  uploadManifest: async (
+    auction_id,
+    data,
+    is_bought_items = false,
+    uploaded_by,
+  ) => {
     try {
       /**
        * steps:
@@ -377,7 +382,9 @@ export const AuctionRepository: IAuctionRepository = {
             control: item.CONTROL,
             description: item.DESCRIPTION,
             status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
-            is_bought_item: is_bought_items ? parseInt(item.PRICE, 10) : undefined,
+            is_bought_item: is_bought_items
+              ? parseInt(item.PRICE, 10)
+              : undefined,
             auction_date: auction.created_at,
           })),
         });
@@ -675,9 +682,12 @@ export const AuctionRepository: IAuctionRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error fetching registered bidders for manifest", {
-          cause: error.message,
-        });
+        throw new DatabaseOperationError(
+          "Error fetching registered bidders for manifest",
+          {
+            cause: error.message,
+          },
+        );
       }
       throw error;
     }
@@ -740,7 +750,7 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
-  cancelItems: async (data) => {
+  cancelItems: async (data, updated_by) => {
     try {
       return await prisma.$transaction(async (tx) => {
         const bidder = await tx.auctions_bidders.findFirst({
@@ -822,6 +832,7 @@ export const AuctionRepository: IAuctionRepository = {
                         bidder_name: `${bidder.bidder.first_name} ${bidder.bidder.last_name}`,
                       },
                       data.reason,
+                      updated_by,
                     ),
                   })),
                 },
@@ -866,6 +877,7 @@ export const AuctionRepository: IAuctionRepository = {
                       bidder_name: `${bidder.bidder.first_name} ${bidder.bidder.last_name}`,
                     },
                     data.reason,
+                    updated_by,
                   ),
                 },
               }),
@@ -940,9 +952,12 @@ export const AuctionRepository: IAuctionRepository = {
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
-        throw new DatabaseOperationError("Error getting counter check records", {
-          cause: error.message,
-        });
+        throw new DatabaseOperationError(
+          "Error getting counter check records",
+          {
+            cause: error.message,
+          },
+        );
       }
 
       throw error;
@@ -1001,17 +1016,17 @@ export const AuctionRepository: IAuctionRepository = {
             });
           }
 
-          const rows_for_existing_auction_inventory = valid_rows_in_sheet.filter(
-            (item) => item.auction_inventory_id,
-          );
+          const rows_for_existing_auction_inventory =
+            valid_rows_in_sheet.filter((item) => item.auction_inventory_id);
           const rows_for_new_auction_inventory = valid_rows_in_sheet.filter(
             (item) => !item.auction_inventory_id,
           );
 
           // insert newly created_inventories
-          const for_creating_inventories = rows_for_new_auction_inventory.filter(
-            (item) => !item.inventory_id && item.container_id,
-          );
+          const for_creating_inventories =
+            rows_for_new_auction_inventory.filter(
+              (item) => !item.inventory_id && item.container_id,
+            );
 
           if (for_creating_inventories.length) {
             await tx.inventories.createMany({
@@ -1063,20 +1078,20 @@ export const AuctionRepository: IAuctionRepository = {
             auction_inventories
               .filter((item) => !item.auction_inventory_id)
               .map((item) =>
-              tx.auctions_inventories.create({
-                data: {
-                  auction_bidder_id: item.auction_bidder_id,
-                  inventory_id: item.inventory_id,
-                  description: item.description,
-                  status: "UNPAID",
-                  price: parseInt(item.price, 10),
-                  qty: item.qty,
-                  manifest_number: item.manifest_number as string,
-                  auction_date: auction.created_at,
-                  is_slash_item: item.isSlashItem,
-                },
-              }),
-            ),
+                tx.auctions_inventories.create({
+                  data: {
+                    auction_bidder_id: item.auction_bidder_id,
+                    inventory_id: item.inventory_id,
+                    description: item.description,
+                    status: "UNPAID",
+                    price: parseInt(item.price, 10),
+                    qty: item.qty,
+                    manifest_number: item.manifest_number as string,
+                    auction_date: auction.created_at,
+                    is_slash_item: item.isSlashItem,
+                  },
+                }),
+              ),
           );
 
           if (rows_for_existing_auction_inventory.length) {
@@ -1089,7 +1104,9 @@ export const AuctionRepository: IAuctionRepository = {
                 inventory_id: {
                   in: rows_for_existing_auction_inventory
                     .map((item) => item.inventory_id)
-                    .filter((inventory_id): inventory_id is string => Boolean(inventory_id)),
+                    .filter((inventory_id): inventory_id is string =>
+                      Boolean(inventory_id),
+                    ),
                 },
               },
             });
@@ -1147,9 +1164,10 @@ export const AuctionRepository: IAuctionRepository = {
               inventory_id: item.inventory_id,
               auction_status: "UNPAID",
               inventory_status: "SOLD",
-              remarks: item.auction_inventory_id && item.status
-                ? buildManifestReencodedHistoryRemark(item.status)
-                : buildEncodedHistoryRemark(),
+              remarks:
+                item.auction_inventory_id && item.status
+                  ? buildManifestReencodedHistoryRemark(item.status)
+                  : buildEncodedHistoryRemark(),
             })),
           });
           // update bidder balance
@@ -1234,9 +1252,10 @@ export const AuctionRepository: IAuctionRepository = {
             const discrepancyHistory = item.histories.find(
               (history) => history.auction_status === "DISCREPANCY",
             );
-            const partialPrice = resolvePartialBalancePriceFromLegacyHistoryRemark(
-              discrepancyHistory?.remarks,
-            );
+            const partialPrice =
+              resolvePartialBalancePriceFromLegacyHistoryRemark(
+                discrepancyHistory?.remarks,
+              );
 
             if (typeof partialPrice === "number") {
               item.price = partialPrice;

@@ -1,6 +1,7 @@
 "use client";
 
 import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionStatusBadge } from "@/app/components/admin";
 import { ColumnDef } from "@tanstack/react-table";
 import { RefundCancellationEntry } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
@@ -17,34 +18,71 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
     accessorKey: "auction_date",
     header: ({ column }) => (
       <div className="flex justify-center">
-        <Button variant="ghost" className="cursor-pointer" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
           Auction Date <ArrowUpDown />
         </Button>
       </div>
     ),
-    cell: ({ row }) => <div className="flex justify-center">{row.original.auction_date}</div>,
+    cell: ({ row }) => (
+      <div className="flex justify-center">{row.original.auction_date}</div>
+    ),
+  },
+  {
+    accessorKey: "status_date",
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Cancelled Date <ArrowUpDown />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">{row.original.status_date}</div>
+    ),
   },
   {
     accessorKey: "bidder_number",
     header: ({ column }) => (
       <div className="flex justify-center">
-        <Button variant="ghost" className="cursor-pointer" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
           Bidder # <ArrowUpDown />
         </Button>
       </div>
     ),
-    cell: ({ row }) => <div className="flex justify-center font-medium">{row.original.bidder_number}</div>,
+    cell: ({ row }) => (
+      <div className="flex justify-center font-medium">
+        {row.original.bidder_number}
+      </div>
+    ),
   },
   {
     accessorKey: "bidder_name",
     header: ({ column }) => (
       <div className="flex justify-center">
-        <Button variant="ghost" className="cursor-pointer" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
           Name <ArrowUpDown />
         </Button>
       </div>
     ),
-    cell: ({ row }) => <div className="flex justify-center">{row.original.bidder_name}</div>,
+    cell: ({ row }) => (
+      <div className="flex justify-center">{row.original.bidder_name}</div>
+    ),
   },
   {
     accessorKey: "description",
@@ -57,9 +95,15 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
           </div>
         </TooltipTrigger>
         <TooltipContent className="space-y-1 text-xs">
-          <div><span className="font-semibold">Barcode:</span> {row.original.barcode}</div>
+          <div>
+            <span className="font-semibold">Barcode:</span>{" "}
+            {row.original.barcode}
+          </div>
           {row.original.control && (
-            <div><span className="font-semibold">Control:</span> {row.original.control}</div>
+            <div>
+              <span className="font-semibold">Control:</span>{" "}
+              {row.original.control}
+            </div>
           )}
         </TooltipContent>
       </Tooltip>
@@ -69,7 +113,11 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
     accessorKey: "price",
     header: ({ column }) => (
       <div className="flex justify-center">
-        <Button variant="ghost" className="cursor-pointer" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
           Price <ArrowUpDown />
         </Button>
       </div>
@@ -83,11 +131,11 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
   {
     accessorKey: "status",
     header: () => <div className="text-center">Status</div>,
-    cell: ({ row }) => {
-      const status = row.original.status;
-      const color = status === "REFUNDED" ? "text-orange-500" : "text-muted-foreground";
-      return <div className={`flex justify-center font-medium ${color}`}>{status}</div>;
-    },
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <AuctionStatusBadge status={row.original.status as "CANCELLED" | "REFUNDED"} />
+      </div>
+    ),
   },
   {
     accessorKey: "reason",
@@ -98,13 +146,21 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
         <TooltipTrigger asChild>
           <button
             type="button"
-            className="mx-auto block max-w-[240px] cursor-help overflow-hidden text-ellipsis whitespace-nowrap text-center text-sm text-muted-foreground"
+            className="mx-auto block max-w-[160px] cursor-help overflow-hidden text-ellipsis whitespace-nowrap text-center text-sm text-muted-foreground"
           >
             {row.original.reason || "—"}
           </button>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-80 whitespace-normal break-words text-center">
-          {row.original.reason || "—"}
+        <TooltipContent
+          side="top"
+          className="max-w-80 space-y-1 whitespace-normal break-words text-center"
+        >
+          <div>{row.original.reason || "—"}</div>
+          {row.original.updated_by && (
+            <div className="text-xs font-medium text-white/80">
+              By: {row.original.updated_by}
+            </div>
+          )}
         </TooltipContent>
       </Tooltip>
     ),
@@ -124,9 +180,24 @@ export const RefundCancellationTable = ({ data }: Props) => {
     <DataTable
       title={
         <div className="flex flex-wrap gap-6">
-          <span>Refunded: <span className="text-orange-500 font-semibold">{refunded.length}</span></span>
-          <span>Cancelled: <span className="text-muted-foreground font-semibold">{cancelled.length}</span></span>
-          <span>Refunded Value: <span className="text-red-500 font-semibold">{formatNumberToCurrency(totalRefundedValue)}</span></span>
+          <span>
+            Refunded:{" "}
+            <span className="text-orange-500 font-semibold">
+              {refunded.length}
+            </span>
+          </span>
+          <span>
+            Cancelled:{" "}
+            <span className="text-muted-foreground font-semibold">
+              {cancelled.length}
+            </span>
+          </span>
+          <span>
+            Refunded Value:{" "}
+            <span className="text-red-500 font-semibold">
+              {formatNumberToCurrency(totalRefundedValue)}
+            </span>
+          </span>
         </div>
       }
       columns={columns}

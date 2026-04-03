@@ -25,7 +25,10 @@ export interface IPaymentRepository {
   handleBidderPullOut: (
     data: PullOutPaymentInput
   ) => Promise<ReceiptRecordRow>;
-  refundAuctionInventories: (data: RefundAuctionInventoriesInput) => Promise<void>;
+  refundAuctionInventories: (
+    data: RefundAuctionInventoriesInput,
+    updated_by?: string,
+  ) => Promise<void>;
   getBidderReceipts: (
     auction_bidder_id: string
   ) => Promise<ReceiptRecordWithPaymentsRow[]>;

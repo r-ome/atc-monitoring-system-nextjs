@@ -9,11 +9,27 @@ import {
   FilterMode,
 } from "src/entities/models/Report";
 import { formatDate } from "@/app/lib/utils";
+import { endOfWeek, max, min, startOfWeek } from "date-fns";
 
 const MONTHS = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
 ] as const;
+
+function getWeekBucket(date: Date) {
+  const year = Number(formatDate(date, "yyyy"));
+  const yearStart = new Date(year, 0, 1);
+  const yearEnd = new Date(year, 11, 31);
+  const weekStart = max([startOfWeek(date, { weekStartsOn: 0 }), yearStart]);
+  const weekEnd = min([endOfWeek(date, { weekStartsOn: 0 }), yearEnd]);
+  const startLabel = formatDate(weekStart, "MMM d");
+  const endLabel = formatDate(weekEnd, "MMM d");
+
+  return {
+    key: formatDate(weekStart, "yyyy-MM-dd"),
+    label: `${startLabel} - ${endLabel}`,
+  };
+}
 
 function buildEntries(
   receipts: DailyCashFlowPaymentRow[],
@@ -28,7 +44,6 @@ function buildEntries(
     if (!map.has(key)) {
       map.set(key, {
         date: labelFn(date),
-        inflow_registration: 0,
         inflow_pull_out: 0,
         inflow_add_on: 0,
         outflow_refunded: 0,
@@ -43,9 +58,6 @@ function buildEntries(
   for (const receipt of receipts) {
     const entry = getOrCreate(receipt.created_at);
 
-    if (receipt.purpose === "REGISTRATION") {
-      entry.inflow_registration += receipt.total_amount;
-    }
     if (receipt.purpose === "PULL_OUT") {
       entry.inflow_pull_out += receipt.total_amount;
     }
@@ -68,8 +80,7 @@ function buildEntries(
   return Array.from(map.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([, entry]) => {
-      const totalInflow =
-        entry.inflow_registration + entry.inflow_pull_out + entry.inflow_add_on;
+      const totalInflow = entry.inflow_pull_out + entry.inflow_add_on;
       const totalOutflow =
         entry.outflow_refunded + entry.outflow_less + entry.outflow_expenses;
       entry.net = totalInflow - totalOutflow;
@@ -82,9 +93,30 @@ export function presentCashFlow(
   expenses: ExpenseSummaryRow[],
   mode: FilterMode,
 ): CashFlowEntry[] {
-  return mode === "monthly"
-    ? buildEntries(receipts, expenses, (d) => String(d.getMonth()).padStart(2, "0"), (d) => MONTHS[d.getMonth()])
-    : buildEntries(receipts, expenses, (d) => formatDate(d, "yyyy-MM-dd"), (d) => formatDate(d, "MMM dd, yyyy"));
+  if (mode === "monthly") {
+    return buildEntries(
+      receipts,
+      expenses,
+      (d) => String(d.getMonth()).padStart(2, "0"),
+      (d) => MONTHS[d.getMonth()],
+    );
+  }
+
+  if (mode === "weekly") {
+    return buildEntries(
+      receipts,
+      expenses,
+      (d) => getWeekBucket(d).key,
+      (d) => getWeekBucket(d).label,
+    );
+  }
+
+  return buildEntries(
+    receipts,
+    expenses,
+    (d) => formatDate(d, "yyyy-MM-dd"),
+    (d) => formatDate(d, "MMM dd, yyyy"),
+  );
 }
 
 export const GetCashFlowController = async (
@@ -98,20 +130,7 @@ export const GetCashFlowController = async (
       ReportsRepository.getTotalExpenses(branch_id, date),
     ]);
 
-    const entries =
-      mode === "monthly"
-        ? buildEntries(
-            receipts,
-            expenses,
-            (d) => String(d.getMonth()).padStart(2, "0"),
-            (d) => MONTHS[d.getMonth()],
-          )
-        : buildEntries(
-            receipts,
-            expenses,
-            (d) => formatDate(d, "yyyy-MM-dd"),
-            (d) => formatDate(d, "MMM dd, yyyy"),
-          );
+    const entries = presentCashFlow(receipts, expenses, mode);
 
     return ok(entries);
   } catch (error) {

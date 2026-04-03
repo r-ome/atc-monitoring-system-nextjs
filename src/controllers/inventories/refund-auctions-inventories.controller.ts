@@ -10,10 +10,13 @@ import {
   RefundAuctionInventoriesInput,
 } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Result";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 
 export const RefundAuctionsInventoriesController = async (
   input: Partial<RefundAuctionInventoriesInput>,
 ) => {
+  const ctx = RequestContext.getStore();
+
   try {
     const auction_inventories: RefundAuctionInventoriesInput["auction_inventories"] =
       typeof input.auction_inventories === "string"
@@ -40,7 +43,7 @@ export const RefundAuctionsInventoriesController = async (
       });
     }
 
-    await PaymentRepository.refundAuctionInventories(data);
+    await PaymentRepository.refundAuctionInventories(data, ctx?.username);
     await logActivity(
       "UPDATE",
       "auction_inventory",

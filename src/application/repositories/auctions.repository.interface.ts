@@ -71,7 +71,10 @@ export interface IAuctionRepository {
     data: UploadCounterCheckInput[],
   ) => Promise<Prisma.BatchPayload>;
   getManifestRecords: (auction_id: string) => Promise<ManifestRow[]>;
-  cancelItems: (data: CancelItemsInput) => Promise<{ bidder_number: string; first_name: string; last_name: string }>;
+  cancelItems: (
+    data: CancelItemsInput,
+    updated_by?: string,
+  ) => Promise<{ bidder_number: string; first_name: string; last_name: string }>;
   getBiddersWithBalance: () => Promise<AuctionBidderWithInventoriesRow[]>;
   getCounterCheckRecords: (auction_id: string) => Promise<CounterCheckRow[]>;
   updateCounterCheck: (

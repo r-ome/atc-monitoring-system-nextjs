@@ -1,7 +1,6 @@
 import { GetBidderReportsController } from "src/controllers/reports/get-bidder-reports.controller";
 import { UnpaidBiddersTable } from "./UnpaidBiddersTable";
 import { BidderActivityTable } from "./BidderActivityTable";
-import { TopBiddersTable } from "./TopBiddersTable";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 
@@ -29,12 +28,6 @@ export const BidderTabContent = async ({ branchId, dateParam }: Props) => {
         <CardHeader><CardTitle>Bidder Activity</CardTitle></CardHeader>
         <CardContent>
           <BidderActivityTable data={res.value.activity} />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader><CardTitle>Top Bidders</CardTitle></CardHeader>
-        <CardContent>
-          <TopBiddersTable data={res.value.topBidders} />
         </CardContent>
       </Card>
     </div>

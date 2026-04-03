@@ -241,7 +241,7 @@ export const PaymentRepository: IPaymentRepository = {
       throw error;
     }
   },
-  refundAuctionInventories: async (data) => {
+  refundAuctionInventories: async (data, updated_by) => {
     try {
       /**
        * amount_paid in payments should be positive
@@ -348,6 +348,7 @@ export const PaymentRepository: IPaymentRepository = {
                     bidder_name: `${auction_bidder.bidder.first_name} ${auction_bidder.bidder.last_name}`,
                   },
                   data.reason,
+                  updated_by,
                 )
               : buildPartialRefundHistoryRemark(
                   {
@@ -359,6 +360,7 @@ export const PaymentRepository: IPaymentRepository = {
                     previous_price: item.prev_price,
                     new_price: item.new_price,
                   },
+                  updated_by,
                 );
 
             const auction_inventories = await tx.auctions_inventories.update({

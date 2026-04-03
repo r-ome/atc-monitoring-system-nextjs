@@ -7,11 +7,27 @@ import {
   FilterMode,
 } from "src/entities/models/Report";
 import { formatDate } from "@/app/lib/utils";
+import { endOfWeek, max, min, startOfWeek } from "date-fns";
 
 const MONTHS = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
 ] as const;
+
+function getWeekBucket(date: Date) {
+  const year = Number(formatDate(date, "yyyy"));
+  const yearStart = new Date(year, 0, 1);
+  const yearEnd = new Date(year, 11, 31);
+  const weekStart = max([startOfWeek(date, { weekStartsOn: 0 }), yearStart]);
+  const weekEnd = min([endOfWeek(date, { weekStartsOn: 0 }), yearEnd]);
+  const startLabel = formatDate(weekStart, "MMM d");
+  const endLabel = formatDate(weekEnd, "MMM d");
+
+  return {
+    key: formatDate(weekStart, "yyyy-MM-dd"),
+    label: `${startLabel} - ${endLabel}`,
+  };
+}
 
 type SalesRow = {
   key: string;
@@ -20,6 +36,7 @@ type SalesRow = {
   total_items: number;
   total_sales: number;
   total_registration_fee: number;
+  total_bidder_percentage_amount: number;
 };
 
 function dailyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
@@ -31,6 +48,7 @@ function dailyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
       total_items: auction.total_items,
       total_sales: auction.total_sales,
       total_registration_fee: auction.total_registration_fee,
+      total_bidder_percentage_amount: auction.total_bidder_percentage_amount,
     };
   });
 }
@@ -41,6 +59,7 @@ function monthlyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
     total_items: 0,
     total_sales: 0,
     total_registration_fee: 0,
+    total_bidder_percentage_amount: 0,
   }));
 
   for (const auction of auctions) {
@@ -50,6 +69,8 @@ function monthlyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
     monthBuckets[monthIndex].total_sales += auction.total_sales;
     monthBuckets[monthIndex].total_registration_fee +=
       auction.total_registration_fee;
+    monthBuckets[monthIndex].total_bidder_percentage_amount +=
+      auction.total_bidder_percentage_amount;
   }
 
   return monthBuckets
@@ -63,7 +84,45 @@ function monthlyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
         row.total_sales > 0 ||
         row.total_bidders > 0 ||
         row.total_items > 0 ||
-        row.total_registration_fee > 0,
+        row.total_registration_fee > 0 ||
+        row.total_bidder_percentage_amount > 0,
+    );
+}
+
+function weeklyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
+  const weekBuckets = new Map<string, SalesRow>();
+
+  for (const auction of auctions) {
+    const { key, label } = getWeekBucket(auction.created_at);
+    const existing = weekBuckets.get(key) ?? {
+      key,
+      label,
+      total_bidders: 0,
+      total_items: 0,
+      total_sales: 0,
+      total_registration_fee: 0,
+      total_bidder_percentage_amount: 0,
+    };
+
+    existing.total_bidders += auction.total_bidders;
+    existing.total_items += auction.total_items;
+    existing.total_sales += auction.total_sales;
+    existing.total_registration_fee +=
+      auction.total_registration_fee;
+    existing.total_bidder_percentage_amount +=
+      auction.total_bidder_percentage_amount;
+    weekBuckets.set(key, existing);
+  }
+
+  return Array.from(weekBuckets.values())
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .filter(
+      (row) =>
+        row.total_sales > 0 ||
+        row.total_bidders > 0 ||
+        row.total_items > 0 ||
+        row.total_registration_fee > 0 ||
+        row.total_bidder_percentage_amount > 0,
     );
 }
 
@@ -71,7 +130,9 @@ export function presentTotalSales(
   auctions: AuctionSalesSummaryRow[],
   mode: FilterMode,
 ): SalesRow[] {
-  return mode === "monthly" ? monthlyPresenter(auctions) : dailyPresenter(auctions);
+  if (mode === "monthly") return monthlyPresenter(auctions);
+  if (mode === "weekly") return weeklyPresenter(auctions);
+  return dailyPresenter(auctions);
 }
 
 export const GetTotalSalesController = async (
@@ -81,10 +142,7 @@ export const GetTotalSalesController = async (
 ) => {
   try {
     const auctions = await ReportsRepository.getTotalSales(branch_id, date);
-    const rows =
-      mode === "monthly"
-        ? monthlyPresenter(auctions)
-        : dailyPresenter(auctions);
+    const rows = presentTotalSales(auctions, mode);
     return ok(rows);
   } catch (error) {
     logger("GetTotalSalesController", error);

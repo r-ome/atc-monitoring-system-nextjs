@@ -53,6 +53,7 @@ export const ReportsRepository: IReportsRepository = {
           items_sold: bigint | number;
           total_sales: Prisma.Decimal | number | string | null;
           total_registration_fee: Prisma.Decimal | number | string | null;
+          total_bidder_percentage_amount: Prisma.Decimal | number | string | null;
         }>
       >(Prisma.sql`
         SELECT
@@ -62,7 +63,8 @@ export const ReportsRepository: IReportsRepository = {
           COALESCE(item_totals.total_items, 0) AS total_items,
           COALESCE(item_totals.items_sold, 0) AS items_sold,
           COALESCE(item_totals.total_sales, 0) AS total_sales,
-          COALESCE(bidder_totals.total_registration_fee, 0) AS total_registration_fee
+          COALESCE(bidder_totals.total_registration_fee, 0) AS total_registration_fee,
+          COALESCE(item_totals.total_bidder_percentage_amount, 0) AS total_bidder_percentage_amount
         FROM auctions a
         LEFT JOIN (
           SELECT
@@ -79,7 +81,13 @@ export const ReportsRepository: IReportsRepository = {
             ab.auction_id,
             COUNT(ai.auction_inventory_id) AS total_items,
             SUM(CASE WHEN ai.status = 'PAID' THEN 1 ELSE 0 END) AS items_sold,
-            SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END) AS total_sales
+            SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END) AS total_sales,
+            SUM(
+              CASE
+                WHEN ai.status = 'PAID' THEN ai.price * (ab.service_charge / 100)
+                ELSE 0
+              END
+            ) AS total_bidder_percentage_amount
           FROM auctions_inventories ai
           INNER JOIN auctions_bidders ab
             ON ab.auction_bidder_id = ai.auction_bidder_id
@@ -104,6 +112,7 @@ export const ReportsRepository: IReportsRepository = {
           items_sold: toNumber(row.items_sold),
           total_sales: toNumber(row.total_sales),
           total_registration_fee: toNumber(row.total_registration_fee),
+          total_bidder_percentage_amount: toNumber(row.total_bidder_percentage_amount),
         }),
       );
     } catch (error) {

@@ -35,7 +35,7 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Total Sales
+          Item Sales
           <ArrowUpDown />
         </Button>
       </div>
@@ -47,7 +47,7 @@ export const columns: ColumnDef<SalesRowType>[] = [
     ),
   },
   {
-    accessorKey: "total_registration_fee",
+    accessorKey: "total_bidder_percentage_amount",
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -55,14 +55,14 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Total Registration Fee
+          Service Charge
           <ArrowUpDown />
         </Button>
       </div>
     ),
     cell: ({ row }) => (
       <div className="flex justify-center text-status-success">
-        {formatNumberToCurrency(row.original.total_registration_fee)}
+        {formatNumberToCurrency(row.original.total_bidder_percentage_amount)}
       </div>
     ),
   },

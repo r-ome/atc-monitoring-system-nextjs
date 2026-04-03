@@ -220,7 +220,11 @@ export const cancelItems = async (formData: FormData) => {
   };
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => CancelItemsController(input),
   );
 };

@@ -22,7 +22,6 @@ export type DailyCashFlowPaymentRow = {
 
 export type CashFlowEntry = {
   date: string;
-  inflow_registration: number;
   inflow_pull_out: number;
   inflow_add_on: number;
   outflow_refunded: number;
@@ -31,7 +30,7 @@ export type CashFlowEntry = {
   net: number;
 };
 
-export type FilterMode = "monthly" | "daily";
+export type FilterMode = "monthly" | "weekly" | "daily";
 
 // -- Sales Reports --
 export type AuctionSalesSummaryRow = {
@@ -42,6 +41,7 @@ export type AuctionSalesSummaryRow = {
   items_sold: number;
   total_sales: number;
   total_registration_fee: number;
+  total_bidder_percentage_amount: number;
 };
 
 // -- Expense Reports --
@@ -131,6 +131,7 @@ export type RefundCancellationRow = Prisma.auctions_inventoriesGetPayload<{
 export type RefundCancellationEntry = {
   auction_inventory_id: string;
   auction_date: string;
+  status_date: string;
   bidder_number: string;
   bidder_name: string;
   description: string;
@@ -139,6 +140,7 @@ export type RefundCancellationEntry = {
   price: number;
   status: string;
   reason: string;
+  updated_by: string | null;
 };
 
 export type RefundCancellationBidderEntry = {

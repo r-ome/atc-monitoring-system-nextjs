@@ -72,23 +72,57 @@ export function buildManifestReencodedHistoryRemark(previous_status: string) {
 export function buildCancelledHistoryRemark(
   bidder: BidderIdentity,
   reason: string,
+  updated_by?: string,
 ) {
-  return `${HISTORY_PREFIXES.cancelled} | ${buildBidderPart(bidder)} | Reason: ${sanitizePart(reason)}`;
+  const parts = [
+    HISTORY_PREFIXES.cancelled,
+    buildBidderPart(bidder),
+    `Reason: ${sanitizePart(reason)}`,
+  ];
+
+  if (updated_by) {
+    parts.push(`Updated by: ${sanitizePart(updated_by)}`);
+  }
+
+  return parts.join(" | ");
 }
 
 export function buildRefundedHistoryRemark(
   bidder: BidderIdentity,
   reason: string,
+  updated_by?: string,
 ) {
-  return `${HISTORY_PREFIXES.refunded} | ${buildBidderPart(bidder)} | Reason: ${sanitizePart(reason)}`;
+  const parts = [
+    HISTORY_PREFIXES.refunded,
+    buildBidderPart(bidder),
+    `Reason: ${sanitizePart(reason)}`,
+  ];
+
+  if (updated_by) {
+    parts.push(`Updated by: ${sanitizePart(updated_by)}`);
+  }
+
+  return parts.join(" | ");
 }
 
 export function buildPartialRefundHistoryRemark(
   bidder: BidderIdentity,
   reason: string,
   price_change: PriceChange,
+  updated_by?: string,
 ) {
-  return `${HISTORY_PREFIXES.partial_refund} | ${buildBidderPart(bidder)} | Reason: ${sanitizePart(reason)} | Price: ${price_change.previous_price} -> ${price_change.new_price}`;
+  const parts = [
+    HISTORY_PREFIXES.partial_refund,
+    buildBidderPart(bidder),
+    `Reason: ${sanitizePart(reason)}`,
+    `Price: ${price_change.previous_price} -> ${price_change.new_price}`,
+  ];
+
+  if (updated_by) {
+    parts.push(`Updated by: ${sanitizePart(updated_by)}`);
+  }
+
+  return parts.join(" | ");
 }
 
 export function buildPulloutPaidHistoryRemark() {
@@ -186,7 +220,8 @@ export function parseInventoryHistoryRemark(
           : "partial_refund",
       bidder_number: bidder_match?.[1],
       bidder_name: bidder_match?.[2],
-      reason: parseLabeledField(trimmed, "Reason", ["Price"]),
+      reason: parseLabeledField(trimmed, "Reason", ["Price", "Updated by"]),
+      updated_by: parseLabeledField(trimmed, "Updated by", []),
       previous_price: price?.previous_price,
       new_price: price?.new_price,
     };

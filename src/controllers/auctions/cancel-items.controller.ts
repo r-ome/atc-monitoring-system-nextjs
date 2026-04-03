@@ -8,10 +8,13 @@ import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { cancelItemsSchema, CancelItemsInput } from "src/entities/models/Inventory";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 
 export const CancelItemsController = async (
   input: Partial<CancelItemsInput>,
 ) => {
+  const ctx = RequestContext.getStore();
+
   try {
     const { data, error: inputParseError } = cancelItemsSchema.safeParse(input);
 
@@ -21,7 +24,7 @@ export const CancelItemsController = async (
       });
     }
 
-    const res = await AuctionRepository.cancelItems(data);
+    const res = await AuctionRepository.cancelItems(data, ctx?.username);
     await logActivity("UPDATE", "auction_inventory", data.auction_bidder_id, `Cancelled ${data.auction_inventory_ids.length} item(s) from bidder #${res.bidder_number} (${res.first_name} ${res.last_name}): ${data.reason}`);
     return ok(res);
   } catch (error) {

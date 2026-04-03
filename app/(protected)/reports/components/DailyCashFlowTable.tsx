@@ -27,15 +27,6 @@ const columns: ColumnDef<CashFlowEntry>[] = [
     ),
   },
   {
-    accessorKey: "inflow_registration",
-    header: () => <div className="text-center">Registration</div>,
-    cell: ({ row }) => (
-      <div className="flex justify-center text-green-500">
-        {formatNumberToCurrency(row.original.inflow_registration)}
-      </div>
-    ),
-  },
-  {
     accessorKey: "inflow_pull_out",
     header: () => <div className="text-center">Pull Out</div>,
     cell: ({ row }) => (
@@ -115,7 +106,7 @@ interface Props {
 
 export const DailyCashFlowTable = ({ data }: Props) => {
   const totalInflow = data.reduce(
-    (sum, d) => sum + d.inflow_registration + d.inflow_pull_out + d.inflow_add_on,
+    (sum, d) => sum + d.inflow_pull_out + d.inflow_add_on,
     0,
   );
   const totalOutflow = data.reduce(

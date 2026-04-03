@@ -17,6 +17,7 @@ import { FilterMode } from "src/entities/models/Report";
 import { Loader2 } from "lucide-react";
 
 interface SalesFilterProps {
+  user: { role: string };
   branches: Branch[];
   selectedBranch?: { branch_id: string; name: string } | null;
   selectedYear: string;
@@ -25,6 +26,7 @@ interface SalesFilterProps {
 }
 
 export const SalesFilter: React.FC<SalesFilterProps> = ({
+  user,
   branches,
   selectedBranch,
   selectedYear,
@@ -44,6 +46,7 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
     Number(selectedMonth),
     1,
   );
+  const canSelectBranch = ["SUPER_ADMIN", "OWNER"].includes(user.role);
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -60,26 +63,28 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
       )}
 
       {/* Branch */}
-      <div className="w-30">
-        <Select
-          disabled={isPending}
-          value={selectedBranch?.branch_id}
-          onValueChange={(value) => updateParam("branch_id", value)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Branch" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {branches.map((item) => (
-                <SelectItem key={item.branch_id} value={item.branch_id}>
-                  {item.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      {canSelectBranch && (
+        <div className="w-30">
+          <Select
+            disabled={isPending}
+            value={selectedBranch?.branch_id}
+            onValueChange={(value) => updateParam("branch_id", value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Branch" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {branches.map((item) => (
+                  <SelectItem key={item.branch_id} value={item.branch_id}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Filter Mode */}
       <div className="w-30">
@@ -94,6 +99,7 @@ export const SalesFilter: React.FC<SalesFilterProps> = ({
           <SelectContent>
             <SelectGroup>
               <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
               <SelectItem value="daily">Daily</SelectItem>
             </SelectGroup>
           </SelectContent>

@@ -55,7 +55,7 @@ export const refundAuctionsInventories = async (form_data: FormData) => {
   if (!auth.ok) return auth;
   const input = Object.fromEntries(form_data.entries());
 
-  return await runWithBranchContext(
+  return await runWithUserContext(
     auth.value,
     async () => await RefundAuctionsInventoriesController(input),
   );
