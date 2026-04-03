@@ -7,6 +7,7 @@ import { GetBidderBirthdatesController } from "src/controllers/statistics/get-bi
 import { GetContainersDueDateController } from "src/controllers/statistics/get-containers-due-date.controller";
 import { GetUnpaidBiddersController } from "src/controllers/statistics/get-unpaid-bidders.controller";
 import { GetBannedBiddersController } from "src/controllers/statistics/get-banned-bidders.controller";
+import { GetHomeCalendarEventsController } from "src/controllers/statistics/get-home-calendar-events.controller";
 
 export const getBidderBirthdates = async () => {
   const user = await requireUser();
@@ -50,5 +51,14 @@ export const getBannedBidders = async () => {
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
     async () => await GetBannedBiddersController(),
+  );
+};
+
+export const getHomeCalendarEvents = async () => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => await GetHomeCalendarEventsController(),
   );
 };
