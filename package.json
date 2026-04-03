@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "prepare": "husky",
-    "precommit:verify": "npm run test:regression && npm run build",
+    "precommit:verify": "npm run test:regression && rm -rf .next && npm run build",
     "test:regression": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' node --test --require ts-node/register/transpile-only --require tsconfig-paths/register src/regression.test.ts",
     "postinstall": "prisma generate"
   },
