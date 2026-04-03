@@ -1,6 +1,6 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
@@ -31,6 +31,35 @@ const controlGroupSortingFn = createGroupSortingFn<AuctionsInventory, string>(
   (a, b) => a.localeCompare(b)
 );
 
+function MonitoringBarcodeCell({
+  auctionInventoryId,
+  barcode,
+  isMasterList,
+}: {
+  auctionInventoryId: string;
+  barcode: string;
+  isMasterList: boolean;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  return (
+    <div
+      className={cn(
+        "flex justify-center",
+        !isMasterList && "hover:underline hover:cursor-pointer"
+      )}
+      onClick={() => {
+        if (!isMasterList) {
+          router.push(`${pathname}/${auctionInventoryId}`);
+        }
+      }}
+    >
+      {barcode}
+    </div>
+  );
+}
+
 export const columns = (
   slashGroupMap: Record<string, number>,
   isMasterList = false,
@@ -55,21 +84,11 @@ export const columns = (
     },
     cell: ({ row }) => {
       const auction_inventory = row.original;
-      return (
-        <div
-          className={cn(
-            `flex justify-center`,
-            !isMasterList && "hover:underline hover:cursor-pointer"
-          )}
-          onClick={() => {
-            if (!isMasterList) {
-              redirect(`monitoring/${auction_inventory.auction_inventory_id}`);
-            }
-          }}
-        >
-          {auction_inventory.inventory.barcode}
-        </div>
-      );
+      return <MonitoringBarcodeCell
+        auctionInventoryId={auction_inventory.auction_inventory_id}
+        barcode={auction_inventory.inventory.barcode}
+        isMasterList={isMasterList}
+      />;
     },
   },
   {

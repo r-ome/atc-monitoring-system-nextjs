@@ -1,12 +1,26 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { BranchBadge } from "@/app/components/admin";
 import { ArrowUpDown } from "lucide-react";
 import { parse } from "date-fns";
 import { ContainerRowType } from "./container-table";
+
+function ContainerBarcodeCell({ barcode }: { barcode: string }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  return (
+    <div
+      className="flex justify-center hover:underline hover:cursor-pointer"
+      onClick={() => router.push(`${pathname}/${barcode}`)}
+    >
+      {barcode}
+    </div>
+  );
+}
 
 export const columns: ColumnDef<ContainerRowType>[] = [
   {
@@ -28,14 +42,7 @@ export const columns: ColumnDef<ContainerRowType>[] = [
     },
     cell: ({ row }) => {
       const container = row.original;
-      return (
-        <div
-          className="flex justify-center hover:underline hover:cursor-pointer"
-          onClick={() => redirect(`/containers/${container.barcode}`)}
-        >
-          {container.barcode}
-        </div>
-      );
+      return <ContainerBarcodeCell barcode={container.barcode} />;
     },
   },
   {

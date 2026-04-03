@@ -1,5 +1,5 @@
 "use client";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -12,6 +12,8 @@ import { FullScreenCalendar } from "@/app/components/fullscreen-calendar/fullscr
 import { ConsistencyCheckerDialog } from "./[transaction_date]/ConsistencyCheckerDialog";
 
 export default function Page() {
+  const router = useRouter();
+
   return (
     <div className="flex gap-2">
       <Card className="w-full">
@@ -28,7 +30,7 @@ export default function Page() {
           <FullScreenCalendar
             onDayClick={(date) => {
               const formattedStringDate = formatDate(date, "yyyy-MM-dd");
-              redirect(`/transactions/${formattedStringDate}`);
+              router.push(`/transactions/${formattedStringDate}`);
             }}
           />
         </CardContent>

@@ -7,7 +7,7 @@ import { ArrowUpDown } from "lucide-react";
 import { AuctionStatusBadge } from "@/app/components/admin";
 import { cn, formatDate } from "@/app/lib/utils";
 import { Checkbox } from "@/app/components/ui/checkbox";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Popover,
   PopoverContent,
@@ -15,6 +15,26 @@ import {
 } from "@/app/components/ui/popover";
 
 export type AuctionInventory = RegisteredBidder["auction_inventories"][number];
+
+function AuctionInventoryBarcodeCell({ item }: { item: AuctionInventory }) {
+  const router = useRouter();
+
+  return (
+    <div
+      className="flex justify-center hover:underline hover:cursor-pointer"
+      onClick={() =>
+        router.push(
+          `/auctions/${formatDate(
+            new Date(item.auction_date),
+            "yyyy-MM-dd",
+          )}/monitoring/${item.auction_inventory_id}`,
+        )
+      }
+    >
+      {item.inventory.barcode}
+    </div>
+  );
+}
 
 export const columns: ColumnDef<AuctionInventory>[] = [
   {
@@ -117,21 +137,7 @@ export const columns: ColumnDef<AuctionInventory>[] = [
     },
     cell: ({ row }) => {
       const item = row.original;
-      return (
-        <div
-          className="flex justify-center hover:underline hover:cursor-pointer"
-          onClick={() =>
-            redirect(
-              `/auctions/${formatDate(
-                new Date(item.auction_date),
-                "yyyy-MM-dd",
-              )}/monitoring/${item.auction_inventory_id}`,
-            )
-          }
-        >
-          {item.inventory.barcode}
-        </div>
-      );
+      return <AuctionInventoryBarcodeCell item={item} />;
     },
   },
   {

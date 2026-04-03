@@ -1,11 +1,31 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { InventoryStatusBadge } from "@/app/components/admin";
 import { ArrowUpDown } from "lucide-react";
 import { InventoryRowType } from "./ContainerInventoriesTable";
+
+function InventoryBarcodeCell({
+  barcode,
+  inventoryId,
+}: {
+  barcode: string;
+  inventoryId: string;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  return (
+    <div
+      className="flex justify-center hover:cursor-pointer hover:underline"
+      onClick={() => router.push(`${pathname}/inventories/${inventoryId}`)}
+    >
+      {barcode}
+    </div>
+  );
+}
 
 export const columns: ColumnDef<InventoryRowType>[] = [
   {
@@ -27,16 +47,10 @@ export const columns: ColumnDef<InventoryRowType>[] = [
     cell: ({ row }) => {
       const container = row.original;
       return (
-        <div
-          className="flex justify-center hover:cursor-pointer hover:underline"
-          onClick={() =>
-            redirect(
-              `${container.container.barcode}/inventories/${container.inventory_id}`,
-            )
-          }
-        >
-          {container.barcode}
-        </div>
+        <InventoryBarcodeCell
+          barcode={container.barcode}
+          inventoryId={container.inventory_id}
+        />
       );
     },
   },
