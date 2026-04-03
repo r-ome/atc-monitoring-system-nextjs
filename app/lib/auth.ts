@@ -130,6 +130,10 @@ export const getValidatedSession = async (): Promise<ValidatedSessionResult> => 
   };
 };
 
+export const getRawSession = async () => {
+  return await getServerSession(authOptions);
+};
+
 export const getOptionalSession = async () => {
   const result = await getValidatedSession();
 

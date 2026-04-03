@@ -8,7 +8,7 @@ import {
   SESSION_ACTIVITY_THROTTLE_MS,
   SESSION_WARNING_WINDOW_MS,
 } from "@/app/lib/session-timeout";
-import { touchSessionActivity } from "./session-actions";
+import { logSessionLogout, touchSessionActivity } from "./session-actions";
 
 const ACTIVITY_STORAGE_KEY = "atc:last-activity-at";
 const LOGOUT_STORAGE_KEY = "atc:inactive-logout-at";
@@ -64,6 +64,7 @@ export function SessionActivityWatcher({
     isSigningOutRef.current = true;
     clearTimers();
     clearWarning();
+    await logSessionLogout("inactive");
     window.localStorage.setItem(LOGOUT_STORAGE_KEY, new Date().toISOString());
     await signOut({ callbackUrl: "/login?reason=inactive" });
   }, [clearTimers, clearWarning]);

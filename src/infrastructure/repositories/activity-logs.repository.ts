@@ -28,12 +28,28 @@ export const ActivityLogRepository: IActivityLogRepository = {
       const startOfDay = fromZonedTime(`${date} 00:00:00.000`, TZ);
       const endOfDay = fromZonedTime(`${date} 23:59:59.999`, TZ);
 
-      return await prisma.activity_logs.findMany({
+      const logs = await prisma.activity_logs.findMany({
         where: {
           created_at: { gte: startOfDay, lte: endOfDay },
         },
         orderBy: { created_at: "desc" },
       });
+
+      const usernames = Array.from(new Set(logs.map((log) => log.username)));
+
+      const superAdmins = await prisma.users.findMany({
+        where: {
+          username: { in: usernames },
+          role: "SUPER_ADMIN",
+        },
+        select: { username: true },
+      });
+
+      const superAdminUsernames = new Set(
+        superAdmins.map((user) => user.username),
+      );
+
+      return logs.filter((log) => !superAdminUsernames.has(log.username));
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting activity logs", {

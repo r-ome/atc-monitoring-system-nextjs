@@ -307,7 +307,11 @@ export const updateBidderRegistration = async (
   const data = Object.fromEntries(formData.entries());
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => UpdateBidderRegistrationController(auction_bidder_id, data),
   );
 };
@@ -316,7 +320,11 @@ export const unregisterBidder = async (auction_bidder_id: string) => {
   const user = await requireUser();
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => UnregisterBidderController(auction_bidder_id),
   );
 };

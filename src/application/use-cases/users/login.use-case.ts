@@ -1,6 +1,7 @@
 import { UserRepository } from "src/infrastructure/di/repositories";
 import bcrypt from "bcrypt";
 import { InputParseError, NotFoundError } from "src/entities/errors/common";
+import { logActivityWithContext } from "@/app/lib/log-activity";
 
 export const loginUseCase = async (username: string, password: string) => {
   const user = await UserRepository.getAuthUserByUsername(username);
@@ -15,6 +16,16 @@ export const loginUseCase = async (username: string, password: string) => {
       user.user_id,
       new Date(),
     );
+
+    await logActivityWithContext({
+      username: user.username,
+      branch_id: user.branch.branch_id,
+      branch_name: user.branch.name,
+      action: "CREATE",
+      entity_type: "session",
+      entity_id: user.user_id,
+      description: `Logged in as ${user.username}`,
+    });
 
     return {
       ...user,
