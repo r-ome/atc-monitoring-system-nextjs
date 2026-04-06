@@ -10,6 +10,7 @@ import {
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { getActivityLogs } from "../actions";
 import { ActivityLogsTable } from "./components/ActivityLogsTable";
+import { AuctionItemSearchOverlay } from "@/app/(protected)/auctions/[auction_date]/AuctionItemSearchOverlay";
 
 export default async function Page({
   params,
@@ -26,14 +27,17 @@ export default async function Page({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Activity Logs</CardTitle>
-        <CardDescription>{date}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ActivityLogsTable logs={res.value} />
-      </CardContent>
-    </Card>
+    <>
+      <AuctionItemSearchOverlay />
+      <Card>
+        <CardHeader>
+          <CardTitle>Activity Logs</CardTitle>
+          <CardDescription>{date}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ActivityLogsTable logs={res.value} />
+        </CardContent>
+      </Card>
+    </>
   );
 }

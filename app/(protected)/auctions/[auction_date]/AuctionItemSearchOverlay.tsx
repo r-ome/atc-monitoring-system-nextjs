@@ -30,6 +30,7 @@ const TARGET_ROUTE_PATTERNS = [
   /^\/auctions\/[^/]+\/registered-bidders\/[^/]+$/,
   /^\/bought-items$/,
   /^\/containers\/[^/]+$/,
+  /^\/configurations\/activity-logs\/[^/]+$/,
 ];
 
 const SEARCH_DEBOUNCE_MS = 300;
