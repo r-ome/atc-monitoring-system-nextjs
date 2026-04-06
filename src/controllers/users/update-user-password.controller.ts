@@ -9,6 +9,7 @@ import {
   UpdateUserPasswordInput,
 } from "src/entities/models/User";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 import { updateUserPasswordUseCase } from "src/application/use-cases/users/update-user-password.use-case";
 import { userPresenter } from "./user.presenter";
 
@@ -27,6 +28,12 @@ export const UpdateUserPasswordController = async (
     }
 
     const created = await updateUserPasswordUseCase(user_id, data);
+    await logActivity(
+      "UPDATE",
+      "user",
+      user_id,
+      `Updated password for user ${created.username}`,
+    );
     return ok(userPresenter(created));
   } catch (error) {
     if (error instanceof InputParseError) {
