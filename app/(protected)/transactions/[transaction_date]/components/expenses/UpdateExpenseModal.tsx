@@ -73,6 +73,11 @@ export const UpdateExpenseModal = ({
     setSelectedExpense(expense);
   }, [expense]);
 
+  const isUnchanged =
+    selectedExpense.amount === expense.amount &&
+    selectedExpense.purpose === expense.purpose &&
+    selectedExpense.remarks.toUpperCase() === expense.remarks.toUpperCase();
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
@@ -197,7 +202,7 @@ export const UpdateExpenseModal = ({
               <DialogClose asChild>
                 <Button onClick={() => onOpenChange(false)}>Cancel</Button>
               </DialogClose>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || isUnchanged}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>
