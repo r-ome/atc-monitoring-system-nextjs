@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2Icon, Info } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   AlertDialog,
@@ -51,6 +51,9 @@ type UpdateItemForm = {
   manifest_number?: string;
 };
 
+const normalizeValue = (value: string | number | undefined | null) =>
+  String(value ?? "").trim();
+
 export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
   open,
   onOpenChange,
@@ -70,6 +73,20 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
   const [auctionId, setAuctionId] = useState<string>("");
   const [newAuctionInventory, setNewAuctionInventory] =
     useState<UpdateItemForm>({});
+
+  const originalValues = useMemo(
+    () => ({
+      barcode: normalizeValue(auctionInventory?.inventory.barcode),
+      control: normalizeValue(auctionInventory?.inventory.control || "NC"),
+      description: normalizeValue(auctionInventory?.description),
+      price: normalizeValue(auctionInventory?.price),
+      qty: normalizeValue(auctionInventory?.qty),
+      bidder_number: normalizeValue(auctionInventory?.bidder.bidder_number),
+      manifest_number: normalizeValue(auctionInventory?.manifest_number),
+    }),
+    [auctionInventory],
+  );
+
   useEffect(() => {
     setNewAuctionInventory({
       barcode: auctionInventory?.inventory.barcode,
@@ -81,6 +98,38 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
       manifest_number: auctionInventory?.manifest_number,
     });
   }, [auctionInventory]);
+
+  const isFormInitialized =
+    auctionInventory !== null &&
+    auctionInventory !== undefined &&
+    newAuctionInventory.barcode !== undefined;
+
+  const hasFieldChanges = useMemo(() => {
+    if (!auctionInventory || !isFormInitialized) return false;
+
+    const currentValues = {
+      barcode: normalizeValue(newAuctionInventory.barcode),
+      control: normalizeValue(newAuctionInventory.control),
+      description: normalizeValue(newAuctionInventory.description),
+      price: normalizeValue(newAuctionInventory.price),
+      qty: normalizeValue(newAuctionInventory.qty),
+      bidder_number: normalizeValue(
+        selectedBidder?.value ?? auctionInventory.bidder.bidder_number,
+      ),
+      manifest_number: normalizeValue(newAuctionInventory.manifest_number),
+    };
+
+    return Object.entries(currentValues).some(
+      ([key, value]) =>
+        value !== originalValues[key as keyof typeof originalValues],
+    );
+  }, [
+    auctionInventory,
+    isFormInitialized,
+    newAuctionInventory,
+    originalValues,
+    selectedBidder,
+  ]);
 
   useEffect(() => {
     const fetchAuctionData = async () => {
@@ -344,7 +393,7 @@ export const UpdateItemModal: React.FC<UpdateItemModalProps> = ({
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || !hasFieldChanges}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>
