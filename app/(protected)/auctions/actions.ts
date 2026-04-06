@@ -237,7 +237,11 @@ export const uploadCounterCheck = async (
   const file = formData.get("file");
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => UploadCounterCheckController(auctionId, file as File),
   );
 };

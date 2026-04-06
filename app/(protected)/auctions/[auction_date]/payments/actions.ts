@@ -248,7 +248,7 @@ export const undoPettyCashRepair = async (snapshot: PettyCashSnapshot) => {
   const auth = await authorizeAction();
   if (!auth.ok) return auth;
 
-  return await runWithBranchContext(auth.value, async () =>
+  return await runWithUserContext(auth.value, async () =>
     UndoPettyCashRepairController(snapshot),
   );
 };

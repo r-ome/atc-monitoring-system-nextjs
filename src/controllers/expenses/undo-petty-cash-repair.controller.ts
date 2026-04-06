@@ -6,6 +6,7 @@ import {
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import type { PettyCashSnapshot } from "src/entities/models/Expense";
+import { logActivity } from "@/app/lib/log-activity";
 
 export const UndoPettyCashRepairController = async (
   snapshot: PettyCashSnapshot,
@@ -16,6 +17,12 @@ export const UndoPettyCashRepairController = async (
     }
 
     await ExpensesRepository.undoRepair(snapshot);
+    await logActivity(
+      "UPDATE",
+      "expense",
+      "bulk",
+      `Undid petty cash repair (${snapshot.length} snapshot records)`,
+    );
 
     logger(
       "UndoPettyCashRepairController",

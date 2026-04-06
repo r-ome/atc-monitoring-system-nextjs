@@ -8,6 +8,7 @@ import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadBoughtItemsUseCase } from "src/application/use-cases/inventories/upload-bought-items.use-case";
 import { BoughtItemsSheetRecord } from "src/entities/models/Manifest";
 import { logger } from "@/app/lib/logger";
+import { logActivity } from "@/app/lib/log-activity";
 
 export const UploadBoughtItemsController = async (
   branch_id: string,
@@ -63,7 +64,17 @@ export const UploadBoughtItemsController = async (
       });
     }
 
-    await uploadBoughtItemsUseCase(branch_id, data as BoughtItemsSheetRecord[], uploaded_by);
+    await uploadBoughtItemsUseCase(
+      branch_id,
+      data as BoughtItemsSheetRecord[],
+      uploaded_by,
+    );
+    await logActivity(
+      "CREATE",
+      "bought_item",
+      "bulk",
+      `Uploaded bought items: ${data.length} records`,
+    );
     return ok({ success: true });
   } catch (error) {
     if (error instanceof InputParseError) {

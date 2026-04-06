@@ -1,5 +1,6 @@
 import { logger } from "@/app/lib/logger";
 import { getSheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
+import { logActivity } from "@/app/lib/log-activity";
 import { AuctionRepository } from "src/infrastructure/di/repositories";
 import {
   InputParseError,
@@ -55,6 +56,12 @@ export const UploadCounterCheckController = async (
     const res = await AuctionRepository.uploadCounterCheck(
       auction_id,
       data as CounterCheckRecord[],
+    );
+    await logActivity(
+      "CREATE",
+      "counter_check",
+      auction_id,
+      `Uploaded counter check: ${res.count} records`,
     );
 
     return ok(`${res.count} records uploaded!`);
