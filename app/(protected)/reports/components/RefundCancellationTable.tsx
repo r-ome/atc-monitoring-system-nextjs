@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { AuctionStatusBadge } from "@/app/components/admin";
 import { ColumnDef } from "@tanstack/react-table";
@@ -12,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import { SearchComponent } from "@/app/components/data-table/SearchComponent";
 
 const columns: ColumnDef<RefundCancellationEntry>[] = [
   {
@@ -62,26 +64,17 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center font-medium">
-        {row.original.bidder_number}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "bidder_name",
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          className="cursor-pointer"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name <ArrowUpDown />
-        </Button>
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.bidder_name}</div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="mx-auto block text-center font-medium"
+          >
+            {row.original.bidder_number}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>{row.original.bidder_name}</TooltipContent>
+      </Tooltip>
     ),
   },
   {
@@ -172,36 +165,83 @@ interface Props {
 }
 
 export const RefundCancellationTable = ({ data }: Props) => {
-  const refunded = data.filter((d) => d.status === "REFUNDED");
-  const cancelled = data.filter((d) => d.status === "CANCELLED");
+  const [search, setSearch] = useState("");
+
+  const filteredData = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return data;
+
+    return data.filter((row) =>
+      [
+        row.auction_date,
+        row.status_date,
+        row.bidder_number,
+        row.bidder_name,
+        row.description,
+        row.barcode,
+        row.control,
+        row.status,
+        row.reason,
+        row.updated_by,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query)),
+    );
+  }, [data, search]);
+
+  const refunded = filteredData.filter((d) => d.status === "REFUNDED");
+  const cancelled = filteredData.filter((d) => d.status === "CANCELLED");
   const totalRefundedValue = refunded.reduce((sum, d) => sum + d.price, 0);
+  const totalCancelledValue = cancelled.reduce((sum, d) => sum + d.price, 0);
+  const totalAffectedValue = totalRefundedValue + totalCancelledValue;
 
   return (
     <DataTable
       title={
-        <div className="flex flex-wrap gap-6">
-          <span>
-            Refunded:{" "}
-            <span className="text-orange-500 font-semibold">
-              {refunded.length}
+        <div className="flex flex-col gap-3">
+          <div className="w-full md:w-2/5">
+            <SearchComponent
+              value={search}
+              onChangeEvent={setSearch}
+              placeholder="Search bidder, item, barcode, reason, or status..."
+            />
+          </div>
+          <div className="flex flex-wrap gap-6">
+            <span>
+              Refunded:{" "}
+              <span className="text-orange-500 font-semibold">
+                {refunded.length}
+              </span>
             </span>
-          </span>
-          <span>
-            Cancelled:{" "}
-            <span className="text-muted-foreground font-semibold">
-              {cancelled.length}
+            <span>
+              Cancelled:{" "}
+              <span className="text-muted-foreground font-semibold">
+                {cancelled.length}
+              </span>
             </span>
-          </span>
-          <span>
-            Refunded Value:{" "}
-            <span className="text-red-500 font-semibold">
-              {formatNumberToCurrency(totalRefundedValue)}
+            <span>
+              Cancelled Value:{" "}
+              <span className="font-semibold">
+                {formatNumberToCurrency(totalCancelledValue)}
+              </span>
             </span>
-          </span>
+            <span>
+              Refunded Value:{" "}
+              <span className="text-red-500 font-semibold">
+                {formatNumberToCurrency(totalRefundedValue)}
+              </span>
+            </span>
+            <span>
+              Total Affected Value:{" "}
+              <span className="font-semibold">
+                {formatNumberToCurrency(totalAffectedValue)}
+              </span>
+            </span>
+          </div>
         </div>
       }
       columns={columns}
-      data={data}
+      data={filteredData}
       initialSorting={[{ id: "auction_date", desc: true }]}
     />
   );
