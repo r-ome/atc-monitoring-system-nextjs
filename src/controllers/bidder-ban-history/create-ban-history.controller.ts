@@ -7,7 +7,10 @@ import {
   createBanHistorySchema,
   BidderBanHistoryRow,
 } from "src/entities/models/BidderBanHistory";
-import { BidderBanHistoryRepository } from "src/infrastructure/di/repositories";
+import {
+  BidderBanHistoryRepository,
+  BidderRepository,
+} from "src/infrastructure/di/repositories";
 import { formatDate } from "@/app/lib/utils";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
@@ -37,8 +40,14 @@ export const CreateBanHistoryController = async (
     }
 
     const history = await BidderBanHistoryRepository.create(bidder_id, data);
+    const bidder = await BidderRepository.getBidder(bidder_id);
     logger("CreateBanHistoryController", { bidder_id, ...user_context }, "info");
-    await logActivity("CREATE", "bidder_ban", history.bidder_ban_history_id, `Banned bidder ${bidder_id}: ${data.remarks}`);
+    await logActivity(
+      "CREATE",
+      "bidder_ban",
+      history.bidder_ban_history_id,
+      `Banned bidder #${bidder.bidder_number}: ${data.remarks}`,
+    );
     return ok(presentBanHistory(history));
   } catch (error) {
     if (error instanceof InputParseError) {
