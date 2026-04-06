@@ -83,6 +83,7 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
   const [search, setSearch] = useState("");
   const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedEntities, setSelectedEntities] = useState<string[]>([]);
 
   const branchOptions = useMemo(
     () =>
@@ -100,11 +101,23 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
     [logs],
   );
 
+  const entityOptions = useMemo(
+    () =>
+      Array.from(new Set(logs.map((l) => l.entity_type).filter(Boolean))).map(
+        (entity) => ({
+          label: entity.replace(/_/g, " "),
+          value: entity,
+        }),
+      ),
+    [logs],
+  );
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return logs.filter((log) => {
       if (selectedBranches.length > 0 && !selectedBranches.includes(log.branch_name)) return false;
       if (selectedUsers.length > 0 && !selectedUsers.includes(log.username)) return false;
+      if (selectedEntities.length > 0 && !selectedEntities.includes(log.entity_type)) return false;
       if (q) {
         return (
           log.username?.toLowerCase().includes(q) ||
@@ -114,7 +127,7 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
       }
       return true;
     });
-  }, [logs, search, selectedBranches, selectedUsers]);
+  }, [logs, search, selectedBranches, selectedEntities, selectedUsers]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -135,6 +148,11 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
           options={userOptions}
           onChangeEvent={setSelectedUsers}
           placeholder="Filter by user"
+        />
+        <FilterColumnComponent
+          options={entityOptions}
+          onChangeEvent={setSelectedEntities}
+          placeholder="Filter by entity"
         />
         <Button
           variant="outline"
