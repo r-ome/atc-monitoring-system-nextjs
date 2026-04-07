@@ -4,6 +4,7 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { AuctionBidderWithBidderInventoriesRow } from "src/entities/models/Bidder";
 import { StatisticsRepository } from "src/infrastructure/di/repositories";
+import { formatDistanceToNow } from "date-fns";
 
 function presenter(bidders: AuctionBidderWithBidderInventoriesRow[]) {
   const date_format = "MMM d, yyyy";
@@ -13,6 +14,9 @@ function presenter(bidders: AuctionBidderWithBidderInventoriesRow[]) {
     first_name: bidder.bidder.first_name,
     last_name: bidder.bidder.last_name,
     auction_date: formatDate(bidder.created_at, date_format),
+    auction_duration: formatDistanceToNow(new Date(bidder.created_at), {
+      addSuffix: true,
+    }),
     balance: bidder.balance,
     items: bidder.auctions_inventories.filter(
       (item) => item.status === "UNPAID",

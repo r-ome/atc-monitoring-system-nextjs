@@ -114,4 +114,18 @@ export const columns: ColumnDef<UnpaidBidders>[] = [
       return <div className="flex justify-center">{bidder.auction_date}</div>;
     },
   },
+  {
+    accessorKey: "auction_duration",
+    header: () => {
+      return <div className="flex justify-center">Time Since</div>;
+    },
+    cell: ({ row }) => {
+      const bidder = row.original;
+      return (
+        <div className="flex justify-center whitespace-nowrap">
+          {bidder.auction_duration}
+        </div>
+      );
+    },
+  },
 ];
