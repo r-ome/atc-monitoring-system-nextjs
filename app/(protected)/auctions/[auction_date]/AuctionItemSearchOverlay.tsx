@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import {
   getAuctionItemDetails,
   searchAuctionItems,
@@ -23,15 +22,6 @@ import {
 } from "@/app/components/ui/command";
 import { Spinner } from "@/app/components/ui/spinner";
 import { Button } from "@/app/components/ui/button";
-
-const TARGET_ROUTE_PATTERNS = [
-  /^\/auctions\/[^/]+\/manifest$/,
-  /^\/auctions\/[^/]+\/monitoring$/,
-  /^\/auctions\/[^/]+\/registered-bidders\/[^/]+$/,
-  /^\/bought-items$/,
-  /^\/containers\/[^/]+$/,
-  /^\/configurations\/activity-logs\/[^/]+$/,
-];
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -67,7 +57,6 @@ const getSearchErrorMessage = (error: unknown) => {
 };
 
 export const AuctionItemSearchOverlay = () => {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AuctionInventorySearchResult[]>([]);
@@ -79,20 +68,7 @@ export const AuctionItemSearchOverlay = () => {
     useState<AuctionsInventory | null>(null);
   const requestIdRef = useRef(0);
 
-  const isEnabledRoute = useMemo(
-    () => TARGET_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname)),
-    [pathname],
-  );
-
   useEffect(() => {
-    if (!isEnabledRoute) {
-      setOpen(false);
-    }
-  }, [isEnabledRoute]);
-
-  useEffect(() => {
-    if (!isEnabledRoute) return;
-
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== "k") return;
       if (!(event.metaKey || event.ctrlKey)) return;
@@ -104,7 +80,7 @@ export const AuctionItemSearchOverlay = () => {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isEnabledRoute]);
+  }, []);
 
   useEffect(() => {
     setSelectedAuctionInventory(null);
@@ -161,10 +137,6 @@ export const AuctionItemSearchOverlay = () => {
 
     return () => window.clearTimeout(timeoutId);
   }, [open, query]);
-
-  if (!isEnabledRoute) {
-    return null;
-  }
 
   const resetState = () => {
     requestIdRef.current += 1;

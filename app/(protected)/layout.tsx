@@ -13,6 +13,7 @@ import { requireSession } from "@/app/lib/auth";
 import { AppTimer } from "@/app/components/timer/timer";
 import { ThemeToggle } from "@/app/components/admin";
 import { SessionActivityWatcher } from "./SessionActivityWatcher";
+import { AuctionItemSearchOverlay } from "@/app/(protected)/auctions/[auction_date]/AuctionItemSearchOverlay";
 
 export default async function RootLayout({
   children,
@@ -26,6 +27,7 @@ export default async function RootLayout({
       <SessionActivityWatcher
         initialLastActivityAt={session.user.lastActivityAt ?? null}
       />
+      <AuctionItemSearchOverlay />
       <AppSideBar />
 
       <SidebarInset>
