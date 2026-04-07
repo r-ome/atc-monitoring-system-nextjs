@@ -55,8 +55,10 @@ function sanitizePart(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
-export function buildEncodedHistoryRemark() {
-  return HISTORY_PREFIXES.encoded;
+export function buildEncodedHistoryRemark(updated_by?: string) {
+  if (!updated_by) return HISTORY_PREFIXES.encoded;
+
+  return `${HISTORY_PREFIXES.encoded} | Updated by: ${sanitizePart(updated_by)}`;
 }
 
 export function buildReassignedHistoryRemark() {
@@ -189,6 +191,12 @@ export function parseInventoryHistoryRemark(
   const trimmed = remarks.trim();
 
   if (trimmed === HISTORY_PREFIXES.encoded) return { action: "encoded" };
+  if (trimmed.startsWith(`${HISTORY_PREFIXES.encoded} | `)) {
+    return {
+      action: "encoded",
+      updated_by: parseLabeledField(trimmed, "Updated by", []),
+    };
+  }
   if (trimmed === HISTORY_PREFIXES.reassigned) return { action: "reassigned" };
   if (trimmed === HISTORY_PREFIXES.pullout_paid) return { action: "pullout_paid" };
   if (trimmed === HISTORY_PREFIXES.pullout_undone) return { action: "pullout_undone" };

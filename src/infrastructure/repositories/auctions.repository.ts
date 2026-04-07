@@ -491,7 +491,7 @@ export const AuctionRepository: IAuctionRepository = {
             inventory_status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
             remarks: is_bought_items
               ? buildReassignedHistoryRemark()
-              : buildEncodedHistoryRemark(),
+              : buildEncodedHistoryRemark(uploaded_by),
           })),
         });
 
