@@ -15,7 +15,7 @@ export const ContainerRepository: IContainerRepository = {
   getContainerById: async (container_id: string) => {
     try {
       return await prisma.containers.findFirst({
-        where: { container_id },
+        where: buildTenantWhere("containers", { container_id }),
         include: {
           branch: true,
           inventories: {

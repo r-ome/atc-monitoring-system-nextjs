@@ -32,66 +32,118 @@ interface UpdateContainerModalProps {
 }
 
 type ContainerUpdateForm = {
-  supplier_id?: string;
-  branch_id?: string;
-  barcode?: string;
-  bill_of_lading_number?: string;
-  gross_weight?: string;
-  container_number?: string;
-  auction_or_sell?: "AUCTION" | "SELL";
-  arrival_date?: Date;
-  due_date?: Date;
-  duties_and_taxes?: number;
+  supplier_id: string;
+  branch_id: string;
+  barcode: string;
+  bill_of_lading_number: string;
+  gross_weight: string;
+  container_number: string;
+  auction_or_sell: "AUCTION" | "SELL";
+  duties_and_taxes: number;
 };
 
-type Option = Record<string, string | number | boolean>;
+type ComparableContainerState = ContainerUpdateForm & {
+  arrival_date: string;
+};
+
+type Option = {
+  label: string;
+  value: string;
+  [key: string]: string | number | boolean;
+};
+
+const toOption = (
+  option: Record<string, string | number | boolean>,
+): Option => ({
+  ...option,
+  label: String(option.label ?? ""),
+  value: String(option.value ?? ""),
+});
+
+const normalizeDate = (value?: string | Date | null) => {
+  if (!value) return "";
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeGrossWeight = (value?: string | null) =>
+  (value ?? "").replace(/,/g, "").replace(/\s*kgs?$/gi, "").trim();
+
+const getWeightInTons = (grossWeight?: string | null) =>
+  Number(normalizeGrossWeight(grossWeight) || "0") * 0.001;
+
+const getInitialContainerForm = (
+  container: Omit<Container, "inventories">,
+): ContainerUpdateForm => ({
+  supplier_id: container.supplier.supplier_id,
+  branch_id: container.branch.branch_id,
+  barcode: container.barcode,
+  bill_of_lading_number: container.bill_of_lading_number ?? "",
+  container_number: container.container_number ?? "",
+  gross_weight: normalizeGrossWeight(container.gross_weight),
+  auction_or_sell: container.auction_or_sell,
+  duties_and_taxes: Number(container.duties_and_taxes ?? 0),
+});
+
+const getSupplierOption = (container: Omit<Container, "inventories">): Option => ({
+  label: container.supplier.name,
+  value: container.supplier.supplier_id,
+});
+
+const getBranchOption = (container: Omit<Container, "inventories">): Option => ({
+  label: container.branch.name,
+  value: container.branch.branch_id,
+});
+
+const getOriginalComparableState = (
+  container: Omit<Container, "inventories">,
+): ComparableContainerState => ({
+  ...getInitialContainerForm(container),
+  arrival_date: normalizeDate(container.arrival_date),
+});
 
 export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
   container,
 }) => {
   const router = useRouter();
   const [open, setOpenDialog] = useState<boolean>(false);
-  const [newContainer, setNewContainer] = useState<ContainerUpdateForm>({});
-  const [arrivalDate, setArrivalDate] = useState<Date | undefined>();
-  const [weightInTons, setWeightInTons] = useState<number>(0);
-  const [suppliers, setSuppliers] = useState<Omit<Supplier, "containers">[]>(
-    []
+  const [newContainer, setNewContainer] = useState<ContainerUpdateForm>(() =>
+    getInitialContainerForm(container),
   );
-  const [selectedSupplier, setSelectedSupplier] = useState<Option | undefined>({
-    label: container.supplier.name,
-    value: container.supplier.supplier_id,
-  });
-  const [selectedBranch, setSelectedBranch] = useState<Option | undefined>({
-    label: container.branch.name,
-    value: container.branch.branch_id,
-  });
+  const [arrivalDate, setArrivalDate] = useState<Date | undefined>(() =>
+    container.arrival_date ? new Date(container.arrival_date) : undefined,
+  );
+  const [weightInTons, setWeightInTons] = useState<number>(() =>
+    getWeightInTons(container.gross_weight),
+  );
+  const [suppliers, setSuppliers] = useState<Omit<Supplier, "containers">[]>(
+    [],
+  );
+  const [selectedSupplier, setSelectedSupplier] = useState<Option | undefined>(
+    () => getSupplierOption(container),
+  );
+  const [selectedBranch, setSelectedBranch] = useState<Option | undefined>(
+    () => getBranchOption(container),
+  );
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]>>();
 
   useEffect(() => {
-    setNewContainer({
-      supplier_id: container.supplier.supplier_id,
-      branch_id: container.branch.branch_id,
-      barcode: container.barcode,
-      bill_of_lading_number: container.bill_of_lading_number,
-      container_number: container.container_number,
-      gross_weight: container.gross_weight,
-      auction_or_sell: container.auction_or_sell,
-      due_date: container.due_date ? new Date(container.due_date) : undefined,
-      duties_and_taxes: container.duties_and_taxes,
-    });
-
-    if (container.gross_weight) {
-      setWeightInTons(
-        Number(container.gross_weight.replace(/ kgs/gi, "")) * 0.001,
-      );
-    }
-
-    if (container.arrival_date) {
-      setArrivalDate(new Date(container.arrival_date));
-    }
-
+    setNewContainer(getInitialContainerForm(container));
+    setSelectedSupplier(getSupplierOption(container));
+    setSelectedBranch(getBranchOption(container));
+    setWeightInTons(getWeightInTons(container.gross_weight));
+    setArrivalDate(
+      container.arrival_date ? new Date(container.arrival_date) : undefined,
+    );
     setErrors(undefined);
   }, [container]);
 
@@ -106,8 +158,27 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
     fetchInitialData();
   }, []);
 
+  const originalState = getOriginalComparableState(container);
+  const currentState: ComparableContainerState = {
+    ...newContainer,
+    supplier_id: selectedSupplier?.value ?? "",
+    branch_id: selectedBranch?.value ?? "",
+    gross_weight: normalizeGrossWeight(newContainer.gross_weight),
+    duties_and_taxes: Number(newContainer.duties_and_taxes ?? 0),
+    arrival_date: normalizeDate(arrivalDate),
+  };
+
+  const hasChanges = (
+    Object.keys(originalState) as (keyof ComparableContainerState)[]
+  ).some((key) => originalState[key] !== currentState[key]);
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!hasChanges) {
+      return;
+    }
+
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
     formData.append("supplier_id", selectedSupplier?.value as string);
@@ -161,14 +232,14 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 {suppliers.length ? (
                   <SelectWithSearch
                     placeholder="Search Supplier"
-                    defaultValue={
-                      selectedSupplier as { label: string; value: string }
-                    }
+                    defaultValue={selectedSupplier}
                     options={suppliers.map((supplier) => ({
                       label: `${supplier.name} (${supplier.supplier_code})`,
                       value: supplier.supplier_id,
                     }))}
-                    setSelected={(supplier) => setSelectedSupplier(supplier)}
+                    setSelected={(supplier) =>
+                      setSelectedSupplier(toOption(supplier))
+                    }
                   />
                 ) : (
                   <Skeleton className="w-full h-[36px]" />
@@ -184,14 +255,14 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 {branches.length ? (
                   <SelectWithSearch
                     placeholder="Search Branch"
-                    defaultValue={
-                      selectedBranch as { label: string; value: string }
-                    }
+                    defaultValue={selectedBranch}
                     options={branches.map((branch) => ({
                       label: branch.name,
                       value: branch.branch_id,
                     }))}
-                    setSelected={setSelectedBranch}
+                    setSelected={(branch) =>
+                      setSelectedBranch(toOption(branch))
+                    }
                   />
                 ) : (
                   <Skeleton className="w-full h-[36px]" />
@@ -246,14 +317,15 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                     hasStepper={false}
                     value={
                       newContainer.gross_weight
-                        ? parseInt(newContainer.gross_weight, 10)
+                        ? Number(newContainer.gross_weight)
                         : 0
                     }
-                    onChange={(event) => {
-                      handleUpdateChange(event);
-                      setWeightInTons(
-                        Number(event.target.value.replace(/ kgs/gi, "")) * 0.001
-                      );
+                    onValueChange={(value) => {
+                      setNewContainer((prev) => ({
+                        ...prev,
+                        gross_weight: value === undefined ? "" : String(value),
+                      }));
+                      setWeightInTons((value ?? 0) * 0.001);
                     }}
                     error={errors}
                   />
@@ -278,9 +350,15 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                   name="duties_and_taxes"
                   value={newContainer.duties_and_taxes}
                   decimalScale={2}
-                  onChange={handleUpdateChange}
+                  onValueChange={(value) =>
+                    setNewContainer((prev) => ({
+                      ...prev,
+                      duties_and_taxes: value ?? 0,
+                    }))
+                  }
                   hasStepper={false}
                   className="w-full"
+                  error={errors}
                 />
               </div>
             </div>
@@ -300,11 +378,12 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 <Button
                   variant={"outline"}
                   onClick={() => setOpenDialog(false)}
+                  disabled={isLoading}
                 >
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading || !hasChanges}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>
