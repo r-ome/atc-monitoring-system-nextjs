@@ -46,7 +46,7 @@ const BRANCH_FILTERS: Record<string, any> = {
     },
   },
   manifest_records: { auction: { branch_id: undefined } },
-  inventory_histories: { inventories: { branch_id: undefined } },
+  inventory_histories: { inventory: { container: { branch_id: undefined } } },
   expenses: { branch_id: undefined },
   petty_cash: { branch_id: undefined },
   activity_logs: { branch_id: undefined },
