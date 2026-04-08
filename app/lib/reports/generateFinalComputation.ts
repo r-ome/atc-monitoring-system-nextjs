@@ -23,6 +23,11 @@ const generateFinalComputation = (
     .includes("ECORE")
     ? "MILLENIUM"
     : "ATC";
+  const MIN_EXTRA_CHARGE = 230000;
+  const dutiesAndTaxes = Number.parseFloat(String(container.duties_and_taxes ?? 0));
+  const e6Value = dutiesAndTaxes > MIN_EXTRA_CHARGE
+    ? dutiesAndTaxes - MIN_EXTRA_CHARGE
+    : 0;
 
   sheet["!merges"] = [
     { s: { r: 0, c: 1 }, e: { r: 0, c: 3 } }, // B1:D1
@@ -142,7 +147,7 @@ const generateFinalComputation = (
   };
 
   sheet["F5"] = {
-    v: "販売手数料15%",
+    f: `IF(C6<700000,"販売手数料25%",IF(C6<=799999,"販売手数料20%","販売手数料15%"))`,
     t: "s",
     s: {
       font: { name: "Calibri", sz: 12, color: { rgb: "FF0000" } },
@@ -276,7 +281,7 @@ const generateFinalComputation = (
   };
 
   sheet["D6"] = {
-    v: "0",
+    v: MIN_EXTRA_CHARGE,
     t: "n",
     z: "#,##0",
     s: {
@@ -290,7 +295,7 @@ const generateFinalComputation = (
   };
 
   sheet["E6"] = {
-    v: "0",
+    v: e6Value,
     t: "n",
     z: "#,##0",
     s: {
@@ -304,7 +309,7 @@ const generateFinalComputation = (
   };
 
   sheet["F6"] = {
-    f: `C6*0.15`,
+    f: `IF(C6<700000,C6*0.25,IF(C6<=799999,C6*0.2,C6*0.15))`,
     t: "n",
     z: "#,##0",
     s: {
