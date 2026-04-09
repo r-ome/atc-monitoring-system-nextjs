@@ -7,6 +7,21 @@ import {
 } from "@/app/lib/error-handler";
 
 export const PaymentMethodRepository: IPaymentMethodRepository = {
+  getPaymentMethod: async (payment_method_id) => {
+    try {
+      return await prisma.payment_methods.findFirst({
+        where: { payment_method_id },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting payment method", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
   getPaymentMethods: async () => {
     try {
       return await prisma.payment_methods.findMany({

@@ -5,6 +5,7 @@ import {
 } from "src/entities/models/PaymentMethod";
 
 export interface IPaymentMethodRepository {
+  getPaymentMethod: (payment_method_id: string) => Promise<PaymentMethodRow | null>;
   getPaymentMethods: () => Promise<PaymentMethodRow[]>;
   getEnabledPaymentMethods: () => Promise<PaymentMethodRow[]>;
   createPaymentMethod: (data: CreatePaymentMethodInput) => Promise<PaymentMethodRow>;

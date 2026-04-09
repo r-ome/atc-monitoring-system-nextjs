@@ -1,5 +1,6 @@
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { buildActivityLogDiff } from "@/app/lib/activity-log-diff";
 import { updateInventoryUseCase } from "src/application/use-cases/inventories/update-inventory.use-case";
 import {
   DatabaseOperationError,
@@ -12,6 +13,7 @@ import {
   InventoryRow,
 } from "src/entities/models/Inventory";
 import { ok, err } from "src/entities/models/Result";
+import { InventoryRepository } from "src/infrastructure/di/repositories";
 
 function presenter(inventory: InventoryRow) {
   return inventory;
@@ -31,8 +33,21 @@ export const UpdateInventoryController = async (
       });
     }
 
+    const previous = await InventoryRepository.getInventory(inventory_id);
     const updated = await updateInventoryUseCase(inventory_id, data);
-    await logActivity("UPDATE", "inventory", inventory_id, `Updated inventory ${updated.barcode}`);
+    const diffDescription = buildActivityLogDiff({
+      previous,
+      current: updated,
+      fields: [
+        { label: "Barcode", getValue: (item) => item.barcode },
+        { label: "Control", getValue: (item) => item.control },
+        { label: "Description", getValue: (item) => item.description },
+      ],
+    });
+    const description = diffDescription
+      ? `Updated inventory ${updated.barcode} | ${diffDescription}`
+      : `Updated inventory ${updated.barcode}`;
+    await logActivity("UPDATE", "inventory", inventory_id, description);
     return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

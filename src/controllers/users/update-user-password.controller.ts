@@ -32,7 +32,7 @@ export const UpdateUserPasswordController = async (
       "UPDATE",
       "user",
       user_id,
-      `Updated password for user ${created.username}`,
+      `Password updated for user ${created.username}`,
     );
     return ok(userPresenter(created));
   } catch (error) {

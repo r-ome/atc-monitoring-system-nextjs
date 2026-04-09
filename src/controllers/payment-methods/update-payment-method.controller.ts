@@ -7,6 +7,8 @@ import { updatePaymentMethodSchema } from "src/entities/models/PaymentMethod";
 import { err, ok } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { buildActivityLogDiff } from "@/app/lib/activity-log-diff";
+import { PaymentMethodRepository } from "src/infrastructure/di/repositories";
 import { presentPaymentMethod } from "./create-payment-method.controller";
 
 export const UpdatePaymentMethodController = async (
@@ -23,11 +25,25 @@ export const UpdatePaymentMethodController = async (
       });
     }
 
+    const previous = await PaymentMethodRepository.getPaymentMethod(payment_method_id);
     const payment_method = await updatePaymentMethodUseCase(
       payment_method_id,
       data,
     );
-    await logActivity("UPDATE", "payment_method", payment_method_id, `Updated payment method ${payment_method.name}`);
+    const diffDescription = previous
+      ? buildActivityLogDiff({
+          previous,
+          current: payment_method,
+          fields: [
+            { label: "Name", getValue: (item) => item.name },
+            { label: "State", getValue: (item) => item.state },
+          ],
+        })
+      : "";
+    const description = diffDescription
+      ? `Updated payment method ${payment_method.name} | ${diffDescription}`
+      : `Updated payment method ${payment_method.name}`;
+    await logActivity("UPDATE", "payment_method", payment_method_id, description);
     return ok(presentPaymentMethod(payment_method));
   } catch (error) {
     if (error instanceof InputParseError) {

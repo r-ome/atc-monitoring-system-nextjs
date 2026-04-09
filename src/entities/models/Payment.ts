@@ -27,6 +27,12 @@ export type PaymentWithDetailsRow = Prisma.paymentsGetPayload<{
   };
 }>;
 
+export type PaymentRow = Prisma.paymentsGetPayload<object>;
+
+export type PaymentWithMethodRow = Prisma.paymentsGetPayload<{
+  include: { payment_method: true };
+}>;
+
 export type Payment = {
   payment_id: string;
   receipt_id: string;

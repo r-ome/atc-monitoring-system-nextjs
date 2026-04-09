@@ -7,11 +7,13 @@ import { err, ok } from "src/entities/models/Result";
 import { updateManifestUseCase } from "src/application/use-cases/auctions/update-manifest.use-case";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { buildActivityLogDiff } from "@/app/lib/activity-log-diff";
 import {
   updateManifestSchema,
   UpdateManifestInput,
   ManifestRow,
 } from "src/entities/models/Manifest";
+import { AuctionRepository } from "src/infrastructure/di/repositories";
 
 function presenter(manifest: ManifestRow) {
   return {
@@ -40,8 +42,30 @@ export const UpdateManifestController = async (
       });
     }
 
+    const previous = await AuctionRepository.getManifestRecord(manifest_id);
     const updated = await updateManifestUseCase(auction_id, manifest_id, data);
-    await logActivity("UPDATE", "manifest", `${updated.barcode}-${updated.control}`, `Updated manifest record barcode: ${updated.barcode}, control: ${updated.control}`);
+    const diffDescription = previous
+      ? buildActivityLogDiff({
+          previous,
+          current: updated,
+          fields: [
+            { label: "Barcode", getValue: (item) => item.barcode },
+            { label: "Control", getValue: (item) => item.control },
+            { label: "Description", getValue: (item) => item.description },
+            { label: "Bidder Number", getValue: (item) => item.bidder_number },
+            { label: "Price", getValue: (item) => item.price },
+            { label: "Qty", getValue: (item) => item.qty },
+            {
+              label: "Manifest Number",
+              getValue: (item) => item.manifest_number,
+            },
+          ],
+        })
+      : "";
+    const description = diffDescription
+      ? `Updated manifest record barcode: ${updated.barcode}, control: ${updated.control} | ${diffDescription}`
+      : `Updated manifest record barcode: ${updated.barcode}, control: ${updated.control}`;
+    await logActivity("UPDATE", "manifest", `${updated.barcode}-${updated.control}`, description);
     return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

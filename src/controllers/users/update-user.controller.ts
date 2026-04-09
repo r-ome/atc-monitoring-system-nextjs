@@ -10,6 +10,7 @@ import {
 } from "src/entities/models/User";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { buildActivityLogDiff } from "@/app/lib/activity-log-diff";
 import { UserRepository } from "src/infrastructure/di/repositories";
 import { userPresenter } from "./user.presenter";
 
@@ -27,9 +28,25 @@ export const UpdateUserController = async (
       });
     }
 
-    const created = await UserRepository.updateUser(user_id, data);
-    await logActivity("UPDATE", "user", user_id, `Updated user ${created.username}`);
-    return ok(userPresenter(created));
+    const previous = await UserRepository.getUserById(user_id);
+    const updated = await UserRepository.updateUser(user_id, data);
+    const diffDescription = previous
+      ? buildActivityLogDiff({
+          previous,
+          current: updated,
+          fields: [
+            { label: "Name", getValue: (user) => user.name },
+            { label: "Username", getValue: (user) => user.username },
+            { label: "Role", getValue: (user) => user.role },
+            { label: "Branch", getValue: (user) => user.branch.name },
+          ],
+        })
+      : "";
+    const description = diffDescription
+      ? `Updated user ${updated.username} | ${diffDescription}`
+      : `Updated user ${updated.username}`;
+    await logActivity("UPDATE", "user", user_id, description);
+    return ok(userPresenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateUserController", error, "warn");

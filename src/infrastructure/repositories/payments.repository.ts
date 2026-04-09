@@ -20,6 +20,21 @@ import {
 } from "src/entities/models/InventoryHistoryRemark";
 
 export const PaymentRepository: IPaymentRepository = {
+  getPaymentById: async (payment_id) => {
+    try {
+      return await prisma.payments.findFirst({
+        where: { payment_id },
+        include: { payment_method: true },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting payment", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
   getPaymentsByDate: async (date, branch_id) => {
     try {
       const startOfDay = new Date(date);

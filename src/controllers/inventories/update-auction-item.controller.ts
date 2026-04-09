@@ -11,8 +11,9 @@ import {
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
-import { formatDate } from "@/app/lib/utils";
-import { AuctionRepository } from "src/infrastructure/di/repositories";
+import { buildActivityLogDiff } from "@/app/lib/activity-log-diff";
+import { AuctionRepository, InventoryRepository } from "src/infrastructure/di/repositories";
+import { formatDate, formatNumberToCurrency } from "@/app/lib/utils";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 
 export const UpdateAuctionItemController = async (
@@ -30,15 +31,71 @@ export const UpdateAuctionItemController = async (
       });
     }
 
+    const previous = await InventoryRepository.getAuctionItemDetails(
+      data.auction_inventory_id,
+    );
     await updateAuctionItemUseCase(data, ctx?.username);
+    const updated = await InventoryRepository.getAuctionItemDetails(
+      data.auction_inventory_id,
+    );
 
     const auction = await AuctionRepository.getAuctionById(data.auction_id);
     const auctionDate = auction ? formatDate(auction.created_at, "MMM dd, yyyy") : data.auction_id;
+    const diffDescription =
+      previous && updated
+        ? buildActivityLogDiff({
+            previous,
+            current: updated,
+            fields: [
+              {
+                label: "Bidder Number",
+                getValue: (item) => item.auction_bidder.bidder.bidder_number,
+                formatValue: (value) => `#${value}`,
+              },
+              {
+                label: "Barcode",
+                getValue: (item) => item.inventory.barcode,
+              },
+              {
+                label: "Control",
+                getValue: (item) => item.inventory.control,
+              },
+              {
+                label: "Description",
+                getValue: (item) => item.description,
+              },
+              {
+                label: "Price",
+                getValue: (item) => item.price,
+                formatValue: (value) => formatNumberToCurrency(Number(value)),
+              },
+              {
+                label: "Qty",
+                getValue: (item) => item.qty,
+              },
+              {
+                label: "Manifest Number",
+                getValue: (item) => item.manifest_number,
+              },
+              {
+                label: "Status",
+                getValue: (item) => item.status,
+              },
+              {
+                label: "Container",
+                getValue: (item) => item.inventory.container_id,
+              },
+            ],
+          })
+        : "";
+    const description = diffDescription
+      ? `Updated auction item barcode: ${updated?.inventory.barcode ?? data.barcode}, control: ${updated?.inventory.control ?? data.control} on ${auctionDate} | ${diffDescription}`
+      : `Updated auction item barcode: ${data.barcode}, control: ${data.control} on ${auctionDate}`;
     await logActivity(
       "UPDATE",
       "auction_inventory",
       `${data.barcode}-${data.control}`,
-      `Updated auction item barcode: ${data.barcode}, control: ${data.control} on ${auctionDate}`,
+      description,
     );
     return ok(undefined);
   } catch (error) {

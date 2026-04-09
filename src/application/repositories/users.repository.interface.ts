@@ -7,6 +7,7 @@ import {
 } from "src/entities/models/User";
 
 export interface IUserRepository {
+  getUserById: (user_id: string) => Promise<UserWithBranchRow | null>;
   getUserByUsername: (username: string) => Promise<UserWithBranchRow | null>;
   getAuthUserByUsername: (
     username: string,

@@ -71,6 +71,7 @@ export interface IAuctionRepository {
     data: UploadCounterCheckInput[],
   ) => Promise<Prisma.BatchPayload>;
   getManifestRecords: (auction_id: string) => Promise<ManifestRow[]>;
+  getManifestRecord: (manifest_id: string) => Promise<ManifestRow | null>;
   cancelItems: (
     data: CancelItemsInput,
     updated_by?: string,

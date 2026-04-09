@@ -1,6 +1,7 @@
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
 import { PaymentRepository } from "src/infrastructure/di/repositories";
+import { buildActivityLogDiff } from "@/app/lib/activity-log-diff";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -25,9 +26,28 @@ export const UpdateRegistrationPaymentController = async (
       });
     }
 
-    const res = await PaymentRepository.updateRegistrationPayment(payment_id, data);
-    await logActivity("UPDATE", "payment", payment_id, `Updated registration payment ${payment_id}`);
-    return ok(res);
+    const previous = await PaymentRepository.getPaymentById(payment_id);
+    await PaymentRepository.updateRegistrationPayment(payment_id, data);
+    const updated = await PaymentRepository.getPaymentById(payment_id);
+    const diffDescription =
+      previous && updated
+        ? buildActivityLogDiff({
+            previous,
+            current: updated,
+            fields: [
+              {
+                label: "Payment Method",
+                getValue: (payment) => payment.payment_method?.name,
+              },
+              { label: "Remarks", getValue: (payment) => payment.remarks },
+            ],
+          })
+        : "";
+    const description = diffDescription
+      ? `Updated registration payment ${payment_id} | ${diffDescription}`
+      : `Updated registration payment ${payment_id}`;
+    await logActivity("UPDATE", "payment", payment_id, description);
+    return ok(undefined);
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UpdateRegistrationPaymentController", error, "warn");
