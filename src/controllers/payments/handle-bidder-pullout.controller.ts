@@ -40,7 +40,12 @@ export const HandleBidderPullOutController = async (
     }
 
     const res = await PaymentRepository.handleBidderPullOut(data);
-    await logActivity("CREATE", "payment", res.receipt_id, `Pull-out payment ₱${data.amount_to_be_paid.toLocaleString()} for bidder`);
+    await logActivity(
+      "CREATE",
+      "payment",
+      res.receipt_id,
+      `Pull-out payment ₱${data.amount_to_be_paid.toLocaleString()} for bidder ${res.bidder_number}`,
+    );
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

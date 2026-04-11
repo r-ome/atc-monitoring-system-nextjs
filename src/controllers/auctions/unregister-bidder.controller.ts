@@ -10,7 +10,12 @@ import { logActivity } from "@/app/lib/log-activity";
 export const UnregisterBidderController = async (auction_bidder_id: string) => {
   try {
     const res = await unregisterBidderUseCase(auction_bidder_id);
-    await logActivity("DELETE", "auction_bidder", auction_bidder_id, `Unregistered bidder from auction`);
+    await logActivity(
+      "DELETE",
+      "auction_bidder",
+      auction_bidder_id,
+      `Unregistered bidder ${res.bidder_number} from auction`,
+    );
     return ok(res);
   } catch (error) {
     if (error instanceof InputParseError) {

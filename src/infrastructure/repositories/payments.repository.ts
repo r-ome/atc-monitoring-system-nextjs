@@ -245,7 +245,10 @@ export const PaymentRepository: IPaymentRepository = {
           },
         });
 
-        return created_receipt;
+        return {
+          receipt_id: created_receipt.receipt_id,
+          bidder_number: registered_bidder.bidder.bidder_number,
+        };
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

@@ -9,6 +9,7 @@ import {
   ReceiptRecordWithInventoriesRow,
   ReceiptRecordWithPaymentsRow,
   StorageFeePaymentInput,
+  PullOutPaymentResult,
   UndoPaymentResult,
 } from "src/entities/models/Payment";
 
@@ -27,7 +28,7 @@ export interface IPaymentRepository {
   ) => Promise<ReceiptRecordWithInventoriesRow[]>;
   handleBidderPullOut: (
     data: PullOutPaymentInput
-  ) => Promise<ReceiptRecordRow>;
+  ) => Promise<PullOutPaymentResult>;
   refundAuctionInventories: (
     data: RefundAuctionInventoriesInput,
     updated_by?: string,

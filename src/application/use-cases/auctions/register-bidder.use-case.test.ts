@@ -118,3 +118,20 @@ test("unregisterBidderUseCase rejects removal once auction items already exist",
     },
   );
 });
+
+test("unregisterBidderUseCase returns the removed bidder number after delete", async () => {
+  restorers.push(
+    patchMethod(AuctionRepository, "getRegisteredBidderById", async () => ({
+      bidder: { bidder_number: "0042" },
+      auctions_inventories: [],
+    }) as never),
+    patchMethod(AuctionRepository, "unregisterBidder", async () => undefined as never),
+  );
+
+  const result = await unregisterBidderUseCase("ab-1");
+
+  assert.deepEqual(result, {
+    auction_bidder_id: "ab-1",
+    bidder_number: "0042",
+  });
+});

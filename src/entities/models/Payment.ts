@@ -55,6 +55,11 @@ export type Payment = {
 
 export type ReceiptRecordRow = Prisma.receipt_recordsGetPayload<object>;
 
+export type PullOutPaymentResult = {
+  receipt_id: string;
+  bidder_number: string;
+};
+
 export type ReceiptRecordWithHistoriesRow = Prisma.receipt_recordsGetPayload<{
   include: {
     auction_bidder: { include: { bidder: true } };
