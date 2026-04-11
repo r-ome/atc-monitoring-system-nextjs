@@ -55,7 +55,7 @@ export const UpdateBidderRegistrationController = async (
               formatValue: (value) => `${value}%`,
             },
           ],
-        }).replaceAll(" -> ", " → ")
+        })
       : "";
     const bidderNumber = current?.bidder.bidder_number ?? "?";
     const description = diffDescription

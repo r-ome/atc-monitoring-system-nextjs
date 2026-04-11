@@ -50,7 +50,7 @@ export function buildActivityLogDiff<T>({
         return [];
       }
 
-      return `${label}: ${toDisplayValue(previousValue, formatValue)} -> ${toDisplayValue(currentValue, formatValue)}`;
+      return `${label}: ${toDisplayValue(previousValue, formatValue)} → ${toDisplayValue(currentValue, formatValue)}`;
     })
     .join(" | ");
 }

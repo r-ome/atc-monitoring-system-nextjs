@@ -100,7 +100,7 @@ function buildContainerUpdateDescription(
       return [];
     }
 
-    return [`${label}: ${previousValue} -> ${updatedValue}`];
+    return [`${label}: ${previousValue} → ${updatedValue}`];
   });
 
   if (!changes.length) {
