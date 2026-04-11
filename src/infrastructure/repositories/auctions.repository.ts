@@ -29,6 +29,7 @@ import {
   Override,
 } from "src/entities/models/Auction";
 import { isRange } from "@/app/lib/utils";
+import { buildReusedInventoryUpdates } from "./auction-manifest-write";
 
 function resolvePartialBalancePriceFromLegacyHistoryRemark(
   remarks: string | null | undefined,
@@ -398,23 +399,20 @@ export const AuctionRepository: IAuctionRepository = {
           },
         });
 
-        if (is_bought_items) {
-          const inventory_ids = for_updating.map((item) => ({
-            inventory_id: item.inventory_id as string,
-            control: item.CONTROL,
-            old_price: parseInt(item.PRICE, 10),
-          }));
+        const reusedInventoryUpdates = buildReusedInventoryUpdates(
+          for_updating,
+          auction.created_at,
+          is_bought_items,
+        );
+
+        if (reusedInventoryUpdates.length) {
           await Promise.all(
-            inventory_ids.map((inventory) => {
-              return tx.inventories.update({
-                data: {
-                  control: inventory.control,
-                  status: "BOUGHT_ITEM",
-                  is_bought_item: inventory.old_price,
-                },
+            reusedInventoryUpdates.map((inventory) =>
+              tx.inventories.update({
+                data: inventory.data,
                 where: { inventory_id: inventory.inventory_id },
-              });
-            }),
+              }),
+            ),
           );
         }
 
@@ -523,19 +521,6 @@ export const AuctionRepository: IAuctionRepository = {
          */
 
         if (for_updating.length) {
-          // update CANCELLED OR REFUNDED ITEM OR BOUGHT ITEM
-          await tx.inventories.updateMany({
-            data: {
-              status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
-              auction_date: auction.created_at,
-            },
-            where: {
-              inventory_id: {
-                in: for_updating.map((item) => item.inventory_id as string),
-              },
-            },
-          });
-
           if (!is_bought_items && cancelled_items_to_reencode.length) {
             await Promise.all(
               cancelled_items_to_reencode.map((item) =>
