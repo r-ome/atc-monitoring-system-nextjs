@@ -1,5 +1,7 @@
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { buildActivityLogDiff } from "@/app/lib/activity-log-diff";
+import { formatNumberToCurrency } from "@/app/lib/utils";
 import { AuctionRepository } from "src/infrastructure/di/repositories";
 import {
   InputParseError,
@@ -25,16 +27,45 @@ export const UpdateBidderRegistrationController = async (
       });
     }
 
-    const current = await AuctionRepository.getRegisteredBidderById(auction_bidder_id);
+    const current =
+      await AuctionRepository.getRegisteredBidderById(auction_bidder_id);
     const auction_bidder = await AuctionRepository.updateBidderRegistration(
       auction_bidder_id,
       data,
     );
+    const diffDescription = current
+      ? buildActivityLogDiff({
+          previous: {
+            registration_fee: current.registration_fee,
+            service_charge: current.service_charge,
+          },
+          current: {
+            registration_fee: auction_bidder.registration_fee,
+            service_charge: auction_bidder.service_charge,
+          },
+          fields: [
+            {
+              label: "Registration Fee",
+              getValue: (bidder) => bidder.registration_fee,
+              formatValue: (value) => formatNumberToCurrency(Number(value)),
+            },
+            {
+              label: "Service Charge",
+              getValue: (bidder) => bidder.service_charge,
+              formatValue: (value) => `${value}%`,
+            },
+          ],
+        }).replaceAll(" -> ", " → ")
+      : "";
+    const bidderNumber = current?.bidder.bidder_number ?? "?";
+    const description = diffDescription
+      ? `Updated bidder registration #${bidderNumber} | ${diffDescription}`
+      : `Updated bidder registration #${bidderNumber}`;
     await logActivity(
       "UPDATE",
       "auction_bidder",
       auction_bidder_id,
-      `Updated bidder registration — Fee: ₱${current?.registration_fee.toLocaleString() ?? "?"} → ₱${data.registration_fee.toLocaleString()} | Service charge: ₱${current?.service_charge.toLocaleString() ?? "?"} → ₱${data.service_charge.toLocaleString()}`,
+      description,
     );
     return ok(auction_bidder);
   } catch (error) {
