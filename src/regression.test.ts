@@ -5,6 +5,8 @@ import "./application/use-cases/inventories/update-auction-item.use-case.test";
 import "./entities/models/Auction.test";
 import "./app/components/admin/status-badge.helpers.test";
 import "./controllers/auctions/register-bidder.controller.test";
+import "./controllers/auctions/preview-add-on.controller.test";
+import "./controllers/auctions/confirm-add-on.controller.test";
 import "./controllers/inventories/refund-auctions-inventories.controller.test";
 import "./controllers/expenses/repair-petty-cash-consistency.controller.test";
 import "./controllers/reports/get-expenses-summary.controller.test";

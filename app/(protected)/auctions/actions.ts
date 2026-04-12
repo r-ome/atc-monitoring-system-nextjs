@@ -24,6 +24,8 @@ import { UnregisterBidderController } from "src/controllers/auctions/unregister-
 import { PreviewManifestController } from "src/controllers/auctions/preview-manifest.controller";
 import { ConfirmUploadManifestController } from "src/controllers/auctions/confirm-upload-manifest.controller";
 import { RevalidateManifestController } from "src/controllers/auctions/revalidate-manifest.controller";
+import { PreviewAddOnController } from "src/controllers/auctions/preview-add-on.controller";
+import { ConfirmAddOnController } from "src/controllers/auctions/confirm-add-on.controller";
 import { type UploadManifestInput, type ManifestSheetRecord } from "src/entities/models/Manifest";
 import { type PullOutPaymentInput } from "src/entities/models/Payment";
 
@@ -300,6 +302,32 @@ export const insertAuctionInventory = async (
       branch_name: user.branch.name ?? "",
     },
     async () => InsertAuctionInventoryController(auction_id, data),
+  );
+};
+
+export const previewAddOn = async (auction_id: string, formData: FormData) => {
+  const user = await requireUser();
+  const data = Object.fromEntries(formData.entries());
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () => PreviewAddOnController(auction_id, data),
+  );
+};
+
+export const confirmAddOn = async (
+  auction_id: string,
+  data: UploadManifestInput[],
+) => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
+    async () => ConfirmAddOnController(auction_id, data),
   );
 };
 
