@@ -8,6 +8,7 @@ import {
   formatControlDescriptionQty,
   formatExistingInventories,
   formatSlashedBarcodes,
+  normalizeManifestDescriptions,
   removeManifestDuplicates,
   removeMonitoringDuplicates,
   validateBidders,
@@ -70,6 +71,55 @@ test("formatControlDescriptionQty applies manifest defaults and normalizes paddi
   assert.equal(row.MANIFEST, "NO MANIFEST");
   assert.equal(row.CONTROL, "0012");
   assert.equal(row.BIDDER, "0007");
+});
+
+test("normalizeManifestDescriptions applies safe formatting fixes and records a warning", () => {
+  const [row] = normalizeManifestDescriptions([
+    {
+      BARCODE: "32-04",
+      CONTROL: "0012",
+      DESCRIPTION: "  toys asis  ",
+      BIDDER: "0007",
+      PRICE: "500",
+      QTY: "1",
+      MANIFEST: "M-1",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    },
+  ]);
+
+  assert.equal(row.DESCRIPTION, "toys AS IS");
+  assert.equal(
+    row.warning,
+    'Normalized description from "  toys asis  " to "toys AS IS".',
+  );
+});
+
+test("normalizeManifestDescriptions keeps valid rows insertable while warning on likely typos", () => {
+  const [row] = normalizeManifestDescriptions([
+    {
+      BARCODE: "32-04",
+      CONTROL: "0012",
+      DESCRIPTION: "FIOSHING ROD DI",
+      BIDDER: "0007",
+      PRICE: "500",
+      QTY: "1",
+      MANIFEST: "M-1",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    },
+  ]);
+
+  assert.equal(row.DESCRIPTION, "FIOSHING ROD DI");
+  assert.equal(row.isValid, true);
+  assert.equal(
+    row.warning,
+    'Possible typo: "FIOSHING". Consider "FISHING".',
+  );
 });
 
 test("divideIntoHundreds keeps total intact while rounding to the nearest hundred", () => {

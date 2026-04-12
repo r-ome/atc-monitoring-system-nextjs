@@ -86,6 +86,66 @@ export const formatControlDescriptionQty = (
   });
 };
 
+const TYPO_SUGGESTIONS: Record<string, string> = {
+  FIOSHING: "FISHING",
+  COOTER: "SCOOTER",
+  EXCERISER: "EXERCISER",
+  CHESSE: "CHESS",
+};
+
+const normalizeManifestDescription = (description: string) =>
+  description
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\bASIS\b/gi, "AS IS")
+    .replace(/\bINBOX\b/gi, "IN BOX");
+
+const buildDescriptionWarning = (
+  originalDescription: string,
+  normalizedDescription: string,
+) => {
+  const warnings: string[] = [];
+  const seenWarnings = new Set<string>();
+
+  if (normalizedDescription !== originalDescription) {
+    const warning = `Normalized description from "${originalDescription}" to "${normalizedDescription}".`;
+    warnings.push(warning);
+    seenWarnings.add(warning);
+  }
+
+  const matchedTypos =
+    originalDescription.toUpperCase().match(/\b[A-Z][A-Z]+\b/g) ?? [];
+  for (const token of matchedTypos) {
+    const suggestion = TYPO_SUGGESTIONS[token];
+
+    if (!suggestion || suggestion === token) continue;
+
+    const warning = `Possible typo: "${token}". Consider "${suggestion}".`;
+    if (seenWarnings.has(warning)) continue;
+
+    warnings.push(warning);
+    seenWarnings.add(warning);
+  }
+
+  return warnings.join(" ");
+};
+
+export const normalizeManifestDescriptions = (
+  data: UploadManifestInput[],
+): UploadManifestInput[] => {
+  return data.map((item) => {
+    if (!item.isValid) return item;
+
+    const normalizedDescription = normalizeManifestDescription(item.DESCRIPTION);
+
+    return {
+      ...item,
+      DESCRIPTION: normalizedDescription,
+      warning: buildDescriptionWarning(item.DESCRIPTION, normalizedDescription),
+    };
+  });
+};
+
 export const divideIntoHundreds = (total: number, parts: number) => {
   const portion = total / parts;
   const rounded_portions = Array(parts)

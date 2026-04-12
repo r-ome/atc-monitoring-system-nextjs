@@ -48,6 +48,7 @@ export const uploadManifestSchema = z.object({
   isSlashItem: z.string().nullable(),
   auction_inventory_id: z.string().optional().nullable(),
   error: z.string(),
+  warning: z.string().optional(),
 });
 
 export type UploadManifestInput = z.infer<typeof uploadManifestSchema>;

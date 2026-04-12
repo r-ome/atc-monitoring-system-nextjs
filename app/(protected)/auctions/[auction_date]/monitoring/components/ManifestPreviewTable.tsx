@@ -60,7 +60,9 @@ export const ManifestPreviewTable: React.FC<ManifestPreviewTableProps> = ({
     return data.filter((row) =>
       EDITABLE_KEYS.some((key) =>
         (row[key] ?? "").toLowerCase().includes(term),
-      ) || row.error?.toLowerCase().includes(term),
+      ) ||
+      row.error?.toLowerCase().includes(term) ||
+      row.warning?.toLowerCase().includes(term),
     );
   }, [data, search]);
 
@@ -133,6 +135,7 @@ export const ManifestPreviewTable: React.FC<ManifestPreviewTableProps> = ({
               key={originalIndex}
               className={cn(
                 !row.isValid && "bg-destructive/10",
+                row.isValid && row.warning && "bg-status-warning/10",
                 editingIndex !== originalIndex &&
                   "cursor-pointer hover:bg-muted/50",
               )}
@@ -146,9 +149,7 @@ export const ManifestPreviewTable: React.FC<ManifestPreviewTableProps> = ({
                 </TableCell>
               ))}
               <TableCell className="truncate text-xs">
-                {row.isValid ? (
-                  <span className="text-green-600">Valid</span>
-                ) : (
+                {!row.isValid ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="text-destructive cursor-help truncate block">
@@ -157,6 +158,17 @@ export const ManifestPreviewTable: React.FC<ManifestPreviewTableProps> = ({
                     </TooltipTrigger>
                     <TooltipContent>{row.error}</TooltipContent>
                   </Tooltip>
+                ) : row.warning ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-status-warning cursor-help truncate block">
+                        Warning
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>{row.warning}</TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <span className="text-green-600">Valid</span>
                 )}
               </TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>

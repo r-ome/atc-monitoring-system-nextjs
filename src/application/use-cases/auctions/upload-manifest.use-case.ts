@@ -2,6 +2,7 @@ import { AuctionRepository, ContainerRepository, InventoryRepository } from "src
 import { ManifestSheetRecord } from "src/entities/models/Manifest";
 import {
   formatControlDescriptionQty,
+  normalizeManifestDescriptions,
   formatSlashedBarcodes,
   validateBidders,
   validateEmptyFields,
@@ -27,7 +28,11 @@ export const uploadManifestUseCase = async (
 
   const withEmptyFieldsValidated = validateEmptyFields(data);
   const withFormattedQty = formatControlDescriptionQty(withEmptyFieldsValidated);
-  const withFormattedBarcodes = formatSlashedBarcodes(withFormattedQty);
+  const withNormalizedDescriptions =
+    normalizeManifestDescriptions(withFormattedQty);
+  const withFormattedBarcodes = formatSlashedBarcodes(
+    withNormalizedDescriptions,
+  );
   const withoutManifestDuplicates = removeManifestDuplicates(withFormattedBarcodes);
   const withValidatedBidders = validateBidders(withoutManifestDuplicates, registered_bidders);
   const withExistingInventories = formatExistingInventories(

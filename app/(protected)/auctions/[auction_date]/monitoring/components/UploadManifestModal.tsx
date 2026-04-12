@@ -54,6 +54,9 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
 
   const validCount = manifest.previewData.filter((r) => r.isValid).length;
   const invalidCount = manifest.previewData.length - validCount;
+  const warningCount = manifest.previewData.filter(
+    (r) => r.isValid && r.warning,
+  ).length;
 
   return (
     <div>
@@ -84,7 +87,7 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
             <DialogDescription>
               {manifest.step === "upload"
                 ? "Upload manifest sheet here for monitoring."
-                : `${manifest.previewData.length} record(s) found — ${validCount} valid, ${invalidCount} invalid. Please review before uploading.`}
+                : `${manifest.previewData.length} record(s) found — ${validCount} valid, ${invalidCount} invalid, ${warningCount} warning(s). Please review before uploading.`}
             </DialogDescription>
           </DialogHeader>
 
