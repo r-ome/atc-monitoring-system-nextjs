@@ -34,6 +34,7 @@ test("RegisterBidderController requires payment lines to exactly equal the regis
 test("RegisterBidderController returns success when payment totals match and registration succeeds", async () => {
   const useCaseModule = await import("src/application/use-cases/auctions/register-bidder.use-case");
   const logActivityModule = await import("@/app/lib/log-activity");
+  let activityDescription = "";
 
   restorers.push(
     patchMethod(useCaseModule, "registerBidderUseCase", async () => ({
@@ -45,7 +46,14 @@ test("RegisterBidderController returns success when payment totals match and reg
     patchMethod(BidderRepository, "getBidder", async () => ({
       bidder_number: "0007",
     }) as never),
-    patchMethod(logActivityModule, "logActivity", async () => undefined as never),
+    patchMethod(
+      logActivityModule,
+      "logActivity",
+      async (_action, _entityType, _entityId, description) => {
+        activityDescription = description;
+        return undefined as never;
+      },
+    ),
   );
 
   const result = await RegisterBidderController({
@@ -62,4 +70,8 @@ test("RegisterBidderController returns success when payment totals match and reg
     assert.fail("Expected valid registration to succeed");
   }
   assert.equal(result.value?.auction_bidder_id, "ab-1");
+  assert.equal(
+    activityDescription,
+    "Registered bidder #0007 to auction on Apr 01, 2026",
+  );
 });

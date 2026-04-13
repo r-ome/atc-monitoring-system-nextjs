@@ -12,14 +12,14 @@ import type {
 import {
   AuctionInventorySearchInput,
   AuctionInventorySearchRow,
-  AuctionInventoryWithDetailsRow,
+  AuctionInventoryWithContainerDetailsRow,
 } from "src/entities/models/Auction";
 
 export interface IInventoryRepository {
   getInventory: (inventory_id: string) => Promise<InventoryWithDetailsRow>;
   getAuctionItemDetails: (
     auction_inventory_id: string,
-  ) => Promise<AuctionInventoryWithDetailsRow | null>;
+  ) => Promise<AuctionInventoryWithContainerDetailsRow | null>;
   searchAuctionItems: (
     input: AuctionInventorySearchInput,
   ) => Promise<AuctionInventorySearchRow[]>;

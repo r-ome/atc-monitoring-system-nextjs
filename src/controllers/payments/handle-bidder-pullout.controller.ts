@@ -44,7 +44,7 @@ export const HandleBidderPullOutController = async (
       "CREATE",
       "payment",
       res.receipt_id,
-      `Pull-out payment ₱${data.amount_to_be_paid.toLocaleString()} for bidder ${res.bidder_number}`,
+      `Pull-out payment ₱${data.amount_to_be_paid.toLocaleString()} for bidder #${res.bidder_number}`,
     );
     return ok(res);
   } catch (error) {

@@ -83,7 +83,7 @@ export const UpdateAuctionItemController = async (
               },
               {
                 label: "Container",
-                getValue: (item) => item.inventory.container_id,
+                getValue: (item) => item.inventory.container.barcode,
               },
             ],
           })

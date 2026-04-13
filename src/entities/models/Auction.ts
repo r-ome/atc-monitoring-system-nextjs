@@ -73,6 +73,16 @@ export type AuctionInventoryWithDetailsRow =
     };
   }>;
 
+export type AuctionInventoryWithContainerDetailsRow =
+  Prisma.auctions_inventoriesGetPayload<{
+    include: {
+      auction_bidder: { include: { bidder: true } };
+      inventory: { include: { container: true } };
+      receipt: true;
+      histories: { include: { receipt: true } };
+    };
+  }>;
+
 export type AuctionInventorySearchRow =
   Prisma.auctions_inventoriesGetPayload<{
     include: {

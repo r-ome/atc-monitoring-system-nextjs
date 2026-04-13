@@ -52,7 +52,7 @@ export const RegisterBidderController = async (
       "CREATE",
       "auction_bidder",
       res.auction_bidder_id,
-      `Registered bidder ${bidder.bidder_number} to auction on ${auctionDate}`,
+      `Registered bidder #${bidder.bidder_number} to auction on ${auctionDate}`,
     );
     return ok(res);
   } catch (error) {

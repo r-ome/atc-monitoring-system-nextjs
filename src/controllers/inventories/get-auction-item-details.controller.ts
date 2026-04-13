@@ -4,12 +4,12 @@ import {
 } from "src/entities/errors/common";
 import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { ok, err } from "src/entities/models/Result";
-import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
+import { AuctionInventoryWithContainerDetailsRow } from "src/entities/models/Auction";
 import { logger } from "@/app/lib/logger";
 import { formatDate } from "@/app/lib/utils";
 
 export const presentAuctionInventoryDetails = (
-  auction_inventory: AuctionInventoryWithDetailsRow,
+  auction_inventory: AuctionInventoryWithContainerDetailsRow,
 ) => {
   const date_format = "MMMM dd, yyyy";
   return {
