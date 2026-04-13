@@ -25,6 +25,7 @@ import {
 } from "src/entities/models/Manifest";
 import {
   AuctionItemStatus,
+  CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES,
   AuctionInventoryWithDetailsRow,
   Override,
 } from "src/entities/models/Auction";
@@ -499,7 +500,9 @@ export const AuctionRepository: IAuctionRepository = {
             const match = auctions_inventories.find((auction_inventory) => {
               return (
                 auction_inventory.inventory_id === item.inventory_id &&
-                (["CANCELLED", "REFUNDED"].includes(auction_inventory.status) ||
+                (CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(
+                  auction_inventory.status,
+                ) ||
                   ["BOUGHT_ITEM"].includes(auction_inventory.inventory.status))
               );
             });

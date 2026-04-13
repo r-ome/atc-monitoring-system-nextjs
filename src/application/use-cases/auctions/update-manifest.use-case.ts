@@ -2,7 +2,10 @@ import { AuctionRepository, ContainerRepository, InventoryRepository } from "src
 import { InventoryForManifestRow } from "src/entities/models/Inventory";
 import { UpdateManifestInput } from "src/entities/models/Manifest";
 import { AuctionBidderForManifestRow } from "src/entities/models/Bidder";
-import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
+import {
+  AuctionInventoryWithDetailsRow,
+  CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES,
+} from "src/entities/models/Auction";
 import { ContainerBarcodeRow } from "src/entities/models/Container";
 import { divideIntoHundreds, divideQuantites, getContainerBarcode, isThreePartBarcode } from "src/application/use-cases/auctions/manifest-pipeline";
 import { formatNumberPadding } from "@/app/lib/utils";
@@ -183,7 +186,7 @@ const removeMonitoringDuplicates = (
       monitoringItem,
     );
 
-    if (["CANCELLED", "REFUNDED"].includes(monitoringItem.status)) {
+    if (CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(monitoringItem.status)) {
       reusableByBarcode.set(monitoringItem.inventory.barcode, monitoringItem);
       reusableByBarcodeControl.set(
         `${monitoringItem.inventory.barcode}:${monitoringItem.inventory.control}`,

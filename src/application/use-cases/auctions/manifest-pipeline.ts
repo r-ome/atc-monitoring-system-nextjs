@@ -1,7 +1,10 @@
 import { ManifestSheetRecord, UploadManifestInput } from "src/entities/models/Manifest";
 import { InventoryForManifestRow } from "src/entities/models/Inventory";
 import { ContainerBarcodeRow } from "src/entities/models/Container";
-import { AuctionInventoryWithDetailsRow } from "src/entities/models/Auction";
+import {
+  AuctionInventoryWithDetailsRow,
+  CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES,
+} from "src/entities/models/Auction";
 import { AuctionBidderForManifestRow } from "src/entities/models/Bidder";
 import { formatNumberPadding } from "@/app/lib/utils";
 import { v4 as uuidv4 } from "uuid";
@@ -378,7 +381,7 @@ export const removeMonitoringDuplicates = (
     );
 
     if (
-      ["CANCELLED", "REFUNDED"].includes(item.status) ||
+      CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(item.status) ||
       (!is_bought_items && ["BOUGHT_ITEM"].includes(item.inventory.status))
     ) {
       cancelledByBarcode.set(item.inventory.barcode, item);

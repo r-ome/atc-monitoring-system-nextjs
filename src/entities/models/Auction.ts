@@ -14,6 +14,9 @@ export const AUCTION_ITEM_STATUS = [
 
 export type AuctionItemStatus = (typeof AUCTION_ITEM_STATUS)[number];
 
+export const CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES: ReadonlyArray<AuctionItemStatus> =
+  ["CANCELLED", "REFUNDED"];
+
 export type AuctionRow = Prisma.auctionsGetPayload<object>;
 
 export type AuctionWithSalesRow = Prisma.auctionsGetPayload<{

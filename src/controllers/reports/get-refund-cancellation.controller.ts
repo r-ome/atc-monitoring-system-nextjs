@@ -4,12 +4,13 @@ import { logger } from "@/app/lib/logger";
 import { ReportsRepository } from "src/infrastructure/di/repositories";
 import { RefundCancellationRow, RefundCancellationEntry } from "src/entities/models/Report";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
+import { CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES } from "src/entities/models/Auction";
 import { formatDate } from "@/app/lib/utils";
 import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
 
 function getRelevantHistories(row: RefundCancellationRow) {
   return row.histories.filter((history) =>
-    ["CANCELLED", "REFUNDED"].includes(history.auction_status),
+    CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(history.auction_status),
   );
 }
 
