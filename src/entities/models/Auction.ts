@@ -77,7 +77,11 @@ export type AuctionInventoryWithContainerDetailsRow =
   Prisma.auctions_inventoriesGetPayload<{
     include: {
       auction_bidder: { include: { bidder: true } };
-      inventory: { include: { container: true } };
+      inventory: {
+        include: {
+          container: { select: { container_id: true; barcode: true } };
+        };
+      };
       receipt: true;
       histories: { include: { receipt: true } };
     };
