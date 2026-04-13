@@ -14,6 +14,8 @@ import {
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { generateReport } from "@/app/lib/reports";
 import { DeductionItem } from "@/app/lib/reports/generateReport";
+import { type AuctionItemStatus } from "src/entities/models/Auction";
+import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { InventoryRowType } from "./ContainerInventoriesTable";
 import { DialogDescription } from "@radix-ui/react-dialog";
 
@@ -25,6 +27,12 @@ interface GenerateContainerReportModalProps {
   };
 }
 
+const CANCELLED_AUCTION_STATUS: AuctionItemStatus = "CANCELLED";
+const REFUNDED_AUCTION_STATUS: AuctionItemStatus = "REFUNDED";
+const EXCLUDED_MONITORING_AUCTION_STATUSES: ReadonlyArray<AuctionItemStatus> = [
+  CANCELLED_AUCTION_STATUS,
+];
+
 export const GenerateContainerReportModal = ({
   inventories,
   container,
@@ -32,6 +40,8 @@ export const GenerateContainerReportModal = ({
   const [open, setOpen] = useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [excludeBidder740, setExcludeBidder740] = useState<boolean>(false);
+  const [excludeRefundedBidder5013, setExcludeRefundedBidder5013] =
+    useState<boolean>(false);
   const [deductThirtyK, setDeductThirtyK] = useState<boolean>(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -73,34 +83,49 @@ export const GenerateContainerReportModal = ({
     {},
   );
 
-  const for_monitoring_report = inventories
+  const selected_auction_inventories = inventories
     .filter((item) => {
       if (!item.auctions_inventory) return false;
       const auction_status = item.auctions_inventory.status;
-      return !["CANCELLED", "REFUND"].includes(auction_status);
+      return !EXCLUDED_MONITORING_AUCTION_STATUSES.includes(auction_status);
     })
-    .filter((item) => selectedDates.includes(item?.auction_date || ""))
-    .filter((item) =>
-      excludeBidder740
-        ? item.auctions_inventory?.bidder.bidder_number !== "0740"
-        : true,
-    )
-    .map((item) => {
-      const auction_inventory = item.auctions_inventory;
-      return {
-        barcode: item.barcode,
-        control: item.control,
-        description: auction_inventory
-          ? auction_inventory.description
-          : item.description,
-        bidder_number: auction_inventory
-          ? auction_inventory.bidder.bidder_number
-          : "",
-        qty: auction_inventory ? auction_inventory.qty : "",
-        price: auction_inventory ? auction_inventory.price : 0,
-        status: item.status,
-      };
-    })
+    .filter((item) => selectedDates.includes(item.auction_date || ""));
+
+  const shouldRemoveBidderFromMonitoring = (item: InventoryRowType) => {
+    const auction_inventory = item.auctions_inventory;
+    if (!auction_inventory) return false;
+
+    if (
+      excludeRefundedBidder5013 &&
+      auction_inventory.bidder.bidder_number === ATC_DEFAULT_BIDDER_NUMBER &&
+      auction_inventory.status === REFUNDED_AUCTION_STATUS
+    ) {
+      return true;
+    }
+
+    return (
+      excludeBidder740 && auction_inventory.bidder.bidder_number === "0740"
+    );
+  };
+
+  const mapMonitoringItem = (item: InventoryRowType) => {
+    const auction_inventory = item.auctions_inventory;
+    return {
+      barcode: item.barcode,
+      control: item.control,
+      description: auction_inventory
+        ? auction_inventory.description
+        : item.description,
+      bidder_number: auction_inventory ? auction_inventory.bidder.bidder_number : "",
+      qty: auction_inventory ? auction_inventory.qty : "",
+      price: auction_inventory ? auction_inventory.price : 0,
+      status: item.status,
+    };
+  };
+
+  const for_monitoring_report = selected_auction_inventories
+    .filter((item) => !shouldRemoveBidderFromMonitoring(item))
+    .map(mapMonitoringItem)
     .sort((a, b) => a.control.localeCompare(b.control));
 
   const isEligibleForDeduction = (desc: string) => {
@@ -148,23 +173,13 @@ export const GenerateContainerReportModal = ({
 
   const bidder740_monitoring =
     deductThirtyK && excludeBidder740
-      ? inventories
-          .filter((item) => {
-            if (!item.auctions_inventory) return false;
-            return !["CANCELLED", "REFUND"].includes(
-              item.auctions_inventory.status,
-            );
-          })
-          .filter((item) => selectedDates.includes(item?.auction_date || ""))
+      ? selected_auction_inventories
           .filter(
             (item) => item.auctions_inventory?.bidder.bidder_number === "0740",
           )
           .map((item) => ({
-            control: item.control,
-            description:
-              item.auctions_inventory?.description ?? item.description,
+            ...mapMonitoringItem(item),
             bidder_number: "0740",
-            price: item.auctions_inventory?.price ?? 0,
           }))
       : [];
 
@@ -257,6 +272,17 @@ export const GenerateContainerReportModal = ({
                 }
               />
               <span>Remove Bidder 740</span>
+            </label>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <Checkbox
+                checked={excludeRefundedBidder5013}
+                onCheckedChange={(checked) =>
+                  setExcludeRefundedBidder5013(checked === true)
+                }
+              />
+              <span>
+                Remove REFUNDED items from Bidder {ATC_DEFAULT_BIDDER_NUMBER}
+              </span>
             </label>
             <label className="flex items-center space-x-2 cursor-pointer">
               <Checkbox
