@@ -15,9 +15,14 @@ import {
 } from "@/app/components/ui/tooltip";
 import { SearchComponent } from "@/app/components/data-table/SearchComponent";
 
+const parseDisplayDate = (value: string) => new Date(value).getTime();
+
 const columns: ColumnDef<RefundCancellationEntry>[] = [
   {
     accessorKey: "auction_date",
+    sortingFn: (rowA, rowB) =>
+      parseDisplayDate(rowA.original.auction_date) -
+      parseDisplayDate(rowB.original.auction_date),
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -35,6 +40,9 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
   },
   {
     accessorKey: "status_date",
+    sortingFn: (rowA, rowB) =>
+      parseDisplayDate(rowA.original.status_date) -
+      parseDisplayDate(rowB.original.status_date),
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
