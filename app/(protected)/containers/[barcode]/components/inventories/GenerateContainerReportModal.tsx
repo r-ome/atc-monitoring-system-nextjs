@@ -16,12 +16,16 @@ import { generateReport } from "@/app/lib/reports";
 import { DeductionItem } from "@/app/lib/reports/generateReport";
 import { type AuctionItemStatus } from "src/entities/models/Auction";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
+import { type ContainerReportSheet } from "src/entities/models/Container";
 import { InventoryRowType } from "./ContainerInventoriesTable";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { toast } from "sonner";
+import { logContainerReport } from "@/app/(protected)/containers/actions";
 
 interface GenerateContainerReportModalProps {
   inventories: InventoryRowType[];
   container: {
+    container_id: string;
     supplier: { name: string };
     barcode: string;
   };
@@ -46,6 +50,34 @@ export const GenerateContainerReportModal = ({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const selectedSheets: ContainerReportSheet[] = [
+      "monitoring",
+      "final_computation",
+      "unsold",
+      "encode",
+      "bill",
+      ...(deductThirtyK ? (["deductions"] as const) : []),
+    ];
+    const logResult = await logContainerReport({
+      container_id: container.container_id,
+      barcode: container.barcode,
+      supplier_name: container.supplier.name,
+      selected_dates: selectedDates,
+      exclude_bidder_740: excludeBidder740,
+      exclude_refunded_bidder_5013: excludeRefundedBidder5013,
+      deduct_thirty_k: deductThirtyK,
+      sheets: selectedSheets,
+    });
+
+    if (!logResult.ok) {
+      const description =
+        typeof logResult.error?.cause === "string"
+          ? logResult.error.cause
+          : null;
+      toast.error(logResult.error.message, { description });
+      return;
+    }
+
     let filename = `${container.supplier.name.toUpperCase()} ${container.barcode.toUpperCase()}`;
     if (filename.length > 30) {
       filename = filename.replace("CO.,LTD", "");
@@ -57,14 +89,7 @@ export const GenerateContainerReportModal = ({
         sheetDetails: container,
         deductions: deductThirtyK ? deduction_items : undefined,
       },
-      [
-        "monitoring",
-        "final_computation",
-        "unsold",
-        "encode",
-        "bill",
-        ...(deductThirtyK ? (["deductions"] as const) : []),
-      ],
+      selectedSheets,
       filename,
     );
   };

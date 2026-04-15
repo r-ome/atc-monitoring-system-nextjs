@@ -14,6 +14,7 @@ import { UploadInventoryFileController } from "src/controllers/containers/upload
 import { DeleteContainerController } from "src/controllers/containers/delete-container.controller";
 import { MergeInventoriesController } from "src/controllers/inventories/merge-inventories.controller";
 import { AppendInventoriesController } from "src/controllers/inventories/append-inventories.controller";
+import { LogContainerReportController } from "src/controllers/containers/log-container-report.controller";
 
 export const getContainerByBarcode = async (barcode: string) => {
   const auth = await authorizeAction();
@@ -116,5 +117,15 @@ export const appendInventories = async (
     auth.value,
     async () =>
       await AppendInventoriesController(container_barcode, inventory_ids),
+  );
+};
+
+export const logContainerReport = async (input: Record<string, unknown>) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await LogContainerReportController(input),
   );
 };

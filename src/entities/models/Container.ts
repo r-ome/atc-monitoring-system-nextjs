@@ -75,6 +75,32 @@ export type Container = {
   inventories: Inventory[];
 };
 
+export const CONTAINER_REPORT_SHEETS = [
+  "monitoring",
+  "final_computation",
+  "unsold",
+  "encode",
+  "bill",
+  "deductions",
+] as const;
+
+export type ContainerReportSheet = (typeof CONTAINER_REPORT_SHEETS)[number];
+
+export const logContainerReportSchema = z.object({
+  container_id: z.string().min(1),
+  barcode: z.string().min(1),
+  supplier_name: z.string().min(1),
+  selected_dates: z.array(z.string().min(1)).min(1),
+  exclude_bidder_740: z.boolean(),
+  exclude_refunded_bidder_5013: z.boolean(),
+  deduct_thirty_k: z.boolean(),
+  sheets: z.array(z.enum(CONTAINER_REPORT_SHEETS)).min(1),
+});
+
+export type LogContainerReportInput = z.infer<
+  typeof logContainerReportSchema
+>;
+
 export const createContainerSchema = z.object({
   supplier_id: z.string().min(1),
   branch_id: z.string().min(1),
