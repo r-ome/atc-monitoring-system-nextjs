@@ -14,6 +14,7 @@ import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 import {
   buildItemMergedHistoryRemark,
   buildItemUpdatedHistoryRemark,
+  parseInventoryHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
 import { AuctionInventorySearchInput } from "src/entities/models/Auction";
 
@@ -92,7 +93,67 @@ export const InventoryRepository: IInventoryRepository = {
   updateAuctionItem: async (data, updated_by?) => {
     try {
       await prisma.$transaction(async (tx) => {
-        const selected_bidder = await prisma.auctions_bidders.findFirst({
+        const syncAuctionBidderBalance = async (auction_bidder_id: string) => {
+          const bidder = await tx.auctions_bidders.findFirst({
+            where: { auction_bidder_id },
+            include: {
+              auctions_inventories: {
+                include: {
+                  histories: {
+                    orderBy: { created_at: "desc" },
+                  },
+                },
+              },
+            },
+          });
+
+          if (!bidder) {
+            return;
+          }
+
+          const totalUnpaidItemsPrice = bidder.auctions_inventories
+            .filter((item) => ["UNPAID", "PARTIAL"].includes(item.status))
+            .map((item) => {
+              if (item.status === "UNPAID") {
+                return item.price;
+              }
+
+              const discrepancyHistory = item.histories.find(
+                (history) => history.auction_status === "DISCREPANCY",
+              );
+              const parsedHistory = parseInventoryHistoryRemark(
+                discrepancyHistory?.remarks,
+              );
+
+              if (
+                typeof parsedHistory.previous_price === "number" &&
+                typeof parsedHistory.new_price === "number"
+              ) {
+                return parsedHistory.new_price - parsedHistory.previous_price;
+              }
+
+              return item.price;
+            })
+            .reduce((acc, price) => acc + price, 0);
+
+          const serviceChargeAmount =
+            (totalUnpaidItemsPrice * bidder.service_charge) / 100;
+          const registrationFeeAmount = bidder.already_consumed
+            ? 0
+            : bidder.registration_fee;
+
+          await tx.auctions_bidders.update({
+            where: { auction_bidder_id },
+            data: {
+              balance:
+                totalUnpaidItemsPrice +
+                serviceChargeAmount -
+                registrationFeeAmount,
+            },
+          });
+        };
+
+        const selected_bidder = await tx.auctions_bidders.findFirst({
           where: {
             auction_id: data.auction_id,
             bidder: { bidder_number: data.bidder_number },
@@ -277,6 +338,17 @@ export const InventoryRepository: IInventoryRepository = {
             },
           },
         });
+
+        const affectedBidderIds = new Set([
+          auction_inventory.auction_bidder_id,
+          selected_bidder.auction_bidder_id,
+        ]);
+
+        await Promise.all(
+          Array.from(affectedBidderIds).map((auction_bidder_id) =>
+            syncAuctionBidderBalance(auction_bidder_id),
+          ),
+        );
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

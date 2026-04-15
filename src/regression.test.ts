@@ -11,3 +11,4 @@ import "./controllers/inventories/refund-auctions-inventories.controller.test";
 import "./controllers/expenses/repair-petty-cash-consistency.controller.test";
 import "./controllers/reports/get-expenses-summary.controller.test";
 import "./infrastructure/repositories/auction-manifest-write.test";
+import "./infrastructure/repositories/inventories.repository.test";
