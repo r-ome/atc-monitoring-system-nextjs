@@ -30,11 +30,15 @@ interface ContainerInventoriesProps {
   container: Omit<Container, "inventories"> & {
     inventories: InventoryRowType[];
   };
+  userBranchId: string;
+  tarlacBranchId: string | null;
 }
 
 export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
   inventories,
   container,
+  userBranchId,
+  tarlacBranchId,
 }) => {
   const router = useRouter();
 
@@ -60,6 +64,8 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
           <GenerateContainerReportModal
             inventories={inventories}
             container={container}
+            userBranchId={userBranchId}
+            tarlacBranchId={tarlacBranchId}
           />
           <MergeInventoriesModal inventories={inventories} />
           <AppendInventoriesModal inventories={inventories} />

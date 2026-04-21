@@ -1,25 +1,18 @@
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import { LogContainerReportInput, logContainerReportSchema } from "src/entities/models/Container";
+import { logContainerReportSchema } from "src/entities/models/Container";
 import { err, ok } from "src/entities/models/Result";
-
-const SHEET_LABELS: Record<LogContainerReportInput["sheets"][number], string> = {
-  monitoring: "Monitoring",
-  final_computation: "Final Computation",
-  unsold: "Unsold",
-  encode: "Encode",
-  bill: "Bill",
-  deductions: "Deductions",
-};
 
 export const LogContainerReportController = async (
   input: Record<string, unknown>,
 ) => {
   try {
+    const ctx = RequestContext.getStore();
     const { data, error: inputParseError } =
       logContainerReportSchema.safeParse(input);
 
@@ -29,16 +22,24 @@ export const LogContainerReportController = async (
       });
     }
 
-    const description = [
+    const descriptionParts = [
       `Generated container report for ${data.barcode} (${data.supplier_name})`,
       `Auction dates: ${data.selected_dates.join(", ")}`,
-      `Remove Bidder 740: ${data.exclude_bidder_740 ? "Yes" : "No"}`,
       `Remove REFUNDED items from Bidder 5013: ${
         data.exclude_refunded_bidder_5013 ? "Yes" : "No"
       }`,
       `Less 30,000: ${data.deduct_thirty_k ? "Yes" : "No"}`,
-      `Sheets: ${data.sheets.map((sheet) => SHEET_LABELS[sheet]).join(", ")}`,
-    ].join(" | ");
+    ];
+
+    if (ctx?.branch_name !== "TARLAC") {
+      descriptionParts.splice(
+        2,
+        0,
+        `Remove Bidder 740: ${data.exclude_bidder_740 ? "Yes" : "No"}`,
+      );
+    }
+
+    const description = descriptionParts.join(" | ");
 
     await logActivity(
       "CREATE",

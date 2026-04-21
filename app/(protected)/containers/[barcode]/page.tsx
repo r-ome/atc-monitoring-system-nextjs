@@ -4,16 +4,22 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/app/components/ui/tabs";
+import { requireUser } from "@/app/lib/auth";
 import { ContainerProfile } from "./components/ContainerProfile";
 import { ContainerInventoriesTable } from "./components/inventories/ContainerInventoriesTable";
 import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
+import { getBranches } from "@/app/(protected)/branches/actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
 export default async function Page({
   params,
 }: Readonly<{ params: Promise<{ barcode: string }> }>) {
   const { barcode } = await params;
-  const res = await getContainerByBarcode(barcode);
+  const user = await requireUser();
+  const [res, branchesRes] = await Promise.all([
+    getContainerByBarcode(barcode),
+    getBranches(),
+  ]);
 
   if (!res.ok) {
     return (
@@ -24,6 +30,10 @@ export default async function Page({
   }
 
   const container = res.value;
+  const tarlacBranchId = branchesRes.ok
+    ? (branchesRes.value.find((branch) => branch.name === "TARLAC")
+        ?.branch_id ?? null)
+    : null;
 
   return (
     <div className="h-full w-full p-4">
@@ -36,6 +46,8 @@ export default async function Page({
           <ContainerInventoriesTable
             inventories={container.inventories}
             container={container}
+            userBranchId={user.branch.branch_id}
+            tarlacBranchId={tarlacBranchId}
           />
         </TabsContent>
         <TabsContent value="profile">

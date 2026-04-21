@@ -29,6 +29,8 @@ interface GenerateContainerReportModalProps {
     supplier: { name: string };
     barcode: string;
   };
+  userBranchId: string;
+  tarlacBranchId: string | null;
 }
 
 const CANCELLED_AUCTION_STATUS: AuctionItemStatus = "CANCELLED";
@@ -40,6 +42,8 @@ const EXCLUDED_MONITORING_AUCTION_STATUSES: ReadonlyArray<AuctionItemStatus> = [
 export const GenerateContainerReportModal = ({
   inventories,
   container,
+  userBranchId,
+  tarlacBranchId,
 }: GenerateContainerReportModalProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -47,6 +51,7 @@ export const GenerateContainerReportModal = ({
   const [excludeRefundedBidder5013, setExcludeRefundedBidder5013] =
     useState<boolean>(false);
   const [deductThirtyK, setDeductThirtyK] = useState<boolean>(false);
+  const shouldShowExcludeBidder740 = userBranchId !== tarlacBranchId;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,7 +68,7 @@ export const GenerateContainerReportModal = ({
       barcode: container.barcode,
       supplier_name: container.supplier.name,
       selected_dates: selectedDates,
-      exclude_bidder_740: excludeBidder740,
+      exclude_bidder_740: shouldShowExcludeBidder740 ? excludeBidder740 : false,
       exclude_refunded_bidder_5013: excludeRefundedBidder5013,
       deduct_thirty_k: deductThirtyK,
       sheets: selectedSheets,
@@ -129,7 +134,9 @@ export const GenerateContainerReportModal = ({
     }
 
     return (
-      excludeBidder740 && auction_inventory.bidder.bidder_number === "0740"
+      shouldShowExcludeBidder740 &&
+      excludeBidder740 &&
+      auction_inventory.bidder.bidder_number === "0740"
     );
   };
 
@@ -197,7 +204,7 @@ export const GenerateContainerReportModal = ({
   };
 
   const bidder740_monitoring =
-    deductThirtyK && excludeBidder740
+    deductThirtyK && shouldShowExcludeBidder740 && excludeBidder740
       ? selected_auction_inventories
           .filter(
             (item) => item.auctions_inventory?.bidder.bidder_number === "0740",
@@ -289,15 +296,17 @@ export const GenerateContainerReportModal = ({
 
           <div className="border-t pt-2 space-y-1">
             <p className="text-sm font-medium">Options</p>
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <Checkbox
-                checked={excludeBidder740}
-                onCheckedChange={(checked) =>
-                  setExcludeBidder740(checked === true)
-                }
-              />
-              <span>Remove Bidder 740</span>
-            </label>
+            {shouldShowExcludeBidder740 ? (
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <Checkbox
+                  checked={excludeBidder740}
+                  onCheckedChange={(checked) =>
+                    setExcludeBidder740(checked === true)
+                  }
+                />
+                <span>Remove Bidder 740</span>
+              </label>
+            ) : null}
             <label className="flex items-center space-x-2 cursor-pointer">
               <Checkbox
                 checked={excludeRefundedBidder5013}
