@@ -556,28 +556,30 @@ export const AuctionRepository: IAuctionRepository = {
           }
         }
 
-        const update_balance = items_for_insert.reduce(
-          (acc: Record<string, number>, item) => {
-            const price = parseInt(item.PRICE, 10);
-            const service_charge_amount = (price * item.service_charge) / 100;
-            const total = price + service_charge_amount;
+        if (!is_bought_items) {
+          const update_balance = items_for_insert.reduce(
+            (acc: Record<string, number>, item) => {
+              const price = parseInt(item.PRICE, 10);
+              const service_charge_amount = (price * item.service_charge) / 100;
+              const total = price + service_charge_amount;
 
-            acc[item.auction_bidder_id] =
-              (acc[item.auction_bidder_id] || 0) + total;
+              acc[item.auction_bidder_id] =
+                (acc[item.auction_bidder_id] || 0) + total;
 
-            return acc;
-          },
-          {},
-        );
+              return acc;
+            },
+            {},
+          );
 
-        await Promise.all(
-          Object.entries(update_balance).map(([auction_bidder_id, amount]) =>
-            tx.auctions_bidders.update({
-              where: { auction_bidder_id },
-              data: { balance: { increment: amount } },
-            }),
-          ),
-        );
+          await Promise.all(
+            Object.entries(update_balance).map(([auction_bidder_id, amount]) =>
+              tx.auctions_bidders.update({
+                where: { auction_bidder_id },
+                data: { balance: { increment: amount } },
+              }),
+            ),
+          );
+        }
 
         return auctions_inventories;
       });
