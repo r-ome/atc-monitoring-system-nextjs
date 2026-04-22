@@ -10,6 +10,8 @@ import {
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
 
+const parseDisplayDate = (value: string) => new Date(value).getTime();
+
 export const columns: ColumnDef<UnpaidBidders>[] = [
   {
     accessorKey: "bidder_number",
@@ -95,6 +97,9 @@ export const columns: ColumnDef<UnpaidBidders>[] = [
   },
   {
     accessorKey: "auction_date",
+    sortingFn: (rowA, rowB) =>
+      parseDisplayDate(rowA.original.auction_date) -
+      parseDisplayDate(rowB.original.auction_date),
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
