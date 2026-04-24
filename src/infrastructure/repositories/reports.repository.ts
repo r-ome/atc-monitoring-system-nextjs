@@ -461,7 +461,7 @@ export const ReportsRepository: IReportsRepository = {
             include: { auctions_inventory: true },
           },
         },
-        orderBy: [{ status: "asc" }, { arrival_date: "asc" }],
+        orderBy: [{ due_date: "asc" }, { arrival_date: "asc" }],
       });
     } catch (error) {
       handleError("Error getting container status overview", error);

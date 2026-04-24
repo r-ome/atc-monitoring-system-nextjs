@@ -6,6 +6,10 @@ import { ContainerStatusEntry } from "src/entities/models/Report";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { formatNumberToCurrency } from "@/app/lib/utils";
+import { parse } from "date-fns";
+
+const parseReportDate = (value: string | null) =>
+  value ? parse(value, "MMM dd, yyyy", new Date()).getTime() : 0;
 
 const columns: ColumnDef<ContainerStatusEntry>[] = [
   {
@@ -41,7 +45,17 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
   },
   {
     accessorKey: "status",
-    header: () => <div className="text-center">Status</div>,
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status <ArrowUpDown />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => {
       const isPaid = row.original.status === "PAID";
       return (
@@ -55,7 +69,20 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
   },
   {
     accessorKey: "arrival_date",
-    header: () => <div className="text-center">Arrival Date</div>,
+    sortingFn: (rowA, rowB) =>
+      parseReportDate(rowA.original.arrival_date) -
+      parseReportDate(rowB.original.arrival_date),
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Arrival Date <ArrowUpDown />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => (
       <div className="flex justify-center text-muted-foreground">
         {row.original.arrival_date ?? "—"}
@@ -64,7 +91,20 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
   },
   {
     accessorKey: "due_date",
-    header: () => <div className="text-center">Due Date</div>,
+    sortingFn: (rowA, rowB) =>
+      parseReportDate(rowA.original.due_date) -
+      parseReportDate(rowB.original.due_date),
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Due Date <ArrowUpDown />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => (
       <div className="flex justify-center text-muted-foreground">
         {row.original.due_date ?? "—"}
@@ -158,6 +198,7 @@ export const ContainerStatusTable = ({ data }: Props) => {
       }
       columns={columns}
       data={data}
+      initialSorting={[{ id: "due_date", desc: false }]}
     />
   );
 };
