@@ -1,8 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { formatDate } from "@/app/lib/utils";
-import { getAuction } from "@/app/(protected)/auctions/actions";
-import { AuctionInventoryRow } from "src/entities/models/Auction";
+import { getAuction, getMonitoring } from "@/app/(protected)/auctions/actions";
 import { AuctionNavigation } from "@/app/(protected)/auctions/components/AuctionNavigation";
 import {
   Card,
@@ -26,15 +25,6 @@ import { PageHeader, StatCard, StatCardGroup } from "@/app/components/admin";
 import { Users, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-
-type AuctionItemSchema = AuctionInventoryRow[];
-
-type AuctionItems = {
-  paid_items: AuctionItemSchema;
-  unpaid_items: AuctionItemSchema;
-  cancelled_items: AuctionItemSchema;
-  refunded_items: AuctionItemSchema;
-};
 
 export default async function Page({
   params,
@@ -68,33 +58,45 @@ export default async function Page({
   }
 
   const auction = res.value;
+  const monitoringRes = await getMonitoring(auction.auction_id);
+
+  if (!monitoringRes.ok) {
+    return <ErrorComponent error={monitoringRes.error} />;
+  }
+
   const total_registered_bidders = auction.registered_bidders.length - 1;
   const total_registration_fee = auction.registered_bidders.reduce(
     (acc, item) => (acc += item.registration_fee),
     0,
   );
 
-  const total_items = auction.auctions_inventories.length;
-  const filtered_items = auction.auctions_inventories.reduce<AuctionItems>(
+  const item_summary = monitoringRes.value.reduce(
     (acc, item) => {
-      if (item.status === "PAID") acc["paid_items"].push(item);
-      if (item.status === "UNPAID") acc["unpaid_items"].push(item);
-      if (item.status === "CANCELLED") acc["cancelled_items"].push(item);
-      if (item.status === "REFUNDED") acc["refunded_items"].push(item);
+      const has_refunded_history = item.histories.some((history) =>
+        history.remarks?.startsWith("Refunded item"),
+      );
+      const is_refunded = item.status === "REFUNDED" || has_refunded_history;
+
+      acc.total_items += 1;
+      if (item.status === "PAID") acc.paid_items += 1;
+      if (item.status === "UNPAID") acc.unpaid_items += 1;
+      if (item.status === "CANCELLED" && !is_refunded) acc.cancelled_items += 1;
+      if (is_refunded) acc.refunded_items += 1;
+      if (["PAID", "UNPAID"].includes(item.status)) {
+        acc.total_item_price += item.price;
+      }
 
       return acc;
     },
     {
-      paid_items: [],
-      unpaid_items: [],
-      cancelled_items: [],
-      refunded_items: [],
+      total_items: 0,
+      paid_items: 0,
+      unpaid_items: 0,
+      cancelled_items: 0,
+      refunded_items: 0,
+      total_item_price: 0,
     },
   );
-  const total_item_price = [
-    ...filtered_items.paid_items,
-    ...filtered_items.unpaid_items,
-  ].reduce((acc, item) => (acc += item.price), 0);
 
   const total_service_charge_amount = auction.registered_bidders.reduce(
     (acc, registered_bidder) => {
@@ -168,7 +170,7 @@ export default async function Page({
           />
           <StatCard
             title="Total Sales"
-            value={`₱${total_item_price.toLocaleString()}`}
+            value={`₱${item_summary.total_item_price.toLocaleString()}`}
             description={`₱${total_service_charge_amount.toLocaleString()} Service Charge Amount`}
             icon={TrendingUp}
             variant="success"
@@ -190,23 +192,23 @@ export default async function Page({
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between gap-8">
                   <p className="text-sm text-muted-foreground uppercase">Total Items</p>
-                  <p className="text-2xl font-bold">{total_items}</p>
+                  <p className="text-2xl font-bold">{item_summary.total_items}</p>
                 </div>
                 <div className="flex items-center justify-between gap-8">
                   <p className="text-sm text-muted-foreground uppercase">Paid</p>
-                  <p className="text-2xl font-bold text-status-success">{filtered_items.paid_items.length}</p>
+                  <p className="text-2xl font-bold text-status-success">{item_summary.paid_items}</p>
                 </div>
                 <div className="flex items-center justify-between gap-8">
                   <p className="text-sm text-muted-foreground uppercase">Unpaid</p>
-                  <p className="text-2xl font-bold text-status-error">{filtered_items.unpaid_items.length}</p>
+                  <p className="text-2xl font-bold text-status-error">{item_summary.unpaid_items}</p>
                 </div>
                 <div className="flex items-center justify-between gap-8">
                   <p className="text-sm text-muted-foreground uppercase">Cancelled</p>
-                  <p className="text-2xl font-bold text-muted-foreground">{filtered_items.cancelled_items.length}</p>
+                  <p className="text-2xl font-bold text-muted-foreground">{item_summary.cancelled_items}</p>
                 </div>
                 <div className="flex items-center justify-between gap-8">
                   <p className="text-sm text-muted-foreground uppercase">Refunded</p>
-                  <p className="text-2xl font-bold text-status-info">{filtered_items.refunded_items.length}</p>
+                  <p className="text-2xl font-bold text-status-info">{item_summary.refunded_items}</p>
                 </div>
               </div>
             </CardContent>
