@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { IAuctionRepository } from "src/application/repositories/auctions.repository.interface";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { logger } from "@/app/lib/logger";
@@ -7,12 +8,12 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import {
+  buildBoughtItemEncodedHistoryRemark,
   buildCancelledHistoryRemark,
   buildEncodedAgainHistoryRemark,
   buildEncodedHistoryRemark,
   buildManifestReencodedHistoryRemark,
   parseInventoryHistoryRemark,
-  buildReassignedHistoryRemark,
   buildRefundedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
 import {
@@ -400,6 +401,50 @@ export const AuctionRepository: IAuctionRepository = {
           },
         });
 
+        const existing_auction_inventories_for_update = for_updating.length
+          ? await tx.auctions_inventories.findMany({
+              include: { histories: true, inventory: true },
+              where: {
+                auction_inventory_id: {
+                  in: for_updating
+                    .map((item) => item.auction_inventory_id)
+                    .filter(
+                      (auction_inventory_id): auction_inventory_id is string =>
+                        Boolean(auction_inventory_id),
+                    ),
+                },
+              },
+            })
+          : [];
+
+        // match for_updating items to their cancelled/refunded/bought_item auction_inventories
+        const items_to_reencode = is_bought_items
+          ? []
+          : for_updating
+              .map((item) => {
+                const match = existing_auction_inventories_for_update.find((auction_inventory) => {
+                  return (
+                    auction_inventory.inventory_id === item.inventory_id &&
+                    (CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(
+                      auction_inventory.status,
+                    ) ||
+                      ["BOUGHT_ITEM"].includes(auction_inventory.inventory.status))
+                  );
+                });
+
+                if (!match) return null;
+
+                return {
+                  ...item,
+                  auction_inventory_id: match.auction_inventory_id,
+                  previous_status:
+                    match.inventory.status === "BOUGHT_ITEM"
+                      ? match.inventory.status
+                      : match.status,
+                };
+              })
+              .filter((item) => item !== null);
+
         const reusedInventoryUpdates = buildReusedInventoryUpdates(
           for_updating,
           auction.created_at,
@@ -470,6 +515,33 @@ export const AuctionRepository: IAuctionRepository = {
             ),
         );
 
+        /**
+         * If item is CANCELLED or REFUNDED or BOUGHT ITEM(inventory_status) but was encoded again:
+         * update item inventory status to: SOLD
+         * update auction inventory status to: UNPAID
+         */
+        if (items_to_reencode.length) {
+          await Promise.all(
+            items_to_reencode.map((item) =>
+              tx.auctions_inventories.update({
+                data: {
+                  auction_bidder_id: item.auction_bidder_id as string,
+                  description: item.DESCRIPTION,
+                  price: parseInt(item.PRICE, 10),
+                  qty: item.QTY,
+                  manifest_number: item.MANIFEST as string,
+                  status: "UNPAID",
+                  auction_date: auction.created_at,
+                  is_slash_item: item.isSlashItem,
+                },
+                where: {
+                  auction_inventory_id: item.auction_inventory_id,
+                },
+              }),
+            ),
+          );
+        }
+
         const auctions_inventories = await tx.auctions_inventories.findMany({
           include: { histories: true, inventory: true },
           where: {
@@ -481,79 +553,43 @@ export const AuctionRepository: IAuctionRepository = {
           },
         });
 
-        // add "encoded" in history
-        await tx.inventory_histories.createMany({
-          data: auctions_inventories.map((item) => ({
+        const reencoded_auction_inventory_ids = new Set(
+          items_to_reencode.map((item) => item.auction_inventory_id),
+        );
+
+        const encoded_histories: Prisma.inventory_historiesCreateManyInput[] = auctions_inventories
+          .filter(
+            (item) =>
+              !reencoded_auction_inventory_ids.has(item.auction_inventory_id),
+          )
+          .map((item) => ({
             auction_inventory_id: item.auction_inventory_id,
             inventory_id: item.inventory_id,
             auction_status: is_bought_items ? "PAID" : "UNPAID",
             inventory_status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
             remarks: is_bought_items
-              ? buildReassignedHistoryRemark()
+              ? buildBoughtItemEncodedHistoryRemark(uploaded_by)
               : buildEncodedHistoryRemark(uploaded_by),
-          })),
-        });
+          }));
 
-        // match for_updating items to their cancelled/refunded/bought_item auction_inventories
-        const cancelled_items_to_reencode = for_updating
-          .map((item) => {
-            const match = auctions_inventories.find((auction_inventory) => {
-              return (
-                auction_inventory.inventory_id === item.inventory_id &&
-                (CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(
-                  auction_inventory.status,
-                ) ||
-                  ["BOUGHT_ITEM"].includes(auction_inventory.inventory.status))
-              );
-            });
+        // add "encoded" in history
+        if (encoded_histories.length) {
+          await tx.inventory_histories.createMany({
+            data: encoded_histories,
+          });
+        }
 
-            if (!match) return null;
-
-            return {
-              ...item,
-              auction_inventory_id: match.auction_inventory_id,
-              status: match.status,
-            };
-          })
-          .filter((item) => item !== null);
-
-        /**
-         * If item is CANCELLED or REFUNDED or BOUGHT ITEM(inventory_status) but was encoded again:
-         * update item inventory status to: SOLD
-         * update auction inventory status to: UNPAID
-         */
-
-        if (for_updating.length) {
-          if (!is_bought_items && cancelled_items_to_reencode.length) {
-            await Promise.all(
-              cancelled_items_to_reencode.map((item) =>
-                tx.auctions_inventories.update({
-                  data: {
-                    auction_bidder_id: item.auction_bidder_id as string,
-                    description: item.DESCRIPTION,
-                    price: parseInt(item.PRICE, 10),
-                    qty: item.QTY,
-                    status: "UNPAID",
-                    auction_date: auction.created_at,
-                    is_slash_item: item.isSlashItem,
-                  },
-                  where: {
-                    auction_inventory_id: item.auction_inventory_id,
-                  },
-                }),
-              ),
-            );
-            // ADD HISTORY FOR ENCODING AGAIN
-            await tx.inventory_histories.createMany({
-              data: cancelled_items_to_reencode.map((item) => ({
-                auction_inventory_id: item.auction_inventory_id,
-                inventory_id: item.inventory_id!,
-                auction_status: "UNPAID",
-                inventory_status: "SOLD",
-                remarks: buildEncodedAgainHistoryRemark(item.status),
-              })),
-            });
-          }
+        if (items_to_reencode.length) {
+          // ADD HISTORY FOR ENCODING AGAIN
+          await tx.inventory_histories.createMany({
+            data: items_to_reencode.map((item) => ({
+              auction_inventory_id: item.auction_inventory_id,
+              inventory_id: item.inventory_id!,
+              auction_status: "UNPAID",
+              inventory_status: "SOLD",
+              remarks: buildEncodedAgainHistoryRemark(item.previous_status),
+            })),
+          });
         }
 
         if (!is_bought_items) {

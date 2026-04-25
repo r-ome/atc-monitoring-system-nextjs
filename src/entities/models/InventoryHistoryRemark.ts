@@ -1,5 +1,6 @@
 type InventoryHistoryAction =
   | "encoded"
+  | "bought_item_encoded"
   | "reassigned"
   | "encoded_again"
   | "manifest_reencoded"
@@ -35,6 +36,7 @@ type InventoryHistoryRemarkData = {
 
 const HISTORY_PREFIXES = {
   encoded: "Item encoded",
+  bought_item_encoded: "Bought item encoded",
   reassigned: "Item reassigned",
   encoded_again: "Item encoded again",
   manifest_reencoded: "Manifest item re-encoded",
@@ -59,6 +61,12 @@ export function buildEncodedHistoryRemark(updated_by?: string) {
   if (!updated_by) return HISTORY_PREFIXES.encoded;
 
   return `${HISTORY_PREFIXES.encoded} | Updated by: ${sanitizePart(updated_by)}`;
+}
+
+export function buildBoughtItemEncodedHistoryRemark(updated_by?: string) {
+  if (!updated_by) return HISTORY_PREFIXES.bought_item_encoded;
+
+  return `${HISTORY_PREFIXES.bought_item_encoded} | Updated by: ${sanitizePart(updated_by)}`;
 }
 
 export function buildReassignedHistoryRemark() {
@@ -194,6 +202,15 @@ export function parseInventoryHistoryRemark(
   if (trimmed.startsWith(`${HISTORY_PREFIXES.encoded} | `)) {
     return {
       action: "encoded",
+      updated_by: parseLabeledField(trimmed, "Updated by", []),
+    };
+  }
+  if (trimmed === HISTORY_PREFIXES.bought_item_encoded) {
+    return { action: "bought_item_encoded" };
+  }
+  if (trimmed.startsWith(`${HISTORY_PREFIXES.bought_item_encoded} | `)) {
+    return {
+      action: "bought_item_encoded",
       updated_by: parseLabeledField(trimmed, "Updated by", []),
     };
   }

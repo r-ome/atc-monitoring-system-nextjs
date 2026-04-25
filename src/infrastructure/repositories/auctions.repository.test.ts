@@ -18,6 +18,7 @@ test("uploadManifest does not increment bidder balance for bought items", async 
     where: { auction_bidder_id: string };
     data: Record<string, unknown>;
   }> = [];
+  const historyWrites: Array<unknown[]> = [];
 
   const tx = {
     auctions: {
@@ -63,7 +64,10 @@ test("uploadManifest does not increment bidder balance for bought items", async 
       }),
     },
     inventory_histories: {
-      createMany: async () => ({ count: 1 }),
+      createMany: async ({ data }: { data: unknown[] }) => {
+        historyWrites.push(data);
+        return { count: data.length };
+      },
     },
     auctions_bidders: {
       update: async ({
@@ -113,7 +117,208 @@ test("uploadManifest does not increment bidder balance for bought items", async 
       },
     ],
     true,
+    "JUDY",
   );
 
   assert.deepEqual(bidderBalanceWrites, []);
+  assert.deepEqual(historyWrites, [
+    [
+      {
+        auction_inventory_id: "auction-inventory-1",
+        inventory_id: "inventory-1",
+        auction_status: "PAID",
+        inventory_status: "BOUGHT_ITEM",
+        remarks: "Bought item encoded | Updated by: JUDY",
+      },
+    ],
+  ]);
+});
+
+test("uploadManifest re-encodes bought items as sold inventory and updates the existing auction item", async () => {
+  const auctionDate = new Date("2026-04-25T00:00:00.000Z");
+  const inventoryUpdates: Array<{
+    where: { inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const auctionInventoryUpdates: Array<{
+    where: { auction_inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const historyWrites: Array<unknown[]> = [];
+  const bidderBalanceWrites: Array<{
+    where: { auction_bidder_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+
+  let auctionInventoryFindManyCalls = 0;
+
+  const tx = {
+    auctions: {
+      findFirst: async () => ({
+        auction_id: "auction-2026-04-25",
+        created_at: auctionDate,
+      }),
+    },
+    manifest_records: {
+      createMany: async () => ({ count: 1 }),
+    },
+    inventories: {
+      createMany: async () => ({ count: 0 }),
+      findMany: async () => [],
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        inventoryUpdates.push({ where, data });
+        return { inventory_id: where.inventory_id, ...data };
+      },
+    },
+    auctions_inventories: {
+      create: async () => {
+        throw new Error("Should reuse the existing auction inventory");
+      },
+      findMany: async () => {
+        auctionInventoryFindManyCalls += 1;
+
+        if (auctionInventoryFindManyCalls === 1) {
+          return [
+            {
+              auction_inventory_id: "auction-inventory-1",
+              inventory_id: "inventory-1",
+              status: "PAID",
+              inventory: {
+                status: "BOUGHT_ITEM",
+              },
+              histories: [],
+            },
+          ];
+        }
+
+        return [
+          {
+            auction_inventory_id: "auction-inventory-1",
+            inventory_id: "inventory-1",
+            status: "UNPAID",
+            inventory: {
+              status: "SOLD",
+            },
+            histories: [],
+          },
+        ];
+      },
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { auction_inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        auctionInventoryUpdates.push({ where, data });
+        return { auction_inventory_id: where.auction_inventory_id, ...data };
+      },
+    },
+    inventory_histories: {
+      createMany: async ({ data }: { data: unknown[] }) => {
+        historyWrites.push(data);
+        return { count: data.length };
+      },
+    },
+    auctions_bidders: {
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { auction_bidder_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        bidderBalanceWrites.push({ where, data });
+        return { where, data };
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await AuctionRepository.uploadManifest(
+    "auction-2026-04-25",
+    [
+      {
+        BARCODE: "25-35-050",
+        CONTROL: "2400",
+        DESCRIPTION: "T. BAG",
+        BIDDER: "0860",
+        PRICE: "700",
+        QTY: "2",
+        MANIFEST: "J33",
+        isValid: true,
+        forUpdating: true,
+        isSlashItem: null,
+        error: "",
+        auction_bidder_id: "bidder-0860",
+        auction_inventory_id: "auction-inventory-1",
+        inventory_id: "inventory-1",
+        service_charge: 10,
+        container_id: "container-1",
+      },
+    ],
+    false,
+    "JUDY",
+  );
+
+  assert.deepEqual(inventoryUpdates, [
+    {
+      where: { inventory_id: "inventory-1" },
+      data: {
+        control: "2400",
+        status: "SOLD",
+        auction_date: auctionDate,
+      },
+    },
+  ]);
+  assert.deepEqual(auctionInventoryUpdates, [
+    {
+      where: { auction_inventory_id: "auction-inventory-1" },
+      data: {
+        auction_bidder_id: "bidder-0860",
+        description: "T. BAG",
+        price: 700,
+        qty: "2",
+        manifest_number: "J33",
+        status: "UNPAID",
+        auction_date: auctionDate,
+        is_slash_item: null,
+      },
+    },
+  ]);
+  assert.deepEqual(historyWrites, [
+    [
+      {
+        auction_inventory_id: "auction-inventory-1",
+        inventory_id: "inventory-1",
+        auction_status: "UNPAID",
+        inventory_status: "SOLD",
+        remarks: "Item encoded again | Previous status: BOUGHT_ITEM",
+      },
+    ],
+  ]);
+  assert.deepEqual(bidderBalanceWrites, [
+    {
+      where: { auction_bidder_id: "bidder-0860" },
+      data: { balance: { increment: 770 } },
+    },
+  ]);
 });
