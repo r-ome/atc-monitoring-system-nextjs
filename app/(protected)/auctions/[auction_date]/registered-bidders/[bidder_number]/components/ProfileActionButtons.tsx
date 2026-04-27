@@ -93,7 +93,9 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
           <DropdownMenuItem
             onClick={() => setOpenViewBillingModal(true)}
             disabled={
-              !selectedItems.filter((item) => item.status === "UNPAID").length
+              !selectedItems.filter((item) =>
+                ["UNPAID", "PARTIAL"].includes(item.status),
+              ).length
             }
           >
             View Receipt

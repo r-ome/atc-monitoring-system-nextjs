@@ -21,6 +21,10 @@ import {
   buildGroupIndexMap,
   getItemPriceWithServiceChargeAmount,
 } from "@/app/lib/utils";
+import {
+  getAuctionInventoriesPayableBase,
+  getAuctionInventoryPayableBase,
+} from "src/entities/models/AuctionPayableAmount";
 
 interface ViewBillingModalProps {
   open: boolean;
@@ -71,7 +75,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
     const items = selectedItems.length
       ? selectedItems
       : registeredBidder.auction_inventories.filter(
-          (item) => item.status === "UNPAID",
+          (item) => ["UNPAID", "PARTIAL"].includes(item.status),
         );
 
     const groupIndexMap = buildGroupIndexMap(items, (r) => r.is_slash_item);
@@ -100,7 +104,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
           control: `${idx ? ` (A${idx})` : ""} ${item.inventory.control}`,
           description: item.description,
           qty: item.qty,
-          price: item.price,
+          price: getAuctionInventoryPayableBase(item),
           manifest_number: item.manifest_number,
           is_slash_item: item.is_slash_item,
         };
@@ -116,11 +120,11 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
     if (REFUND_PURPOSES.includes(receipt.purpose))
       return <RefundDocument receipt={receipt} />;
     if (receipt.purpose === "PULL_OUT") {
-      const total_item_price = receipt.auctions_inventories.reduce(
-        (acc: number, item) => {
-          return (acc = acc + (item.price ? item.price : 0));
-        },
-        0,
+      const total_item_price = getAuctionInventoriesPayableBase(
+        receipt.auctions_inventories.map((item) => ({
+          status: "UNPAID",
+          price: item.price ?? 0,
+        })),
       );
 
       const less =

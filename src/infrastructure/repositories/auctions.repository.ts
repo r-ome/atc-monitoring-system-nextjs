@@ -13,7 +13,6 @@ import {
   buildEncodedAgainHistoryRemark,
   buildEncodedHistoryRemark,
   buildManifestReencodedHistoryRemark,
-  parseInventoryHistoryRemark,
   buildRefundedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
 import {
@@ -32,20 +31,10 @@ import {
 } from "src/entities/models/Auction";
 import { isRange } from "@/app/lib/utils";
 import { buildReusedInventoryUpdates } from "./auction-manifest-write";
-
-function resolvePartialBalancePriceFromLegacyHistoryRemark(
-  remarks: string | null | undefined,
-) {
-  const parsed = parseInventoryHistoryRemark(remarks);
-  if (
-    typeof parsed.previous_price !== "number" ||
-    typeof parsed.new_price !== "number"
-  ) {
-    return null;
-  }
-
-  return parsed.new_price - parsed.previous_price;
-}
+import {
+  getAuctionInventoriesPayableBase,
+  getAuctionInventoryPayableTotal,
+} from "src/entities/models/AuctionPayableAmount";
 
 export const AuctionRepository: IAuctionRepository = {
   startAuction: async (auction_date) => {
@@ -808,14 +797,14 @@ export const AuctionRepository: IAuctionRepository = {
 
         const auction_inventories = await tx.auctions_inventories.findMany({
           where: { auction_inventory_id: { in: data.auction_inventory_ids } },
-          include: { receipt: true },
+          include: { receipt: true, histories: true },
         });
 
         const paid_items = auction_inventories.filter(
           (item) => item.status === "PAID",
         );
-        const unpaid_items = auction_inventories.filter(
-          (item) => item.status === "UNPAID",
+        const payable_items = auction_inventories.filter((item) =>
+          ["UNPAID", "PARTIAL"].includes(item.status),
         );
 
         const computeTotalPrice = (
@@ -829,10 +818,10 @@ export const AuctionRepository: IAuctionRepository = {
           return acc;
         };
 
-        // update bidder balance
-        if (unpaid_items.length) {
-          const unpaid_items_total_price = unpaid_items.reduce(
-            computeTotalPrice,
+        if (payable_items.length) {
+          const unpaid_items_total_price = payable_items.reduce(
+            (total, item) =>
+              total + getAuctionInventoryPayableTotal(item, bidder.service_charge),
             0,
           );
           await tx.auctions_bidders.update({
@@ -902,9 +891,9 @@ export const AuctionRepository: IAuctionRepository = {
         });
 
         // add history
-        if (unpaid_items.length) {
+        if (payable_items.length) {
           await Promise.all(
-            unpaid_items.map((auction_inventory) =>
+            payable_items.map((auction_inventory) =>
               tx.inventory_histories.create({
                 data: {
                   auction_inventory_id: auction_inventory.auction_inventory_id,
@@ -1284,26 +1273,9 @@ export const AuctionRepository: IAuctionRepository = {
           data: { amount_paid: data.registration_fee },
         });
 
-        const totalUnpaidItemsPrice = auction_bidder.auctions_inventories
-          .filter((item) => ["UNPAID", "PARTIAL"].includes(item.status))
-          .map((item) => {
-            if (item.status === "UNPAID") return item;
-
-            const discrepancyHistory = item.histories.find(
-              (history) => history.auction_status === "DISCREPANCY",
-            );
-            const partialPrice =
-              resolvePartialBalancePriceFromLegacyHistoryRemark(
-                discrepancyHistory?.remarks,
-              );
-
-            if (typeof partialPrice === "number") {
-              item.price = partialPrice;
-            }
-
-            return item;
-          })
-          .reduce((acc, item) => (acc += item.price), 0);
+        const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
+          auction_bidder.auctions_inventories,
+        );
 
         const serviceChargeAmount =
           (totalUnpaidItemsPrice * data.service_charge) / 100;

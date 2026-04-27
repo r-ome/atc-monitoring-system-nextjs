@@ -8,6 +8,10 @@ import {
   TableCell,
 } from "@/app/components/ui/table";
 import { useBidderPullOutModalContext } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/context/BidderPullOutModalContext";
+import {
+  getAuctionInventoriesPayableBase,
+  getAuctionInventoryPayableBase,
+} from "src/entities/models/AuctionPayableAmount";
 
 export const PullOutItemsTable: React.FC = () => {
   const { selectedItems } = useBidderPullOutModalContext();
@@ -19,9 +23,7 @@ export const PullOutItemsTable: React.FC = () => {
     "Manifest",
     "Price",
   ];
-  const totalItemPrice = selectedItems.reduce((acc, item) => {
-    return (acc += item.price);
-  }, 0);
+  const totalItemPrice = getAuctionInventoriesPayableBase(selectedItems);
 
   return (
     <div className="w-5/6 mx-auto h-[300px] relative overflow-auto">
@@ -42,7 +44,7 @@ export const PullOutItemsTable: React.FC = () => {
               <TableCell>{item.qty}</TableCell>
               <TableCell>{item.manifest_number}</TableCell>
               <TableCell className="border">
-                {item.price.toLocaleString()}
+                {getAuctionInventoryPayableBase(item).toLocaleString()}
               </TableCell>
             </TableRow>
           ))}

@@ -14,9 +14,9 @@ import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
 import {
   buildItemMergedHistoryRemark,
   buildItemUpdatedHistoryRemark,
-  parseInventoryHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
 import { AuctionInventorySearchInput } from "src/entities/models/Auction";
+import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
 
 export const InventoryRepository: IInventoryRepository = {
   getAuctionItemDetails: async (auction_inventory_id) => {
@@ -111,30 +111,9 @@ export const InventoryRepository: IInventoryRepository = {
             return;
           }
 
-          const totalUnpaidItemsPrice = bidder.auctions_inventories
-            .filter((item) => ["UNPAID", "PARTIAL"].includes(item.status))
-            .map((item) => {
-              if (item.status === "UNPAID") {
-                return item.price;
-              }
-
-              const discrepancyHistory = item.histories.find(
-                (history) => history.auction_status === "DISCREPANCY",
-              );
-              const parsedHistory = parseInventoryHistoryRemark(
-                discrepancyHistory?.remarks,
-              );
-
-              if (
-                typeof parsedHistory.previous_price === "number" &&
-                typeof parsedHistory.new_price === "number"
-              ) {
-                return parsedHistory.new_price - parsedHistory.previous_price;
-              }
-
-              return item.price;
-            })
-            .reduce((acc, price) => acc + price, 0);
+          const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
+            bidder.auctions_inventories,
+          );
 
           const serviceChargeAmount =
             (totalUnpaidItemsPrice * bidder.service_charge) / 100;

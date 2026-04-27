@@ -26,7 +26,9 @@ export function BidderItemsTable({
   const selectedItems = useMemo(() => {
     const selectedRowsKeys = Object.keys(selectedRows);
     if (!selectedRowsKeys.length)
-      return auctionInventories.filter((item) => item.status === "UNPAID");
+      return auctionInventories.filter((item) =>
+        ["UNPAID", "PARTIAL"].includes(item.status),
+      );
 
     return auctionInventories.filter((item) =>
       selectedRowsKeys.includes(item.auction_inventory_id)

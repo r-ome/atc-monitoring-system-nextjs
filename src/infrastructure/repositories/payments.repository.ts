@@ -18,6 +18,7 @@ import {
   buildPulloutUndoneHistoryRemark,
   buildRefundedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
+import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
 
 export const PaymentRepository: IPaymentRepository = {
   getPaymentById: async (payment_id) => {
@@ -114,6 +115,7 @@ export const PaymentRepository: IPaymentRepository = {
 
         const auction_inventories = await tx.auctions_inventories.findMany({
           where: { auction_inventory_id: { in: data.auction_inventory_ids } },
+          include: { histories: true },
         });
 
         const selected_statuses = new Set(
@@ -136,6 +138,29 @@ export const PaymentRepository: IPaymentRepository = {
         let status = "UNPAID";
         if (auction_inventories[0]) {
           status = auction_inventories[0].status;
+        }
+
+        const total_payable_base =
+          getAuctionInventoriesPayableBase(auction_inventories);
+        const service_charge_amount =
+          (total_payable_base * registered_bidder.service_charge) / 100;
+        const registration_fee_amount = registered_bidder.already_consumed
+          ? 0
+          : registered_bidder.registration_fee;
+        const expected_amount_to_be_paid =
+          total_payable_base +
+          service_charge_amount -
+          registration_fee_amount +
+          (data.storage_fee ?? 0);
+
+        if (data.amount_to_be_paid !== expected_amount_to_be_paid) {
+          throw new InputParseError("Invalid Data!", {
+            cause: {
+              amount_to_be_paid: [
+                `Amount to be paid should be ₱${expected_amount_to_be_paid.toLocaleString()}`,
+              ],
+            },
+          });
         }
 
         const receipt = await tx.receipt_records.findFirst({
@@ -181,7 +206,8 @@ export const PaymentRepository: IPaymentRepository = {
             const storage_portion =
               storage_fee > 0
                 ? Math.round(
-                    (item.amount_paid * storage_fee) / data.amount_to_be_paid,
+                    (item.amount_paid * storage_fee) /
+                      expected_amount_to_be_paid,
                   )
                 : 0;
             const pullout_portion = item.amount_paid - storage_portion;
@@ -210,7 +236,7 @@ export const PaymentRepository: IPaymentRepository = {
           await Promise.all(
             data.payments.map((item) => {
               const storage_portion = Math.round(
-                (item.amount_paid * storage_fee) / data.amount_to_be_paid,
+                (item.amount_paid * storage_fee) / expected_amount_to_be_paid,
               );
               return tx.payments.create({
                 data: {
@@ -239,7 +265,7 @@ export const PaymentRepository: IPaymentRepository = {
           where: { auction_bidder_id: data.auction_bidder_id },
           data: {
             balance: {
-              decrement: data.amount_to_be_paid,
+              decrement: expected_amount_to_be_paid,
             },
             already_consumed: 1,
           },

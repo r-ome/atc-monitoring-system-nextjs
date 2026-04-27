@@ -3,6 +3,7 @@
 import { createContext, useState, useContext } from "react";
 import { RegisteredBidder } from "src/entities/models/Bidder";
 import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
+import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
 
 export type PaymentEntry = {
   payment_method: string;
@@ -45,10 +46,7 @@ export const BidderPullOutModalProvider = ({
   ]);
   const [storageFee, setStorageFee] = useState<number>(0);
 
-  const totalItemPrice = selectedItems.reduce(
-    (acc, item) => (acc += item.price),
-    0
-  );
+  const totalItemPrice = getAuctionInventoriesPayableBase(selectedItems);
 
   let serviceChargeAmount = 0;
   let registrationFeeAmount = 0;
