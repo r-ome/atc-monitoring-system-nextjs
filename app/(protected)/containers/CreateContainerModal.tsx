@@ -32,6 +32,8 @@ import { createContainer } from "@/app/(protected)/containers/actions";
 
 type Option = Record<string, string | number | boolean>;
 
+const ALLOWED_CONTAINER_BRANCHES = new Set(["BIÑAN", "TARLAC"]);
+
 type CreateContainerReview = {
   supplier: string;
   branch: string;
@@ -68,10 +70,18 @@ export const CreateContainerModal = () => {
   const [weightInTons, setWeightInTons] = useState<number>(0);
   const hasInvalidShipmentNumber =
     shipmentNumber !== undefined && shipmentNumber < 0;
+  const selectedBranchName = branches.find(
+    (branch) => branch.branch_id === selectedBranch?.value,
+  )?.name;
+  const hasInvalidBranch =
+    !!selectedBranch && !ALLOWED_CONTAINER_BRANCHES.has(selectedBranchName ?? "");
   const formErrors = {
     ...errors,
     ...(hasInvalidShipmentNumber
       ? { barcode: ["Number of Shipment must not be negative"] }
+      : {}),
+    ...(hasInvalidBranch
+      ? { branch_id: ["Container branch must be BIÑAN or TARLAC"] }
       : {}),
   };
 
@@ -109,6 +119,11 @@ export const CreateContainerModal = () => {
     event.preventDefault();
     if (!selectedBranch || !selectedSupplier) {
       toast.error("Please select a Branch and Supplier");
+      return;
+    }
+
+    if (hasInvalidBranch) {
+      setErrors({ branch_id: ["Container branch must be BIÑAN or TARLAC"] });
       return;
     }
 
@@ -224,6 +239,11 @@ export const CreateContainerModal = () => {
               ) : (
                 <Skeleton className="w-full h-[36px]" />
               )}
+              {formErrors?.branch_id?.[0] ? (
+                <span className="text-red-500 -mt-1 text-xs">
+                  {formErrors.branch_id[0]}
+                </span>
+              ) : null}
             </div>
           </div>
 
@@ -311,7 +331,10 @@ export const CreateContainerModal = () => {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isLoading || hasInvalidShipmentNumber}>
+            <Button
+              type="submit"
+              disabled={isLoading || hasInvalidShipmentNumber || hasInvalidBranch}
+            >
               {isLoading && <Loader2Icon className="animate-spin" />}
               Submit
             </Button>
