@@ -69,9 +69,9 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
           maximumFractionDigits: 2,
         });
       } else if (item === "gross_weight") {
-        data = `${
+        data = `${(
           Number(value?.toString()?.replace(/ kgs/gi, "")) * 0.001
-        } tons`;
+        ).toFixed(2)} tons`;
       } else {
         data = value as React.ReactNode;
       }
