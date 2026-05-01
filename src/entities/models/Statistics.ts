@@ -11,6 +11,23 @@ export type UnpaidBidders = {
   items: number;
 };
 
+export type UnpaidBidderBranchBalanceRow = {
+  branch_id: string;
+  branch_name: string;
+  total_balance: number;
+};
+
+export type UnpaidBidderBranchBalance = {
+  branch_id: string;
+  branch_name: string;
+  total_balance: number;
+};
+
+export type UnpaidBidderBalanceSummary = {
+  branches: UnpaidBidderBranchBalance[];
+  total_balance: number;
+};
+
 export type AuctionsStatisticsRow = {
   auction_id: string;
   auction_date: Date;

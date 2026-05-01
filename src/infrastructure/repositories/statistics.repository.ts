@@ -6,7 +6,10 @@ import {
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { IStatisticsRepository } from "src/application/repositories/statistics.repository.interface";
 import { BiddersWithBirthdatesAndRecentAuctionSchema } from "src/entities/models/Bidder";
-import { AuctionsStatisticsRow } from "src/entities/models/Statistics";
+import {
+  AuctionsStatisticsRow,
+  UnpaidBidderBranchBalanceRow,
+} from "src/entities/models/Statistics";
 
 export const StatisticsRepository: IStatisticsRepository = {
   getBidderBirthdates: async () => {
@@ -86,6 +89,35 @@ export const StatisticsRepository: IStatisticsRepository = {
         throw new DatabaseOperationError("Error getting unpaid bidders!", {
           cause: error.message,
         });
+      }
+      throw error;
+    }
+  },
+  getUnpaidBidderBalanceSummary: async () => {
+    try {
+      return await prisma.$queryRawUnsafe<UnpaidBidderBranchBalanceRow[]>(`
+        SELECT
+          br.branch_id,
+          br.name AS branch_name,
+          CAST(COALESCE(SUM(CASE WHEN ab.balance > 0 THEN ab.balance ELSE 0 END), 0) AS SIGNED) AS total_balance
+        FROM branches br
+        LEFT JOIN auctions a ON a.branch_id = br.branch_id
+        LEFT JOIN auctions_bidders ab
+          ON ab.auction_id = a.auction_id
+          AND ab.balance > 0
+        WHERE br.name <> 'ALL'
+          AND br.deleted_at IS NULL
+        GROUP BY br.branch_id, br.name
+        ORDER BY br.name ASC
+      `);
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(
+          "Error getting unpaid bidder balance summary!",
+          {
+            cause: error.message,
+          },
+        );
       }
       throw error;
     }
