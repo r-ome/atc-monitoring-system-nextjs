@@ -261,21 +261,21 @@ export const InventoryRepository: IInventoryRepository = {
 
             switch (item) {
               case "price":
-                return `Price: ${previous_values[item]} -> ${new_data}`;
+                return `Price: ${previous_values[item]} → ${new_data}`;
               case "bidder_number":
-                return `Bidder: #${previous_values[item]} -> #${new_data}`;
+                return `Bidder: #${previous_values[item]} → #${new_data}`;
               case "qty":
-                return `Qty: ${previous_values[item]} -> ${new_data}`;
+                return `Qty: ${previous_values[item]} → ${new_data}`;
               case "manifest_number":
-                return `Manifest number: ${previous_values[item]} -> ${new_data}`;
+                return `Manifest number: ${previous_values[item]} → ${new_data}`;
               case "barcode":
-                return `Barcode: ${previous_values[item]} -> ${new_data}`;
+                return `Barcode: ${previous_values[item]} → ${new_data}`;
               case "control":
-                return `Control: ${previous_values[item]} -> ${new_data}`;
+                return `Control: ${previous_values[item]} → ${new_data}`;
               case "description":
-                return `Description: ${previous_values[item]} -> ${new_data}`;
+                return `Description: ${previous_values[item]} → ${new_data}`;
               default:
-                return `${item}: ${previous_values[item]} -> ${new_data}`;
+                return `${item}: ${previous_values[item]} → ${new_data}`;
             }
           })
           .filter((item): item is string => Boolean(item));

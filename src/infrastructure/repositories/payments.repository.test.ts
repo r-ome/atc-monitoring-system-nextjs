@@ -49,7 +49,7 @@ test("handleBidderPullOut charges only the partial price delta for add-on paymen
           price: 5900,
           histories: [
             {
-              remarks: "Item updated | Price: 500 -> 5900 | Updated by: RHEA",
+              remarks: "Item updated | Price: 500 → 5900 | Updated by: RHEA",
               created_at: new Date("2026-04-27T06:27:05.000Z"),
             },
           ],

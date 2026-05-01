@@ -3,7 +3,7 @@ Description: >
   Single VPC (ap-southeast-1) with 2 public + 2 private subnets across 2 AZs,
   IGW + public routing, optional NAT gateways for private egress,
   EC2 (public subnet) + RDS MySQL (private subnets, Multi-AZ capable),
-  Security Groups wired EC2 -> RDS (3306).
+  Security Groups wired EC2 → RDS (3306).
 
 Parameters:
   # Networking
@@ -347,7 +347,7 @@ Resources:
         - Key: Name
           Value: !Sub "${AWS::StackName}-sg-rds"
 
-  # RDS Subnet Group (2 private subnets -> Multi-AZ capable)
+  # RDS Subnet Group (2 private subnets → Multi-AZ capable)
   DbSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:

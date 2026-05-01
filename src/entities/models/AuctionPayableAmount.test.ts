@@ -25,7 +25,7 @@ test("getAuctionInventoryPayableBase returns the latest partial price delta", ()
       histories: [
         {
           auction_status: "DISCREPANCY",
-          remarks: "Item updated | Price: 500 -> 5900 | Updated by: RHEA",
+          remarks: "Item updated | Price: 500 → 5900 | Updated by: RHEA",
           created_at: "2026-04-27T06:27:05.000Z",
         },
       ],
@@ -43,7 +43,7 @@ test("getAuctionInventoriesPayableBase excludes paid items", () => {
         price: 5900,
         histories: [
           {
-            remarks: "Item updated | Price: 500 -> 5900",
+            remarks: "Item updated | Price: 500 → 5900",
             created_at: "2026-04-27T06:27:05.000Z",
           },
         ],

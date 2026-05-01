@@ -127,7 +127,7 @@ export function buildPartialRefundHistoryRemark(
     HISTORY_PREFIXES.partial_refund,
     buildBidderPart(bidder),
     `Reason: ${sanitizePart(reason)}`,
-    `Price: ${price_change.previous_price} -> ${price_change.new_price}`,
+    `Price: ${price_change.previous_price} → ${price_change.new_price}`,
   ];
 
   if (updated_by) {
@@ -182,7 +182,7 @@ function parseLabeledField(
 }
 
 function parsePriceArrow(text: string) {
-  const match = text.match(/(\d+)\s*->\s*(\d+)/);
+  const match = text.match(/(\d+)\s*(?:→|\u002d>)\s*(\d+)/);
   if (!match) return null;
 
   return {
