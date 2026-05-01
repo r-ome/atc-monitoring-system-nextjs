@@ -59,6 +59,26 @@ export const ManifestRecordsTable = ({
     [manifestRecords]
   );
 
+  const errorStats = useMemo(() => {
+    const rowsWithErrors = manifestRecords.filter(
+      (record) => record.error_message?.trim(),
+    );
+    const errorsByUploader = Array.from(
+      rowsWithErrors
+        .reduce((map, record) => {
+          const uploadedBy = record.remarks?.trim() || "Unknown";
+          map.set(uploadedBy, (map.get(uploadedBy) ?? 0) + 1);
+          return map;
+        }, new Map<string, number>())
+        .entries(),
+    ).sort(([a], [b]) => a.localeCompare(b));
+
+    return {
+      totalErrors: rowsWithErrors.length,
+      errorsByUploader,
+    };
+  }, [manifestRecords]);
+
   return (
     <>
       <UpdateManifestModal open={open} setOpen={setOpen} selected={selected} />
@@ -74,6 +94,22 @@ export const ManifestRecordsTable = ({
             placeholder: "Search item here",
           },
         }}
+        actionButtons={
+          <div className="flex flex-wrap items-center gap-6 text-sm">
+            <span>
+              Errors:{" "}
+              <span className="font-semibold text-red-500">
+                {errorStats.totalErrors}
+              </span>
+            </span>
+            {errorStats.errorsByUploader.map(([uploadedBy, count]) => (
+              <span key={uploadedBy}>
+                {uploadedBy}:{" "}
+                <span className="font-semibold text-red-500">{count}</span>
+              </span>
+            ))}
+          </div>
+        }
       />
     </>
   );

@@ -239,10 +239,22 @@ export const columns = (
     },
     cell: ({ row }) => {
       const manifest = row.original;
+      const insertedAt = new Date(manifest.created_at);
+      const visibleTime = formatDate(insertedAt, "hh:mm a");
+      const fullInsertedAt = formatDate(
+        insertedAt,
+        "MMMM dd, yyyy hh:mm:ss a",
+      );
+
       return (
-        <div className="flex justify-center">
-          {formatDate(new Date(manifest.created_at), "hh:mm a")}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex justify-center cursor-default">
+              {visibleTime}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>{fullInsertedAt}</TooltipContent>
+        </Tooltip>
       );
     },
   },
