@@ -430,6 +430,20 @@ export const InventoryRepository: IInventoryRepository = {
           barcode: true,
           control: true,
           status: true,
+          auction_date: true,
+          auctions_inventory: {
+            select: {
+              auction_bidder: {
+                select: {
+                  bidder: {
+                    select: {
+                      bidder_number: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
     } catch (error) {

@@ -7,6 +7,7 @@ import {
 } from "src/entities/models/Auction";
 import { AuctionBidderForManifestRow } from "src/entities/models/Bidder";
 import { formatNumberPadding } from "@/app/lib/utils";
+import { formatInTimeZone } from "date-fns-tz";
 import { v4 as uuidv4 } from "uuid";
 
 export const isThreePartBarcode = (barcode: string) =>
@@ -311,7 +312,28 @@ export const formatExistingInventories = (
     }
 
     if (existing_inventory.status === "SOLD") {
-      return { ...item, isValid: false, error: "Item already exists and SOLD in inventories" };
+      const soldDate = existing_inventory.auction_date
+        ? formatInTimeZone(
+            existing_inventory.auction_date,
+            "Asia/Manila",
+            "MMM dd, yyyy",
+          )
+        : null;
+      const bidderNumber =
+        existing_inventory.auctions_inventory?.auction_bidder?.bidder?.bidder_number;
+
+      return {
+        ...item,
+        isValid: false,
+        error:
+          soldDate && bidderNumber
+            ? `Already sold to bidder #${bidderNumber} on ${soldDate}`
+            : soldDate
+              ? `Already sold on ${soldDate}`
+              : bidderNumber
+                ? `Already sold to bidder #${bidderNumber}`
+                : "Already sold",
+      };
     }
 
     if (is_bought_items && existing_inventory.status !== "UNSOLD") {

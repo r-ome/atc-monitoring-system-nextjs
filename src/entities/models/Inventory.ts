@@ -19,6 +19,20 @@ export type InventoryForManifestRow = Prisma.inventoriesGetPayload<{
     barcode: true;
     control: true;
     status: true;
+    auction_date: true;
+    auctions_inventory: {
+      select: {
+        auction_bidder: {
+          select: {
+            bidder: {
+              select: {
+                bidder_number: true;
+              };
+            };
+          };
+        };
+      };
+    };
   };
 }>;
 

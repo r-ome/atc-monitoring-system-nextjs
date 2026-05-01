@@ -344,6 +344,14 @@ test("formatExistingInventories blocks sold items, allows reuse, and tightens bo
       barcode: "32-04-001",
       control: "0001",
       status: "SOLD",
+      auction_date: new Date("2026-04-25T00:00:00.000Z"),
+      auctions_inventory: {
+        auction_bidder: {
+          bidder: {
+            bidder_number: "0007",
+          },
+        },
+      },
     },
     {
       inventory_id: "inv-unsold",
@@ -364,7 +372,7 @@ test("formatExistingInventories blocks sold items, allows reuse, and tightens bo
   const normalMode = formatExistingInventories(baseRows, inventories as never);
   assert.equal(
     normalMode[0].error,
-    "Item already exists and SOLD in inventories",
+    "Already sold to bidder #0007 on Apr 25, 2026",
   );
   assert.equal(normalMode[1].forUpdating, true);
   assert.equal(normalMode[1].inventory_id, "inv-unsold");
