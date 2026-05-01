@@ -105,7 +105,12 @@ export type LogContainerReportInput = z.infer<
 export const createContainerSchema = z.object({
   supplier_id: z.string().min(1),
   branch_id: z.string().min(1),
-  barcode: z.string().min(1),
+  barcode: z
+    .string()
+    .min(1)
+    .refine((value) => Number(value) >= 0, {
+      message: "Number of Shipment must not be negative",
+    }),
   bill_of_lading_number: z.string().optional().nullable(),
   container_number: z.string().optional().nullable(),
   arrival_date: z.date().optional().nullable(),
