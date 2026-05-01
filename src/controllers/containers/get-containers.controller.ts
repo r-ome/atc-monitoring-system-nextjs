@@ -7,40 +7,62 @@ import { logger } from "@/app/lib/logger";
 
 const DATE_FORMAT = "MMM dd, yyyy";
 
+function getAuctionStartDate(container: ContainerListRow) {
+  const timestamps = container.inventories
+    .map((inventory) => inventory.auction_date)
+    .flatMap((date) => {
+      if (!date) return [];
+
+      const timestamp = date.getTime();
+      return Number.isNaN(timestamp) ? [] : [timestamp];
+    });
+
+  if (!timestamps.length) return undefined;
+
+  return new Date(Math.min(...timestamps));
+}
+
 const presenter = (containers: ContainerListRow[]) => {
-  return containers.map((container) => ({
-    container_id: container.container_id,
-    barcode: container.barcode,
-    supplier_id: container.supplier_id,
-    branch_id: container.branch_id,
-    bill_of_lading_number: container.bill_of_lading_number ?? "",
-    container_number: container.container_number ?? "",
-    gross_weight: container.gross_weight ?? "",
-    auction_or_sell: container.auction_or_sell,
-    status: container.status,
-    duties_and_taxes: Number(container.duties_and_taxes),
-    branch: {
-      branch_id: container.branch.branch_id,
-      name: container.branch.name,
-    },
-    supplier: {
-      supplier_id: container.supplier.supplier_id,
-      supplier_code: container.supplier.supplier_code,
-      name: container.supplier.name,
-    },
-    arrival_date: container.arrival_date
-      ? formatDate(container.arrival_date, DATE_FORMAT)
-      : undefined,
-    due_date: container.due_date
-      ? formatDate(container.due_date, DATE_FORMAT)
-      : undefined,
-    created_at: formatDate(container.created_at, DATE_FORMAT),
-    updated_at: formatDate(container.updated_at, DATE_FORMAT),
-    deleted_at: container.deleted_at
-      ? formatDate(container.deleted_at, DATE_FORMAT)
-      : null,
-    inventory_count: container._count.inventories,
-  }));
+  return containers.map((container) => {
+    const auction_start_date = getAuctionStartDate(container);
+
+    return {
+      container_id: container.container_id,
+      barcode: container.barcode,
+      supplier_id: container.supplier_id,
+      branch_id: container.branch_id,
+      bill_of_lading_number: container.bill_of_lading_number ?? "",
+      container_number: container.container_number ?? "",
+      gross_weight: container.gross_weight ?? "",
+      auction_or_sell: container.auction_or_sell,
+      status: container.status,
+      duties_and_taxes: Number(container.duties_and_taxes),
+      branch: {
+        branch_id: container.branch.branch_id,
+        name: container.branch.name,
+      },
+      supplier: {
+        supplier_id: container.supplier.supplier_id,
+        supplier_code: container.supplier.supplier_code,
+        name: container.supplier.name,
+      },
+      arrival_date: container.arrival_date
+        ? formatDate(container.arrival_date, DATE_FORMAT)
+        : undefined,
+      auction_start_date: auction_start_date
+        ? formatDate(auction_start_date, DATE_FORMAT)
+        : undefined,
+      due_date: container.due_date
+        ? formatDate(container.due_date, DATE_FORMAT)
+        : undefined,
+      created_at: formatDate(container.created_at, DATE_FORMAT),
+      updated_at: formatDate(container.updated_at, DATE_FORMAT),
+      deleted_at: container.deleted_at
+        ? formatDate(container.deleted_at, DATE_FORMAT)
+        : null,
+      inventory_count: container._count.inventories,
+    };
+  });
 };
 
 export const GetContainersController = async () => {

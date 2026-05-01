@@ -102,6 +102,7 @@ export const ContainerRepository: IContainerRepository = {
           supplier: {
             select: { supplier_id: true, supplier_code: true, name: true },
           },
+          inventories: { select: { auction_date: true } },
           _count: { select: { inventories: true } },
         },
         orderBy: { due_date: { sort: "desc", nulls: "last" } },

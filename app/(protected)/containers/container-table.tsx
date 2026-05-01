@@ -18,6 +18,7 @@ export type ContainerRowType = {
   branch: { branch_id: string; name: string };
   supplier: { supplier_id: string; supplier_code: string; name: string };
   arrival_date?: string;
+  auction_start_date?: string;
   due_date?: string;
   created_at: string;
   updated_at: string;

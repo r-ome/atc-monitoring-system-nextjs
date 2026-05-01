@@ -29,6 +29,7 @@ export type ContainerListRow = Prisma.containersGetPayload<{
   include: {
     branch: { select: { branch_id: true; name: true } };
     supplier: { select: { supplier_id: true; supplier_code: true; name: true } };
+    inventories: { select: { auction_date: true } };
     _count: { select: { inventories: true } };
   };
 }>;

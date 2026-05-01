@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
-import { BranchBadge } from "@/app/components/admin";
+import { BranchBadge, StatusBadge } from "@/app/components/admin";
 import { ArrowUpDown } from "lucide-react";
 import { parse } from "date-fns";
 import { ContainerRowType } from "./container-table";
@@ -119,6 +119,39 @@ export const columns: ColumnDef<ContainerRowType>[] = [
     },
   },
   {
+    accessorKey: "auction_start_date",
+    sortingFn: (rowA, rowB) => {
+      const parse_date = (val: string | undefined) =>
+        val ? parse(val, "MMM dd, yyyy", new Date()).getTime() : 0;
+      return (
+        parse_date(rowA.original.auction_start_date) -
+        parse_date(rowB.original.auction_start_date)
+      );
+    },
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Auction Date Start
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const container = row.original;
+      return (
+        <div className="flex justify-center">
+          {container.auction_start_date ?? "N/A"}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "due_date",
     sortingFn: (rowA, rowB) => {
       const parse_date = (val: string | undefined) =>
@@ -142,6 +175,35 @@ export const columns: ColumnDef<ContainerRowType>[] = [
     cell: ({ row }) => {
       const container = row.original;
       return <div className="flex justify-center">{container.due_date}</div>;
+    },
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Status
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const container = row.original;
+      return (
+        <div className="flex justify-center">
+          <StatusBadge
+            variant={container.status === "PAID" ? "paid" : "unpaid"}
+          >
+            {container.status}
+          </StatusBadge>
+        </div>
+      );
     },
   },
 ];
