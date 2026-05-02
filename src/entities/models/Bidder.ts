@@ -248,7 +248,10 @@ export const updateBidderSchema = z.object({
   registration_fee: z.coerce.number(),
   service_charge: z.coerce.number(),
   status: z.enum(BIDDER_STATUS),
-  payment_term: z.coerce.number(),
+  payment_term: z.coerce
+    .number()
+    .min(7, "Payment Term only has a minimum of 7 days.")
+    .max(30, "Payment Term only has a max of 30 days."),
 });
 
 export type UpdateBidderInput = z.infer<typeof updateBidderSchema>;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
+import { AlertTriangle, Loader2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { Skeleton } from "@/app/components/ui/skeleton";
 import { Button } from "@/app/components/ui/button";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
 import { updateBidder } from "@/app/(protected)/bidders/actions";
 import { InputNumber } from "@/app/components/ui/InputNumber";
 import { DatePicker } from "@/app/components/ui/datepicker";
@@ -97,6 +98,19 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if ((newBidder?.payment_term ?? 0) > 30) {
+      setErrors({
+        payment_term: ["Payment Term only has a max of 30 days."],
+      });
+      return;
+    }
+    if ((newBidder?.payment_term ?? 0) < 7) {
+      setErrors({
+        payment_term: ["Payment Term only has a minimum of 7 days."],
+      });
+      return;
+    }
+
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
     formData.append("status", "ACTIVE");
@@ -145,6 +159,9 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
   if (!session.data) return null;
 
   const user = session.data?.user;
+  const showPaymentTermAlert = (newBidder?.payment_term ?? 0) >= 30;
+  const isPaymentTermUnderLimit = (newBidder?.payment_term ?? 0) < 7;
+  const isPaymentTermOverLimit = (newBidder?.payment_term ?? 0) > 30;
 
   return (
     <>
@@ -156,6 +173,14 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
             <DialogTitle>Update Bidder</DialogTitle>
             <DialogDescription>Update Bidder Details here</DialogDescription>
           </DialogHeader>
+          {showPaymentTermAlert ? (
+            <Alert variant="destructive">
+              <AlertTriangle />
+              <AlertDescription>
+                Payment Term only has a max of 30 days.
+              </AlertDescription>
+            </Alert>
+          ) : null}
           <form onSubmit={handleSubmit} className="space-y-2">
             <div className="flex gap-4">
               <Label htmlFor="bidder_number" className="w-40">
@@ -269,7 +294,18 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
                 <InputNumber
                   name="payment_term"
                   value={newBidder?.payment_term}
-                  onChange={handleUpdateChange}
+                  min={7}
+                  onValueChange={(value) => {
+                    setNewBidder((prev) => ({
+                      ...prev,
+                      payment_term: value,
+                    }));
+                    setErrors((prev) => {
+                      if (!prev?.payment_term) return prev;
+                      const { payment_term, ...rest } = prev;
+                      return Object.keys(rest).length ? rest : undefined;
+                    });
+                  }}
                   error={errors}
                   suffix=" days"
                   required
@@ -321,7 +357,12 @@ export const UpdateBidderModal: React.FC<UpdateBidderModalProps> = ({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={
+                  isLoading || isPaymentTermUnderLimit || isPaymentTermOverLimit
+                }
+              >
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>
