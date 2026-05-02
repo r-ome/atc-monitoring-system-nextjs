@@ -13,6 +13,36 @@ afterEach(() => {
   }
 });
 
+test("getPaymentsByDate uses Manila day boundaries for the query window", async () => {
+  const queryArgs: Array<Record<string, unknown>> = [];
+
+  restorers.push(
+    patchMethod(
+      prisma.payments,
+      "findMany",
+      (async (args: Record<string, unknown>) => {
+        queryArgs.push(args);
+        return [];
+      }) as typeof prisma.payments.findMany,
+    ),
+  );
+
+  await PaymentRepository.getPaymentsByDate(
+    new Date("2026-05-02T00:00:00.000Z"),
+    "branch-1",
+  );
+
+  assert.equal(queryArgs.length, 1);
+  const where = queryArgs[0].where as {
+    created_at: { gte: Date; lte: Date };
+    receipt: { auction_bidder: { auctions: { branch_id: string } } };
+  };
+
+  assert.equal(where.created_at.gte.toISOString(), "2026-05-01T16:00:00.000Z");
+  assert.equal(where.created_at.lte.toISOString(), "2026-05-02T15:59:59.999Z");
+  assert.equal(where.receipt.auction_bidder.auctions.branch_id, "branch-1");
+});
+
 test("handleBidderPullOut charges only the partial price delta for add-on payments", async () => {
   const paymentWrites: Array<Record<string, unknown>> = [];
   const bidderBalanceWrites: Array<{

@@ -19,6 +19,9 @@ import {
   buildRefundedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+
+const TZ = "Asia/Manila";
 
 export const PaymentRepository: IPaymentRepository = {
   getPaymentById: async (payment_id) => {
@@ -38,11 +41,9 @@ export const PaymentRepository: IPaymentRepository = {
   },
   getPaymentsByDate: async (date, branch_id) => {
     try {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      const day = formatInTimeZone(date, TZ, "yyyy-MM-dd");
+      const startOfDay = fromZonedTime(`${day} 00:00:00.000`, TZ);
+      const endOfDay = fromZonedTime(`${day} 23:59:59.999`, TZ);
 
       const payments = await prisma.payments.findMany({
         where: {
