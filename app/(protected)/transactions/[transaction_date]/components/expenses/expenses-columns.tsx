@@ -5,7 +5,8 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Expense } from "src/entities/models/Expense";
 import { ExpenseTypeBadge } from "@/app/components/admin";
-import { cn, formatDate } from "@/app/lib/utils";
+import { cn } from "@/app/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 
 export const columns: ColumnDef<Expense>[] = [
   {
@@ -95,18 +96,31 @@ export const columns: ColumnDef<Expense>[] = [
             className="cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Time
+            Date & Time
             <ArrowUpDown />
           </Button>
         </div>
       );
     },
     cell: ({ row }) => {
-      const payment = row.original;
-      const created_at = new Date(payment.created_at);
+      const expense = row.original;
+      const hasUpdatedAt = expense.updated_at !== expense.created_at;
       return (
         <div className="flex justify-center">
-          {formatDate(created_at, "hh:mm a")}
+          {hasUpdatedAt ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-default">
+                  {expense.created_at}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                Updated: {expense.updated_at}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <span>{expense.created_at}</span>
+          )}
         </div>
       );
     },

@@ -21,6 +21,7 @@ export type Expense = {
     name: string;
   };
   created_at: string;
+  updated_at: string;
 };
 
 export const createExpenseSchema = z.object({

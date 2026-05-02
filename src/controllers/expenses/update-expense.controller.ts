@@ -27,6 +27,7 @@ function presenter(expense: ExpenseWithBranchRow) {
       name: expense.branch.name,
     },
     created_at: formatDate(expense.created_at, DATE_FORMAT),
+    updated_at: formatDate(expense.updated_at, DATE_FORMAT),
   };
 }
 

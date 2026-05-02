@@ -25,6 +25,7 @@ function presenter(expense: ExpenseWithBranchRow) {
       name: expense.branch.name,
     },
     created_at: formatDate(expense.created_at, "MMMM dd, yyyy hh:mm a"),
+    updated_at: formatDate(expense.updated_at, "MMMM dd, yyyy hh:mm a"),
   };
 }
 
