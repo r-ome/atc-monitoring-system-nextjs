@@ -26,7 +26,7 @@ import { ConfirmUploadManifestController } from "src/controllers/auctions/confir
 import { RevalidateManifestController } from "src/controllers/auctions/revalidate-manifest.controller";
 import { PreviewAddOnController } from "src/controllers/auctions/preview-add-on.controller";
 import { ConfirmAddOnController } from "src/controllers/auctions/confirm-add-on.controller";
-import { type UploadManifestInput, type ManifestSheetRecord } from "src/entities/models/Manifest";
+import { type UploadManifestInput } from "src/entities/models/Manifest";
 import { type PullOutPaymentInput } from "src/entities/models/Payment";
 
 export const startAuction = async (auctionDate: string) => {
@@ -120,7 +120,7 @@ export const previewManifest = async (auctionId: string, formData: FormData) => 
 
 export const revalidateManifest = async (
   auctionId: string,
-  data: ManifestSheetRecord[],
+  data: UploadManifestInput[],
 ) => {
   const user = await requireUser();
 

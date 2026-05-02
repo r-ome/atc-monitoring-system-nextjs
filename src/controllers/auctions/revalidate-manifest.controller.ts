@@ -1,17 +1,17 @@
-import { previewManifestUseCase } from "src/application/use-cases/auctions/preview-manifest.use-case";
+import { revalidateManifestUseCase } from "src/application/use-cases/auctions/revalidate-manifest.use-case";
 import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { type ManifestSheetRecord } from "src/entities/models/Manifest";
+import { type UploadManifestInput } from "src/entities/models/Manifest";
 import { err, ok } from "src/entities/models/Result";
 
 export const RevalidateManifestController = async (
   auction_id: string,
-  data: ManifestSheetRecord[],
+  data: UploadManifestInput[],
 ) => {
   try {
-    const processed = await previewManifestUseCase(auction_id, data);
+    const processed = await revalidateManifestUseCase(auction_id, data);
     return ok(processed);
   } catch (error) {
     if (error instanceof NotFoundError) {

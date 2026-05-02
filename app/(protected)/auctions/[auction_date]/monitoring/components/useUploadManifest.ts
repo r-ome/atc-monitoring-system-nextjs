@@ -125,8 +125,7 @@ export const useUploadManifest = (auction_id: string) => {
   const handleRevalidate = async () => {
     setLoadingMessage("Re-validating manifest data...");
     try {
-      const sheetData = previewData.map(toSheetRecord);
-      const res = await revalidateManifest(auction_id, sheetData);
+      const res = await revalidateManifest(auction_id, previewData);
 
       if (res.ok) {
         setPreviewData(sortInvalidFirst(res.value));
