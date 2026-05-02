@@ -39,10 +39,16 @@ export const uploadManifestUseCase = async (
     withValidatedBidders,
     existing_inventories,
     is_bought_items,
+    auction_id,
   );
 
   const withContainerIds = addContainerIdForNewInventories(withExistingInventories, containers);
-  const withoutMonitoringDuplicates = removeMonitoringDuplicates(withContainerIds, monitoring, is_bought_items);
+  const withoutMonitoringDuplicates = removeMonitoringDuplicates(
+    withContainerIds,
+    monitoring,
+    is_bought_items,
+    auction_id,
+  );
 
   return await AuctionRepository.uploadManifest(
     auction_id,

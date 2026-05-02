@@ -24,6 +24,7 @@ export type InventoryForManifestRow = Prisma.inventoriesGetPayload<{
       select: {
         auction_bidder: {
           select: {
+            auction_id: true;
             bidder: {
               select: {
                 bidder_number: true;

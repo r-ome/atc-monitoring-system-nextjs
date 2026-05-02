@@ -45,7 +45,7 @@ test("validateEmptyFields preserves bidder requirement while defaulting missing 
   assert.equal(validRow.PRICE, "0");
 
   assert.equal(invalidRow.isValid, false);
-  assert.equal(invalidRow.error, "Required Fields: BARCODE, BIDDER");
+  assert.equal(invalidRow.error, "Missing required fields: Barcode, Bidder");
   assert.equal(invalidRow.PRICE, "0");
 });
 
@@ -227,8 +227,11 @@ test("removeManifestDuplicates uses barcode-only keys for three-part barcodes an
     },
   ]);
 
-  assert.equal(rows[1].error, "DUPLICATE BARCODE");
-  assert.equal(rows[3].error, "DUPLICATE BARCODE");
+  assert.equal(rows[1].error, "Duplicate barcode in uploaded file: 32-04-001");
+  assert.equal(
+    rows[3].error,
+    "Duplicate barcode/control in uploaded file: 32-04 / 0003",
+  );
 });
 
 test("validateBidders rejects unregistered or banned bidders and attaches auction bidder metadata for valid rows", () => {
@@ -291,7 +294,10 @@ test("validateBidders rejects unregistered or banned bidders and attaches auctio
   assert.equal(validRow.auction_bidder_id, "ab-1");
   assert.equal(validRow.service_charge, 12);
   assert.equal(bannedRow.error, "0008 is banned");
-  assert.equal(missingRow.error, "0009 is not registered");
+  assert.equal(
+    missingRow.error,
+    "Bidder #0009 is not registered in this auction",
+  );
 });
 
 test("formatExistingInventories blocks sold items, allows reuse, and tightens bought-item uploads to UNSOLD inventory", () => {
@@ -347,6 +353,7 @@ test("formatExistingInventories blocks sold items, allows reuse, and tightens bo
       auction_date: new Date("2026-04-25T00:00:00.000Z"),
       auctions_inventory: {
         auction_bidder: {
+          auction_id: "auction-previous",
           bidder: {
             bidder_number: "0007",
           },
@@ -366,6 +373,15 @@ test("formatExistingInventories blocks sold items, allows reuse, and tightens bo
       barcode: "32-05-001",
       control: "0001",
       status: "BOUGHT_ITEM",
+      auction_date: new Date("2026-05-02T00:00:00.000Z"),
+      auctions_inventory: {
+        auction_bidder: {
+          auction_id: "auction-current",
+          bidder: {
+            bidder_number: "5013",
+          },
+        },
+      },
     },
   ];
 
@@ -378,10 +394,26 @@ test("formatExistingInventories blocks sold items, allows reuse, and tightens bo
   assert.equal(normalMode[1].inventory_id, "inv-unsold");
   assert.equal(normalMode[2].forUpdating, true);
 
-  const boughtMode = formatExistingInventories(baseRows, inventories as never, true);
+  const boughtMode = formatExistingInventories(
+    baseRows,
+    inventories as never,
+    true,
+    "auction-previous",
+  );
   assert.equal(
     boughtMode[2].error,
-    "Item must be UNSOLD to upload as a bought item",
+    "Already uploaded as Bought Item on May 02, 2026",
+  );
+
+  const sameAuctionBoughtMode = formatExistingInventories(
+    baseRows,
+    inventories as never,
+    true,
+    "auction-current",
+  );
+  assert.equal(
+    sameAuctionBoughtMode[2].error,
+    "DOUBLE ENCODE: already uploaded as Bought Item in this auction",
   );
 });
 
@@ -419,7 +451,7 @@ test("addContainerIdForNewInventories resolves container ids from barcode prefix
   );
 
   assert.equal(matchedRow.container_id, "container-1");
-  assert.equal(missingRow.error, "99-01 does not exist in Containers");
+  assert.equal(missingRow.error, "Container 99-01 does not exist");
 });
 
 test("removeMonitoringDuplicates enforces cross-auction duplicate protection while allowing re-encode cases", () => {
@@ -482,34 +514,62 @@ test("removeMonitoringDuplicates enforces cross-auction duplicate protection whi
     {
       auction_inventory_id: "ai-active",
       status: "UNPAID",
+      auction_date: new Date("2026-05-02T00:00:00.000Z"),
       inventory_id: "inv-1",
       inventory: { barcode: "32-04-001", control: "0001", status: "SOLD" },
-      auction_bidder: { bidder: { bidder_number: "0001" } },
+      auction_bidder: {
+        auction_id: "auction-previous",
+        bidder: { bidder_number: "0001" },
+      },
     },
     {
       auction_inventory_id: "ai-cancelled",
       status: "CANCELLED",
+      auction_date: new Date("2026-05-02T00:00:00.000Z"),
       inventory_id: "inv-2",
       inventory: { barcode: "32-04-002", control: "0001", status: "UNSOLD" },
-      auction_bidder: { bidder: { bidder_number: "0001" } },
+      auction_bidder: {
+        auction_id: "auction-previous",
+        bidder: { bidder_number: "0001" },
+      },
     },
     {
       auction_inventory_id: "ai-bought",
       status: "PAID",
+      auction_date: new Date("2026-05-02T00:00:00.000Z"),
       inventory_id: "inv-3",
       inventory: { barcode: "32-04-003", control: "0001", status: "BOUGHT_ITEM" },
-      auction_bidder: { bidder: { bidder_number: "5013" } },
+      auction_bidder: {
+        auction_id: "auction-current",
+        bidder: { bidder_number: "5013" },
+      },
     },
   ];
 
-  const normalMode = removeMonitoringDuplicates(rows, monitoring as never);
-  assert.equal(normalMode[0].error, "DUPLICATE ENCODE");
+  const normalMode = removeMonitoringDuplicates(
+    rows,
+    monitoring as never,
+    false,
+    "auction-current",
+  );
+  assert.equal(
+    normalMode[0].error,
+    "Already encoded on May 02, 2026 for bidder #0001",
+  );
   assert.equal(normalMode[1].forUpdating, true);
   assert.equal(normalMode[1].auction_inventory_id, "ai-cancelled");
   assert.equal(normalMode[2].forUpdating, true);
   assert.equal(normalMode[2].auction_inventory_id, "ai-bought");
   assert.equal(normalMode[3].isValid, true);
 
-  const boughtMode = removeMonitoringDuplicates(rows, monitoring as never, true);
-  assert.equal(boughtMode[2].error, "DUPLICATE ENCODE");
+  const boughtMode = removeMonitoringDuplicates(
+    rows,
+    monitoring as never,
+    true,
+    "auction-current",
+  );
+  assert.equal(
+    boughtMode[2].error,
+    "DOUBLE ENCODE: already encoded in this auction",
+  );
 });

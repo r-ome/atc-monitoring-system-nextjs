@@ -10,6 +10,76 @@ import { formatNumberPadding } from "@/app/lib/utils";
 import { formatInTimeZone } from "date-fns-tz";
 import { v4 as uuidv4 } from "uuid";
 
+const FIELD_LABELS: Record<string, string> = {
+  BARCODE: "Barcode",
+  BIDDER: "Bidder",
+};
+
+const formatAuctionDate = (date?: Date | string | null) =>
+  date ? formatInTimeZone(date, "Asia/Manila", "MMM dd, yyyy") : null;
+
+const buildUploadedFileDuplicateError = (item: UploadManifestInput) =>
+  isThreePartBarcode(item.BARCODE)
+    ? `Duplicate barcode in uploaded file: ${item.BARCODE}`
+    : `Duplicate barcode/control in uploaded file: ${item.BARCODE} / ${item.CONTROL}`;
+
+const buildAlreadySoldError = (inventory: InventoryForManifestRow) => {
+  const soldDate = formatAuctionDate(inventory.auction_date);
+  const bidderNumber =
+    inventory.auctions_inventory?.auction_bidder?.bidder?.bidder_number;
+
+  if (soldDate && bidderNumber) {
+    return `Already sold to bidder #${bidderNumber} on ${soldDate}`;
+  }
+
+  if (soldDate) return `Already sold on ${soldDate}`;
+  if (bidderNumber) return `Already sold to bidder #${bidderNumber}`;
+
+  return "Already sold";
+};
+
+const buildBoughtItemUnavailableError = (
+  inventory: InventoryForManifestRow,
+  auction_id?: string,
+) => {
+  const boughtItemDate = formatAuctionDate(inventory.auction_date);
+  const existingAuctionId =
+    inventory.auctions_inventory?.auction_bidder?.auction_id;
+
+  if (inventory.status === "BOUGHT_ITEM") {
+    if (auction_id && existingAuctionId === auction_id) {
+      return "DOUBLE ENCODE: already uploaded as Bought Item in this auction";
+    }
+
+    return boughtItemDate
+      ? `Already uploaded as Bought Item on ${boughtItemDate}`
+      : "Already uploaded as Bought Item";
+  }
+
+  return "Item is not available for Bought Item upload";
+};
+
+const buildMonitoringDuplicateError = (
+  item: AuctionInventoryWithDetailsRow,
+  auction_id?: string,
+) => {
+  const bidderNumber = item.auction_bidder?.bidder?.bidder_number;
+  const auctionDate = formatAuctionDate(item.auction_date);
+
+  if (auction_id && item.auction_bidder?.auction_id === auction_id) {
+    return "DOUBLE ENCODE: already encoded in this auction";
+  }
+
+  if (auctionDate && bidderNumber) {
+    return `Already encoded on ${auctionDate} for bidder #${bidderNumber}`;
+  }
+
+  if (auctionDate) return `Already encoded on ${auctionDate}`;
+  if (bidderNumber) return `Already encoded for bidder #${bidderNumber}`;
+
+  return "Already encoded";
+};
+
 export const isThreePartBarcode = (barcode: string) =>
   barcode.split("-").length === 3;
 
@@ -67,7 +137,9 @@ export const validateEmptyFields = (
       forUpdating: false,
       forInventoryUpdate: false,
       isSlashItem: "",
-      error: `Required Fields: ${empty_fields.join(", ")}`,
+      error: `Missing required fields: ${empty_fields
+        .map((field) => FIELD_LABELS[field] ?? field)
+        .join(", ")}`,
     };
   });
 };
@@ -235,7 +307,7 @@ export const validateBidders = (
       return {
         ...item,
         isValid: false,
-        error: `${item.BIDDER} is not registered`,
+        error: `Bidder #${item.BIDDER} is not registered in this auction`,
       };
     }
 
@@ -269,7 +341,11 @@ export const removeManifestDuplicates = (
     }
 
     if (seen.has(key)) {
-      return { ...item, isValid: false, error: "DUPLICATE BARCODE" };
+      return {
+        ...item,
+        isValid: false,
+        error: buildUploadedFileDuplicateError(item),
+      };
     } else {
       seen.add(key);
       return item;
@@ -291,6 +367,7 @@ export const formatExistingInventories = (
   data: UploadManifestInput[],
   existing_inventories: InventoryForManifestRow[],
   is_bought_items = false,
+  auction_id?: string,
 ): UploadManifestInput[] => {
   const byBarcode = new Map<string, InventoryForManifestRow>();
   const byBarcodeControl = new Map<string, InventoryForManifestRow>();
@@ -312,32 +389,19 @@ export const formatExistingInventories = (
     }
 
     if (existing_inventory.status === "SOLD") {
-      const soldDate = existing_inventory.auction_date
-        ? formatInTimeZone(
-            existing_inventory.auction_date,
-            "Asia/Manila",
-            "MMM dd, yyyy",
-          )
-        : null;
-      const bidderNumber =
-        existing_inventory.auctions_inventory?.auction_bidder?.bidder?.bidder_number;
-
       return {
         ...item,
         isValid: false,
-        error:
-          soldDate && bidderNumber
-            ? `Already sold to bidder #${bidderNumber} on ${soldDate}`
-            : soldDate
-              ? `Already sold on ${soldDate}`
-              : bidderNumber
-                ? `Already sold to bidder #${bidderNumber}`
-                : "Already sold",
+        error: buildAlreadySoldError(existing_inventory),
       };
     }
 
     if (is_bought_items && existing_inventory.status !== "UNSOLD") {
-      return { ...item, isValid: false, error: "Item must be UNSOLD to upload as a bought item" };
+      return {
+        ...item,
+        isValid: false,
+        error: buildBoughtItemUnavailableError(existing_inventory, auction_id),
+      };
     }
 
     return {
@@ -365,7 +429,11 @@ export const addContainerIdForNewInventories = (
     const container_id = containerMap.get(item_container_barcode);
 
     if (!container_id) {
-      return { ...item, isValid: false, error: `${item_container_barcode} does not exist in Containers` };
+      return {
+        ...item,
+        isValid: false,
+        error: `Container ${item_container_barcode} does not exist`,
+      };
     }
 
     return { ...item, container_id };
@@ -376,11 +444,13 @@ export const removeMonitoringDuplicates = (
   data: UploadManifestInput[],
   monitoring: AuctionInventoryWithDetailsRow[],
   is_bought_items = false,
+  auction_id?: string,
 ) => {
-  const existing_monitoring = new Set(
-    monitoring.map((item) =>
+  const existingMonitoring = new Map(
+    monitoring.map((item) => [
       `${item.inventory.barcode}:${item.inventory.control}`,
-    ),
+      item,
+    ]),
   );
 
   /**
@@ -435,8 +505,13 @@ export const removeMonitoringDuplicates = (
       };
     }
 
-    if (existing_monitoring.has(key)) {
-      return { ...sheet_item, isValid: false, error: "DUPLICATE ENCODE" };
+    const existingItem = existingMonitoring.get(key);
+    if (existingItem) {
+      return {
+        ...sheet_item,
+        isValid: false,
+        error: buildMonitoringDuplicateError(existingItem, auction_id),
+      };
     }
 
     return sheet_item;

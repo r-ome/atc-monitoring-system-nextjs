@@ -253,6 +253,7 @@ export const AuctionRepository: IAuctionRepository = {
             },
             auction_bidder: {
               select: {
+                auction_id: true,
                 service_charge: true,
                 registration_fee: true,
                 already_consumed: true,
