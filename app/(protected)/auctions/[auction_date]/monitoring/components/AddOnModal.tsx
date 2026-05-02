@@ -46,6 +46,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
     [key: string]: string;
   }>();
   const [previewData, setPreviewData] = useState<UploadManifestInput[]>([]);
+  const [isDirty, setIsDirty] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingValues, setEditingValues] =
     useState<ManifestSheetRecord | null>(null);
@@ -55,6 +56,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
 
   const resetState = () => {
     setPreviewData([]);
+    setIsDirty(false);
     setEditingIndex(null);
     setEditingValues(null);
     setSelectedBidder(undefined);
@@ -108,6 +110,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
 
       if (res.ok) {
         setPreviewData(res.value);
+        setIsDirty(false);
       } else {
         const description =
           typeof res.error?.cause === "string" ? res.error?.cause : null;
@@ -138,6 +141,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
     );
     setEditingIndex(null);
     setEditingValues(null);
+    setIsDirty(true);
   };
 
   const handleCancelEdit = () => {
@@ -147,6 +151,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
 
   const handleRemoveRow = (index: number) => {
     setPreviewData((prev) => prev.filter((_, rowIndex) => rowIndex !== index));
+    setIsDirty(true);
 
     if (editingIndex === index) {
       setEditingIndex(null);
@@ -170,6 +175,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
 
       if (res.ok) {
         setPreviewData(res.value);
+        setIsDirty(false);
       } else {
         const description =
           typeof res.error?.cause === "string" ? res.error?.cause : null;
@@ -368,19 +374,21 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
                 >
                   Back
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleRevalidate}
-                  disabled={isLoading || previewData.length === 0}
-                >
-                  Re-validate
-                </Button>
-                <Button
-                  onClick={handleConfirm}
-                  disabled={isLoading || previewData.length === 0}
-                >
-                  Confirm Submit
-                </Button>
+                {isDirty ? (
+                  <Button
+                    onClick={handleRevalidate}
+                    disabled={isLoading || previewData.length === 0}
+                  >
+                    Re-validate
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleConfirm}
+                    disabled={isLoading || previewData.length === 0}
+                  >
+                    Confirm Submit
+                  </Button>
+                )}
               </DialogFooter>
             </div>
           )}
