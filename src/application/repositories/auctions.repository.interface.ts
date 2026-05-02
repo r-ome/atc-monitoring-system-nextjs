@@ -72,6 +72,10 @@ export interface IAuctionRepository {
   ) => Promise<Prisma.BatchPayload>;
   getManifestRecords: (auction_id: string) => Promise<ManifestRow[]>;
   getManifestRecord: (manifest_id: string) => Promise<ManifestRow | null>;
+  deleteFailedManifestRecord: (
+    auction_id: string,
+    manifest_id: string,
+  ) => Promise<ManifestRow>;
   cancelItems: (
     data: CancelItemsInput,
     updated_by?: string,

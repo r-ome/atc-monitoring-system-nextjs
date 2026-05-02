@@ -648,6 +648,35 @@ export const AuctionRepository: IAuctionRepository = {
       throw error;
     }
   },
+  deleteFailedManifestRecord: async (auction_id, manifest_id) => {
+    try {
+      const failedManifestRecord = await prisma.manifest_records.findFirst({
+        where: {
+          manifest_id,
+          auction_id,
+          AND: [
+            { error_message: { not: null } },
+            { error_message: { not: "" } },
+          ],
+        },
+      });
+
+      if (!failedManifestRecord) {
+        throw new NotFoundError("Failed manifest record not found!");
+      }
+
+      return await prisma.manifest_records.delete({
+        where: { manifest_id },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error deleting failed Manifest Record", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
   getRegisteredBiddersSummary: async (auction_id) => {
     try {
       return await prisma.auctions_bidders.findMany({

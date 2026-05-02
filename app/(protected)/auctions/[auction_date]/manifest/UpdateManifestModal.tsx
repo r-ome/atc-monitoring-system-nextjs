@@ -1,9 +1,12 @@
 "use client";
 
-import { SetStateAction, useState, useEffect } from "react";
+import { SetStateAction, useState, useEffect, useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { updateManifest } from "@/app/(protected)/auctions/actions";
+import {
+  deleteFailedManifestRecord,
+  updateManifest,
+} from "@/app/(protected)/auctions/actions";
 import { Button } from "@/app/components/ui/button";
 import { Label } from "@/app/components/ui/label";
 import {
@@ -15,6 +18,17 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/app/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/app/components/ui/alert-dialog";
 import { Input } from "@/app/components/ui/input";
 import { toast } from "sonner";
 import { Manifest } from "src/entities/models/Manifest";
@@ -33,15 +47,19 @@ interface UpdateManifestProps {
   open: boolean;
   setOpen: React.Dispatch<SetStateAction<boolean>>;
   selected: Manifest;
+  canDeleteFailedRecord: boolean;
 }
 
 export const UpdateManifestModal: React.FC<UpdateManifestProps> = ({
   open,
   setOpen,
   selected,
+  canDeleteFailedRecord,
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, startDeleteTransition] = useTransition();
   const [errors, setErrors] = useState<Record<string, string[]>>();
   const [newSelected, setNewSelected] = useState<UpdateManifestForm>(selected);
 
@@ -96,7 +114,31 @@ export const UpdateManifestModal: React.FC<UpdateManifestProps> = ({
     setNewSelected((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDelete = () => {
+    startDeleteTransition(async () => {
+      const res = await deleteFailedManifestRecord(
+        selected.auction_id,
+        selected.manifest_id,
+      );
+
+      if (res.ok) {
+        toast.success("Failed manifest record deleted");
+        setDeleteDialogOpen(false);
+        setOpen(false);
+        router.refresh();
+        return;
+      }
+
+      const description =
+        typeof res.error.cause === "string" ? res.error.cause : undefined;
+      toast.error(res.error.message, { description });
+    });
+  };
+
   if (!selected) return null;
+
+  const canDeleteSelectedRecord =
+    canDeleteFailedRecord && !!selected.error_message?.trim();
 
   return (
     <div>
@@ -192,6 +234,57 @@ export const UpdateManifestModal: React.FC<UpdateManifestProps> = ({
               />
             </div>
             <DialogFooter>
+              {canDeleteSelectedRecord ? (
+                <AlertDialog
+                  open={deleteDialogOpen}
+                  onOpenChange={setDeleteDialogOpen}
+                >
+                  <AlertDialogTrigger asChild>
+                    <Button type="button" variant="destructive">
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Delete Failed Manifest Record
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will remove only this failed manifest record from
+                        the manifest table.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-1 text-sm">
+                      <div>
+                        <span className="font-medium">Barcode:</span>{" "}
+                        {selected.barcode ?? "N/A"}
+                      </div>
+                      <div>
+                        <span className="font-medium">Control:</span>{" "}
+                        {selected.control ?? "N/A"}
+                      </div>
+                      <div>
+                        <span className="font-medium">Error:</span>{" "}
+                        {selected.error_message}
+                      </div>
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isDeleting}>
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting && (
+                          <Loader2Icon className="animate-spin" />
+                        )}
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : null}
               <DialogClose className="cursor-pointer">Cancel</DialogClose>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2Icon className="animate-spin" />}

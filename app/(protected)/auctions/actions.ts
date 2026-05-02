@@ -1,6 +1,10 @@
 "use server";
 
 import { requireUser } from "@/app/lib/auth";
+import {
+  authorizeAction,
+  runWithUserContext,
+} from "@/app/lib/protected-action";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { AuctionRepository } from "src/infrastructure/di/repositories";
 import { GetAuctionController } from "src/controllers/auctions/get-auction.controller";
@@ -26,6 +30,7 @@ import { ConfirmUploadManifestController } from "src/controllers/auctions/confir
 import { RevalidateManifestController } from "src/controllers/auctions/revalidate-manifest.controller";
 import { PreviewAddOnController } from "src/controllers/auctions/preview-add-on.controller";
 import { ConfirmAddOnController } from "src/controllers/auctions/confirm-add-on.controller";
+import { DeleteFailedManifestRecordController } from "src/controllers/auctions/delete-failed-manifest-record.controller";
 import { type UploadManifestInput } from "src/entities/models/Manifest";
 import { type PullOutPaymentInput } from "src/entities/models/Payment";
 
@@ -166,6 +171,20 @@ export const getManifestRecords = async (auctionId: string) => {
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
     async () => GetManifestRecordsController(auctionId),
+  );
+};
+
+export const deleteFailedManifestRecord = async (
+  auctionId: string,
+  manifestId: string,
+) => {
+  const auth = await authorizeAction({
+    allowedRoles: ["SUPER_ADMIN"],
+  });
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(auth.value, async () =>
+    DeleteFailedManifestRecordController(auctionId, manifestId),
   );
 };
 

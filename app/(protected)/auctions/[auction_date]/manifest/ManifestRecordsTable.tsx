@@ -10,10 +10,12 @@ import { buildGroupIndexMap } from "@/app/lib/utils";
 
 interface ManifestRecordsTableProps {
   manifestRecords: Manifest[];
+  canDeleteFailedRecords: boolean;
 }
 
 export const ManifestRecordsTable = ({
   manifestRecords,
+  canDeleteFailedRecords,
 }: ManifestRecordsTableProps) => {
   const [selected, setSelected] = useState<Manifest>({
     manifest_id: "",
@@ -81,7 +83,12 @@ export const ManifestRecordsTable = ({
 
   return (
     <>
-      <UpdateManifestModal open={open} setOpen={setOpen} selected={selected} />
+      <UpdateManifestModal
+        open={open}
+        setOpen={setOpen}
+        selected={selected}
+        canDeleteFailedRecord={canDeleteFailedRecords}
+      />
       <DataTable
         pageSize={15}
         columns={columns(setOpen, setSelected, groupIndexMap)}
