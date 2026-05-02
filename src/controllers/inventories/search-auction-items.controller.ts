@@ -5,6 +5,7 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import {
+  AuctionInventorySearchPage,
   AuctionInventorySearchResult,
   AuctionInventorySearchRow,
   parseAuctionInventorySearchInput,
@@ -34,7 +35,11 @@ const presenter = (
   },
 });
 
-export const SearchAuctionItemsController = async (rawInput: string) => {
+export const SearchAuctionItemsController = async (
+  rawInput: string,
+  offset = 0,
+  limit = 20,
+) => {
   try {
     let parsedInput;
 
@@ -48,10 +53,18 @@ export const SearchAuctionItemsController = async (rawInput: string) => {
       });
     }
 
-    const auctionInventories =
-      await InventoryRepository.searchAuctionItems(parsedInput);
+    const auctionInventories = await InventoryRepository.searchAuctionItems({
+      input: parsedInput,
+      offset,
+      limit,
+    });
 
-    return ok(auctionInventories.map(presenter));
+    const page: AuctionInventorySearchPage = {
+      items: auctionInventories.slice(0, limit).map(presenter),
+      hasMore: auctionInventories.length > limit,
+    };
+
+    return ok(page);
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("SearchAuctionItemsController", error, "warn");

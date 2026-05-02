@@ -26,12 +26,16 @@ export const getAuctionItemDetails = async (auctionInventoryId: string) => {
   );
 };
 
-export const searchAuctionItems = async (query: string) => {
+export const searchAuctionItems = async (
+  query: string,
+  offset = 0,
+  limit = 20,
+) => {
   const auth = await authorizeAction();
   if (!auth.ok) return auth;
 
   return await runWithBranchContext(auth.value, async () =>
-    SearchAuctionItemsController(query),
+    SearchAuctionItemsController(query, offset, limit),
   );
 };
 

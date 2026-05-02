@@ -15,7 +15,6 @@ import {
   buildItemMergedHistoryRemark,
   buildItemUpdatedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
-import { AuctionInventorySearchInput } from "src/entities/models/Auction";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
 
 export const InventoryRepository: IInventoryRepository = {
@@ -45,24 +44,34 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
-  searchAuctionItems: async (input: AuctionInventorySearchInput) => {
+  searchAuctionItems: async ({ input, offset, limit }) => {
     try {
-      const inventoryWhere =
-        input.mode === "barcode"
-          ? { barcode: input.barcode }
-          : input.mode === "control"
-            ? { control: input.control }
-            : { barcode: input.barcode, control: input.control };
+      const searchWhere =
+        input.mode === "description"
+          ? {
+              OR: [
+                { description: { contains: input.description } },
+                { inventory: { description: { contains: input.description } } },
+              ],
+            }
+          : {
+              inventory:
+                input.mode === "barcode"
+                  ? { barcode: input.barcode }
+                  : input.mode === "control"
+                    ? { control: input.control }
+                    : { barcode: input.barcode, control: input.control },
+            };
 
       return await prisma.auctions_inventories.findMany({
-        where: buildTenantWhere("auctions_inventories", {
-          inventory: inventoryWhere,
-        }),
+        where: buildTenantWhere("auctions_inventories", searchWhere),
         include: {
           inventory: true,
           auction_bidder: { include: { bidder: true } },
         },
         orderBy: [{ auction_date: "desc" }, { created_at: "desc" }],
+        skip: offset,
+        take: limit + 1,
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

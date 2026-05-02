@@ -25,6 +25,7 @@ import { Spinner } from "@/app/components/ui/spinner";
 import { Button } from "@/app/components/ui/button";
 
 const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_PAGE_SIZE = 20;
 
 const isEditableTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
@@ -64,7 +65,9 @@ export const AuctionItemSearchOverlay = () => {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [selectedAuctionInventory, setSelectedAuctionInventory] =
     useState<AuctionsInventory | null>(null);
   const requestIdRef = useRef(0);
@@ -98,6 +101,8 @@ export const AuctionItemSearchOverlay = () => {
       setResults([]);
       setSearchError(null);
       setIsSearching(false);
+      setIsLoadingMore(false);
+      setHasMore(false);
       return;
     }
 
@@ -109,15 +114,22 @@ export const AuctionItemSearchOverlay = () => {
         setResults([]);
         setSearchError(error instanceof Error ? error.message : "Invalid search input.");
         setIsSearching(false);
+        setIsLoadingMore(false);
+        setHasMore(false);
         return;
       }
 
       const requestId = requestIdRef.current + 1;
       requestIdRef.current = requestId;
       setIsSearching(true);
+      setIsLoadingMore(false);
       setSearchError(null);
 
-      const response = await searchAuctionItems(trimmedQuery);
+      const response = await searchAuctionItems(
+        trimmedQuery,
+        0,
+        SEARCH_PAGE_SIZE,
+      );
 
       if (requestId !== requestIdRef.current) {
         return;
@@ -129,10 +141,12 @@ export const AuctionItemSearchOverlay = () => {
           getSearchErrorMessage(response.error.cause) ?? response.error.message,
         );
         setIsSearching(false);
+        setHasMore(false);
         return;
       }
 
-      setResults(response.value);
+      setResults(response.value.items);
+      setHasMore(response.value.hasMore);
       setIsSearching(false);
     }, SEARCH_DEBOUNCE_MS);
 
@@ -146,7 +160,9 @@ export const AuctionItemSearchOverlay = () => {
     setSearchError(null);
     setDetailError(null);
     setIsSearching(false);
+    setIsLoadingMore(false);
     setIsLoadingDetail(false);
+    setHasMore(false);
     setSelectedAuctionInventory(null);
   };
 
@@ -175,6 +191,37 @@ export const AuctionItemSearchOverlay = () => {
     setIsLoadingDetail(false);
   };
 
+  const handleLoadMore = async () => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery || isLoadingMore || !hasMore) return;
+
+    const requestId = requestIdRef.current;
+    setIsLoadingMore(true);
+    setSearchError(null);
+
+    const response = await searchAuctionItems(
+      trimmedQuery,
+      results.length,
+      SEARCH_PAGE_SIZE,
+    );
+
+    if (requestId !== requestIdRef.current) {
+      return;
+    }
+
+    if (!response.ok) {
+      setSearchError(
+        getSearchErrorMessage(response.error.cause) ?? response.error.message,
+      );
+      setIsLoadingMore(false);
+      return;
+    }
+
+    setResults((current) => [...current, ...response.value.items]);
+    setHasMore(response.value.hasMore);
+    setIsLoadingMore(false);
+  };
+
   return (
     <>
       <Button
@@ -197,14 +244,15 @@ export const AuctionItemSearchOverlay = () => {
         <CommandInput
           value={query}
           onValueChange={setQuery}
-          placeholder="Search barcode, control, or barcode:control"
+          placeholder="Search barcode, control, description, or barcode:control"
           className="uppercase"
         />
 
         <div className="border-b px-3 py-2 text-muted-foreground text-xs">
           Accepted formats: <span className="font-mono">32-04-001</span>,{" "}
           <span className="font-mono">0007</span>, or{" "}
-          <span className="font-mono">32-04-001:0007</span>
+          <span className="font-mono">32-04-001:0007</span>; descriptions like{" "}
+          <span className="font-mono">BAG</span>
         </div>
 
         {selectedAuctionInventory ? (
@@ -254,57 +302,73 @@ export const AuctionItemSearchOverlay = () => {
             ) : null}
 
             {!isLoadingDetail && !searchError ? (
-              <CommandList>
-                {isSearching ? (
-                  <div className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
-                    <Spinner />
-                    Searching auction items...
+              <>
+                <CommandList>
+                  {isSearching ? (
+                    <div className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
+                      <Spinner />
+                      Searching auction items...
+                    </div>
+                  ) : null}
+
+                  {!isSearching && query.trim() ? (
+                    <CommandGroup
+                      heading={`Matching auction items (${results.length}${hasMore ? "+" : ""})`}
+                    >
+                      {results.map((item) => (
+                        <CommandItem
+                          key={item.auction_inventory_id}
+                          value={`${item.inventory.barcode}:${item.inventory.control} ${item.description}`}
+                          onSelect={() =>
+                            handleSelectAuctionInventory(
+                              item.auction_inventory_id,
+                            )
+                          }
+                          className="flex items-start justify-between gap-3"
+                        >
+                          <div className="flex min-w-0 flex-1 flex-col gap-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono text-sm">
+                                {item.inventory.barcode}:{item.inventory.control}
+                              </span>
+                              <AuctionStatusBadge status={item.status} />
+                            </div>
+                            <div className="truncate text-sm">
+                              {item.description}
+                            </div>
+                            <div className="text-muted-foreground text-xs">
+                              Bidder #{item.bidder.bidder_number} •{" "}
+                              {item.bidder.full_name}
+                            </div>
+                          </div>
+                          <div className="text-muted-foreground text-right text-xs">
+                            <div>{item.auction_date}</div>
+                            <div>Manifest {item.manifest_number}</div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  ) : null}
+
+                  {!isSearching && query.trim() && results.length === 0 ? (
+                    <CommandEmpty>No matching auction items found.</CommandEmpty>
+                  ) : null}
+                </CommandList>
+
+                {!isSearching && hasMore ? (
+                  <div className="border-t p-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleLoadMore}
+                      disabled={isLoadingMore}
+                    >
+                      {isLoadingMore ? "Loading..." : "Load More"}
+                    </Button>
                   </div>
                 ) : null}
-
-                {!isSearching && query.trim() ? (
-                  <CommandGroup
-                    heading={`Matching auction items (${results.length})`}
-                  >
-                    {results.map((item) => (
-                      <CommandItem
-                        key={item.auction_inventory_id}
-                        value={`${item.inventory.barcode}:${item.inventory.control}`}
-                        onSelect={() =>
-                          handleSelectAuctionInventory(
-                            item.auction_inventory_id,
-                          )
-                        }
-                        className="flex items-start justify-between gap-3"
-                      >
-                        <div className="flex min-w-0 flex-1 flex-col gap-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-mono text-sm">
-                              {item.inventory.barcode}:{item.inventory.control}
-                            </span>
-                            <AuctionStatusBadge status={item.status} />
-                          </div>
-                          <div className="truncate text-sm">
-                            {item.description}
-                          </div>
-                          <div className="text-muted-foreground text-xs">
-                            Bidder #{item.bidder.bidder_number} •{" "}
-                            {item.bidder.full_name}
-                          </div>
-                        </div>
-                        <div className="text-muted-foreground text-right text-xs">
-                          <div>{item.auction_date}</div>
-                          <div>Manifest {item.manifest_number}</div>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                ) : null}
-
-                {!isSearching && query.trim() && results.length === 0 ? (
-                  <CommandEmpty>No matching auction items found.</CommandEmpty>
-                ) : null}
-              </CommandList>
+              </>
             ) : null}
           </div>
         )}

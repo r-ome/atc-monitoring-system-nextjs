@@ -40,12 +40,15 @@ test("parseAuctionInventorySearchInput accepts barcode:control with alphanumeric
   });
 });
 
-test("parseAuctionInventorySearchInput rejects malformed search formats", () => {
-  assert.throws(
-    () => parseAuctionInventorySearchInput("ABC"),
-    /Search must be barcode, control, or barcode:control/,
-  );
+test("parseAuctionInventorySearchInput accepts description searches", () => {
+  assert.deepEqual(parseAuctionInventorySearchInput("B. BAG"), {
+    raw: "B. BAG",
+    mode: "description",
+    description: "B. BAG",
+  });
+});
 
+test("parseAuctionInventorySearchInput rejects malformed search formats", () => {
   assert.throws(
     () => parseAuctionInventorySearchInput("32-04::0001"),
     /Only one ':' is allowed/,
@@ -58,6 +61,6 @@ test("parseAuctionInventorySearchInput rejects malformed search formats", () => 
 
   assert.throws(
     () => parseAuctionInventorySearchInput("AA-0X-12"),
-    /Search must be barcode, control, or barcode:control/,
+    /Search must be barcode, control, barcode:control, or description/,
   );
 });

@@ -99,6 +99,7 @@ export const AUCTION_INVENTORY_SEARCH_MODE = [
   "barcode",
   "control",
   "barcode_control",
+  "description",
 ] as const;
 
 export type AuctionInventorySearchMode =
@@ -109,6 +110,13 @@ export type AuctionInventorySearchInput = {
   mode: AuctionInventorySearchMode;
   barcode?: string;
   control?: string;
+  description?: string;
+};
+
+export type AuctionInventorySearchParams = {
+  input: AuctionInventorySearchInput;
+  offset: number;
+  limit: number;
 };
 
 export type AuctionInventorySearchResult = {
@@ -129,6 +137,11 @@ export type AuctionInventorySearchResult = {
     bidder_number: string;
     full_name: string;
   };
+};
+
+export type AuctionInventorySearchPage = {
+  items: AuctionInventorySearchResult[];
+  hasMore: boolean;
 };
 
 const BARCODE_SEGMENT_PATTERN = /^[A-Z0-9]{2}$/;
@@ -227,8 +240,16 @@ export const parseAuctionInventorySearchInput = (
     };
   }
 
+  if (!value.includes("-")) {
+    return {
+      raw: input,
+      mode: "description",
+      description: value,
+    };
+  }
+
   throw new Error(
-    "Search must be barcode, control, or barcode:control.",
+    "Search must be barcode, control, barcode:control, or description.",
   );
 };
 

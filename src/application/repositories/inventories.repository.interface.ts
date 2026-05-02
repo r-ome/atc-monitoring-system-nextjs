@@ -10,7 +10,7 @@ import type {
   InventoryStatus,
 } from "src/entities/models/Inventory";
 import {
-  AuctionInventorySearchInput,
+  AuctionInventorySearchParams,
   AuctionInventorySearchRow,
   AuctionInventoryWithContainerDetailsRow,
 } from "src/entities/models/Auction";
@@ -21,7 +21,7 @@ export interface IInventoryRepository {
     auction_inventory_id: string,
   ) => Promise<AuctionInventoryWithContainerDetailsRow | null>;
   searchAuctionItems: (
-    input: AuctionInventorySearchInput,
+    params: AuctionInventorySearchParams,
   ) => Promise<AuctionInventorySearchRow[]>;
   getUnsoldInventories: () => Promise<InventoryRow[]>;
   updateAuctionItem: (data: UpdateAuctionInventoryInput, updated_by?: string) => Promise<void>;
