@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   getAuctionItemDetails,
@@ -175,122 +176,139 @@ export const AuctionItemSearchOverlay = () => {
   };
 
   return (
-    <CommandDialog
-      open={open}
-      onOpenChange={handleOpenChange}
-      title="Search auction item"
-      description="Search auction items by barcode, control, or barcode:control."
-      className="top-8 translate-y-0 sm:max-w-4xl"
-    >
-      <CommandInput
-        value={query}
-        onValueChange={setQuery}
-        placeholder="Search barcode, control, or barcode:control"
-        className="uppercase"
-      />
+    <>
+      <Button
+        type="button"
+        size="icon"
+        aria-label="Search auction items"
+        onClick={() => setOpen(true)}
+        className="fixed bottom-4 left-4 z-50 h-12 w-12 rounded-full shadow-lg sm:hidden"
+      >
+        <SearchIcon className="size-5" />
+      </Button>
 
-      <div className="border-b px-3 py-2 text-muted-foreground text-xs">
-        Accepted formats: <span className="font-mono">32-04-001</span>,{" "}
-        <span className="font-mono">0007</span>, or{" "}
-        <span className="font-mono">32-04-001:0007</span>
-      </div>
+      <CommandDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        title="Search auction item"
+        description="Search auction items by barcode, control, or barcode:control."
+        className="top-8 translate-y-0 sm:max-w-4xl"
+      >
+        <CommandInput
+          value={query}
+          onValueChange={setQuery}
+          placeholder="Search barcode, control, or barcode:control"
+          className="uppercase"
+        />
 
-      {selectedAuctionInventory ? (
-        <div className="max-h-[70vh] overflow-y-auto p-4">
-          <div className="mb-4 flex items-center justify-between gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setSelectedAuctionInventory(null)}
-            >
-              Back to results
-            </Button>
-            <div className="text-muted-foreground text-sm">
-              {selectedAuctionInventory.inventory.barcode}:
-              {selectedAuctionInventory.inventory.control}
+        <div className="border-b px-3 py-2 text-muted-foreground text-xs">
+          Accepted formats: <span className="font-mono">32-04-001</span>,{" "}
+          <span className="font-mono">0007</span>, or{" "}
+          <span className="font-mono">32-04-001:0007</span>
+        </div>
+
+        {selectedAuctionInventory ? (
+          <div className="max-h-[70vh] overflow-y-auto p-4">
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSelectedAuctionInventory(null)}
+              >
+                Back to results
+              </Button>
+              <div className="text-muted-foreground text-sm">
+                {selectedAuctionInventory.inventory.barcode}:
+                {selectedAuctionInventory.inventory.control}
+              </div>
             </div>
+            <AuctionInventoryDetailsView
+              auctionInventory={selectedAuctionInventory}
+            />
           </div>
-          <AuctionInventoryDetailsView
-            auctionInventory={selectedAuctionInventory}
-          />
-        </div>
-      ) : (
-        <div className="max-h-[70vh] overflow-y-auto">
-          {detailError ? (
-            <div className="px-4 py-6 text-center text-sm text-destructive">
-              {detailError}
-            </div>
-          ) : null}
+        ) : (
+          <div className="max-h-[70vh] overflow-y-auto">
+            {detailError ? (
+              <div className="px-4 py-6 text-center text-sm text-destructive">
+                {detailError}
+              </div>
+            ) : null}
 
-          {isLoadingDetail ? (
-            <div className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
-              <Spinner />
-              Loading auction item details...
-            </div>
-          ) : null}
+            {isLoadingDetail ? (
+              <div className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
+                <Spinner />
+                Loading auction item details...
+              </div>
+            ) : null}
 
-          {!isLoadingDetail && !query.trim() ? (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              Start typing to search auction items in this branch.
-            </div>
-          ) : null}
+            {!isLoadingDetail && !query.trim() ? (
+              <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                Start typing to search auction items in this branch.
+              </div>
+            ) : null}
 
-          {!isLoadingDetail && searchError ? (
-            <div className="px-4 py-6 text-center text-sm text-destructive">
-              {searchError}
-            </div>
-          ) : null}
+            {!isLoadingDetail && searchError ? (
+              <div className="px-4 py-6 text-center text-sm text-destructive">
+                {searchError}
+              </div>
+            ) : null}
 
-          {!isLoadingDetail && !searchError ? (
-            <CommandList>
-              {isSearching ? (
-                <div className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
-                  <Spinner />
-                  Searching auction items...
-                </div>
-              ) : null}
+            {!isLoadingDetail && !searchError ? (
+              <CommandList>
+                {isSearching ? (
+                  <div className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
+                    <Spinner />
+                    Searching auction items...
+                  </div>
+                ) : null}
 
-              {!isSearching && query.trim() ? (
-                <CommandGroup
-                  heading={`Matching auction items (${results.length})`}
-                >
-                  {results.map((item) => (
-                    <CommandItem
-                      key={item.auction_inventory_id}
-                      value={`${item.inventory.barcode}:${item.inventory.control}`}
-                      onSelect={() =>
-                        handleSelectAuctionInventory(item.auction_inventory_id)
-                      }
-                      className="flex items-start justify-between gap-3"
-                    >
-                      <div className="flex min-w-0 flex-1 flex-col gap-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-sm">
-                            {item.inventory.barcode}:{item.inventory.control}
-                          </span>
-                          <AuctionStatusBadge status={item.status} />
+                {!isSearching && query.trim() ? (
+                  <CommandGroup
+                    heading={`Matching auction items (${results.length})`}
+                  >
+                    {results.map((item) => (
+                      <CommandItem
+                        key={item.auction_inventory_id}
+                        value={`${item.inventory.barcode}:${item.inventory.control}`}
+                        onSelect={() =>
+                          handleSelectAuctionInventory(
+                            item.auction_inventory_id,
+                          )
+                        }
+                        className="flex items-start justify-between gap-3"
+                      >
+                        <div className="flex min-w-0 flex-1 flex-col gap-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono text-sm">
+                              {item.inventory.barcode}:{item.inventory.control}
+                            </span>
+                            <AuctionStatusBadge status={item.status} />
+                          </div>
+                          <div className="truncate text-sm">
+                            {item.description}
+                          </div>
+                          <div className="text-muted-foreground text-xs">
+                            Bidder #{item.bidder.bidder_number} •{" "}
+                            {item.bidder.full_name}
+                          </div>
                         </div>
-                        <div className="truncate text-sm">{item.description}</div>
-                        <div className="text-muted-foreground text-xs">
-                          Bidder #{item.bidder.bidder_number} • {item.bidder.full_name}
+                        <div className="text-muted-foreground text-right text-xs">
+                          <div>{item.auction_date}</div>
+                          <div>Manifest {item.manifest_number}</div>
                         </div>
-                      </div>
-                      <div className="text-muted-foreground text-right text-xs">
-                        <div>{item.auction_date}</div>
-                        <div>Manifest {item.manifest_number}</div>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              ) : null}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                ) : null}
 
-              {!isSearching && query.trim() && results.length === 0 ? (
-                <CommandEmpty>No matching auction items found.</CommandEmpty>
-              ) : null}
-            </CommandList>
-          ) : null}
-        </div>
-      )}
-    </CommandDialog>
+                {!isSearching && query.trim() && results.length === 0 ? (
+                  <CommandEmpty>No matching auction items found.</CommandEmpty>
+                ) : null}
+              </CommandList>
+            ) : null}
+          </div>
+        )}
+      </CommandDialog>
+    </>
   );
 };
