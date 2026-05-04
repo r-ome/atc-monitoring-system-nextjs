@@ -482,6 +482,7 @@ export const ReportsRepository: IReportsRepository = {
           barcode: string;
           container_number: string | null;
           supplier_name: string;
+          sales_remittance_account: string | null;
           status: "PAID" | "UNPAID";
           arrival_date: Date | null;
           due_date: Date | null;
@@ -489,19 +490,22 @@ export const ReportsRepository: IReportsRepository = {
           total_items: bigint | number;
           paid_items: Prisma.Decimal | bigint | number | string | null;
           total_item_sales: Prisma.Decimal | number | string | null;
+          total_service_charge: Prisma.Decimal | number | string | null;
         }>
       >(Prisma.sql`
         SELECT
           c.barcode,
           c.container_number,
           s.name AS supplier_name,
+          s.sales_remittance_account,
           c.status,
           c.arrival_date,
           c.due_date,
           c.duties_and_taxes,
           COUNT(i.inventory_id) AS total_items,
           COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN 1 ELSE 0 END), 0) AS paid_items,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS total_item_sales
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS total_item_sales,
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge
         FROM containers c
         INNER JOIN suppliers s
           ON s.supplier_id = c.supplier_id
@@ -511,6 +515,8 @@ export const ReportsRepository: IReportsRepository = {
         LEFT JOIN auctions_inventories ai
           ON ai.inventory_id = i.inventory_id
           AND ai.deleted_at IS NULL
+        LEFT JOIN auctions_bidders ab
+          ON ab.auction_bidder_id = ai.auction_bidder_id
         WHERE c.branch_id = ${branch_id}
           AND c.deleted_at IS NULL
         GROUP BY
@@ -518,6 +524,7 @@ export const ReportsRepository: IReportsRepository = {
           c.barcode,
           c.container_number,
           s.name,
+          s.sales_remittance_account,
           c.status,
           c.arrival_date,
           c.due_date,
@@ -529,6 +536,7 @@ export const ReportsRepository: IReportsRepository = {
         barcode: row.barcode,
         container_number: row.container_number,
         supplier_name: row.supplier_name,
+        sales_remittance_account: row.sales_remittance_account ?? "",
         status: row.status,
         arrival_date: row.arrival_date,
         due_date: row.due_date,
@@ -539,6 +547,7 @@ export const ReportsRepository: IReportsRepository = {
             : row.total_items,
         paid_items: toNumber(row.paid_items),
         total_item_sales: toNumber(row.total_item_sales),
+        total_service_charge: toNumber(row.total_service_charge),
       }));
     } catch (error) {
       handleError("Error getting container status overview", error);

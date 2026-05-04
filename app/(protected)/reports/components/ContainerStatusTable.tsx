@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { ContainerStatusEntry } from "src/entities/models/Report";
@@ -12,6 +13,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
+
+const ACCOUNT_FILTER_OPTIONS = [
+  { value: "ATC", label: "ATC" },
+  { value: "ECORE", label: "ECORE" },
+];
 
 const parseReportDate = (value: string | null) =>
   value ? parse(value, "MMM dd, yyyy", new Date()).getTime() : 0;
@@ -129,13 +136,24 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex justify-center text-green-500 font-semibold">
-        {row.original.total_item_sales > 0
-          ? formatNumberToCurrency(row.original.total_item_sales)
-          : "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const { total_item_sales, paid_items } = row.original;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex justify-center text-green-500 font-semibold cursor-help underline decoration-dotted">
+              {total_item_sales > 0 ? formatNumberToCurrency(total_item_sales) : "—"}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs space-y-0.5">
+            <p className="text-white">Sum of {paid_items} PAID item price{paid_items !== 1 ? "s" : ""}</p>
+            <p className="border-t border-white/30 pt-0.5 font-semibold text-white">
+              = {formatNumberToCurrency(total_item_sales)}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     accessorKey: "container_sales_commission",
@@ -145,13 +163,26 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex justify-center text-orange-500 font-semibold">
-        {row.original.container_sales_commission > 0
-          ? formatNumberToCurrency(row.original.container_sales_commission)
-          : "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const { total_item_sales, container_sales_commission } = row.original;
+      const rate = total_item_sales < 700_000 ? 25 : total_item_sales <= 799_999 ? 20 : 15;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex justify-center text-orange-500 font-semibold cursor-help underline decoration-dotted">
+              {container_sales_commission > 0 ? formatNumberToCurrency(container_sales_commission) : "—"}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs space-y-0.5">
+            <p className="text-white">Item Sales &nbsp;{formatNumberToCurrency(total_item_sales)}</p>
+            <p className="text-white">× {rate}% (tiered rate)</p>
+            <p className="border-t border-white/30 pt-0.5 font-semibold text-white">
+              = {formatNumberToCurrency(container_sales_commission)}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     accessorKey: "atc_group_commission",
@@ -161,13 +192,25 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex justify-center text-orange-500 font-semibold">
-        {row.original.atc_group_commission > 0
-          ? formatNumberToCurrency(row.original.atc_group_commission)
-          : "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const { container_sales_commission, atc_group_commission } = row.original;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex justify-center text-orange-500 font-semibold cursor-help underline decoration-dotted">
+              {atc_group_commission > 0 ? formatNumberToCurrency(atc_group_commission) : "—"}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs space-y-0.5">
+            <p className="text-white">Sales Comm. &nbsp;{formatNumberToCurrency(container_sales_commission)}</p>
+            <p className="text-white">÷ 3</p>
+            <p className="border-t border-white/30 pt-0.5 font-semibold text-white">
+              = {formatNumberToCurrency(atc_group_commission)}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     accessorKey: "preparation_fee",
@@ -177,13 +220,25 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex justify-center text-orange-500 font-semibold">
-        {row.original.preparation_fee > 0
-          ? formatNumberToCurrency(row.original.preparation_fee)
-          : "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const { total_item_sales, preparation_fee } = row.original;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex justify-center text-orange-500 font-semibold cursor-help underline decoration-dotted">
+              {preparation_fee > 0 ? formatNumberToCurrency(preparation_fee) : "—"}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs space-y-0.5">
+            <p className="text-white">Item Sales &nbsp;{formatNumberToCurrency(total_item_sales)}</p>
+            <p className="text-white">× 5%</p>
+            <p className="border-t border-white/30 pt-0.5 font-semibold text-white">
+              = {formatNumberToCurrency(preparation_fee)}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     accessorKey: "royalty",
@@ -193,13 +248,32 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex justify-center text-orange-500 font-semibold">
-        {row.original.royalty > 0
-          ? formatNumberToCurrency(row.original.royalty)
-          : "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const { total_item_sales, royalty } = row.original;
+      const tier =
+        total_item_sales < 450_000 ? "< ₱450,000 → ₱20,000"
+        : total_item_sales < 500_000 ? "₱450,000–₱499,999 → ₱22,000"
+        : total_item_sales < 550_000 ? "₱500,000–₱549,999 → ₱25,000"
+        : total_item_sales < 700_000 ? "₱550,000–₱699,999 → ₱30,000"
+        : total_item_sales < 800_000 ? "₱700,000–₱799,999 → ₱32,000"
+        : "≥ ₱800,000 → ₱35,000";
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex justify-center text-orange-500 font-semibold cursor-help underline decoration-dotted">
+              {royalty > 0 ? formatNumberToCurrency(royalty) : "—"}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs space-y-0.5">
+            <p className="text-white">Item Sales &nbsp;{formatNumberToCurrency(total_item_sales)}</p>
+            <p className="text-white">{tier}</p>
+            <p className="border-t border-white/30 pt-0.5 font-semibold text-white">
+              = {formatNumberToCurrency(royalty)}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     accessorKey: "atc_sales",
@@ -233,6 +307,22 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
       );
     },
   },
+  {
+    accessorKey: "total_service_charge",
+    header: ({ column }) => (
+      <SortableHeader
+        label="Service Charge"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      />
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center text-green-500 font-semibold">
+        {row.original.total_service_charge > 0
+          ? formatNumberToCurrency(row.original.total_service_charge)
+          : "—"}
+      </div>
+    ),
+  },
 ];
 
 interface Props {
@@ -240,15 +330,26 @@ interface Props {
 }
 
 export const ContainerStatusTable = ({ data }: Props) => {
-  const total = data.length;
-  const paid = data.filter((d) => d.status === "PAID").length;
-  const unpaid = data.filter((d) => d.status === "UNPAID").length;
-  const totalItemSales = data.reduce((s, d) => s + d.total_item_sales, 0);
-  const totalCommission = data.reduce((s, d) => s + d.container_sales_commission, 0);
-  const totalGroupCommission = data.reduce((s, d) => s + d.atc_group_commission, 0);
-  const totalPrepFee = data.reduce((s, d) => s + d.preparation_fee, 0);
-  const totalRoyalty = data.reduce((s, d) => s + d.royalty, 0);
-  const totalAtcSales = data.reduce((s, d) => s + d.atc_sales, 0);
+  const [accountFilter, setAccountFilter] = useState<string[]>([]);
+
+  const filteredData =
+    accountFilter.length === 0
+      ? data
+      : data.filter((d) => {
+          const acct = (d.sales_remittance_account ?? "").toUpperCase();
+          return accountFilter.some((f) => acct.includes(f.toUpperCase()));
+        });
+
+  const total = filteredData.length;
+  const paid = filteredData.filter((d) => d.status === "PAID").length;
+  const unpaid = filteredData.filter((d) => d.status === "UNPAID").length;
+  const totalItemSales = filteredData.reduce((s, d) => s + d.total_item_sales, 0);
+  const totalServiceCharge = filteredData.reduce((s, d) => s + d.total_service_charge, 0);
+  const totalCommission = filteredData.reduce((s, d) => s + d.container_sales_commission, 0);
+  const totalGroupCommission = filteredData.reduce((s, d) => s + d.atc_group_commission, 0);
+  const totalPrepFee = filteredData.reduce((s, d) => s + d.preparation_fee, 0);
+  const totalRoyalty = filteredData.reduce((s, d) => s + d.royalty, 0);
+  const totalAtcSales = filteredData.reduce((s, d) => s + d.atc_sales, 0);
 
   return (
     <DataTable
@@ -298,11 +399,24 @@ export const ContainerStatusTable = ({ data }: Props) => {
             hint="(Sales Comm. − Group Comm. + Prep. Fee) − Royalty"
           />
           <span className={`font-semibold tabular-nums ${totalAtcSales >= 0 ? "text-green-500" : "text-red-500"}`}>{formatNumberToCurrency(totalAtcSales)}</span>
+
+          <LabelWithHint
+            label="Service Charge"
+            hint="Sum of each PAID item's price × that bidder's service charge rate."
+          />
+          <span className="text-green-500 font-semibold tabular-nums">{formatNumberToCurrency(totalServiceCharge)}</span>
         </div>
       }
       columns={columns}
-      data={data}
+      data={filteredData}
       initialSorting={[{ id: "due_date", desc: false }]}
+      actionButtons={
+        <FilterColumnComponent
+          options={ACCOUNT_FILTER_OPTIONS}
+          onChangeEvent={setAccountFilter}
+          placeholder="Filter by Account"
+        />
+      }
     />
   );
 };

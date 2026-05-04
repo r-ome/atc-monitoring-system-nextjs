@@ -197,6 +197,7 @@ export type ContainerStatusRow = {
   barcode: string;
   container_number: string | null;
   supplier_name: string;
+  sales_remittance_account: string;
   status: "PAID" | "UNPAID";
   arrival_date: Date | null;
   due_date: Date | null;
@@ -204,12 +205,14 @@ export type ContainerStatusRow = {
   total_items: number;
   paid_items: number;
   total_item_sales: number;
+  total_service_charge: number;
 };
 
 export type ContainerStatusEntry = {
   barcode: string;
   container_number: string | null;
   supplier_name: string;
+  sales_remittance_account: string;
   status: "PAID" | "UNPAID";
   arrival_date: string | null;
   due_date: string | null;
@@ -218,6 +221,7 @@ export type ContainerStatusEntry = {
   total_items: number;
   paid_items: number;
   total_item_sales: number;
+  total_service_charge: number;
   container_sales_commission: number;
   atc_group_commission: number;
   preparation_fee: number;

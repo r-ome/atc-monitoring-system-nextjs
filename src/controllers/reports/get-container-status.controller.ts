@@ -46,6 +46,7 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
       barcode: container.barcode,
       container_number: container.container_number,
       supplier_name: container.supplier_name,
+      sales_remittance_account: container.sales_remittance_account,
       status: container.status,
       arrival_date: container.arrival_date
         ? formatDate(container.arrival_date, "MMM dd, yyyy")
@@ -58,6 +59,7 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
       total_items: container.total_items,
       paid_items: container.paid_items,
       total_item_sales,
+      total_service_charge: container.total_service_charge,
       container_sales_commission,
       atc_group_commission,
       preparation_fee,

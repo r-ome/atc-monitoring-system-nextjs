@@ -72,6 +72,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
             barcode: "32-04-001",
             container_number: "CN-1",
             supplier_name: "BIÑAN SUPPLIER",
+            sales_remittance_account: "ATC",
             status: "PAID",
             arrival_date: new Date("2026-04-28T00:00:00.000Z"),
             due_date: new Date("2026-05-03T00:00:00.000Z"),
@@ -79,6 +80,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
             total_items: BigInt(12),
             paid_items: BigInt(9),
             total_item_sales: "320000.00",
+            total_service_charge: "16000.00",
           },
         ];
       }) as typeof prisma.$queryRaw,
@@ -95,6 +97,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
       barcode: "32-04-001",
       container_number: "CN-1",
       supplier_name: "BIÑAN SUPPLIER",
+      sales_remittance_account: "ATC",
       status: "PAID",
       arrival_date: new Date("2026-04-28T00:00:00.000Z"),
       due_date: new Date("2026-05-03T00:00:00.000Z"),
@@ -102,6 +105,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
       total_items: 12,
       paid_items: 9,
       total_item_sales: 320000,
+      total_service_charge: 16000,
     },
   ]);
 });
