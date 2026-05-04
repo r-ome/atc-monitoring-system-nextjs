@@ -24,7 +24,7 @@ interface AddStorageFeeModalProps {
   receipt_id: string;
 }
 
-export const AddStorageFeeModal: React.FC<AddStorageFeeModalProps> = ({
+const AddStorageFeeModal: React.FC<AddStorageFeeModalProps> = ({
   receipt_id,
 }) => {
   const router = useRouter();
@@ -128,3 +128,5 @@ export const AddStorageFeeModal: React.FC<AddStorageFeeModalProps> = ({
     </Dialog>
   );
 };
+
+export default AddStorageFeeModal;

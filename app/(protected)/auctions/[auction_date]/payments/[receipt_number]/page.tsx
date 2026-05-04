@@ -23,7 +23,7 @@ import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Button } from "@/app/components/ui/button";
 import { UpdateRegistrationPaymentMethodModal } from "./UpdateRegistrationPaymentMethodModal/UpdateRegistrationPaymentMethodModal";
 import { UndoPaymentButton } from "./UndoReceiptButton";
-import { AddStorageFeeModal } from "./AddStorageFeeModal/AddStorageFeeModal";
+import AddStorageFeeModal from "./AddStorageFeeModal/AddStorageFeeModal";
 import { cn } from "@/app/lib/utils";
 import { REFUND_PURPOSES } from "src/entities/models/Payment";
 
