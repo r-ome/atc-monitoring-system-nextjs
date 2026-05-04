@@ -172,6 +172,7 @@ export type RefundCancellationBidderEntry = {
 export type SupplierRevenueRow = {
   supplier_name: string;
   supplier_code: string;
+  sales_remittance_account: string;
   container_count: number;
   items_sold: number;
   total_revenue: number;
@@ -180,11 +181,15 @@ export type SupplierRevenueRow = {
 export type SupplierRevenueSummaryEntry = {
   supplier_name: string;
   supplier_code: string;
+  sales_remittance_account: string;
   container_count: number;
   items_sold: number;
-  total_revenue: number;
-  atc_com: number;
-  atc_group_com: number;
+  total_item_sales: number;
+  container_sales_commission: number;
+  atc_group_commission: number;
+  preparation_fee: number;
+  royalty: number;
+  atc_sales: number;
 };
 
 // -- Container Status Overview --
@@ -198,6 +203,7 @@ export type ContainerStatusRow = {
   duties_and_taxes: number;
   total_items: number;
   paid_items: number;
+  total_item_sales: number;
 };
 
 export type ContainerStatusEntry = {
@@ -211,6 +217,12 @@ export type ContainerStatusEntry = {
   duties_and_taxes: number;
   total_items: number;
   paid_items: number;
+  total_item_sales: number;
+  container_sales_commission: number;
+  atc_group_commission: number;
+  preparation_fee: number;
+  royalty: number;
+  atc_sales: number;
 };
 
 // -- Auction Comparison --

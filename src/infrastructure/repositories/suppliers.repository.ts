@@ -31,7 +31,12 @@ export const SupplierRepository: ISupplierRepository = {
             orderBy: { arrival_date: "desc" },
             include: {
               branch: true,
-              inventories: { select: { status: true } },
+              inventories: {
+                select: {
+                  status: true,
+                  auctions_inventory: { select: { price: true, status: true } },
+                },
+              },
             },
           },
         },

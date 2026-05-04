@@ -26,6 +26,7 @@ test("getSupplierRevenueSummary uses an aggregate query and maps numeric values"
           {
             supplier_name: "BIÑAN SUPPLIER",
             supplier_code: "SUP-01",
+            sales_remittance_account: "ATC",
             container_count: BigInt(3),
             items_sold: BigInt(7),
             total_revenue: "123456.78",
@@ -44,10 +45,12 @@ test("getSupplierRevenueSummary uses an aggregate query and maps numeric values"
   assert.match(capturedQuery.sql, /COUNT\(DISTINCT c\.container_id\)/);
   assert.match(capturedQuery.sql, /COUNT\(ai\.auction_inventory_id\)/);
   assert.match(capturedQuery.sql, /ai\.status = 'PAID'/);
+  assert.match(capturedQuery.sql, /s\.sales_remittance_account/);
   assert.deepEqual(rows, [
     {
       supplier_name: "BIÑAN SUPPLIER",
       supplier_code: "SUP-01",
+      sales_remittance_account: "ATC",
       container_count: 3,
       items_sold: 7,
       total_revenue: 123456.78,
@@ -75,6 +78,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
             duties_and_taxes: "4500.50",
             total_items: BigInt(12),
             paid_items: BigInt(9),
+            total_item_sales: "320000.00",
           },
         ];
       }) as typeof prisma.$queryRaw,
@@ -97,6 +101,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
       duties_and_taxes: 4500.5,
       total_items: 12,
       paid_items: 9,
+      total_item_sales: 320000,
     },
   ]);
 });

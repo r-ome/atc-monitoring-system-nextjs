@@ -14,13 +14,18 @@ export type SupplierWithContainerBarcodesRow = Prisma.suppliersGetPayload<{
   include: { containers: { select: { barcode: true } } };
 }>;
 
-// Used by getSupplierBySupplierCode — detail page; only status needed for sold/unsold counts
+// Used by getSupplierBySupplierCode — detail page
 export type SupplierWithContainersRow = Prisma.suppliersGetPayload<{
   include: {
     containers: {
       include: {
         branch: true;
-        inventories: { select: { status: true } };
+        inventories: {
+          select: {
+            status: true;
+            auctions_inventory: { select: { price: true; status: true } };
+          };
+        };
       };
     };
   };

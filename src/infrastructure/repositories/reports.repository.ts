@@ -33,8 +33,8 @@ function handleError(context: string, error: unknown): never {
   throw error;
 }
 
-function toNumber(value: Prisma.Decimal | number | string | bigint | null) {
-  if (value === null) return 0;
+function toNumber(value: Prisma.Decimal | number | string | bigint | null | undefined) {
+  if (value === null || value === undefined) return 0;
   if (typeof value === "number") return value;
   if (typeof value === "bigint") return Number(value);
   if (typeof value === "string") return Number(value);
@@ -424,6 +424,7 @@ export const ReportsRepository: IReportsRepository = {
         Array<{
           supplier_name: string;
           supplier_code: string;
+          sales_remittance_account: string | null;
           container_count: bigint | number;
           items_sold: bigint | number;
           total_revenue: Prisma.Decimal | number | string | null;
@@ -432,6 +433,7 @@ export const ReportsRepository: IReportsRepository = {
         SELECT
           s.name AS supplier_name,
           s.supplier_code,
+          s.sales_remittance_account,
           COUNT(DISTINCT c.container_id) AS container_count,
           COUNT(ai.auction_inventory_id) AS items_sold,
           COALESCE(SUM(ai.price), 0) AS total_revenue
@@ -450,13 +452,14 @@ export const ReportsRepository: IReportsRepository = {
           AND ai.auction_date >= ${start}
           AND ai.auction_date < ${end}
         WHERE s.deleted_at IS NULL
-        GROUP BY s.supplier_id, s.name, s.supplier_code
+        GROUP BY s.supplier_id, s.name, s.supplier_code, s.sales_remittance_account
         ORDER BY s.name ASC
       `);
 
       return rows.map((row) => ({
         supplier_name: row.supplier_name,
         supplier_code: row.supplier_code,
+        sales_remittance_account: row.sales_remittance_account ?? "",
         container_count:
           typeof row.container_count === "bigint"
             ? Number(row.container_count)
@@ -485,6 +488,7 @@ export const ReportsRepository: IReportsRepository = {
           duties_and_taxes: Prisma.Decimal | number | string | null;
           total_items: bigint | number;
           paid_items: Prisma.Decimal | bigint | number | string | null;
+          total_item_sales: Prisma.Decimal | number | string | null;
         }>
       >(Prisma.sql`
         SELECT
@@ -496,7 +500,8 @@ export const ReportsRepository: IReportsRepository = {
           c.due_date,
           c.duties_and_taxes,
           COUNT(i.inventory_id) AS total_items,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN 1 ELSE 0 END), 0) AS paid_items
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN 1 ELSE 0 END), 0) AS paid_items,
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS total_item_sales
         FROM containers c
         INNER JOIN suppliers s
           ON s.supplier_id = c.supplier_id
@@ -532,8 +537,8 @@ export const ReportsRepository: IReportsRepository = {
           typeof row.total_items === "bigint"
             ? Number(row.total_items)
             : row.total_items,
-        paid_items:
-          toNumber(row.paid_items),
+        paid_items: toNumber(row.paid_items),
+        total_item_sales: toNumber(row.total_item_sales),
       }));
     } catch (error) {
       handleError("Error getting container status overview", error);

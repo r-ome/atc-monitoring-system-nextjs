@@ -7,12 +7,17 @@ import { supplierContainerColumns } from "./supplier-containers-columns";
 export type SupplierContainerRow = {
   container_id: string;
   barcode: string;
-  inventories: unknown[];
   sold_items: number;
   unsold_items: number;
   branch: { name: string };
   arrival_date: Date | null;
   due_date: Date | null;
+  total_item_sales: number;
+  container_sales_commission: number;
+  atc_group_commission: number;
+  preparation_fee: number;
+  royalty: number;
+  atc_sales: number;
 };
 
 interface SupplierContainersTableProps {

@@ -5,16 +5,42 @@ import { ReportsRepository } from "src/infrastructure/di/repositories";
 import { ContainerStatusRow, ContainerStatusEntry } from "src/entities/models/Report";
 import { formatDate } from "@/app/lib/utils";
 
+function computeRoyalty(sales: number): number {
+  if (sales < 450_000) return 20_000;
+  if (sales < 500_000) return 22_000;
+  if (sales < 550_000) return 25_000;
+  if (sales < 700_000) return 30_000;
+  if (sales < 800_000) return 32_000;
+  return 35_000;
+}
+
+function computeSalesCommission(sales: number): number {
+  if (sales < 700_000) return Math.round(sales * 0.25);
+  if (sales <= 799_999) return Math.round(sales * 0.2);
+  return Math.round(sales * 0.15);
+}
+
 function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
   const today = new Date();
 
   return rows.map((container) => {
-    const days_since_arrival = container.arrival_date
-      ? Math.floor(
-          (today.getTime() - container.arrival_date.getTime()) /
-            (1000 * 60 * 60 * 24),
-        )
-      : null;
+    const days_since_arrival =
+      container.status === "PAID"
+        ? 0
+        : container.arrival_date
+          ? Math.floor(
+              (today.getTime() - container.arrival_date.getTime()) /
+                (1000 * 60 * 60 * 24),
+            )
+          : null;
+
+    const total_item_sales = container.total_item_sales;
+    const container_sales_commission = computeSalesCommission(total_item_sales);
+    const atc_group_commission = Math.round(container_sales_commission / 3);
+    const preparation_fee = Math.round(total_item_sales * 0.05);
+    const royalty = computeRoyalty(total_item_sales);
+    const atc_sales =
+      container_sales_commission - atc_group_commission + preparation_fee - royalty;
 
     return {
       barcode: container.barcode,
@@ -31,6 +57,12 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
       duties_and_taxes: Number(container.duties_and_taxes),
       total_items: container.total_items,
       paid_items: container.paid_items,
+      total_item_sales,
+      container_sales_commission,
+      atc_group_commission,
+      preparation_fee,
+      royalty,
+      atc_sales,
     };
   });
 }

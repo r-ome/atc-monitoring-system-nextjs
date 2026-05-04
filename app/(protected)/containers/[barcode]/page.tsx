@@ -7,6 +7,7 @@ import {
 import { requireUser } from "@/app/lib/auth";
 import { ContainerProfile } from "./components/ContainerProfile";
 import { ContainerInventoriesTable } from "./components/inventories/ContainerInventoriesTable";
+import { ContainerReport } from "./components/report/ContainerReport";
 import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
 import { getBranches } from "@/app/(protected)/branches/actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
@@ -41,6 +42,7 @@ export default async function Page({
         <TabsList>
           <TabsTrigger value="inventory-list">Inventories</TabsTrigger>
           <TabsTrigger value="profile">Container Profile</TabsTrigger>
+          <TabsTrigger value="report">Report</TabsTrigger>
         </TabsList>
         <TabsContent value="inventory-list">
           <ContainerInventoriesTable
@@ -52,6 +54,9 @@ export default async function Page({
         </TabsContent>
         <TabsContent value="profile">
           <ContainerProfile container={container} />
+        </TabsContent>
+        <TabsContent value="report">
+          <ContainerReport inventories={container.inventories} />
         </TabsContent>
       </Tabs>
     </div>
