@@ -136,6 +136,7 @@ export const ReportsRepository: IReportsRepository = {
         FROM expenses e
         WHERE e.deleted_at IS NULL
           AND e.branch_id = ${branch_id}
+          AND e.purpose = 'EXPENSE'
           AND e.created_at >= ${start}
           AND e.created_at < ${end}
         GROUP BY e.created_at
@@ -419,32 +420,53 @@ export const ReportsRepository: IReportsRepository = {
   getSupplierRevenueSummary: async (branch_id, date) => {
     try {
       const { start, end } = parseDateRange(date);
-      return await prisma.suppliers.findMany({
-        where: {
-          deleted_at: null,
-          containers: { some: { branch_id, deleted_at: null } },
-        },
-        include: {
-          containers: {
-            where: { branch_id, deleted_at: null },
-            include: {
-              inventories: {
-                where: { deleted_at: null },
-                include: {
-                  auctions_inventory: {
-                    where: {
-                      status: "PAID",
-                      auction_date: { gte: start, lt: end },
-                      deleted_at: null,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        orderBy: { name: "asc" },
-      });
+      const rows = await prisma.$queryRaw<
+        Array<{
+          supplier_name: string;
+          supplier_code: string;
+          container_count: bigint | number;
+          items_sold: bigint | number;
+          total_revenue: Prisma.Decimal | number | string | null;
+        }>
+      >(Prisma.sql`
+        SELECT
+          s.name AS supplier_name,
+          s.supplier_code,
+          COUNT(DISTINCT c.container_id) AS container_count,
+          COUNT(ai.auction_inventory_id) AS items_sold,
+          COALESCE(SUM(ai.price), 0) AS total_revenue
+        FROM suppliers s
+        INNER JOIN containers c
+          ON c.supplier_id = s.supplier_id
+          AND c.branch_id = ${branch_id}
+          AND c.deleted_at IS NULL
+        LEFT JOIN inventories i
+          ON i.container_id = c.container_id
+          AND i.deleted_at IS NULL
+        LEFT JOIN auctions_inventories ai
+          ON ai.inventory_id = i.inventory_id
+          AND ai.status = 'PAID'
+          AND ai.deleted_at IS NULL
+          AND ai.auction_date >= ${start}
+          AND ai.auction_date < ${end}
+        WHERE s.deleted_at IS NULL
+        GROUP BY s.supplier_id, s.name, s.supplier_code
+        ORDER BY s.name ASC
+      `);
+
+      return rows.map((row) => ({
+        supplier_name: row.supplier_name,
+        supplier_code: row.supplier_code,
+        container_count:
+          typeof row.container_count === "bigint"
+            ? Number(row.container_count)
+            : row.container_count,
+        items_sold:
+          typeof row.items_sold === "bigint"
+            ? Number(row.items_sold)
+            : row.items_sold,
+        total_revenue: toNumber(row.total_revenue),
+      }));
     } catch (error) {
       handleError("Error getting supplier revenue summary", error);
     }
@@ -452,17 +474,67 @@ export const ReportsRepository: IReportsRepository = {
 
   getContainerStatusOverview: async (branch_id) => {
     try {
-      return await prisma.containers.findMany({
-        where: { branch_id, deleted_at: null },
-        include: {
-          supplier: true,
-          inventories: {
-            where: { deleted_at: null },
-            include: { auctions_inventory: true },
-          },
-        },
-        orderBy: [{ due_date: "asc" }, { arrival_date: "asc" }],
-      });
+      const rows = await prisma.$queryRaw<
+        Array<{
+          barcode: string;
+          container_number: string | null;
+          supplier_name: string;
+          status: "PAID" | "UNPAID";
+          arrival_date: Date | null;
+          due_date: Date | null;
+          duties_and_taxes: Prisma.Decimal | number | string | null;
+          total_items: bigint | number;
+          paid_items: Prisma.Decimal | bigint | number | string | null;
+        }>
+      >(Prisma.sql`
+        SELECT
+          c.barcode,
+          c.container_number,
+          s.name AS supplier_name,
+          c.status,
+          c.arrival_date,
+          c.due_date,
+          c.duties_and_taxes,
+          COUNT(i.inventory_id) AS total_items,
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN 1 ELSE 0 END), 0) AS paid_items
+        FROM containers c
+        INNER JOIN suppliers s
+          ON s.supplier_id = c.supplier_id
+        LEFT JOIN inventories i
+          ON i.container_id = c.container_id
+          AND i.deleted_at IS NULL
+        LEFT JOIN auctions_inventories ai
+          ON ai.inventory_id = i.inventory_id
+          AND ai.deleted_at IS NULL
+        WHERE c.branch_id = ${branch_id}
+          AND c.deleted_at IS NULL
+        GROUP BY
+          c.container_id,
+          c.barcode,
+          c.container_number,
+          s.name,
+          c.status,
+          c.arrival_date,
+          c.due_date,
+          c.duties_and_taxes
+        ORDER BY c.due_date ASC, c.arrival_date ASC
+      `);
+
+      return rows.map((row) => ({
+        barcode: row.barcode,
+        container_number: row.container_number,
+        supplier_name: row.supplier_name,
+        status: row.status,
+        arrival_date: row.arrival_date,
+        due_date: row.due_date,
+        duties_and_taxes: toNumber(row.duties_and_taxes),
+        total_items:
+          typeof row.total_items === "bigint"
+            ? Number(row.total_items)
+            : row.total_items,
+        paid_items:
+          toNumber(row.paid_items),
+      }));
     } catch (error) {
       handleError("Error getting container status overview", error);
     }

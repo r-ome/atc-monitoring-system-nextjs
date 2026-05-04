@@ -9,11 +9,6 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
   const today = new Date();
 
   return rows.map((container) => {
-    const total_items = container.inventories.length;
-    const paid_items = container.inventories.filter(
-      (inv) => inv.auctions_inventory?.status === "PAID",
-    ).length;
-
     const days_since_arrival = container.arrival_date
       ? Math.floor(
           (today.getTime() - container.arrival_date.getTime()) /
@@ -24,7 +19,7 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
     return {
       barcode: container.barcode,
       container_number: container.container_number,
-      supplier_name: container.supplier.name,
+      supplier_name: container.supplier_name,
       status: container.status,
       arrival_date: container.arrival_date
         ? formatDate(container.arrival_date, "MMM dd, yyyy")
@@ -34,8 +29,8 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
         : null,
       days_since_arrival,
       duties_and_taxes: Number(container.duties_and_taxes),
-      total_items,
-      paid_items,
+      total_items: container.total_items,
+      paid_items: container.paid_items,
     };
   });
 }

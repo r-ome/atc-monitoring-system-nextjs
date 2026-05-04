@@ -169,19 +169,13 @@ export type RefundCancellationBidderEntry = {
 };
 
 // -- Supplier Revenue Summary --
-export type SupplierRevenueRow = Prisma.suppliersGetPayload<{
-  include: {
-    containers: {
-      include: {
-        inventories: {
-          include: {
-            auctions_inventory: true;
-          };
-        };
-      };
-    };
-  };
-}>;
+export type SupplierRevenueRow = {
+  supplier_name: string;
+  supplier_code: string;
+  container_count: number;
+  items_sold: number;
+  total_revenue: number;
+};
 
 export type SupplierRevenueSummaryEntry = {
   supplier_name: string;
@@ -194,16 +188,17 @@ export type SupplierRevenueSummaryEntry = {
 };
 
 // -- Container Status Overview --
-export type ContainerStatusRow = Prisma.containersGetPayload<{
-  include: {
-    supplier: true;
-    inventories: {
-      include: {
-        auctions_inventory: true;
-      };
-    };
-  };
-}>;
+export type ContainerStatusRow = {
+  barcode: string;
+  container_number: string | null;
+  supplier_name: string;
+  status: "PAID" | "UNPAID";
+  arrival_date: Date | null;
+  due_date: Date | null;
+  duties_and_taxes: number;
+  total_items: number;
+  paid_items: number;
+};
 
 export type ContainerStatusEntry = {
   barcode: string;

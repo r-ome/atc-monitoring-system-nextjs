@@ -18,3 +18,4 @@ import "./controllers/containers/log-container-report.controller.test";
 import "./infrastructure/repositories/auction-manifest-write.test";
 import "./infrastructure/repositories/inventories.repository.test";
 import "./infrastructure/repositories/payments.repository.test";
+import "./infrastructure/repositories/reports.repository.test";

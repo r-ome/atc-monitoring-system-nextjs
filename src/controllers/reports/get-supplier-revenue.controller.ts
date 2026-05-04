@@ -2,7 +2,10 @@ import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { ReportsRepository } from "src/infrastructure/di/repositories";
-import { SupplierRevenueRow, SupplierRevenueSummaryEntry } from "src/entities/models/Report";
+import {
+  SupplierRevenueRow,
+  SupplierRevenueSummaryEntry,
+} from "src/entities/models/Report";
 
 // Tiered ATC commission matching generateMonthlyCommission.ts (column E)
 function computeAtcCom(revenue: number): number {
@@ -13,27 +16,15 @@ function computeAtcCom(revenue: number): number {
 
 function presenter(rows: SupplierRevenueRow[]): SupplierRevenueSummaryEntry[] {
   return rows.map((supplier) => {
-    const container_count = supplier.containers.length;
-    let items_sold = 0;
-    let total_revenue = 0;
-
-    for (const container of supplier.containers) {
-      for (const inventory of container.inventories) {
-        if (inventory.auctions_inventory) {
-          items_sold += 1;
-          total_revenue += inventory.auctions_inventory.price;
-        }
-      }
-    }
-
+    const total_revenue = supplier.total_revenue;
     const atc_com = computeAtcCom(total_revenue);
     const atc_group_com = Math.round(atc_com / 3);
 
     return {
-      supplier_name: supplier.name,
+      supplier_name: supplier.supplier_name,
       supplier_code: supplier.supplier_code,
-      container_count,
-      items_sold,
+      container_count: supplier.container_count,
+      items_sold: supplier.items_sold,
       total_revenue,
       atc_com,
       atc_group_com,
