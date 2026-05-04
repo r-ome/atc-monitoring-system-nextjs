@@ -49,6 +49,8 @@ export const InventoryRepository: IInventoryRepository = {
   },
   searchAuctionItems: async ({ input, offset, limit }) => {
     try {
+      const isContainerBarcodeSearch =
+        input.mode === "barcode" && input.barcode?.split("-").length === 2;
       const searchWhere =
         input.mode === "description"
           ? {
@@ -60,7 +62,14 @@ export const InventoryRepository: IInventoryRepository = {
           : {
               inventory:
                 input.mode === "barcode"
-                  ? { barcode: input.barcode }
+                  ? isContainerBarcodeSearch
+                    ? {
+                        OR: [
+                          { barcode: input.barcode },
+                          { barcode: { startsWith: `${input.barcode}-` } },
+                        ],
+                      }
+                    : { barcode: input.barcode }
                   : input.mode === "control"
                     ? { control: normalizeControl(input.control) }
                     : {

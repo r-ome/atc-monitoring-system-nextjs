@@ -144,12 +144,21 @@ export type AuctionInventorySearchPage = {
   hasMore: boolean;
 };
 
-const BARCODE_SEGMENT_PATTERN = /^[A-Z0-9]{2}$/;
-const BARCODE_ITEM_SEGMENT_PATTERN = /^\d{3}$/;
+const BARCODE_PREFIX_SEGMENT_PATTERN = /^[A-Z0-9]{2,3}$/;
+const BARCODE_CONTAINER_SEGMENT_PATTERN = /^\d{2}$/;
+const BARCODE_ITEM_SEGMENT_PATTERN = /^\d{1,3}$/;
 const CONTROL_SEARCH_PATTERN = /^\d{1,4}$/;
 
 const normalizeControlSearch = (value: string) => value.padStart(4, "0");
-const normalizeBarcodeSearch = (value: string) => value.toUpperCase();
+const normalizeBarcodeSearch = (value: string) => {
+  const segments = value.toUpperCase().split("-");
+
+  if (segments.length === 3 && /^\d+$/.test(segments[2])) {
+    return [...segments.slice(0, 2), segments[2].padStart(3, "0")].join("-");
+  }
+
+  return segments.join("-");
+};
 
 const isValidBarcodeSearch = (value: string) => {
   const segments = normalizeBarcodeSearch(value).split("-");
@@ -163,8 +172,8 @@ const isValidBarcodeSearch = (value: string) => {
   }
 
   if (
-    !BARCODE_SEGMENT_PATTERN.test(segments[0]) ||
-    !BARCODE_SEGMENT_PATTERN.test(segments[1])
+    !BARCODE_PREFIX_SEGMENT_PATTERN.test(segments[0]) ||
+    !BARCODE_CONTAINER_SEGMENT_PATTERN.test(segments[1])
   ) {
     return false;
   }

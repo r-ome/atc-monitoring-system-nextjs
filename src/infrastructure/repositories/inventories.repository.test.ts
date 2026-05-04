@@ -13,6 +13,40 @@ afterEach(() => {
   }
 });
 
+test("searchAuctionItems finds child inventory barcodes from a container barcode search", async () => {
+  let capturedWhere: unknown;
+
+  restorers.push(
+    patchMethod(
+      prisma.auctions_inventories,
+      "findMany",
+      (async (args: { where: unknown }) => {
+        capturedWhere = args.where;
+        return [];
+      }) as typeof prisma.auctions_inventories.findMany,
+    ),
+  );
+
+  await InventoryRepository.searchAuctionItems({
+    input: {
+      raw: "108-03",
+      mode: "barcode",
+      barcode: "108-03",
+    },
+    offset: 0,
+    limit: 20,
+  });
+
+  assert.deepEqual(capturedWhere, {
+    inventory: {
+      OR: [
+        { barcode: "108-03" },
+        { barcode: { startsWith: "108-03-" } },
+      ],
+    },
+  });
+});
+
 test("updateAuctionItem recalculates affected bidder balances after reassigning an unpaid item", async () => {
   let itemReassigned = false;
   const bidderBalanceWrites: Array<{
