@@ -2,13 +2,14 @@ import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { UpdateAuctionInventoryInput } from "src/entities/models/Inventory";
 import { ContainerRepository } from "src/infrastructure/di/repositories";
 import { InputParseError } from "src/entities/errors/common";
-import { formatNumberPadding } from "@/app/lib/utils";
+import { formatNumberPadding, normalizeControl } from "@/app/lib/utils";
 
 export const updateAuctionItemUseCase = async (
   data: UpdateAuctionInventoryInput,
   updated_by?: string
 ) => {
   const containers = await ContainerRepository.getContainers();
+  data.control = normalizeControl(data.control);
   const has_inventory_barcode = data.barcode.split("-").length === 3;
   const item_container_barcode = has_inventory_barcode
     ? data.barcode.split("-").slice(0, -1).join("-")

@@ -137,7 +137,7 @@ test("formatSlashedBarcodes expands slash rows into individual logical items", (
   const rows = formatSlashedBarcodes([
     {
       BARCODE: "32-04-001/002/32-04-003",
-      CONTROL: "0001/0002",
+      CONTROL: "1/40",
       DESCRIPTION: "VASE",
       BIDDER: "0007",
       PRICE: "1000",
@@ -165,7 +165,7 @@ test("formatSlashedBarcodes expands slash rows into individual logical items", (
   );
   assert.deepEqual(
     rows.map((row) => row.CONTROL),
-    ["0001", "0002", "0002"],
+    ["0001", "0040", "0040"],
   );
   assert.ok(rows.every((row) => row.isSlashItem));
   assert.equal(new Set(rows.map((row) => row.isSlashItem)).size, 1);

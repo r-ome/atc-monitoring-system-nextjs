@@ -10,7 +10,10 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
-import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
+import {
+  getItemPriceWithServiceChargeAmount,
+  normalizeControl,
+} from "@/app/lib/utils";
 import {
   buildItemMergedHistoryRemark,
   buildItemUpdatedHistoryRemark,
@@ -59,8 +62,11 @@ export const InventoryRepository: IInventoryRepository = {
                 input.mode === "barcode"
                   ? { barcode: input.barcode }
                   : input.mode === "control"
-                    ? { control: input.control }
-                    : { barcode: input.barcode, control: input.control },
+                    ? { control: normalizeControl(input.control) }
+                    : {
+                        barcode: input.barcode,
+                        control: normalizeControl(input.control),
+                      },
             };
 
       return await prisma.auctions_inventories.findMany({
@@ -309,7 +315,7 @@ export const InventoryRepository: IInventoryRepository = {
                     ? data.container_id!
                     : auction_inventory.inventory.container_id,
                 barcode: data.barcode,
-                control: data.control,
+                control: normalizeControl(data.control),
                 status: "SOLD",
               },
             },
@@ -394,7 +400,7 @@ export const InventoryRepository: IInventoryRepository = {
         where: { inventory_id },
         data: {
           barcode: data.barcode,
-          control: data.control,
+          control: normalizeControl(data.control),
           description: data.description,
         },
       });
@@ -537,7 +543,7 @@ export const InventoryRepository: IInventoryRepository = {
         data: {
           container_id: input.container_id,
           barcode: input.barcode,
-          control: input.control,
+          control: normalizeControl(input.control),
           description: input.description,
           status: "UNSOLD",
         },

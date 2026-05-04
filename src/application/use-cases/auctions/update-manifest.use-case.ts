@@ -8,7 +8,7 @@ import {
 } from "src/entities/models/Auction";
 import { ContainerBarcodeRow } from "src/entities/models/Container";
 import { divideIntoHundreds, divideQuantites, getContainerBarcode, isThreePartBarcode } from "src/application/use-cases/auctions/manifest-pipeline";
-import { formatNumberPadding } from "@/app/lib/utils";
+import { formatNumberPadding, normalizeControl } from "@/app/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 
 export const updateManifestUseCase = async (
@@ -162,8 +162,8 @@ const formatSlashedBarcodes = (
       qty: new_quantities[i].toString(),
       control:
         new_control.length > 1
-          ? new_control[i] ?? new_control[new_control.length - 1]
-          : new_control.join(""),
+          ? normalizeControl(new_control[i] ?? new_control[new_control.length - 1])
+          : normalizeControl(new_control.join("")),
     };
   });
 

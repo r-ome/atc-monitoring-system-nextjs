@@ -1,4 +1,5 @@
 import { UploadManifestInput } from "src/entities/models/Manifest";
+import { normalizeControl } from "@/app/lib/utils";
 
 export type ReusedInventoryUpdate = {
   inventory_id: string;
@@ -23,7 +24,7 @@ export const buildReusedInventoryUpdates = (
     return {
       inventory_id: item.inventory_id,
       data: {
-        control: item.CONTROL,
+        control: normalizeControl(item.CONTROL),
         status: isBoughtItems ? "BOUGHT_ITEM" : "SOLD",
         auction_date: auctionDate,
         ...(isBoughtItems

@@ -2,7 +2,7 @@ import { InputParseError } from "src/entities/errors/common";
 import { CreateInventoryInput } from "src/entities/models/Inventory";
 import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { ContainerRepository } from "src/infrastructure/di/repositories";
-import { formatNumberPadding } from "@/app/lib/utils";
+import { formatNumberPadding, normalizeControl } from "@/app/lib/utils";
 
 export const updateInventoryUseCase = async (
   inventory_id: string,
@@ -10,6 +10,7 @@ export const updateInventoryUseCase = async (
 ) => {
   const containers = await ContainerRepository.getContainers();
   await InventoryRepository.getInventory(inventory_id);
+  input.control = normalizeControl(input.control);
 
   const hasInventoryBarcode = input.barcode.split("-").length === 3;
   const item_container_barcode = hasInventoryBarcode

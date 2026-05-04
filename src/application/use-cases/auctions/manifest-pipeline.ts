@@ -6,7 +6,7 @@ import {
   CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES,
 } from "src/entities/models/Auction";
 import { AuctionBidderForManifestRow } from "src/entities/models/Bidder";
-import { formatNumberPadding } from "@/app/lib/utils";
+import { formatNumberPadding, normalizeControl } from "@/app/lib/utils";
 import { formatInTimeZone } from "date-fns-tz";
 import { v4 as uuidv4 } from "uuid";
 
@@ -99,7 +99,7 @@ export const validateEmptyFields = (
     ] as const;
     const empty_fields = required.filter((field) => !item[field]);
 
-    const CONTROL = item.CONTROL ? formatNumberPadding(item.CONTROL, 4) : "NC";
+    const CONTROL = normalizeControl(item.CONTROL);
     const QTY = item.QTY
       ? item.QTY == "0.5"
         ? "1/2"
@@ -154,9 +154,7 @@ export const formatControlDescriptionQty = (
       DESCRIPTION: item.DESCRIPTION || "NO DESCRIPTION",
       QTY: item.QTY || "NO QTY",
       MANIFEST: item.MANIFEST || "NO MANIFEST",
-      CONTROL: !item.CONTROL
-        ? "NC"
-        : formatNumberPadding(item.CONTROL.replace(/\./g, ""), 4),
+      CONTROL: normalizeControl(item.CONTROL),
       BIDDER: formatNumberPadding(item.BIDDER, 4),
     };
   });
@@ -282,8 +280,8 @@ export const formatSlashedBarcodes = (
         QTY: new_quantities[i].toString(),
         CONTROL:
           new_control.length > 1
-            ? new_control[i] ?? new_control[new_control.length - 1]
-            : new_control.join(""),
+            ? normalizeControl(new_control[i] ?? new_control[new_control.length - 1])
+            : normalizeControl(new_control.join("")),
       };
     });
 

@@ -29,7 +29,7 @@ import {
   AuctionInventoryWithDetailsRow,
   Override,
 } from "src/entities/models/Auction";
-import { isRange } from "@/app/lib/utils";
+import { isRange, normalizeControl } from "@/app/lib/utils";
 import { buildReusedInventoryUpdates } from "./auction-manifest-write";
 import {
   getAuctionInventoriesPayableBase,
@@ -338,7 +338,7 @@ export const AuctionRepository: IAuctionRepository = {
           data: data.map((item) => ({
             auction_id,
             barcode: item.BARCODE,
-            control: item.CONTROL,
+            control: normalizeControl(item.CONTROL),
             description: item.DESCRIPTION,
             price: item.PRICE.toString(),
             bidder_number: item.BIDDER,
@@ -372,7 +372,7 @@ export const AuctionRepository: IAuctionRepository = {
           data: new_inventories.map((item) => ({
             container_id: item.container_id!,
             barcode: item.BARCODE,
-            control: item.CONTROL,
+            control: normalizeControl(item.CONTROL),
             description: item.DESCRIPTION,
             status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
             is_bought_item: is_bought_items
@@ -1055,7 +1055,7 @@ export const AuctionRepository: IAuctionRepository = {
             where: { manifest_id },
             data: {
               barcode: original.barcode,
-              control: original.control,
+              control: normalizeControl(original.control),
               description: original.description,
               price: original.price.toString(),
               bidder_number: original.bidder_number,
@@ -1091,7 +1091,7 @@ export const AuctionRepository: IAuctionRepository = {
             await tx.inventories.createMany({
               data: for_creating_inventories.map((item) => ({
                 container_id: item.container_id!,
-                control: item.control,
+                control: normalizeControl(item.control),
                 barcode: item.barcode,
                 description: item.description,
                 status: "SOLD",

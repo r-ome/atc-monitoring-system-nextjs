@@ -2,9 +2,11 @@ import { InputParseError } from "src/entities/errors/common";
 import { CreateInventoryInput } from "src/entities/models/Inventory";
 import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { getContainerByIdUseCase } from "../containers/get-container-by-id.use-case";
+import { normalizeControl } from "@/app/lib/utils";
 
 export const createInventoryUseCase = async (input: CreateInventoryInput) => {
   const container = await getContainerByIdUseCase(input.container_id);
+  input.control = normalizeControl(input.control);
   const match = container.inventories.find((inventory) => {
     if (input.barcode.split("-").length === 3) {
       return inventory.barcode === input.barcode;

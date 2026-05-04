@@ -13,6 +13,23 @@ export const formatNumberPadding = (
   padding: number = 3,
 ): string => num?.toString().padStart(padding, "0");
 
+export const normalizeControl = (
+  control: number | string | null | undefined,
+): string => {
+  const value = control?.toString().trim() ?? "";
+
+  if (!value) return "NC";
+  if (value.toUpperCase() === "NC") return "NC";
+  if (value.includes("/")) {
+    return value
+      .split("/")
+      .map((part) => normalizeControl(part))
+      .join("/");
+  }
+
+  return formatNumberPadding(value.replace(/\./g, ""), 4);
+};
+
 export const formatNumberToCurrency = (num: string | number): string => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

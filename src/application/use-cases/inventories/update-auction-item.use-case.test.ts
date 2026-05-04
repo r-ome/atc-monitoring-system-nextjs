@@ -45,7 +45,43 @@ test("updateAuctionItemUseCase normalizes three-part barcodes and resolves the t
   });
 
   assert.equal(delegatedInput?.barcode, "32-04-001");
+  assert.equal(delegatedInput?.control, "0001");
   assert.equal(delegatedInput?.container_id, "container-1");
+});
+
+test("updateAuctionItemUseCase normalizes control before duplicate checks and persistence", async () => {
+  let delegatedInput: Record<string, unknown> | undefined;
+
+  restorers.push(
+    patchMethod(ContainerRepository, "getContainers", async () => [
+      {
+        container_id: "container-1",
+        barcode: "32-04",
+        inventories: [
+          { inventory_id: "same-1", barcode: "32-04", control: "0050" },
+        ],
+      },
+    ] as never),
+    patchMethod(InventoryRepository, "updateAuctionItem", async (input) => {
+      delegatedInput = input as never;
+      return input as never;
+    }),
+  );
+
+  await updateAuctionItemUseCase({
+    auction_id: "auction-1",
+    auction_inventory_id: "ai-1",
+    inventory_id: "same-1",
+    barcode: "32-04",
+    control: "50",
+    description: "ITEM",
+    price: 1000,
+    qty: "1",
+    manifest_number: "M1",
+    bidder_number: "0007",
+  });
+
+  assert.equal(delegatedInput?.control, "0050");
 });
 
 test("updateAuctionItemUseCase rejects missing containers and barcode collisions according to barcode shape", async () => {

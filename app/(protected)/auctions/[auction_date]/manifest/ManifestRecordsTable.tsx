@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./manifest-columns";
 import { Manifest } from "src/entities/models/Manifest";
 import { UpdateManifestModal } from "./UpdateManifestModal";
 import { buildGroupIndexMap } from "@/app/lib/utils";
+import { Button } from "@/app/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface ManifestRecordsTableProps {
   manifestRecords: Manifest[];
@@ -17,6 +20,8 @@ export const ManifestRecordsTable = ({
   manifestRecords,
   canDeleteFailedRecords,
 }: ManifestRecordsTableProps) => {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [selected, setSelected] = useState<Manifest>({
     manifest_id: "",
     barcode: "",
@@ -102,19 +107,30 @@ export const ManifestRecordsTable = ({
           },
         }}
         actionButtons={
-          <div className="flex flex-wrap items-center gap-6 text-sm">
-            <span>
-              Errors:{" "}
-              <span className="font-semibold text-red-500">
-                {errorStats.totalErrors}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-6 text-sm">
+              <span>
+                Errors:{" "}
+                <span className="font-semibold text-red-500">
+                  {errorStats.totalErrors}
+                </span>
               </span>
-            </span>
-            {errorStats.errorsByUploader.map(([uploadedBy, count]) => (
-              <span key={uploadedBy}>
-                {uploadedBy}:{" "}
-                <span className="font-semibold text-red-500">{count}</span>
-              </span>
-            ))}
+              {errorStats.errorsByUploader.map(([uploadedBy, count]) => (
+                <span key={uploadedBy}>
+                  {uploadedBy}:{" "}
+                  <span className="font-semibold text-red-500">{count}</span>
+                </span>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={isPending}
+              onClick={() => startTransition(() => router.refresh())}
+              title="Refresh"
+            >
+              <RefreshCw className={isPending ? "animate-spin" : ""} />
+            </Button>
           </div>
         }
       />
