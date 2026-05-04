@@ -7,7 +7,6 @@ import { ContainerStatusEntry } from "src/entities/models/Report";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown, InfoIcon } from "lucide-react";
 import { formatNumberToCurrency } from "@/app/lib/utils";
-import { parse } from "date-fns";
 import {
   Tooltip,
   TooltipContent,
@@ -20,8 +19,10 @@ const ACCOUNT_FILTER_OPTIONS = [
   { value: "ECORE", label: "ECORE" },
 ];
 
-const parseReportDate = (value: string | null) =>
-  value ? parse(value, "MMM dd, yyyy", new Date()).getTime() : 0;
+const STATUS_FILTER_OPTIONS = [
+  { value: "PAID", label: "Paid" },
+  { value: "UNPAID", label: "Unpaid" },
+];
 
 function SortableHeader({
   label,
@@ -117,23 +118,6 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
         </div>
       );
     },
-  },
-  {
-    accessorKey: "paid_at",
-    sortingFn: (rowA, rowB) =>
-      parseReportDate(rowA.original.paid_at) -
-      parseReportDate(rowB.original.paid_at),
-    header: ({ column }) => (
-      <SortableHeader
-        label="Paid Date"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      />
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        {row.original.paid_at ?? "—"}
-      </div>
-    ),
   },
   {
     accessorKey: "duties_and_taxes",
@@ -349,14 +333,22 @@ interface Props {
 
 export const ContainerStatusTable = ({ data }: Props) => {
   const [accountFilter, setAccountFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
 
-  const filteredData =
-    accountFilter.length === 0
-      ? data
-      : data.filter((d) => {
-          const acct = (d.sales_remittance_account ?? "").toUpperCase();
-          return accountFilter.some((f) => acct.includes(f.toUpperCase()));
-        });
+  const filteredData = data.filter((d) => {
+    const accountMatches =
+      accountFilter.length === 0 ||
+      accountFilter.some((filter) =>
+        (d.sales_remittance_account ?? "")
+          .toUpperCase()
+          .includes(filter.toUpperCase()),
+      );
+
+    const statusMatches =
+      statusFilter.length === 0 || statusFilter.includes(d.status);
+
+    return accountMatches && statusMatches;
+  });
 
   const total = filteredData.length;
   const paid = filteredData.filter((d) => d.status === "PAID").length;
@@ -429,11 +421,18 @@ export const ContainerStatusTable = ({ data }: Props) => {
       data={filteredData}
       initialSorting={[{ id: "due_date", desc: false }]}
       actionButtons={
-        <FilterColumnComponent
-          options={ACCOUNT_FILTER_OPTIONS}
-          onChangeEvent={setAccountFilter}
-          placeholder="Filter by Account"
-        />
+        <div className="flex flex-wrap gap-2">
+          <FilterColumnComponent
+            options={ACCOUNT_FILTER_OPTIONS}
+            onChangeEvent={setAccountFilter}
+            placeholder="Filter by Account"
+          />
+          <FilterColumnComponent
+            options={STATUS_FILTER_OPTIONS}
+            onChangeEvent={setStatusFilter}
+            placeholder="Filter by Status"
+          />
+        </div>
       }
     />
   );
