@@ -5,8 +5,9 @@ import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
-const presenter = (container: ContainerWithDetailsRow) => {
+export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
   const date_format = "MMM dd, yyyy";
+  const status: "PAID" | "UNPAID" = container.status ? "PAID" : "UNPAID";
 
   const timestamps = container.inventories
     .map((i) => i.auction_date)
@@ -28,8 +29,9 @@ const presenter = (container: ContainerWithDetailsRow) => {
     bill_of_lading_number: container.bill_of_lading_number ?? "",
     container_number: container.container_number ?? "",
     gross_weight: container.gross_weight ?? "",
-    auction_or_sell: container.auction_or_sell ?? "",
-    status: container.status ?? "",
+    auction_or_sell: container.auction_or_sell,
+    status,
+    paid_at: container.status ? formatDate(container.status, date_format) : null,
     branch: {
       branch_id: container.branch.branch_id,
       name: container.branch.name,
@@ -120,7 +122,7 @@ const presenter = (container: ContainerWithDetailsRow) => {
 export const GetContainerByBarcodeController = async (barcode: string) => {
   try {
     const container = await getContainerByBarcodeUseCase(barcode);
-    return ok(presenter(container));
+    return ok(presentContainerDetails(container));
   } catch (error) {
     if (error instanceof NotFoundError) {
       logger("GetContainerByBarcodeController", error, "warn");

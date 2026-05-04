@@ -25,7 +25,7 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
 
   return rows.map((container) => {
     const days_since_arrival =
-      container.status === "PAID"
+      container.paid_at
         ? 0
         : container.arrival_date
           ? Math.floor(
@@ -47,7 +47,10 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
       container_number: container.container_number,
       supplier_name: container.supplier_name,
       sales_remittance_account: container.sales_remittance_account,
-      status: container.status,
+      status: container.paid_at ? "PAID" : "UNPAID",
+      paid_at: container.paid_at
+        ? formatDate(container.paid_at, "MMM dd, yyyy")
+        : null,
       arrival_date: container.arrival_date
         ? formatDate(container.arrival_date, "MMM dd, yyyy")
         : null,

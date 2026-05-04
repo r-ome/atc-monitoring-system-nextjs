@@ -32,7 +32,7 @@ export interface IContainerRepository {
   ) => Promise<{ count: number }>;
   updateContainerStatus: (
     container_id: string,
-    status: "PAID" | "UNPAID",
+    paid_at: string | null,
   ) => Promise<ContainerRow>;
   deleteContainer: (container_id: string) => Promise<ContainerRow>;
 }

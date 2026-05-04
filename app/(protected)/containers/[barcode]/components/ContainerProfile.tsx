@@ -3,6 +3,7 @@ import {
   ResizablePanelGroup,
 } from "@/app/components/ui/resizable";
 import { Separator } from "@/app/components/ui/separator";
+import { StatusBadge } from "@/app/components/admin";
 import { Container } from "src/entities/models/Container";
 import { UpdateContainerModal } from "./UpdateContainerModal";
 import { UpdateContainerStatusButton } from "./UpdateContainerStatusButton";
@@ -15,6 +16,7 @@ type Field =
   | "arrival_date"
   | "due_date"
   | "auction_start_date"
+  | "paid_at"
   | "supplier"
   | "duties_and_taxes"
   | "gross_weight";
@@ -43,6 +45,7 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
       "arrival_date",
       "due_date",
       "auction_start_date",
+      "paid_at",
       "supplier",
       "duties_and_taxes",
       "gross_weight",
@@ -95,11 +98,19 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
     >
       <ResizablePanel defaultSize={15}>
         <div className="flex h-full items-center justify-between gap-4 p-6">
-          <span className="font-semibold">Container: {container.barcode}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Container: {container.barcode}</span>
+            <StatusBadge
+              variant={container.status === "PAID" ? "paid" : "unpaid"}
+            >
+              {container.status}
+            </StatusBadge>
+          </div>
           <div className="flex gap-2">
             <UpdateContainerStatusButton
               container_id={container.container_id}
               status={container.status}
+              paid_at={container.paid_at}
             />
             <UpdateContainerModal container={container} />
             <DeleteContainerModal container={container} />

@@ -70,6 +70,7 @@ export type Container = {
   due_date?: string;
   auction_or_sell: "AUCTION" | "SELL";
   status: "PAID" | "UNPAID";
+  paid_at: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

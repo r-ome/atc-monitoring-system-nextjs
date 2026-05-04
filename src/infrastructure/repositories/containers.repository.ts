@@ -133,7 +133,7 @@ export const ContainerRepository: IContainerRepository = {
             ? new Prisma.Decimal(container.duties_and_taxes)
             : 0,
           auction_or_sell: container.auction_or_sell,
-          status: "UNPAID",
+          status: null,
         },
       });
 
@@ -258,7 +258,7 @@ export const ContainerRepository: IContainerRepository = {
       throw error;
     }
   },
-  updateContainerStatus: async (container_id, status) => {
+  updateContainerStatus: async (container_id, paid_at) => {
     try {
       const current = await prisma.containers.findFirst({
         where: buildTenantWhere("containers", { container_id }),
@@ -271,7 +271,7 @@ export const ContainerRepository: IContainerRepository = {
 
       return await prisma.containers.update({
         where: { container_id },
-        data: { status },
+        data: { status: paid_at ? new Date(`${paid_at}T00:00:00.000Z`) : null },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

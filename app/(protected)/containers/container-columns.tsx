@@ -206,4 +206,32 @@ export const columns: ColumnDef<ContainerRowType>[] = [
       );
     },
   },
+  {
+    accessorKey: "paid_at",
+    sortingFn: (rowA, rowB) => {
+      const parse_date = (val: string | null) =>
+        val ? parse(val, "MMM dd, yyyy", new Date()).getTime() : 0;
+      return parse_date(rowA.original.paid_at) - parse_date(rowB.original.paid_at);
+    },
+    header: ({ column }) => {
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Paid Date
+            <ArrowUpDown />
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const container = row.original;
+      return (
+        <div className="flex justify-center">{container.paid_at ?? "N/A"}</div>
+      );
+    },
+  },
 ];

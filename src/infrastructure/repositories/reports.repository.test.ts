@@ -73,7 +73,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
             container_number: "CN-1",
             supplier_name: "BIÑAN SUPPLIER",
             sales_remittance_account: "ATC",
-            status: "PAID",
+            paid_at: new Date("2026-05-01T00:00:00.000Z"),
             arrival_date: new Date("2026-04-28T00:00:00.000Z"),
             due_date: new Date("2026-05-03T00:00:00.000Z"),
             duties_and_taxes: "4500.50",
@@ -91,6 +91,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
 
   assert.ok(capturedQuery);
   assert.match(capturedQuery.sql, /COUNT\(i\.inventory_id\)/);
+  assert.match(capturedQuery.sql, /c\.status AS paid_at/);
   assert.match(capturedQuery.sql, /SUM\(CASE WHEN ai\.status = 'PAID'/);
   assert.deepEqual(rows, [
     {
@@ -98,7 +99,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
       container_number: "CN-1",
       supplier_name: "BIÑAN SUPPLIER",
       sales_remittance_account: "ATC",
-      status: "PAID",
+      paid_at: new Date("2026-05-01T00:00:00.000Z"),
       arrival_date: new Date("2026-04-28T00:00:00.000Z"),
       due_date: new Date("2026-05-03T00:00:00.000Z"),
       duties_and_taxes: 4500.5,

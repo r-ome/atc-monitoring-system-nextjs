@@ -65,7 +65,7 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
       const {
         barcode, supplier_name, container_number,
         total_items, paid_items,
-        arrival_date, due_date, days_since_arrival, status,
+        arrival_date, due_date, paid_at, days_since_arrival, status,
       } = row.original;
       const aging = status === "PAID" ? 0 : days_since_arrival;
       const agingColor =
@@ -87,6 +87,7 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
             <p className="text-white">Items: {total_items} &nbsp;·&nbsp; Paid: {paid_items}</p>
             <p className="text-white">Arrival: {arrival_date ?? "—"}</p>
             <p className="text-white">Due: {due_date ?? "—"}</p>
+            <p className="text-white">Paid: {paid_at ?? "—"}</p>
             <p>
               Aging:{" "}
               <span className={`font-semibold ${agingColor}`}>
@@ -116,6 +117,23 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
         </div>
       );
     },
+  },
+  {
+    accessorKey: "paid_at",
+    sortingFn: (rowA, rowB) =>
+      parseReportDate(rowA.original.paid_at) -
+      parseReportDate(rowB.original.paid_at),
+    header: ({ column }) => (
+      <SortableHeader
+        label="Paid Date"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      />
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        {row.original.paid_at ?? "—"}
+      </div>
+    ),
   },
   {
     accessorKey: "duties_and_taxes",

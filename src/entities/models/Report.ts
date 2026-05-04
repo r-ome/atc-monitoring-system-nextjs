@@ -198,7 +198,7 @@ export type ContainerStatusRow = {
   container_number: string | null;
   supplier_name: string;
   sales_remittance_account: string;
-  status: "PAID" | "UNPAID";
+  paid_at: Date | null;
   arrival_date: Date | null;
   due_date: Date | null;
   duties_and_taxes: number;
@@ -214,6 +214,7 @@ export type ContainerStatusEntry = {
   supplier_name: string;
   sales_remittance_account: string;
   status: "PAID" | "UNPAID";
+  paid_at: string | null;
   arrival_date: string | null;
   due_date: string | null;
   days_since_arrival: number | null;

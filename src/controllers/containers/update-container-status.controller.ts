@@ -6,18 +6,20 @@ import { err, ok } from "src/entities/models/Result";
 
 export const UpdateContainerStatusController = async (
   container_id: string,
-  status: "PAID" | "UNPAID",
+  paid_at: string | null,
 ) => {
   try {
     const container = await ContainerRepository.updateContainerStatus(
       container_id,
-      status,
+      paid_at,
     );
     await logActivity(
       "UPDATE",
       "container",
       container_id,
-      `Marked container ${container.barcode} as ${status}`,
+      paid_at
+        ? `Marked container ${container.barcode} as PAID on ${paid_at}`
+        : `Marked container ${container.barcode} as UNPAID`,
     );
     return ok(container);
   } catch (error) {

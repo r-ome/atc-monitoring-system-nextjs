@@ -22,9 +22,10 @@ function getAuctionStartDate(container: ContainerListRow) {
   return new Date(Math.min(...timestamps));
 }
 
-const presenter = (containers: ContainerListRow[]) => {
+export const presentContainers = (containers: ContainerListRow[]) => {
   return containers.map((container) => {
     const auction_start_date = getAuctionStartDate(container);
+    const status: "PAID" | "UNPAID" = container.status ? "PAID" : "UNPAID";
 
     return {
       container_id: container.container_id,
@@ -35,7 +36,10 @@ const presenter = (containers: ContainerListRow[]) => {
       container_number: container.container_number ?? "",
       gross_weight: container.gross_weight ?? "",
       auction_or_sell: container.auction_or_sell,
-      status: container.status,
+      status,
+      paid_at: container.status
+        ? formatDate(container.status, DATE_FORMAT)
+        : null,
       duties_and_taxes: Number(container.duties_and_taxes),
       branch: {
         branch_id: container.branch.branch_id,
@@ -68,7 +72,7 @@ const presenter = (containers: ContainerListRow[]) => {
 export const GetContainersController = async () => {
   try {
     const containers = await ContainerRepository.getContainersList();
-    return ok(presenter(containers));
+    return ok(presentContainers(containers));
   } catch (error) {
     logger("GetContainersController", error);
     if (error instanceof DatabaseOperationError) {

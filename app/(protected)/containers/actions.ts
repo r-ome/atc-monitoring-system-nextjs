@@ -74,14 +74,14 @@ export const uploadInventoryFile = async (
 
 export const updateContainerStatus = async (
   container_id: string,
-  status: "PAID" | "UNPAID",
+  paid_at: string | null,
 ) => {
   const auth = await authorizeAction();
   if (!auth.ok) return auth;
 
   return await runWithUserContext(
     auth.value,
-    async () => await UpdateContainerStatusController(container_id, status),
+    async () => await UpdateContainerStatusController(container_id, paid_at),
   );
 };
 

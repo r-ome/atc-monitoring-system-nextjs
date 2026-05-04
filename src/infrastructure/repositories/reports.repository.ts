@@ -483,7 +483,7 @@ export const ReportsRepository: IReportsRepository = {
           container_number: string | null;
           supplier_name: string;
           sales_remittance_account: string | null;
-          status: "PAID" | "UNPAID";
+          paid_at: Date | null;
           arrival_date: Date | null;
           due_date: Date | null;
           duties_and_taxes: Prisma.Decimal | number | string | null;
@@ -498,7 +498,7 @@ export const ReportsRepository: IReportsRepository = {
           c.container_number,
           s.name AS supplier_name,
           s.sales_remittance_account,
-          c.status,
+          c.status AS paid_at,
           c.arrival_date,
           c.due_date,
           c.duties_and_taxes,
@@ -537,7 +537,7 @@ export const ReportsRepository: IReportsRepository = {
         container_number: row.container_number,
         supplier_name: row.supplier_name,
         sales_remittance_account: row.sales_remittance_account ?? "",
-        status: row.status,
+        paid_at: row.paid_at,
         arrival_date: row.arrival_date,
         due_date: row.due_date,
         duties_and_taxes: toNumber(row.duties_and_taxes),

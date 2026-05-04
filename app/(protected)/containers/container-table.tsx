@@ -14,6 +14,7 @@ export type ContainerRowType = {
   gross_weight: string;
   auction_or_sell: string;
   status: string;
+  paid_at: string | null;
   duties_and_taxes: number;
   branch: { branch_id: string; name: string };
   supplier: { supplier_id: string; supplier_code: string; name: string };
