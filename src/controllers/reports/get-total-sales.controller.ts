@@ -32,8 +32,6 @@ function getWeekBucket(date: Date) {
 type SalesRow = {
   key: string;
   label: string;
-  total_bidders: number;
-  total_items: number;
   total_sales: number;
   total_registration_fee: number;
   total_bidder_percentage_amount: number;
@@ -44,8 +42,6 @@ function dailyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
     return {
       key: auction.auction_id,
       label: formatDate(auction.created_at, "MMM dd, yyyy"),
-      total_bidders: auction.total_bidders,
-      total_items: auction.total_items,
       total_sales: auction.total_sales,
       total_registration_fee: auction.total_registration_fee,
       total_bidder_percentage_amount: auction.total_bidder_percentage_amount,
@@ -55,8 +51,6 @@ function dailyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
 
 function monthlyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
   const monthBuckets = MONTHS.map(() => ({
-    total_bidders: 0,
-    total_items: 0,
     total_sales: 0,
     total_registration_fee: 0,
     total_bidder_percentage_amount: 0,
@@ -64,8 +58,6 @@ function monthlyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
 
   for (const auction of auctions) {
     const monthIndex = auction.created_at.getMonth();
-    monthBuckets[monthIndex].total_bidders += auction.total_bidders;
-    monthBuckets[monthIndex].total_items += auction.total_items;
     monthBuckets[monthIndex].total_sales += auction.total_sales;
     monthBuckets[monthIndex].total_registration_fee +=
       auction.total_registration_fee;
@@ -82,8 +74,6 @@ function monthlyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
     .filter(
       (row) =>
         row.total_sales > 0 ||
-        row.total_bidders > 0 ||
-        row.total_items > 0 ||
         row.total_registration_fee > 0 ||
         row.total_bidder_percentage_amount > 0,
     );
@@ -97,15 +87,11 @@ function weeklyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
     const existing = weekBuckets.get(key) ?? {
       key,
       label,
-      total_bidders: 0,
-      total_items: 0,
       total_sales: 0,
       total_registration_fee: 0,
       total_bidder_percentage_amount: 0,
     };
 
-    existing.total_bidders += auction.total_bidders;
-    existing.total_items += auction.total_items;
     existing.total_sales += auction.total_sales;
     existing.total_registration_fee +=
       auction.total_registration_fee;
@@ -119,8 +105,6 @@ function weeklyPresenter(auctions: AuctionSalesSummaryRow[]): SalesRow[] {
     .filter(
       (row) =>
         row.total_sales > 0 ||
-        row.total_bidders > 0 ||
-        row.total_items > 0 ||
         row.total_registration_fee > 0 ||
         row.total_bidder_percentage_amount > 0,
     );

@@ -11,6 +11,7 @@ import {
   BidderReportRow,
   ExpenseSummaryDetailRow,
   ExpenseSummaryRow,
+  PaidContainerFinancialRow,
 } from "src/entities/models/Report";
 
 function parseDateRange(date: string) {
@@ -192,6 +193,56 @@ export const ReportsRepository: IReportsRepository = {
       );
     } catch (error) {
       handleError("Error getting expenses summary", error);
+    }
+  },
+
+  getPaidContainerFinancials: async (branch_id, date) => {
+    try {
+      const { start, end } = parseDateRange(date);
+      const rows = await prisma.$queryRaw<
+        Array<{
+          container_id: string;
+          paid_at: Date;
+          total_item_sales: Prisma.Decimal | number | string | null;
+          total_service_charge: Prisma.Decimal | number | string | null;
+        }>
+      >(Prisma.sql`
+        SELECT
+          c.container_id,
+          c.status AS paid_at,
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS total_item_sales,
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge
+        FROM containers c
+        LEFT JOIN inventories i
+          ON i.container_id = c.container_id
+          AND i.deleted_at IS NULL
+        LEFT JOIN auctions_inventories ai
+          ON ai.inventory_id = i.inventory_id
+          AND ai.deleted_at IS NULL
+        LEFT JOIN auctions_bidders ab
+          ON ab.auction_bidder_id = ai.auction_bidder_id
+          AND ab.deleted_at IS NULL
+        WHERE c.branch_id = ${branch_id}
+          AND c.deleted_at IS NULL
+          AND c.status IS NOT NULL
+          AND c.status >= ${start}
+          AND c.status < ${end}
+          AND c.barcode NOT LIKE '00%'
+          AND UPPER(c.barcode) NOT LIKE 'T0%'
+        GROUP BY c.container_id, c.status
+        ORDER BY c.status ASC
+      `);
+
+      return rows.map(
+        (row): PaidContainerFinancialRow => ({
+          container_id: row.container_id,
+          paid_at: row.paid_at,
+          total_item_sales: toNumber(row.total_item_sales),
+          total_service_charge: toNumber(row.total_service_charge),
+        }),
+      );
+    } catch (error) {
+      handleError("Error getting paid container financials", error);
     }
   },
 

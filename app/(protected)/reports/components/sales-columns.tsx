@@ -8,7 +8,7 @@ import { formatNumberToCurrency } from "@/app/lib/utils";
 
 export const columns: ColumnDef<SalesRowType>[] = [
   {
-    accessorKey: "label",
+    accessorKey: "period",
     size: 100,
     header: ({ column }) => (
       <div className="flex justify-center">
@@ -23,11 +23,11 @@ export const columns: ColumnDef<SalesRowType>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.label}</div>
+      <div className="flex justify-center">{row.original.period}</div>
     ),
   },
   {
-    accessorKey: "total_sales",
+    accessorKey: "sales_commission",
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -35,19 +35,19 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Item Sales
+          Sales Comm.
           <ArrowUpDown />
         </Button>
       </div>
     ),
     cell: ({ row }) => (
       <div className="flex justify-center text-status-success">
-        {formatNumberToCurrency(row.original.total_sales)}
+        {formatNumberToCurrency(row.original.sales_commission)}
       </div>
     ),
   },
   {
-    accessorKey: "total_bidder_percentage_amount",
+    accessorKey: "service_charge",
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -62,7 +62,107 @@ export const columns: ColumnDef<SalesRowType>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex justify-center text-status-success">
-        {formatNumberToCurrency(row.original.total_bidder_percentage_amount)}
+        {formatNumberToCurrency(row.original.service_charge)}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "sorting_preparation_fee",
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Prep. Fee
+          <ArrowUpDown />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center text-status-success">
+        {formatNumberToCurrency(row.original.sorting_preparation_fee)}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "total_income",
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Total Income
+          <ArrowUpDown />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center text-status-success">
+        {formatNumberToCurrency(row.original.total_income)}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "expenses",
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Expenses
+          <ArrowUpDown />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center text-status-error">
+        {formatNumberToCurrency(row.original.expenses)}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "atc_group_commission",
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Group Comm.
+          <ArrowUpDown />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center text-status-error">
+        {formatNumberToCurrency(row.original.atc_group_commission)}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "royalty",
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Royalty
+          <ArrowUpDown />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center text-status-error">
+        {formatNumberToCurrency(row.original.royalty)}
       </div>
     ),
   },
@@ -87,7 +187,7 @@ export const columns: ColumnDef<SalesRowType>[] = [
     ),
   },
   {
-    accessorKey: "total_bidders",
+    accessorKey: "net_income",
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -95,31 +195,21 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Total Bidders
+          Net Income
           <ArrowUpDown />
         </Button>
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.total_bidders}</div>
-    ),
-  },
-  {
-    accessorKey: "total_items",
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          className="cursor-pointer"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Total Items
-          <ArrowUpDown />
-        </Button>
+      <div
+        className={
+          row.original.net_income >= 0
+            ? "flex justify-center text-status-success"
+            : "flex justify-center text-status-error"
+        }
+      >
+        {formatNumberToCurrency(row.original.net_income)}
       </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">{row.original.total_items}</div>
     ),
   },
 ];

@@ -3,93 +3,76 @@
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./sales-columns";
 import { formatNumberToCurrency } from "@/app/lib/utils";
-import { ExpenseRow } from "src/controllers/reports/get-total-expenses.controller";
+import {
+  SalesExpensesSummary,
+  SalesExpensesSummaryEntry,
+} from "src/entities/models/Report";
 
-type SalesInput = {
-  key: string;
-  label: string;
-  total_bidders: number;
-  total_items: number;
-  total_sales: number;
-  total_registration_fee: number;
-  total_bidder_percentage_amount: number;
-};
-
-export type SalesRowType = SalesInput & {
-  total_expenses: number;
-};
+export type SalesRowType = SalesExpensesSummaryEntry;
 
 interface SalesTableProps {
-  sales: SalesInput[];
-  expenses: ExpenseRow[];
+  summary: SalesExpensesSummary;
 }
 
-export const SalesTable = ({ sales, expenses }: SalesTableProps) => {
-  const expenseMap = new Map(expenses.map((e) => [e.key, e.total_expenses]));
-
-  // Merge expenses into sales rows by matching key
-  const rows: SalesRowType[] = sales.map((s) => ({
-    ...s,
-    total_expenses: expenseMap.get(s.key) ?? 0,
-  }));
-
-  // Also add expense-only rows (days/months with expenses but no auctions)
-  for (const expense of expenses) {
-    if (!rows.some((r) => r.key === expense.key)) {
-      rows.push({
-        key: expense.key,
-        label: expense.label,
-        total_bidders: 0,
-        total_items: 0,
-        total_sales: 0,
-        total_registration_fee: 0,
-        total_bidder_percentage_amount: 0,
-        total_expenses: expense.total_expenses,
-      });
-    }
-  }
-
-  rows.sort((a, b) => a.key.localeCompare(b.key));
-
-  const totalItemSales = rows.reduce((acc, r) => acc + r.total_sales, 0);
-  const totalServiceCharge = rows.reduce(
-    (acc, r) => acc + r.total_bidder_percentage_amount,
-    0,
-  );
-  const totalSales = totalItemSales + totalServiceCharge;
-  const totalExpenses = rows.reduce((acc, r) => acc + r.total_expenses, 0);
-  const netIncome = totalSales - totalExpenses;
-
+export const SalesTable = ({ summary }: SalesTableProps) => {
   return (
     <DataTable
       title={
         <div className="flex flex-col gap-2 w-fit">
           <div className="flex justify-between gap-8">
-            <span>Total Sales:</span>
-            <span className="text-green-500">{formatNumberToCurrency(totalSales)}</span>
+            <span>Total Income:</span>
+            <span className="text-green-500">
+              {formatNumberToCurrency(summary.totals.total_income)}
+            </span>
           </div>
           <div className="flex justify-between gap-8">
-            <span>Item Sales:</span>
-            <span>{formatNumberToCurrency(totalItemSales)}</span>
+            <span>Sales Commission:</span>
+            <span>{formatNumberToCurrency(summary.totals.sales_commission)}</span>
           </div>
           <div className="flex justify-between gap-8">
             <span>Service Charge:</span>
-            <span>{formatNumberToCurrency(totalServiceCharge)}</span>
+            <span>{formatNumberToCurrency(summary.totals.service_charge)}</span>
+          </div>
+          <div className="flex justify-between gap-8">
+            <span>Sorting / Preparation Fee:</span>
+            <span>
+              {formatNumberToCurrency(summary.totals.sorting_preparation_fee)}
+            </span>
           </div>
           <div className="flex justify-between gap-8">
             <span>Total Expenses:</span>
-            <span className="text-red-500">{formatNumberToCurrency(totalExpenses)}</span>
+            <span className="text-red-500">
+              {formatNumberToCurrency(summary.totals.total_expenses)}
+            </span>
+          </div>
+          <div className="flex justify-between gap-8">
+            <span>Expenses:</span>
+            <span>{formatNumberToCurrency(summary.totals.expenses)}</span>
+          </div>
+          <div className="flex justify-between gap-8">
+            <span>ATC Group Commission:</span>
+            <span>{formatNumberToCurrency(summary.totals.atc_group_commission)}</span>
+          </div>
+          <div className="flex justify-between gap-8">
+            <span>Royalty:</span>
+            <span>{formatNumberToCurrency(summary.totals.royalty)}</span>
           </div>
           <div className="flex justify-between gap-8 border-t pt-2">
             <span>Net Income:</span>
-            <span className={netIncome >= 0 ? "text-green-500" : "text-red-500"}>
-              {formatNumberToCurrency(netIncome)}
+            <span
+              className={
+                summary.totals.net_income >= 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+            >
+              {formatNumberToCurrency(summary.totals.net_income)}
             </span>
           </div>
         </div>
       }
       columns={columns}
-      data={rows}
+      data={summary.breakdown}
     />
   );
 };

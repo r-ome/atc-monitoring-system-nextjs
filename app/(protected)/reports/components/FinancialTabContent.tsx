@@ -41,7 +41,7 @@ export const FinancialTabContent = async ({
       <Card>
         <CardHeader><CardTitle>Sales & Expenses Summary</CardTitle></CardHeader>
         <CardContent>
-          <SalesTable sales={res.value.sales} expenses={res.value.expenses} />
+          <SalesTable summary={res.value.salesExpensesSummary} />
         </CardContent>
       </Card>
       <Card>

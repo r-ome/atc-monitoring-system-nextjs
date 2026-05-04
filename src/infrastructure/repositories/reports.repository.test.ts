@@ -110,3 +110,73 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
     },
   ]);
 });
+
+test("getPaidContainerFinancials filters by paid container date and excluded barcode prefixes", async () => {
+  let capturedQuery: { sql: string } | undefined;
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$queryRaw",
+      (async (query: { sql: string }) => {
+        capturedQuery = query;
+        return [
+          {
+            container_id: "container-1",
+            paid_at: new Date("2026-05-04T00:00:00.000Z"),
+            total_item_sales: "800000.00",
+            total_service_charge: "40000.00",
+          },
+        ];
+      }) as typeof prisma.$queryRaw,
+    ),
+  );
+
+  const rows = await ReportsRepository.getPaidContainerFinancials(
+    "branch-1",
+    "2026-04",
+  );
+
+  assert.ok(capturedQuery);
+  assert.match(capturedQuery.sql, /c\.status AS paid_at/);
+  assert.match(capturedQuery.sql, /c\.status IS NOT NULL/);
+  assert.match(capturedQuery.sql, /c\.status >=/);
+  assert.match(capturedQuery.sql, /c\.status </);
+  assert.match(capturedQuery.sql, /c\.barcode NOT LIKE '00%'/);
+  assert.match(capturedQuery.sql, /UPPER\(c\.barcode\) NOT LIKE 'T0%'/);
+  assert.deepEqual(rows, [
+    {
+      container_id: "container-1",
+      paid_at: new Date("2026-05-04T00:00:00.000Z"),
+      total_item_sales: 800000,
+      total_service_charge: 40000,
+    },
+  ]);
+});
+
+test("getPaidContainerFinancials service charge only uses paid auction items", async () => {
+  let capturedQuery: { sql: string } | undefined;
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$queryRaw",
+      (async (query: { sql: string }) => {
+        capturedQuery = query;
+        return [];
+      }) as typeof prisma.$queryRaw,
+    ),
+  );
+
+  await ReportsRepository.getPaidContainerFinancials("branch-1", "2026");
+
+  assert.ok(capturedQuery);
+  assert.match(
+    capturedQuery.sql,
+    /SUM\(CASE WHEN ai\.status = 'PAID' THEN ai\.price \* ab\.service_charge \/ 100\.0 ELSE 0 END\)/,
+  );
+  assert.match(
+    capturedQuery.sql,
+    /SUM\(CASE WHEN ai\.status = 'PAID' THEN ai\.price ELSE 0 END\)/,
+  );
+});
