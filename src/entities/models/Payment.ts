@@ -57,6 +57,7 @@ export type ReceiptRecordRow = Prisma.receipt_recordsGetPayload<object>;
 
 export type PullOutPaymentResult = {
   receipt_id: string;
+  receipt_number: string;
   bidder_number: string;
 };
 

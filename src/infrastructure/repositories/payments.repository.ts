@@ -274,6 +274,7 @@ export const PaymentRepository: IPaymentRepository = {
 
         return {
           receipt_id: created_receipt.receipt_id,
+          receipt_number: created_receipt.receipt_number,
           bidder_number: registered_bidder.bidder.bidder_number,
         };
       });

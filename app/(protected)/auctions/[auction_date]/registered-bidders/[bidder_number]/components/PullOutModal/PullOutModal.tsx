@@ -2,8 +2,9 @@
 
 import { SetStateAction, useRef, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { pdf } from "@react-pdf/renderer";
 import { Button } from "@/app/components/ui/button";
-import { OctagonAlert, Loader2Icon } from "lucide-react";
+import { OctagonAlert, Loader2Icon, Printer } from "lucide-react";
 import {
   Dialog,
   DialogHeader,
@@ -26,6 +27,7 @@ import { handleBidderPullOut } from "@/app/(protected)/auctions/actions";
 import { ConfirmPayment } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/components/PullOutModal/ConfirmPayment";
 import { useBidderPullOutModalContext } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/context/BidderPullOutModalContext";
 import { toast } from "sonner";
+import BidderInvoiceDocument from "@/app/(protected)/auctions/[auction_date]/payments/[receipt_number]/OfficialReceiptPage/BidderInvoiceDocument";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,8 +38,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/app/components/ui/alert-dialog";
-import { formatDate } from "@/app/lib/utils";
-import { PullOutPaymentInput } from "src/entities/models/Payment";
+import {
+  buildGroupIndexMap,
+  formatDate,
+  getItemPriceWithServiceChargeAmount,
+} from "@/app/lib/utils";
+import {
+  PaymentPurpose,
+  PullOutPaymentInput,
+} from "src/entities/models/Payment";
+import {
+  getAuctionInventoriesPayableBase,
+  getAuctionInventoryPayableBase,
+} from "src/entities/models/AuctionPayableAmount";
 
 interface PullOutModalProps {
   open: boolean;
@@ -80,6 +93,115 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
+  const [openPrintReceiptDialog, setOpenPrintReceiptDialog] =
+    useState<boolean>(false);
+  const [paidReceiptNumber, setPaidReceiptNumber] = useState<string | null>(
+    null,
+  );
+
+  const resetPullOutModal = () => {
+    setOpenAlertDialog(false);
+    setOpenPrintReceiptDialog(false);
+    setPaidReceiptNumber(null);
+    onOpenChange(false);
+    setCurrentStep(1);
+  };
+
+  const handleSkipPrintReceipt = () => {
+    router.refresh();
+    resetPullOutModal();
+  };
+
+  const handlePrintReceipt = async () => {
+    if (!bidderPaymentDetails || !paidReceiptNumber) {
+      handleSkipPrintReceipt();
+      return;
+    }
+
+    const groupIndexMap = buildGroupIndexMap(
+      selectedItems,
+      (item) => item.is_slash_item,
+    );
+
+    const receipt = {
+      receipt_id: "PRINT",
+      receipt_number: paidReceiptNumber,
+      auction_bidder_id: bidderPaymentDetails.auction_bidder_id,
+      total_amount_paid: grandTotal,
+      purpose: "PULL_OUT" as PaymentPurpose,
+      auction_date: bidderPaymentDetails.auction_date,
+      bidder: {
+        bidder_id: bidderPaymentDetails.bidder.bidder_id,
+        bidder_number: bidderPaymentDetails.bidder.bidder_number,
+        full_name: bidderPaymentDetails.bidder.full_name,
+        registration_fee: bidderPaymentDetails.registration_fee,
+        service_charge: bidderPaymentDetails.service_charge,
+        already_consumed: bidderPaymentDetails.already_consumed,
+      },
+      auctions_inventories: selectedItems.map((item) => {
+        const isSlashItem = item.is_slash_item;
+        const idx = isSlashItem ? groupIndexMap[isSlashItem] : undefined;
+        return {
+          auction_inventory_id: item.auction_inventory_id,
+          barcode: item.inventory.barcode,
+          control: `${idx ? `(A${idx})` : ""} ${item.inventory.control}`,
+          description: item.description,
+          qty: item.qty,
+          price: getAuctionInventoryPayableBase(item),
+          manifest_number: item.manifest_number,
+          is_slash_item: item.is_slash_item,
+        };
+      }),
+    };
+
+    const total_item_price = getAuctionInventoriesPayableBase(
+      receipt.auctions_inventories.map((item) => ({
+        status: "UNPAID",
+        price: item.price ?? 0,
+      })),
+    );
+    const receiptSequence = parseInt(paidReceiptNumber.split("-")[1], 10);
+    const less =
+      receiptSequence > 1 ? 0 : bidderPaymentDetails.registration_fee;
+    const service_charge_amount =
+      (total_item_price * bidderPaymentDetails.service_charge) / 100;
+    const number_of_items = receipt.auctions_inventories.length;
+    const printDocument = (
+      <BidderInvoiceDocument
+        receipt={receipt}
+        computation={{
+          service_charge: bidderPaymentDetails.service_charge,
+          service_charge_amount,
+          less,
+          number_of_items,
+          total_item_price,
+          storage_fee: storageFee,
+          grandTotal:
+            getItemPriceWithServiceChargeAmount(
+              total_item_price,
+              bidderPaymentDetails.service_charge,
+            ) -
+            less +
+            storageFee,
+        }}
+      />
+    );
+
+    const blob = await pdf(printDocument).toBlob();
+    const url = URL.createObjectURL(blob);
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "100%";
+    iframe.style.bottom = "100%";
+    iframe.src = url;
+    iframe.onload = () => {
+      iframe.contentWindow?.print();
+    };
+
+    document.body.appendChild(iframe);
+    router.refresh();
+    resetPullOutModal();
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -116,9 +238,8 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
           }!`,
         });
         setOpenAlertDialog(false);
-        router.refresh();
-        onOpenChange(false);
-        setCurrentStep(1);
+        setPaidReceiptNumber(res.value.receipt_number);
+        setOpenPrintReceiptDialog(true);
       } else {
         if (res.error.message === "Server Error") {
           toast.error(res.error.message);
@@ -220,6 +341,36 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
                   >
                     {isLoading && <Loader2Icon className="animate-spin" />}
                     Confirm
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog open={openPrintReceiptDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  <div className="flex mx-auto gap-2">
+                    <Printer className="h-7 w-7" />
+                    Print paid receipt?
+                  </div>
+                </AlertDialogTitle>
+
+                <AlertDialogDescription>
+                  The pull-out payment was saved. Do you want to open the paid
+                  receipt for printing?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={handleSkipPrintReceipt}>
+                  Skip
+                </AlertDialogCancel>
+
+                <AlertDialogAction asChild>
+                  <Button type="button" onClick={handlePrintReceipt}>
+                    Print Receipt
                   </Button>
                 </AlertDialogAction>
               </AlertDialogFooter>
