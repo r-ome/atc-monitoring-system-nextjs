@@ -97,6 +97,14 @@ export default async function Page({
       total_item_price: 0,
     },
   );
+  const payable_item_count =
+    item_summary.paid_items + item_summary.unpaid_items;
+  const paid_item_percentage = payable_item_count
+    ? Math.round((item_summary.paid_items / payable_item_count) * 100)
+    : 0;
+  const unpaid_item_percentage = payable_item_count
+    ? Math.round((item_summary.unpaid_items / payable_item_count) * 100)
+    : 0;
 
   const total_service_charge_amount = auction.registered_bidders.reduce(
     (acc, registered_bidder) => {
@@ -194,6 +202,18 @@ export default async function Page({
                   <p className="text-sm text-muted-foreground uppercase">Total Items</p>
                   <p className="text-2xl font-bold">{item_summary.total_items}</p>
                 </div>
+                <div className="flex flex-col gap-2">
+                  <div className="h-3 w-full overflow-hidden rounded-full bg-status-error/20">
+                    <div
+                      className="h-full rounded-full bg-status-success"
+                      style={{ width: `${paid_item_percentage}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Paid {paid_item_percentage}%</span>
+                    <span>Unpaid {unpaid_item_percentage}%</span>
+                  </div>
+                </div>
                 <div className="flex items-center justify-between gap-8">
                   <p className="text-sm text-muted-foreground uppercase">Paid</p>
                   <p className="text-2xl font-bold text-status-success">{item_summary.paid_items}</p>
@@ -201,14 +221,6 @@ export default async function Page({
                 <div className="flex items-center justify-between gap-8">
                   <p className="text-sm text-muted-foreground uppercase">Unpaid</p>
                   <p className="text-2xl font-bold text-status-error">{item_summary.unpaid_items}</p>
-                </div>
-                <div className="flex items-center justify-between gap-8">
-                  <p className="text-sm text-muted-foreground uppercase">Cancelled</p>
-                  <p className="text-2xl font-bold text-muted-foreground">{item_summary.cancelled_items}</p>
-                </div>
-                <div className="flex items-center justify-between gap-8">
-                  <p className="text-sm text-muted-foreground uppercase">Refunded</p>
-                  <p className="text-2xl font-bold text-status-info">{item_summary.refunded_items}</p>
                 </div>
               </div>
             </CardContent>
