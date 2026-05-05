@@ -156,27 +156,6 @@ export type TopBidderEntry = {
   auctions_attended: number;
 };
 
-// -- Inventory Reports --
-export type SellThroughRow = Prisma.auctions_inventoriesGetPayload<{
-  include: {
-    auction_bidder: { include: { auctions: true } };
-    inventory: { include: { container: { include: { supplier: true } } } };
-  };
-}>;
-
-export type SellThroughEntry = {
-  auction_id: string;
-  auction_date: string;
-  total: number;
-  paid: number;
-  unpaid: number;
-  partial: number;
-  cancelled: number;
-  refunded: number;
-  discrepancy: number;
-  sell_through_rate: number;
-};
-
 export type RefundCancellationRow = Prisma.auctions_inventoriesGetPayload<{
   include: {
     auction_bidder: { include: { bidder: true; auctions: true } };

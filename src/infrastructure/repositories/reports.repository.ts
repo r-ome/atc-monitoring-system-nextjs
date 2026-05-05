@@ -433,24 +433,6 @@ export const ReportsRepository: IReportsRepository = {
     }
   },
 
-  getAuctionInventoriesForSellThrough: async (branch_id, date) => {
-    try {
-      const { start, end } = parseDateRange(date);
-      return await prisma.auctions_inventories.findMany({
-        include: {
-          auction_bidder: { include: { auctions: true } },
-          inventory: { include: { container: { include: { supplier: true } } } },
-        },
-        where: {
-          auction_bidder: { auctions: { branch_id, created_at: { gte: start, lt: end } } },
-        },
-        orderBy: { auction_date: "asc" },
-      });
-    } catch (error) {
-      handleError("Error getting sell-through data", error);
-    }
-  },
-
   getRefundCancellationItems: async (branch_id, date) => {
     try {
       const { start, end } = parseDateRange(date);

@@ -1,5 +1,4 @@
 import { GetInventoryReportsController } from "src/controllers/reports/get-inventory-reports.controller";
-import { SellThroughTable } from "./SellThroughTable";
 import { RefundCancellationTable } from "./RefundCancellationTable";
 import { RefundCancellationBidderTable } from "./RefundCancellationBidderTable";
 import { PriceComparisonChart } from "./PriceComparisonChart";
@@ -20,12 +19,6 @@ export const InventoryTabContent = async ({ branchId, dateParam }: Props) => {
 
   return (
     <div className="flex flex-col gap-4 pt-2">
-      <Card>
-        <CardHeader><CardTitle>Sell-Through Rate</CardTitle></CardHeader>
-        <CardContent>
-          <SellThroughTable data={res.value.sellThrough} />
-        </CardContent>
-      </Card>
       <Card>
         <CardHeader><CardTitle>Refunds & Cancellations</CardTitle></CardHeader>
         <CardContent>

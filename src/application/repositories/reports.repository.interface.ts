@@ -6,7 +6,6 @@ import {
   PaymentMethodBreakdownRow,
   DailyCashFlowPaymentRow,
   BidderReportRow,
-  SellThroughRow,
   RefundCancellationRow,
   SupplierRevenueRow,
   ContainerStatusRow,
@@ -42,10 +41,6 @@ export interface IReportsRepository {
     branch_id: string,
     date: string,
   ) => Promise<BidderReportRow[]>;
-  getAuctionInventoriesForSellThrough: (
-    branch_id: string,
-    date: string,
-  ) => Promise<SellThroughRow[]>;
   getRefundCancellationItems: (
     branch_id: string,
     date: string,
