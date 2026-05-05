@@ -7,6 +7,8 @@ import { Expense, PettyCash } from "src/entities/models/Expense";
 import { Payment } from "src/entities/models/Payment";
 import { formatDate } from "@/app/lib/utils";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
+import { logCashFlowReport } from "./actions";
+import { toast } from "sonner";
 
 interface GenerateExpenseReportProps {
   transactions: Payment[];
@@ -24,7 +26,18 @@ export const GenerateExpenseReport: React.FC<GenerateExpenseReportProps> = ({
   const { transaction_date }: { transaction_date: string } = useParams();
   return (
     <Button
-      onClick={() => {
+      onClick={async () => {
+        const logResult = await logCashFlowReport({ date: transaction_date });
+
+        if (!logResult.ok) {
+          const description =
+            typeof logResult.error?.cause === "string"
+              ? logResult.error.cause
+              : null;
+          toast.error(logResult.error.message, { description });
+          return;
+        }
+
         generateReport(
           {
             payments: transactions,

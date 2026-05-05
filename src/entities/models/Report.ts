@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 
 // -- Payment Method Breakdown --
 export type PaymentMethodBreakdownRow = {
@@ -31,6 +32,14 @@ export type CashFlowEntry = {
 };
 
 export type FilterMode = "monthly" | "weekly" | "daily";
+
+export const logCashFlowReportSchema = z.object({
+  date: z.string().min(1),
+});
+
+export type LogCashFlowReportInput = z.infer<
+  typeof logCashFlowReportSchema
+>;
 
 // -- Sales Reports --
 export type AuctionSalesSummaryRow = {

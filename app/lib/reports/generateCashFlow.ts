@@ -45,10 +45,16 @@ const generateCashFlow = ({
     };
   });
 
-  const order = { REGISTRATION: 0, PULLOUT: 1, REFUND: 2 };
+  const order = {
+    REGISTRATION: 0,
+    PULLOUT: 1,
+    "ADD ON": 2,
+    "STORAGE FEE": 3,
+    REFUND: 4,
+  };
   const sorted = grouped.sort((a, b) => {
-    const oa = order[a.action as "REGISTRATION" | "PULLOUT" | "REFUND"] ?? 999;
-    const ob = order[b.action as "REGISTRATION" | "PULLOUT" | "REFUND"] ?? 999;
+    const oa = order[a.action as keyof typeof order] ?? 999;
+    const ob = order[b.action as keyof typeof order] ?? 999;
     return oa - ob;
   });
 
@@ -103,8 +109,30 @@ const generateCashFlow = ({
   const totalRefund = refundAmount * -1;
 
   const inwardHeaders = ["DATE", "PARTICULAR", "AMOUNT", "PAYMENT TYPE"];
+  const paymentMethodSummaryCount = Object.keys(total_payments).length;
+  const inwardHeaderRow = paymentMethodSummaryCount + 8;
+  const firstInwardDataRow = inwardHeaderRow + 1;
+  const firstInwardPaymentRow = firstInwardDataRow + 1;
+  const lastInwardDataRow = firstInwardDataRow + inward.length - 1;
+  const lastInwardPaymentRow = Math.max(
+    firstInwardPaymentRow,
+    firstInwardPaymentRow + finalRows.length - 1,
+  );
+  const lastInwardNonRefundPaymentRow = Math.max(
+    firstInwardPaymentRow,
+    firstInwardPaymentRow + totalTransactaionsExcludingRefund - 1,
+  );
+  const inwardPreparedByRow = lastInwardDataRow + 1;
+  const outwardHeaderRow = inwardHeaderRow;
+  const firstOutwardDataRow = outwardHeaderRow + 1;
+  const lastOutwardDataRow = Math.max(
+    firstOutwardDataRow,
+    firstOutwardDataRow + outward.length - 1,
+  );
+  const outwardPreparedByRow = lastOutwardDataRow + 1;
+
   const sheet = xlsx.utils.aoa_to_sheet([
-    ...Array.from({ length: Object.keys(total_payments).length + 7 }, () => [
+    ...Array.from({ length: paymentMethodSummaryCount + 7 }, () => [
       ...Array(15).fill(""),
     ]),
     inwardHeaders,
@@ -163,11 +191,9 @@ const generateCashFlow = ({
     { wch: 20 },
   ];
   sheet["!autofilter"] = {
-    ref: `A${Object.keys(total_payments).length + 8}:G${
-      Object.keys(total_payments).length + 8
-    }`,
+    ref: `A${inwardHeaderRow}:G${inwardHeaderRow}`,
   };
-  const refund_row = Object.keys(total_payments).length + 3;
+  const refund_row = paymentMethodSummaryCount + 3;
   const petty_cash_row = refund_row + 1;
   const cash_remit_row = petty_cash_row + 1;
   const inward_total_cash_row = cash_remit_row + 2;
@@ -208,9 +234,7 @@ const generateCashFlow = ({
         };
       });
       sheet[`C${row}`] = {
-        f: `SUMIF(D15:D${
-          totalTransactaionsExcludingRefund + 14
-        },"${item}",C15:C${totalTransactaionsExcludingRefund + 14})${item === "CASH" ? `-ABS(C${refund_row})` : ""}`,
+        f: `SUMIF(D${firstInwardPaymentRow}:D${lastInwardNonRefundPaymentRow},"${item}",C${firstInwardPaymentRow}:C${lastInwardNonRefundPaymentRow})${item === "CASH" ? `-ABS(C${refund_row})` : ""}`,
         t: "n",
         z: '"₱" #,##0.00;("₱"[Red]#,##0.00)',
         s: {
@@ -353,9 +377,7 @@ const generateCashFlow = ({
   };
 
   sheet[`C${cash_remit_row}`] = {
-    f: `SUMIF(D15:D${totalTransactaionsExcludingRefund + 14},"CASH",C15:C${
-      totalTransactaionsExcludingRefund + 14
-    })`,
+    f: `SUMIF(D${firstInwardPaymentRow}:D${lastInwardNonRefundPaymentRow},"CASH",C${firstInwardPaymentRow}:C${lastInwardNonRefundPaymentRow})`,
     t: "n",
     z: "#,##0.00",
     s: {
@@ -406,7 +428,7 @@ const generateCashFlow = ({
     },
   };
   sheet[`C${inward_total_cash_row}`] = {
-    f: `SUM(C15:C${inward.length + 14})-ABS(C${refund_row})`,
+    f: `SUM(C${firstInwardPaymentRow}:C${lastInwardPaymentRow})-ABS(C${refund_row})`,
     t: "n",
     z: '"₱" #,##0.00;"₱" [Red]-#,##0.00',
     s: {
@@ -594,7 +616,7 @@ const generateCashFlow = ({
   };
 
   sheet["H4"] = {
-    f: `SUM(G14:G${outward.length + 13})`,
+    f: `SUM(G${firstOutwardDataRow}:G${lastOutwardDataRow})`,
     t: "n",
     z: '"₱" #,##0.00;"₱" [Red]-#,##0.00',
     s: {
@@ -630,7 +652,7 @@ const generateCashFlow = ({
 
   inwardHeaders.forEach((_, colIndex) => {
     const headerCell = xlsx.utils.encode_cell({
-      r: Object.keys(total_payments).length + 7,
+      r: inwardHeaderRow - 1,
       c: colIndex,
     });
     if (!sheet[headerCell]) return;
@@ -655,7 +677,7 @@ const generateCashFlow = ({
 
     inwardHeaders.forEach((_, colIndex) => {
       const cellAddress = xlsx.utils.encode_cell({
-        r: rowIndex + 13,
+        r: firstInwardDataRow + rowIndex - 1,
         c: colIndex,
       });
 
@@ -670,7 +692,7 @@ const generateCashFlow = ({
     });
   });
 
-  sheet[`A${inward.length + 14}`] = {
+  sheet[`A${inwardPreparedByRow}`] = {
     v: "PREPARED BY: ",
     t: "s",
     s: {
@@ -684,7 +706,7 @@ const generateCashFlow = ({
     },
   };
 
-  sheet[`B${inward.length + 14}`] = {
+  sheet[`B${inwardPreparedByRow}`] = {
     v: "",
     t: "s",
     s: {
@@ -698,7 +720,7 @@ const generateCashFlow = ({
     },
   };
 
-  sheet[`C${inward.length + 14}`] = {
+  sheet[`C${inwardPreparedByRow}`] = {
     v: "CHECKED AND APPROVED BY:",
     t: "s",
     s: {
@@ -712,7 +734,7 @@ const generateCashFlow = ({
     },
   };
 
-  sheet[`D${inward.length + 14}`] = {
+  sheet[`D${inwardPreparedByRow}`] = {
     v: "",
     t: "s",
     s: {
@@ -728,12 +750,12 @@ const generateCashFlow = ({
   const outwardHeaders = ["DATE", "PARTICULAR", "AMOUNT"];
 
   xlsx.utils.sheet_add_aoa(sheet, [outwardHeaders, ...outward], {
-    origin: { r: Object.keys(total_payments).length + 7, c: 4 },
+    origin: { r: outwardHeaderRow - 1, c: 4 },
   });
 
   outwardHeaders.forEach((_, colIndex) => {
     const headerCell = xlsx.utils.encode_cell({
-      r: Object.keys(total_payments).length + 7,
+      r: outwardHeaderRow - 1,
       c: colIndex + 4,
     });
     if (!sheet[headerCell]) return;
@@ -758,7 +780,7 @@ const generateCashFlow = ({
 
     outwardHeaders.forEach((_, colIndex) => {
       const cellAddress = xlsx.utils.encode_cell({
-        r: rowIndex + 13,
+        r: firstOutwardDataRow + rowIndex - 1,
         c: colIndex + 4,
       });
 
@@ -773,7 +795,7 @@ const generateCashFlow = ({
     });
   });
 
-  sheet[`E${outward.length + 14}`] = {
+  sheet[`E${outwardPreparedByRow}`] = {
     v: "PREPARED BY: ",
     t: "s",
     s: {
@@ -787,7 +809,7 @@ const generateCashFlow = ({
     },
   };
 
-  sheet[`F${outward.length + 14}`] = {
+  sheet[`F${outwardPreparedByRow}`] = {
     v: "",
     t: "s",
     s: {
@@ -801,7 +823,7 @@ const generateCashFlow = ({
     },
   };
 
-  sheet[`G${outward.length + 14}`] = {
+  sheet[`G${outwardPreparedByRow}`] = {
     v: "CHECKED AND APPROVED BY:",
     t: "s",
     s: {
@@ -815,7 +837,7 @@ const generateCashFlow = ({
     },
   };
 
-  sheet[`H${outward.length + 14}`] = {
+  sheet[`H${outwardPreparedByRow}`] = {
     v: "",
     t: "s",
     s: {
