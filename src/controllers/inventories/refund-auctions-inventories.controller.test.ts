@@ -2,7 +2,10 @@ import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 
 import { RefundAuctionsInventoriesController } from "./refund-auctions-inventories.controller";
-import { PaymentRepository } from "src/infrastructure/di/repositories";
+import {
+  InventoryRepository,
+  PaymentRepository,
+} from "src/infrastructure/di/repositories";
 import { patchMethod } from "src/test-utils/patch";
 
 const restorers: Array<() => void> = [];
@@ -59,6 +62,10 @@ test("RefundAuctionsInventoriesController parses JSON payloads and delegates val
       capturedInput = input as never;
       return undefined as never;
     }),
+    patchMethod(InventoryRepository, "getAuctionItemDetails", async () => ({
+      auction_inventory_id: "ai-1",
+      inventory: { barcode: "32-04-001", control: "0001" },
+    }) as never),
     patchMethod(logActivityModule, "logActivity", async () => undefined as never),
   );
 

@@ -1,6 +1,9 @@
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
-import { PaymentRepository } from "src/infrastructure/di/repositories";
+import {
+  InventoryRepository,
+  PaymentRepository,
+} from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
@@ -11,6 +14,31 @@ import {
 } from "src/entities/models/Payment";
 import { ok, err } from "src/entities/models/Result";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
+
+function buildRefundedItemsLogDescription(
+  data: RefundAuctionInventoriesInput,
+  items: {
+    auction_inventory_id: string;
+    inventory?: { barcode: string; control: string | null } | null;
+  }[],
+) {
+  return JSON.stringify({
+    type: "refunded_items",
+    summary: `Refunded ${data.auction_inventories.length} item(s): ${data.reason}`,
+    items: data.auction_inventories.map((inputItem) => {
+      const item = items.find(
+        (candidate) =>
+          candidate.auction_inventory_id === inputItem.auction_inventory_id,
+      );
+
+      return {
+        barcode: item?.inventory?.barcode ?? "",
+        control: item?.inventory?.control ?? "",
+        price: inputItem.prev_price.toString(),
+      };
+    }),
+  });
+}
 
 export const RefundAuctionsInventoriesController = async (
   input: Partial<RefundAuctionInventoriesInput>,
@@ -43,12 +71,20 @@ export const RefundAuctionsInventoriesController = async (
       });
     }
 
+    const items = await Promise.all(
+      data.auction_inventories.map((item) =>
+        InventoryRepository.getAuctionItemDetails(item.auction_inventory_id),
+      ),
+    );
     await PaymentRepository.refundAuctionInventories(data, ctx?.username);
     await logActivity(
       "UPDATE",
       "auction_inventory",
       data.auction_bidder_id,
-      `Refunded ${data.auction_inventories.length} item(s): ${data.reason}`,
+      buildRefundedItemsLogDescription(
+        data,
+        items.filter((item) => item !== null),
+      ),
     );
     return ok(undefined);
   } catch (error) {

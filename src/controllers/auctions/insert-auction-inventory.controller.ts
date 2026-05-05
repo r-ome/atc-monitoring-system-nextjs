@@ -8,6 +8,23 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { ManifestSheetRecord } from "src/entities/models/Manifest";
 import { err, ok } from "src/entities/models/Result";
 
+function buildAddOnItemLogDescription(
+  summary: string,
+  input: Partial<ManifestSheetRecord>,
+) {
+  return JSON.stringify({
+    type: "add_on_items",
+    summary,
+    items: [
+      {
+        barcode: input.BARCODE?.toString() ?? "",
+        control: input.CONTROL?.toString() ?? "",
+        price: input.PRICE?.toString() ?? "",
+      },
+    ],
+  });
+}
+
 export const InsertAuctionInventoryController = async (
   auction_id: string,
   input: Partial<ManifestSheetRecord>,
@@ -21,11 +38,12 @@ export const InsertAuctionInventoryController = async (
     ]);
 
     const auctionDate = auction ? formatDate(auction.created_at, "MMM dd, yyyy") : auction_id;
+    const description = `ADD ON into auction on ${auctionDate}: barcode: ${input.BARCODE}, control: ${input.CONTROL}`;
     await logActivity(
       "CREATE",
       "auction_inventory",
       `${input.BARCODE}-${input.CONTROL}`,
-      `ADD ON into auction on ${auctionDate}: barcode: ${input.BARCODE}, control: ${input.CONTROL}`,
+      buildAddOnItemLogDescription(description, input),
     );
     return ok(`${res.length} records uploaded!`);
   } catch (error) {

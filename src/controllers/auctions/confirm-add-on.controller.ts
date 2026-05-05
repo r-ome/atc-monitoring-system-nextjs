@@ -23,6 +23,21 @@ const toSheetRecord = (row: UploadManifestInput): ManifestSheetRecord => ({
   MANIFEST: row.MANIFEST ?? "ADD ON",
 });
 
+function buildAddOnItemsLogDescription(
+  summary: string,
+  items: Array<{ BARCODE: string; CONTROL: string; PRICE: string }>,
+) {
+  return JSON.stringify({
+    type: "add_on_items",
+    summary,
+    items: items.map((item) => ({
+      barcode: item.BARCODE?.toString() ?? "",
+      control: item.CONTROL?.toString() ?? "",
+      price: item.PRICE?.toString() ?? "",
+    })),
+  });
+}
+
 export const ConfirmAddOnController = async (
   auction_id: string,
   data: UploadManifestInput[],
@@ -51,7 +66,10 @@ export const ConfirmAddOnController = async (
       "CREATE",
       "auction_inventory",
       auction_id,
-      `Confirmed add on upload: ${res.length} records`,
+      buildAddOnItemsLogDescription(
+        `Confirmed add on upload: ${res.length} records`,
+        processed,
+      ),
     );
     return ok(`${res.length} records uploaded!`);
   } catch (error) {

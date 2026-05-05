@@ -22,6 +22,108 @@ function actionVariant(action: ActivityAction) {
   return "error";
 }
 
+type ItemTableActivityDescription = {
+  type:
+    | "bought_items_upload"
+    | "cancelled_items"
+    | "refunded_items"
+    | "add_on_items";
+  summary: string;
+  items: {
+    barcode: string;
+    control: string;
+    price: string;
+  }[];
+};
+
+function parseItemTableActivityDescription(
+  description: string,
+): ItemTableActivityDescription | null {
+  try {
+    const parsed = JSON.parse(description) as Partial<ItemTableActivityDescription>;
+    const type = parsed.type;
+
+    if (
+      (type !== "bought_items_upload" &&
+        type !== "cancelled_items" &&
+        type !== "refunded_items" &&
+        type !== "add_on_items") ||
+      !Array.isArray(parsed.items)
+    ) {
+      return null;
+    }
+
+    return {
+      type,
+      summary: parsed.summary ?? `Uploaded bought items: ${parsed.items.length} records`,
+      items: parsed.items.map((item) => ({
+        barcode: item.barcode?.toString() ?? "",
+        control: item.control?.toString() ?? "",
+        price: item.price?.toString() ?? "",
+      })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function ActivityDescriptionCell({ description }: { description: string }) {
+  const itemActivity =
+    parseItemTableActivityDescription(description);
+
+  if (itemActivity) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="truncate">
+            <span>{itemActivity.summary}</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="max-w-none p-3 text-xs">
+          <table className="min-w-[18rem] border-collapse">
+            <thead>
+              <tr className="border-b border-primary-foreground/30">
+                <th className="py-1 pr-3 text-left font-semibold">
+                  Barcode
+                </th>
+                <th className="px-3 py-1 text-left font-semibold">
+                  Control
+                </th>
+                <th className="py-1 pl-3 text-right font-semibold">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {itemActivity.items.map((item, index) => (
+                <tr
+                  key={`${item.barcode}-${item.control}-${index}`}
+                  className="border-b border-primary-foreground/15 last:border-0"
+                >
+                  <td className="py-1 pr-3">{item.barcode}</td>
+                  <td className="px-3 py-1">{item.control}</td>
+                  <td className="py-1 pl-3 text-right tabular-nums">
+                    {item.price}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="truncate">
+          <span>{description}</span>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>{description}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 const columns: ColumnDef<ActivityLog>[] = [
   {
     accessorKey: "created_at",
@@ -61,14 +163,7 @@ const columns: ColumnDef<ActivityLog>[] = [
     accessorKey: "description",
     header: "Description",
     cell: ({ row }) => (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="truncate">
-            <span>{row.original.description}</span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>{row.original.description}</TooltipContent>
-      </Tooltip>
+      <ActivityDescriptionCell description={row.original.description} />
     ),
   },
 ];

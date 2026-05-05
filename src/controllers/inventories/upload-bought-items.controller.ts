@@ -10,6 +10,18 @@ import { BoughtItemsSheetRecord } from "src/entities/models/Manifest";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
 
+function buildBoughtItemsUploadLogDescription(data: Record<string, string>[]) {
+  return JSON.stringify({
+    type: "bought_items_upload",
+    summary: `Uploaded bought items: ${data.length} records`,
+    items: data.map((item) => ({
+      barcode: item.BARCODE?.toString() ?? "",
+      control: item.CONTROL?.toString() ?? "",
+      price: item.OLD_PRICE?.toString() ?? "",
+    })),
+  });
+}
+
 export const UploadBoughtItemsController = async (
   branch_id: string,
   file: File,
@@ -73,7 +85,7 @@ export const UploadBoughtItemsController = async (
       "CREATE",
       "bought_item",
       "bulk",
-      `Uploaded bought items: ${data.length} records`,
+      buildBoughtItemsUploadLogDescription(data),
     );
     return ok({ success: true });
   } catch (error) {
