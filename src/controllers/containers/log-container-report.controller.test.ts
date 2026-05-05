@@ -11,6 +11,7 @@ function parseContainerReportLogDescription(description: string) {
   return JSON.parse(description) as {
     type: string;
     summary: string;
+    barcode?: string;
     options: { option: string; value: string }[];
   };
 }
@@ -62,6 +63,7 @@ test("LogContainerReportController logs selected report options in the descripti
   assert.deepEqual(parseContainerReportLogDescription(activityDescription), {
     type: "container_report",
     summary: "Generated container report for 32-04 (Sample Supplier)",
+    barcode: "32-04",
     options: [
       { option: "Auction dates", value: "Apr 13, 2026, Apr 14, 2026" },
       { option: "Remove REFUNDED items from Bidder 5013", value: "No" },
@@ -120,6 +122,7 @@ test("LogContainerReportController omits bidder 740 option in the description fo
   assert.deepEqual(parseContainerReportLogDescription(activityDescription), {
     type: "container_report",
     summary: "Generated container report for 32-04 (Sample Supplier)",
+    barcode: "32-04",
     options: [
       { option: "Auction dates", value: "Apr 13, 2026, Apr 14, 2026" },
       { option: "Remove REFUNDED items from Bidder 5013", value: "No" },

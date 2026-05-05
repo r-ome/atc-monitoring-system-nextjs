@@ -10,11 +10,13 @@ import { err, ok } from "src/entities/models/Result";
 
 function buildContainerReportLogDescription(options: {
   summary: string;
+  barcode: string;
   rows: { option: string; value: string }[];
 }) {
   return JSON.stringify({
     type: "container_report",
     summary: options.summary,
+    barcode: options.barcode,
     options: options.rows,
   });
 }
@@ -62,6 +64,7 @@ export const LogContainerReportController = async (
 
     const description = buildContainerReportLogDescription({
       summary,
+      barcode: data.barcode,
       rows: options,
     });
 

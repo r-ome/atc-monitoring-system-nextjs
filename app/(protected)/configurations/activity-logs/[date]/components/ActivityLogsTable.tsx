@@ -30,6 +30,7 @@ type ItemTableActivityDescription = {
     | "refunded_items"
     | "add_on_items";
   summary: string;
+  reason: string | null;
   items: {
     barcode: string;
     control: string;
@@ -40,17 +41,39 @@ type ItemTableActivityDescription = {
 type OptionsTableActivityDescription = {
   type: "container_report";
   summary: string;
+  barcode: string | null;
   options: {
     option: string;
     value: string;
   }[];
 };
 
+function getItemActivityReason(
+  type: ItemTableActivityDescription["type"],
+  summary: string,
+) {
+  if (type === "cancelled_items") {
+    return (
+      summary
+        .match(/^Cancelled \d+ item\(s\) from bidder #[^:]+:\s*(.+)$/)?.[1]
+        ?.trim() ?? null
+    );
+  }
+
+  if (type === "refunded_items") {
+    return summary.match(/^Refunded \d+ item\(s\):\s*(.+)$/)?.[1]?.trim() ?? null;
+  }
+
+  return null;
+}
+
 function parseItemTableActivityDescription(
   description: string,
 ): ItemTableActivityDescription | null {
   try {
-    const parsed = JSON.parse(description) as Partial<ItemTableActivityDescription>;
+    const parsed = JSON.parse(
+      description,
+    ) as Partial<ItemTableActivityDescription>;
     const type = parsed.type;
 
     if (
@@ -63,9 +86,14 @@ function parseItemTableActivityDescription(
       return null;
     }
 
+    const summary =
+      parsed.summary ??
+      `Uploaded bought items: ${parsed.items.length} records`;
+
     return {
       type,
-      summary: parsed.summary ?? `Uploaded bought items: ${parsed.items.length} records`,
+      summary,
+      reason: getItemActivityReason(type, summary),
       items: parsed.items.map((item) => ({
         barcode: item.barcode?.toString() ?? "",
         control: item.control?.toString() ?? "",
@@ -81,15 +109,26 @@ function parseOptionsTableActivityDescription(
   description: string,
 ): OptionsTableActivityDescription | null {
   try {
-    const parsed = JSON.parse(description) as Partial<OptionsTableActivityDescription>;
+    const parsed = JSON.parse(
+      description,
+    ) as Partial<OptionsTableActivityDescription>;
 
     if (parsed.type !== "container_report" || !Array.isArray(parsed.options)) {
       return null;
     }
 
+    const summary = parsed.summary ?? "Generated container report";
+    const barcode =
+      parsed.barcode?.toString() ??
+      summary
+        .match(/^Generated container report for ([^(]+?)(?:\s+\(|$)/)?.[1]
+        ?.trim() ??
+      null;
+
     return {
       type: "container_report",
-      summary: parsed.summary ?? "Generated container report",
+      summary,
+      barcode,
       options: parsed.options.map((item) => ({
         option: item.option?.toString() ?? "",
         value: item.value?.toString() ?? "",
@@ -98,6 +137,29 @@ function parseOptionsTableActivityDescription(
   } catch {
     return null;
   }
+}
+
+function OptionValue({ option, value }: { option: string; value: string }) {
+  if (option === "Auction dates") {
+    const dates =
+      value.match(/[A-Za-z]+ \d{1,2}, \d{4}/g) ??
+      value
+        .split(",")
+        .map((date) => date.trim())
+        .filter(Boolean);
+
+    return (
+      <div className="flex flex-col items-end gap-0.5">
+        {dates.map((date, index) => (
+          <span key={`${date}-${index}`} className="whitespace-nowrap">
+            {date}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  return <>{value}</>;
 }
 
 const DescriptionSummary = forwardRef<
@@ -113,8 +175,7 @@ const DescriptionSummary = forwardRef<
 DescriptionSummary.displayName = "DescriptionSummary";
 
 function ActivityDescriptionCell({ description }: { description: string }) {
-  const itemActivity =
-    parseItemTableActivityDescription(description);
+  const itemActivity = parseItemTableActivityDescription(description);
   const optionsActivity = parseOptionsTableActivityDescription(description);
 
   if (itemActivity) {
@@ -124,15 +185,19 @@ function ActivityDescriptionCell({ description }: { description: string }) {
           <DescriptionSummary summary={itemActivity.summary} />
         </TooltipTrigger>
         <TooltipContent side="right" className="max-w-none p-3 text-xs">
+          {itemActivity.reason ? (
+            <div className="mb-2 border-b border-primary-foreground/30 pb-2">
+              <div className="font-semibold">Reason</div>
+              <div className="mt-0.5 max-w-[22rem] whitespace-normal">
+                {itemActivity.reason}
+              </div>
+            </div>
+          ) : null}
           <table className="min-w-[18rem] border-collapse">
             <thead>
               <tr className="border-b border-primary-foreground/30">
-                <th className="py-1 pr-3 text-left font-semibold">
-                  Barcode
-                </th>
-                <th className="px-3 py-1 text-left font-semibold">
-                  Control
-                </th>
+                <th className="py-1 pr-3 text-left font-semibold">Barcode</th>
+                <th className="px-3 py-1 text-left font-semibold">Control</th>
                 <th className="py-1 pl-3 text-right font-semibold">Price</th>
               </tr>
             </thead>
@@ -163,11 +228,18 @@ function ActivityDescriptionCell({ description }: { description: string }) {
           <DescriptionSummary summary={optionsActivity.summary} />
         </TooltipTrigger>
         <TooltipContent side="right" className="max-w-none p-3 text-xs">
+          <div className="mb-2 border-b border-primary-foreground/30 pb-2 font-semibold">
+            {optionsActivity.barcode ?? "Container Report"}
+          </div>
           <table className="min-w-[22rem] border-collapse">
             <thead>
               <tr className="border-b border-primary-foreground/30">
-                <th className="py-1 pr-3 text-left font-semibold">Option</th>
-                <th className="py-1 pl-3 text-right font-semibold">Value</th>
+                <th className="w-1/2 py-1 pr-3 text-left font-semibold">
+                  Option
+                </th>
+                <th className="w-1/2 py-1 pl-3 text-right font-semibold">
+                  Value
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -176,8 +248,12 @@ function ActivityDescriptionCell({ description }: { description: string }) {
                   key={`${item.option}-${index}`}
                   className="border-b border-primary-foreground/15 last:border-0"
                 >
-                  <td className="py-1 pr-3">{item.option}</td>
-                  <td className="py-1 pl-3 text-right">{item.value}</td>
+                  <td className="w-1/2 py-1 pr-3 align-center">
+                    {item.option}
+                  </td>
+                  <td className="w-1/2 py-1 pl-3 text-right align-top">
+                    <OptionValue option={item.option} value={item.value} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -285,9 +361,18 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return logs.filter((log) => {
-      if (selectedBranches.length > 0 && !selectedBranches.includes(log.branch_name)) return false;
-      if (selectedUsers.length > 0 && !selectedUsers.includes(log.username)) return false;
-      if (selectedEntities.length > 0 && !selectedEntities.includes(log.entity_type)) return false;
+      if (
+        selectedBranches.length > 0 &&
+        !selectedBranches.includes(log.branch_name)
+      )
+        return false;
+      if (selectedUsers.length > 0 && !selectedUsers.includes(log.username))
+        return false;
+      if (
+        selectedEntities.length > 0 &&
+        !selectedEntities.includes(log.entity_type)
+      )
+        return false;
       if (q) {
         return (
           log.username?.toLowerCase().includes(q) ||
