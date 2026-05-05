@@ -33,4 +33,5 @@ test("computeContainerReport calculates service charge per paid item bidder rate
 
   assert.equal(report.totalItemSales, 3000);
   assert.equal(report.totalServiceCharge, 400);
+  assert.equal(report.totalProfit, -18_950);
 });

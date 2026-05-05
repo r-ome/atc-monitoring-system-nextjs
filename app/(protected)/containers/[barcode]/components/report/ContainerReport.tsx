@@ -76,6 +76,7 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
     sortingFee,
     royalty,
     atcSales,
+    totalProfit,
   } = computeContainerReport(inventories);
 
   const salesLabel =
@@ -151,6 +152,15 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
           hint="Sum of each PAID item price multiplied by that item's registered bidder service charge rate."
           value={totalServiceCharge}
           className="text-green-600"
+        />
+
+        <Separator className="my-2" />
+
+        <ReportRow
+          label="Total Profit"
+          hint="ATC Sales + Service Charge"
+          value={totalProfit}
+          className={totalProfit >= 0 ? "text-green-600" : "text-red-600"}
         />
       </CardContent>
     </Card>

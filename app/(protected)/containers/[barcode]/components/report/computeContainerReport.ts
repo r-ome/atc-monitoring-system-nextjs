@@ -14,6 +14,7 @@ export type ContainerReportData = {
   atcGroupCommission: number;
   sortingFee: number;
   atcSales: number;
+  totalProfit: number;
 };
 
 function computeRoyalty(sales: number): number {
@@ -56,6 +57,7 @@ export function computeContainerReport(
   const royalty = computeRoyalty(totalItemSales);
   const atcSales =
     containerSalesCommission - atcGroupCommission + sortingFee - royalty;
+  const totalProfit = atcSales + totalServiceCharge;
 
   return {
     totalItemSales,
@@ -65,5 +67,6 @@ export function computeContainerReport(
     atcGroupCommission,
     sortingFee,
     atcSales,
+    totalProfit,
   };
 }
