@@ -46,6 +46,7 @@ function emptyTotals(): SalesExpensesSummaryTotals {
     total_income: 0,
     sales_commission: 0,
     service_charge: 0,
+    bought_items_profit_loss: 0,
     sorting_preparation_fee: 0,
     total_expenses: 0,
     expenses: 0,
@@ -105,6 +106,7 @@ function finalizeTotals(totals: SalesExpensesSummaryTotals) {
   totals.total_income =
     totals.sales_commission +
     totals.service_charge +
+    totals.bought_items_profit_loss +
     totals.sorting_preparation_fee;
   totals.total_expenses =
     totals.expenses + totals.atc_group_commission + totals.royalty;
@@ -117,6 +119,7 @@ function addTotals(
 ) {
   target.sales_commission += source.sales_commission;
   target.service_charge += source.service_charge;
+  target.bought_items_profit_loss += source.bought_items_profit_loss;
   target.sorting_preparation_fee += source.sorting_preparation_fee;
   target.expenses += source.expenses;
   target.atc_group_commission += source.atc_group_commission;
@@ -136,7 +139,7 @@ export function presentSalesExpensesSummary(
     const existing = buckets.get(key);
     if (existing) return existing;
 
-    const entry = { key, period, ...emptyTotals() };
+    const entry = { key, period, ...emptyTotals(), paid_containers: [] };
     buckets.set(key, entry);
     return entry;
   }
@@ -144,6 +147,7 @@ export function presentSalesExpensesSummary(
   for (const container of containers) {
     const sales_commission = computeSalesCommission(container.total_item_sales);
     const service_charge = container.total_service_charge;
+    const bought_items_profit_loss = container.bought_items_profit_loss;
     const sorting_preparation_fee = Math.round(container.total_item_sales * 0.05);
     const atc_group_commission = Math.round(sales_commission / 3);
     const royalty = computeRoyalty(container.total_item_sales);
@@ -151,9 +155,15 @@ export function presentSalesExpensesSummary(
 
     entry.sales_commission += sales_commission;
     entry.service_charge += service_charge;
+    entry.bought_items_profit_loss += bought_items_profit_loss;
     entry.sorting_preparation_fee += sorting_preparation_fee;
     entry.atc_group_commission += atc_group_commission;
     entry.royalty += royalty;
+    entry.paid_containers.push({
+      barcode: container.barcode,
+      total_item_sales: container.total_item_sales,
+      total_service_charge: container.total_service_charge,
+    });
   }
 
   for (const expense of expenses) {

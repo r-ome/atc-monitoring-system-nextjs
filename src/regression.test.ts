@@ -7,6 +7,7 @@ import "./application/use-cases/inventories/update-auction-item.use-case.test";
 import "./entities/models/Auction.test";
 import "./entities/models/AuctionPayableAmount.test";
 import "./app/components/admin/status-badge.helpers.test";
+import "../app/(protected)/containers/[barcode]/components/report/computeContainerReport.test";
 import "./controllers/auctions/register-bidder.controller.test";
 import "./controllers/auctions/preview-add-on.controller.test";
 import "./controllers/auctions/confirm-add-on.controller.test";

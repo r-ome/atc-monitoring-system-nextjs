@@ -123,9 +123,11 @@ test("getPaidContainerFinancials filters by paid container date and excluded bar
         return [
           {
             container_id: "container-1",
+            barcode: "32-04",
             paid_at: new Date("2026-05-04T00:00:00.000Z"),
             total_item_sales: "800000.00",
             total_service_charge: "40000.00",
+            bought_items_profit_loss: "12000.00",
           },
         ];
       }) as typeof prisma.$queryRaw,
@@ -139,6 +141,7 @@ test("getPaidContainerFinancials filters by paid container date and excluded bar
 
   assert.ok(capturedQuery);
   assert.match(capturedQuery.sql, /c\.status AS paid_at/);
+  assert.match(capturedQuery.sql, /c\.barcode/);
   assert.match(capturedQuery.sql, /c\.status IS NOT NULL/);
   assert.match(capturedQuery.sql, /c\.status >=/);
   assert.match(capturedQuery.sql, /c\.status </);
@@ -147,9 +150,11 @@ test("getPaidContainerFinancials filters by paid container date and excluded bar
   assert.deepEqual(rows, [
     {
       container_id: "container-1",
+      barcode: "32-04",
       paid_at: new Date("2026-05-04T00:00:00.000Z"),
       total_item_sales: 800000,
       total_service_charge: 40000,
+      bought_items_profit_loss: 12000,
     },
   ]);
 });
@@ -179,4 +184,5 @@ test("getPaidContainerFinancials service charge only uses paid auction items", a
     capturedQuery.sql,
     /SUM\(CASE WHEN ai\.status = 'PAID' THEN ai\.price ELSE 0 END\)/,
   );
+  assert.match(capturedQuery.sql, /i\.is_bought_item IS NOT NULL/);
 });

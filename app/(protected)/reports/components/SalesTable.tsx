@@ -34,6 +34,18 @@ export const SalesTable = ({ summary }: SalesTableProps) => {
             <span>{formatNumberToCurrency(summary.totals.service_charge)}</span>
           </div>
           <div className="flex justify-between gap-8">
+            <span>Bought Items:</span>
+            <span
+              className={
+                summary.totals.bought_items_profit_loss >= 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+            >
+              {formatNumberToCurrency(summary.totals.bought_items_profit_loss)}
+            </span>
+          </div>
+          <div className="flex justify-between gap-8">
             <span>Sorting / Preparation Fee:</span>
             <span>
               {formatNumberToCurrency(summary.totals.sorting_preparation_fee)}

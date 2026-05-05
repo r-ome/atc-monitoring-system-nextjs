@@ -202,16 +202,26 @@ export const ReportsRepository: IReportsRepository = {
       const rows = await prisma.$queryRaw<
         Array<{
           container_id: string;
+          barcode: string;
           paid_at: Date;
           total_item_sales: Prisma.Decimal | number | string | null;
           total_service_charge: Prisma.Decimal | number | string | null;
+          bought_items_profit_loss: Prisma.Decimal | number | string | null;
         }>
       >(Prisma.sql`
         SELECT
           c.container_id,
+          c.barcode,
           c.status AS paid_at,
           COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS total_item_sales,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge,
+          COALESCE(SUM(
+            CASE
+              WHEN i.is_bought_item IS NOT NULL THEN
+                (CASE WHEN i.status = 'BOUGHT_ITEM' THEN 0 ELSE COALESCE(ai.price, 0) END) - i.is_bought_item
+              ELSE 0
+            END
+          ), 0) AS bought_items_profit_loss
         FROM containers c
         LEFT JOIN inventories i
           ON i.container_id = c.container_id
@@ -229,16 +239,18 @@ export const ReportsRepository: IReportsRepository = {
           AND c.status < ${end}
           AND c.barcode NOT LIKE '00%'
           AND UPPER(c.barcode) NOT LIKE 'T0%'
-        GROUP BY c.container_id, c.status
+        GROUP BY c.container_id, c.barcode, c.status
         ORDER BY c.status ASC
       `);
 
       return rows.map(
         (row): PaidContainerFinancialRow => ({
           container_id: row.container_id,
+          barcode: row.barcode,
           paid_at: row.paid_at,
           total_item_sales: toNumber(row.total_item_sales),
           total_service_charge: toNumber(row.total_service_charge),
+          bought_items_profit_loss: toNumber(row.bought_items_profit_loss),
         }),
       );
     } catch (error) {

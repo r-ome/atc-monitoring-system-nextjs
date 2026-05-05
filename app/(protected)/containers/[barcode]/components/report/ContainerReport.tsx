@@ -16,7 +16,13 @@ import { InfoIcon } from "lucide-react";
 import { computeContainerReport } from "./computeContainerReport";
 
 interface ContainerReportProps {
-  inventories: { auctions_inventory: { status: string; price: number } | null }[];
+  inventories: {
+    auctions_inventory: {
+      status: string;
+      price: number;
+      bidder?: { service_charge?: number | null } | null;
+    } | null;
+  }[];
 }
 
 function formatPeso(value: number): string {
@@ -64,6 +70,7 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
 }) => {
   const {
     totalItemSales,
+    totalServiceCharge,
     containerSalesCommission,
     atcGroupCommission,
     sortingFee,
@@ -138,6 +145,12 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
           hint="(Container Sales Commission − ATC Group Commission + Sorting Fee) − Royalty"
           value={atcSales}
           className={atcSales >= 0 ? "text-green-600" : "text-red-600"}
+        />
+        <ReportRow
+          label="Service Charge"
+          hint="Sum of each PAID item price multiplied by that item's registered bidder service charge rate."
+          value={totalServiceCharge}
+          className="text-green-600"
         />
       </CardContent>
     </Card>

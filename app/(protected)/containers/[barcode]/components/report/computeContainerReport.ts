@@ -1,9 +1,14 @@
 type InventoryLike = {
-  auctions_inventory: { status: string; price: number } | null;
+  auctions_inventory: {
+    status: string;
+    price: number;
+    bidder?: { service_charge?: number | null } | null;
+  } | null;
 };
 
 export type ContainerReportData = {
   totalItemSales: number;
+  totalServiceCharge: number;
   royalty: number;
   containerSalesCommission: number;
   atcGroupCommission: number;
@@ -29,11 +34,20 @@ function computeContainerSalesCommission(sales: number): number {
 export function computeContainerReport(
   inventories: InventoryLike[]
 ): ContainerReportData {
-  const totalItemSales = inventories.reduce((sum, inv) => {
+  const paidAuctionItems = inventories.flatMap((inv) => {
     if (inv.auctions_inventory?.status === "PAID") {
-      return sum + (inv.auctions_inventory.price ?? 0);
+      return [inv.auctions_inventory];
     }
-    return sum;
+    return [];
+  });
+
+  const totalItemSales = paidAuctionItems.reduce((sum, item) => {
+    return sum + (item.price ?? 0);
+  }, 0);
+
+  const totalServiceCharge = paidAuctionItems.reduce((sum, item) => {
+    const serviceChargeRate = item.bidder?.service_charge ?? 0;
+    return sum + ((item.price ?? 0) * serviceChargeRate) / 100;
   }, 0);
 
   const containerSalesCommission = computeContainerSalesCommission(totalItemSales);
@@ -45,6 +59,7 @@ export function computeContainerReport(
 
   return {
     totalItemSales,
+    totalServiceCharge,
     royalty,
     containerSalesCommission,
     atcGroupCommission,

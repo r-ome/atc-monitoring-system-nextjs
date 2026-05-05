@@ -52,7 +52,15 @@ export type ExpenseSummaryRow = {
 
 export type PaidContainerFinancialRow = {
   container_id: string;
+  barcode: string;
   paid_at: Date;
+  total_item_sales: number;
+  total_service_charge: number;
+  bought_items_profit_loss: number;
+};
+
+export type SalesExpensesSummaryContainer = {
+  barcode: string;
   total_item_sales: number;
   total_service_charge: number;
 };
@@ -61,6 +69,7 @@ export type SalesExpensesSummaryTotals = {
   total_income: number;
   sales_commission: number;
   service_charge: number;
+  bought_items_profit_loss: number;
   sorting_preparation_fee: number;
   total_expenses: number;
   expenses: number;
@@ -72,6 +81,7 @@ export type SalesExpensesSummaryTotals = {
 export type SalesExpensesSummaryEntry = SalesExpensesSummaryTotals & {
   key: string;
   period: string;
+  paid_containers: SalesExpensesSummaryContainer[];
 };
 
 export type SalesExpensesSummary = {
