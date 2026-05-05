@@ -11,6 +11,7 @@ import {
 } from "@/app/components/ui/tooltip";
 import { cn, formatDate } from "@/app/lib/utils";
 import { SetStateAction } from "react";
+import { InventoryStatusBadge, StatusBadge } from "@/app/components/admin";
 
 import { createGroupSortingFn } from "@/app/lib/utils";
 
@@ -19,6 +20,18 @@ const controlGroupSortingFn = createGroupSortingFn<Manifest, string>(
   (row) => row.control ?? "",
   (a, b) => a.localeCompare(b),
 );
+
+function ManifestNumberDisplay({ manifestNumber }: { manifestNumber: string | null }) {
+  if (manifestNumber === "ADD ON") {
+    return <StatusBadge variant="addon">ADD ON</StatusBadge>;
+  }
+
+  if (manifestNumber === "BOUGHT ITEM") {
+    return <InventoryStatusBadge status="BOUGHT_ITEM" />;
+  }
+
+  return <>{manifestNumber}</>;
+}
 
 export const columns = (
   setOpen: React.Dispatch<SetStateAction<boolean>>,
@@ -205,14 +218,16 @@ export const columns = (
       const manifest = row.original;
       if (!manifest.remarks) {
         return (
-          <div className="flex justify-center">{manifest.manifest_number}</div>
+          <div className="flex justify-center">
+            <ManifestNumberDisplay manifestNumber={manifest.manifest_number} />
+          </div>
         );
       }
       return (
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex justify-center cursor-default">
-              {manifest.manifest_number}
+              <ManifestNumberDisplay manifestNumber={manifest.manifest_number} />
             </div>
           </TooltipTrigger>
           <TooltipContent>Uploaded by: {manifest.remarks}</TooltipContent>
