@@ -245,6 +245,8 @@ export type ContainerStatusEntry = {
   arrival_date: string | null;
   due_date: string | null;
   days_since_arrival: number | null;
+  days_left: number | null;
+  delay_days: number | null;
   duties_and_taxes: number;
   total_items: number;
   paid_items: number;

@@ -20,6 +20,46 @@ function computeSalesCommission(sales: number): number {
   return Math.round(sales * 0.15);
 }
 
+function diffCalendarDays(later: Date, earlier: Date): number {
+  return Math.floor(
+    (startOfDay(later).getTime() - startOfDay(earlier).getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
+}
+
+function computeDelayDays(
+  paid_at: Date | null,
+  due_date: Date | null,
+  today: Date,
+): number | null {
+  if (!due_date) return null;
+
+  if (paid_at) {
+    return startOfDay(paid_at) > startOfDay(due_date)
+      ? diffCalendarDays(paid_at, due_date)
+      : null;
+  }
+
+  return startOfDay(today) > startOfDay(due_date)
+    ? diffCalendarDays(today, due_date)
+    : null;
+}
+
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function computeDaysLeft(
+  paid_at: Date | null,
+  due_date: Date | null,
+  today: Date,
+): number | null {
+  if (paid_at || !due_date) return null;
+  if (startOfDay(today) > startOfDay(due_date)) return null;
+
+  return diffCalendarDays(due_date, today);
+}
+
 function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
   const today = new Date();
 
@@ -33,6 +73,8 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
                 (1000 * 60 * 60 * 24),
             )
           : null;
+    const delay_days = computeDelayDays(container.paid_at, container.due_date, today);
+    const days_left = computeDaysLeft(container.paid_at, container.due_date, today);
 
     const total_item_sales = container.total_item_sales;
     const container_sales_commission = computeSalesCommission(total_item_sales);
@@ -58,6 +100,8 @@ function presenter(rows: ContainerStatusRow[]): ContainerStatusEntry[] {
         ? formatDate(container.due_date, "MMM dd, yyyy")
         : null,
       days_since_arrival,
+      days_left,
+      delay_days,
       duties_and_taxes: Number(container.duties_and_taxes),
       total_items: container.total_items,
       paid_items: container.paid_items,

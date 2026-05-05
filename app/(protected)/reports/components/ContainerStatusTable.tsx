@@ -66,15 +66,11 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
       const {
         barcode, supplier_name, container_number,
         total_items, paid_items,
-        arrival_date, due_date, paid_at, days_since_arrival, status,
+        arrival_date, due_date, paid_at, days_left, delay_days,
       } = row.original;
-      const aging = status === "PAID" ? 0 : days_since_arrival;
-      const agingColor =
-        aging === null ? "text-muted-foreground"
-        : aging === 0   ? "text-green-500"
-        : aging > 60    ? "text-red-500"
-        : aging > 30    ? "text-yellow-500"
-                        : "text-muted-foreground";
+      const hasDelay = delay_days !== null;
+      const dueStatusLabel = hasDelay ? "Delay" : days_left !== null ? "Days Left" : null;
+      const dueStatusValue = hasDelay ? delay_days : days_left;
       return (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -89,12 +85,14 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
             <p className="text-white">Arrival: {arrival_date ?? "—"}</p>
             <p className="text-white">Due: {due_date ?? "—"}</p>
             <p className="text-white">Paid: {paid_at ?? "—"}</p>
-            <p>
-              Aging:{" "}
-              <span className={`font-semibold ${agingColor}`}>
-                {aging === null ? "—" : `${aging}d`}
-              </span>
-            </p>
+            {dueStatusLabel && (
+              <p>
+                {dueStatusLabel}:{" "}
+                <span className="font-semibold text-white">
+                  {dueStatusValue}d
+                </span>
+              </p>
+            )}
           </TooltipContent>
         </Tooltip>
       );
