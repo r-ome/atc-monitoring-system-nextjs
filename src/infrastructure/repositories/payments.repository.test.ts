@@ -134,3 +134,66 @@ test("handleBidderPullOut charges only the partial price delta for add-on paymen
     },
   ]);
 });
+
+test("updatePaymentMethod updates a non-registration payment by payment id only", async () => {
+  const paymentFindArgs: Array<Record<string, unknown>> = [];
+  const paymentMethodFindArgs: Array<Record<string, unknown>> = [];
+  const paymentUpdateArgs: Array<Record<string, unknown>> = [];
+
+  restorers.push(
+    patchMethod(
+      prisma.payments,
+      "findFirst",
+      (async (args: Record<string, unknown>) => {
+        paymentFindArgs.push(args);
+        return {
+          payment_id: "payment-1",
+          receipt_id: "receipt-1",
+          amount_paid: 1250,
+          payment_method_id: "cash",
+          remarks: "Original remarks",
+          payment_method: { name: "Cash" },
+        };
+      }) as unknown as typeof prisma.payments.findFirst,
+    ),
+    patchMethod(
+      prisma.payment_methods,
+      "findFirst",
+      (async (args: Record<string, unknown>) => {
+        paymentMethodFindArgs.push(args);
+        return { payment_method_id: "gcash", name: "GCash" };
+      }) as typeof prisma.payment_methods.findFirst,
+    ),
+    patchMethod(
+      prisma.payments,
+      "update",
+      (async (args: Record<string, unknown>) => {
+        paymentUpdateArgs.push(args);
+        return args;
+      }) as typeof prisma.payments.update,
+    ),
+  );
+
+  await PaymentRepository.updatePaymentMethod("payment-1", {
+    payment_method: "gcash",
+  });
+
+  assert.deepEqual(paymentFindArgs, [
+    {
+      where: { payment_id: "payment-1" },
+      include: { payment_method: true },
+    },
+  ]);
+  assert.deepEqual(paymentMethodFindArgs, [
+    { where: { payment_method_id: "gcash" } },
+  ]);
+  assert.deepEqual(paymentUpdateArgs, [
+    {
+      where: { payment_id: "payment-1" },
+      data: {
+        payment_method_id: "gcash",
+        remarks: "Updated payment type from Cash to GCash",
+      },
+    },
+  ]);
+});

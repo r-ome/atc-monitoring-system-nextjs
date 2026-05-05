@@ -12,7 +12,7 @@ import { GetPaymentsByDateController } from "src/controllers/payments/get-paymen
 import { GetReceiptDetailsController } from "src/controllers/payments/get-receipt-details.controller";
 import { AddExpenseController } from "src/controllers/expenses/add-expense.controller";
 import { GetBidderReceiptsController } from "src/controllers/payments/get-bidder-receipts.controller";
-import { UpdateRegistrationPaymentController } from "src/controllers/payments/update-registration-payment.controller";
+import { UpdatePaymentMethodController } from "src/controllers/payments/update-payment-method.controller";
 import { GetPettyCashBalanceController } from "src/controllers/expenses/get-petty-cash-balance.controller";
 import { UpdateExpenseController } from "src/controllers/expenses/update-expense.controller";
 import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
@@ -111,7 +111,7 @@ export const getBidderReceipts = async (auction_bidder_id: string) => {
   );
 };
 
-export const updateRegistrationPayment = async (
+export const updatePaymentMethod = async (
   payment_id: string,
   form_data: FormData,
 ) => {
@@ -119,9 +119,9 @@ export const updateRegistrationPayment = async (
   if (!auth.ok) return auth;
   const input = Object.fromEntries(form_data.entries());
 
-  return await runWithBranchContext(
+  return await runWithUserContext(
     auth.value,
-    async () => await UpdateRegistrationPaymentController(payment_id, input),
+    async () => await UpdatePaymentMethodController(payment_id, input),
   );
 };
 

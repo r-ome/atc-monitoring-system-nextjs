@@ -3,7 +3,7 @@ import {
   RefundAuctionInventoriesInput,
   PaymentWithDetailsRow,
   PaymentWithMethodRow,
-  UpdateRegistrationPaymentInput,
+  UpdatePaymentMethodInput,
   ReceiptRecordRow,
   ReceiptRecordWithHistoriesRow,
   ReceiptRecordWithInventoriesRow,
@@ -36,9 +36,9 @@ export interface IPaymentRepository {
   getBidderReceipts: (
     auction_bidder_id: string
   ) => Promise<ReceiptRecordWithPaymentsRow[]>;
-  updateRegistrationPayment: (
+  updatePaymentMethod: (
     payment_id: string,
-    data: UpdateRegistrationPaymentInput
+    data: UpdatePaymentMethodInput
   ) => Promise<void>;
   undoPayment: (receipt_id: string) => Promise<UndoPaymentResult>;
   addStorageFee: (data: StorageFeePaymentInput) => Promise<void>;

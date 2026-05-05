@@ -15,34 +15,24 @@ import {
 } from "@/app/components/ui/dialog";
 
 import { SelectWithSearch } from "@/app/components/ui/SelectWithSearch";
-import { updateRegistrationPayment } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
+import { updatePaymentMethod } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { toast } from "sonner";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
 import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 
-interface UpdateRegistrationPaymentMethodModalProps {
-  receipt: {
-    receipt_id: string;
-    bidder: {
-      registration_fee: number;
-      service_charge: number;
-    };
-    payments: {
-      payment_id: string;
-      payment_method: { payment_method_id: string; name: string };
-    }[];
-  };
+interface UpdatePaymentMethodModalProps {
   payment: {
     payment_id: string;
+    amount_paid: number;
     payment_method?: PaymentMethod;
   };
 }
 
-export const UpdateRegistrationPaymentMethodModal: React.FC<
-  UpdateRegistrationPaymentMethodModalProps
-> = ({ receipt, payment }) => {
+export const UpdatePaymentMethodModal: React.FC<
+  UpdatePaymentMethodModalProps
+> = ({ payment }) => {
   const router = useRouter();
   const [open, setOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -76,12 +66,12 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
-    if (!receipt || !payment) return;
+    if (!payment) return;
 
     const formData = new FormData(event.currentTarget);
     formData.append("payment_method", selectedPaymentMethod.value as string);
 
-    const res = await updateRegistrationPayment(payment.payment_id, formData);
+    const res = await updatePaymentMethod(payment.payment_id, formData);
     if (res) {
       setIsLoading(false);
       if (res.ok) {
@@ -106,28 +96,24 @@ export const UpdateRegistrationPaymentMethodModal: React.FC<
       <DialogContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>Update Registration Details</DialogTitle>
+            <DialogTitle>Update Payment Method</DialogTitle>
           </DialogHeader>
 
-          <div className="flex gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label>Service Charge:</Label>
-              <InputNumber
-                id="service_charge"
-                name="service_charge"
-                disabled
-                value={receipt.bidder.service_charge as number}
-                suffix="%"
-              />
+              <Label>Current Payment Method:</Label>
+              <div className="rounded-md border px-3 py-2 text-sm">
+                {payment.payment_method?.name ?? "N/A"}
+              </div>
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Registration Fee:</Label>
-
+              <Label>Amount Paid:</Label>
               <InputNumber
-                id="registration_fee"
-                name="registration_fee"
+                id="amount_paid"
+                name="amount_paid"
                 disabled
-                value={receipt.bidder.registration_fee as number}
+                hasStepper={false}
+                value={payment.amount_paid}
               />
             </div>
           </div>

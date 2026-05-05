@@ -510,7 +510,7 @@ export const PaymentRepository: IPaymentRepository = {
       throw error;
     }
   },
-  updateRegistrationPayment: async (payment_id, data) => {
+  updatePaymentMethod: async (payment_id, data) => {
     try {
       const current_payment = await prisma.payments.findFirst({
         where: { payment_id },
@@ -533,7 +533,7 @@ export const PaymentRepository: IPaymentRepository = {
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError(
-          "Error handling bidder registration update!",
+          "Error updating payment method!",
           {
             cause: error.message,
           },

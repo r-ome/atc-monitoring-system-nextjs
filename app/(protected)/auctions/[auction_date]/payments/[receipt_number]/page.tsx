@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/app/components/ui/badge";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Button } from "@/app/components/ui/button";
-import { UpdateRegistrationPaymentMethodModal } from "./UpdateRegistrationPaymentMethodModal/UpdateRegistrationPaymentMethodModal";
+import { UpdatePaymentMethodModal } from "./UpdatePaymentMethodModal/UpdatePaymentMethodModal";
 import { UndoPaymentButton } from "./UndoReceiptButton";
 import AddStorageFeeModal from "./AddStorageFeeModal/AddStorageFeeModal";
 import { cn } from "@/app/lib/utils";
@@ -132,6 +132,7 @@ export default async function Page({
                     <TableHead className="w-20">Reason</TableHead>
                   </>
                 ) : null}
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -150,21 +151,14 @@ export default async function Page({
                       ₱ {item.amount_paid.toLocaleString()}
                     </div>
                   </TableCell>
-                  {receipt.purpose === "REGISTRATION" ? (
-                    <>
-                      <TableCell className="flex justify-end">
-                        <UpdateRegistrationPaymentMethodModal
-                          receipt={receipt}
-                          payment={item}
-                        />
-                      </TableCell>
-                    </>
-                  ) : null}
                   {REFUND_PURPOSES.includes(receipt.purpose) ? (
                     <>
                       <TableCell>{receipt?.remarks}</TableCell>
                     </>
                   ) : null}
+                  <TableCell className="text-right">
+                    <UpdatePaymentMethodModal payment={item} />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -188,6 +182,7 @@ export default async function Page({
                 {REFUND_PURPOSES.includes(receipt.purpose) ? (
                   <TableCell></TableCell>
                 ) : null}
+                <TableCell></TableCell>
               </TableRow>
             </TableFooter>
           </Table>

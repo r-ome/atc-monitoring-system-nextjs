@@ -203,8 +203,8 @@ export const refundAuctionInventoriesSchema = z.object({
 
 export type RefundAuctionInventoriesInput = z.infer<typeof refundAuctionInventoriesSchema>;
 
-export const updateRegistrationPaymentSchema = z.object({
+export const updatePaymentMethodSchema = z.object({
   payment_method: z.string(),
 });
 
-export type UpdateRegistrationPaymentInput = z.infer<typeof updateRegistrationPaymentSchema>;
+export type UpdatePaymentMethodInput = z.infer<typeof updatePaymentMethodSchema>;

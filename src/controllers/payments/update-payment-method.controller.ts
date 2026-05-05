@@ -6,19 +6,16 @@ import {
   DatabaseOperationError,
   InputParseError,
 } from "src/entities/errors/common";
-import {
-  updateRegistrationPaymentSchema,
-  UpdateRegistrationPaymentInput,
-} from "src/entities/models/Payment";
+import { updatePaymentMethodSchema } from "src/entities/models/Payment";
 import { err, ok } from "src/entities/models/Result";
 
-export const UpdateRegistrationPaymentController = async (
+export const UpdatePaymentMethodController = async (
   payment_id: string,
-  input: Partial<UpdateRegistrationPaymentInput>,
+  input: Record<string, unknown>,
 ) => {
   try {
     const { data, error: inputParseError } =
-      updateRegistrationPaymentSchema.safeParse(input);
+      updatePaymentMethodSchema.safeParse(input);
 
     if (inputParseError) {
       throw new InputParseError("Invalid Data!", {
@@ -27,7 +24,7 @@ export const UpdateRegistrationPaymentController = async (
     }
 
     const previous = await PaymentRepository.getPaymentById(payment_id);
-    await PaymentRepository.updateRegistrationPayment(payment_id, data);
+    await PaymentRepository.updatePaymentMethod(payment_id, data);
     const updated = await PaymentRepository.getPaymentById(payment_id);
     const diffDescription =
       previous && updated
@@ -39,22 +36,23 @@ export const UpdateRegistrationPaymentController = async (
                 label: "Payment Method",
                 getValue: (payment) => payment.payment_method?.name,
               },
-              { label: "Remarks", getValue: (payment) => payment.remarks },
             ],
           })
         : "";
+    const paymentMethodName =
+      updated?.payment_method?.name ?? previous?.payment_method?.name ?? "N/A";
     const description = diffDescription
-      ? `Updated registration payment ${payment_id} | ${diffDescription}`
-      : `Updated registration payment ${payment_id}`;
+      ? `Updated payment method ${paymentMethodName} | ${diffDescription}`
+      : `Updated payment method ${paymentMethodName}`;
     await logActivity("UPDATE", "payment", payment_id, description);
     return ok(undefined);
   } catch (error) {
     if (error instanceof InputParseError) {
-      logger("UpdateRegistrationPaymentController", error, "warn");
+      logger("UpdatePaymentMethodController", error, "warn");
       return err({ message: error.message, cause: error.cause });
     }
 
-    logger("UpdateRegistrationPaymentController", error);
+    logger("UpdatePaymentMethodController", error);
     if (error instanceof DatabaseOperationError) {
       return err({ message: "Server Error", cause: error?.message });
     }
