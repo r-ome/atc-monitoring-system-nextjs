@@ -10,6 +10,10 @@ import { BoughtItemsSheetRecord } from "src/entities/models/Manifest";
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
 
+function getBoughtItemOldPrice(item: Record<string, string>) {
+  return item.OLD_PRICE ?? item["OLD PRICE"] ?? "";
+}
+
 function buildBoughtItemsUploadLogDescription(data: Record<string, string>[]) {
   return JSON.stringify({
     type: "bought_items_upload",
@@ -17,7 +21,7 @@ function buildBoughtItemsUploadLogDescription(data: Record<string, string>[]) {
     items: data.map((item) => ({
       barcode: item.BARCODE?.toString() ?? "",
       control: item.CONTROL?.toString() ?? "",
-      price: item.OLD_PRICE?.toString() ?? "",
+      price: getBoughtItemOldPrice(item).toString(),
     })),
   });
 }

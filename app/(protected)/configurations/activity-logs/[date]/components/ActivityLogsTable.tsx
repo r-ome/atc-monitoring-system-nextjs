@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { forwardRef, useMemo, useState, useTransition } from "react";
+import type { HTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
@@ -99,13 +100,17 @@ function parseOptionsTableActivityDescription(
   }
 }
 
-function DescriptionSummary({ summary }: { summary: string }) {
+const DescriptionSummary = forwardRef<
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement> & { summary: string }
+>(({ summary, ...props }, ref) => {
   return (
-    <div className="truncate">
+    <div ref={ref} className="truncate" {...props}>
       <span>{summary}</span>
     </div>
   );
-}
+});
+DescriptionSummary.displayName = "DescriptionSummary";
 
 function ActivityDescriptionCell({ description }: { description: string }) {
   const itemActivity =
