@@ -7,6 +7,14 @@ import { patchMethod } from "src/test-utils/patch";
 
 const restorers: Array<() => void> = [];
 
+function parseContainerReportLogDescription(description: string) {
+  return JSON.parse(description) as {
+    type: string;
+    summary: string;
+    options: { option: string; value: string }[];
+  };
+}
+
 afterEach(() => {
   while (restorers.length) {
     restorers.pop()?.();
@@ -51,10 +59,16 @@ test("LogContainerReportController logs selected report options in the descripti
     assert.fail("Expected container report log request to succeed");
   }
 
-  assert.equal(
-    activityDescription,
-    "Generated container report for 32-04 (Sample Supplier) | Auction dates: Apr 13, 2026, Apr 14, 2026 | Remove Bidder 740: Yes | Remove REFUNDED items from Bidder 5013: No | Less 30,000: Yes",
-  );
+  assert.deepEqual(parseContainerReportLogDescription(activityDescription), {
+    type: "container_report",
+    summary: "Generated container report for 32-04 (Sample Supplier)",
+    options: [
+      { option: "Auction dates", value: "Apr 13, 2026, Apr 14, 2026" },
+      { option: "Remove REFUNDED items from Bidder 5013", value: "No" },
+      { option: "Remove Bidder 740", value: "Yes" },
+      { option: "Less 30,000", value: "Yes" },
+    ],
+  });
 });
 
 test("LogContainerReportController omits bidder 740 option in the description for Tarlac", async () => {
@@ -103,8 +117,13 @@ test("LogContainerReportController omits bidder 740 option in the description fo
     assert.fail("Expected container report log request to succeed");
   }
 
-  assert.equal(
-    activityDescription,
-    "Generated container report for 32-04 (Sample Supplier) | Auction dates: Apr 13, 2026, Apr 14, 2026 | Remove REFUNDED items from Bidder 5013: No | Less 30,000: Yes",
-  );
+  assert.deepEqual(parseContainerReportLogDescription(activityDescription), {
+    type: "container_report",
+    summary: "Generated container report for 32-04 (Sample Supplier)",
+    options: [
+      { option: "Auction dates", value: "Apr 13, 2026, Apr 14, 2026" },
+      { option: "Remove REFUNDED items from Bidder 5013", value: "No" },
+      { option: "Less 30,000", value: "Yes" },
+    ],
+  });
 });

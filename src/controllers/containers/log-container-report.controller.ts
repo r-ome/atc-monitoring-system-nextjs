@@ -8,6 +8,17 @@ import {
 import { logContainerReportSchema } from "src/entities/models/Container";
 import { err, ok } from "src/entities/models/Result";
 
+function buildContainerReportLogDescription(options: {
+  summary: string;
+  rows: { option: string; value: string }[];
+}) {
+  return JSON.stringify({
+    type: "container_report",
+    summary: options.summary,
+    options: options.rows,
+  });
+}
+
 export const LogContainerReportController = async (
   input: Record<string, unknown>,
 ) => {
@@ -22,24 +33,37 @@ export const LogContainerReportController = async (
       });
     }
 
-    const descriptionParts = [
-      `Generated container report for ${data.barcode} (${data.supplier_name})`,
-      `Auction dates: ${data.selected_dates.join(", ")}`,
-      `Remove REFUNDED items from Bidder 5013: ${
-        data.exclude_refunded_bidder_5013 ? "Yes" : "No"
-      }`,
-      `Less 30,000: ${data.deduct_thirty_k ? "Yes" : "No"}`,
+    const summary = `Generated container report for ${data.barcode} (${data.supplier_name})`;
+    const options = [
+      {
+        option: "Auction dates",
+        value: data.selected_dates.join(", "),
+      },
+      {
+        option: "Remove REFUNDED items from Bidder 5013",
+        value: data.exclude_refunded_bidder_5013 ? "Yes" : "No",
+      },
+      {
+        option: "Less 30,000",
+        value: data.deduct_thirty_k ? "Yes" : "No",
+      },
     ];
 
     if (ctx?.branch_name !== "TARLAC") {
-      descriptionParts.splice(
+      options.splice(
         2,
         0,
-        `Remove Bidder 740: ${data.exclude_bidder_740 ? "Yes" : "No"}`,
+        {
+          option: "Remove Bidder 740",
+          value: data.exclude_bidder_740 ? "Yes" : "No",
+        },
       );
     }
 
-    const description = descriptionParts.join(" | ");
+    const description = buildContainerReportLogDescription({
+      summary,
+      rows: options,
+    });
 
     await logActivity(
       "CREATE",

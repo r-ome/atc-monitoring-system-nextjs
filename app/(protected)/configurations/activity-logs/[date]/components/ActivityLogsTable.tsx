@@ -36,6 +36,15 @@ type ItemTableActivityDescription = {
   }[];
 };
 
+type OptionsTableActivityDescription = {
+  type: "container_report";
+  summary: string;
+  options: {
+    option: string;
+    value: string;
+  }[];
+};
+
 function parseItemTableActivityDescription(
   description: string,
 ): ItemTableActivityDescription | null {
@@ -67,17 +76,47 @@ function parseItemTableActivityDescription(
   }
 }
 
+function parseOptionsTableActivityDescription(
+  description: string,
+): OptionsTableActivityDescription | null {
+  try {
+    const parsed = JSON.parse(description) as Partial<OptionsTableActivityDescription>;
+
+    if (parsed.type !== "container_report" || !Array.isArray(parsed.options)) {
+      return null;
+    }
+
+    return {
+      type: "container_report",
+      summary: parsed.summary ?? "Generated container report",
+      options: parsed.options.map((item) => ({
+        option: item.option?.toString() ?? "",
+        value: item.value?.toString() ?? "",
+      })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function DescriptionSummary({ summary }: { summary: string }) {
+  return (
+    <div className="truncate">
+      <span>{summary}</span>
+    </div>
+  );
+}
+
 function ActivityDescriptionCell({ description }: { description: string }) {
   const itemActivity =
     parseItemTableActivityDescription(description);
+  const optionsActivity = parseOptionsTableActivityDescription(description);
 
   if (itemActivity) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="truncate">
-            <span>{itemActivity.summary}</span>
-          </div>
+          <DescriptionSummary summary={itemActivity.summary} />
         </TooltipTrigger>
         <TooltipContent side="right" className="max-w-none p-3 text-xs">
           <table className="min-w-[18rem] border-collapse">
@@ -103,6 +142,37 @@ function ActivityDescriptionCell({ description }: { description: string }) {
                   <td className="py-1 pl-3 text-right tabular-nums">
                     {item.price}
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  if (optionsActivity) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DescriptionSummary summary={optionsActivity.summary} />
+        </TooltipTrigger>
+        <TooltipContent side="right" className="max-w-none p-3 text-xs">
+          <table className="min-w-[22rem] border-collapse">
+            <thead>
+              <tr className="border-b border-primary-foreground/30">
+                <th className="py-1 pr-3 text-left font-semibold">Option</th>
+                <th className="py-1 pl-3 text-right font-semibold">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {optionsActivity.options.map((item, index) => (
+                <tr
+                  key={`${item.option}-${index}`}
+                  className="border-b border-primary-foreground/15 last:border-0"
+                >
+                  <td className="py-1 pr-3">{item.option}</td>
+                  <td className="py-1 pl-3 text-right">{item.value}</td>
                 </tr>
               ))}
             </tbody>
