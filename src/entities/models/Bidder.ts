@@ -31,6 +31,7 @@ export type BidderWithDetailsAndReceiptsRow = Prisma.biddersGetPayload<{
     branch: true;
     auctions_joined: {
       include: {
+        auctions: true;
         auctions_inventories: true;
         receipt_records: { include: { payments: true } };
       };

@@ -46,13 +46,14 @@ export const BidderRepository: IBidderRepository = {
           branch: true,
           auctions_joined: {
             include: {
+              auctions: true,
               auctions_inventories: true,
               receipt_records: {
                 where: { purpose: { notIn: [payments_purpose.REFUNDED, payments_purpose.LESS] } },
                 include: { payments: true },
               },
             },
-            orderBy: { created_at: "desc" },
+            orderBy: { auctions: { created_at: "desc" } },
           },
           requirements: true,
           ban_histories: { orderBy: { created_at: "desc" } },

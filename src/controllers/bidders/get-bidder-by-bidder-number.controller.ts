@@ -38,8 +38,8 @@ const presenter = (bidder: BidderWithDetailsAndReceiptsRow) => {
         .flatMap((r) => r.payments)
         .reduce((sum, p) => sum + p.amount_paid, 0),
       total_items: auction.auctions_inventories.length,
-      created_at: formatDate(auction.created_at, "MMM dd, yyyy"),
-      auction_date: formatDate(auction.created_at, "yyyy-MM-dd"),
+      created_at: formatDate(auction.auctions.created_at, "MMM dd, yyyy"),
+      auction_date: formatDate(auction.auctions.created_at, "yyyy-MM-dd"),
     })),
     requirements: bidder.requirements.map((req) => ({
       ...req,
