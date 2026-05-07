@@ -21,6 +21,8 @@ export type Monitoring = {
   bidder_number: string;
   qty: string;
   price: number;
+  was_bought_item?: boolean;
+  bought_item_price?: number | null;
 };
 
 export type DeductionItem = {

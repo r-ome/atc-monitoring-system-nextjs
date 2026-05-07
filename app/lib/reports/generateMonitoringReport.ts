@@ -17,7 +17,13 @@ const generateMonitoringReport = (monitoring: Monitoring[]) => {
     item.description,
     item.bidder_number ? item.bidder_number : "",
     item.qty ? item.qty : "",
-    item.price ? item.price : "",
+    item.was_bought_item
+      ? item.bought_item_price || item.bought_item_price === 0
+        ? item.bought_item_price
+        : ""
+      : item.price || item.price === 0
+        ? item.price
+        : "",
   ]);
 
   const sheet = xlsx.utils.aoa_to_sheet([

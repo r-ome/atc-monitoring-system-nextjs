@@ -249,6 +249,7 @@ export const AuctionRepository: IAuctionRepository = {
                 barcode: true,
                 control: true,
                 status: true,
+                is_bought_item: true,
               },
             },
             auction_bidder: {

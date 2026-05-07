@@ -25,6 +25,7 @@ function presenter(monitoring: AuctionInventoryWithDetailsRow[]) {
       barcode: item.inventory.barcode,
       control: item.inventory.control || "NC",
       status: item.inventory.status,
+      is_bought_item: item.inventory.is_bought_item ?? 0,
     },
     bidder: {
       bidder_id: item.auction_bidder.bidder.bidder_id,

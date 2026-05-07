@@ -28,6 +28,10 @@ export const GenerateReportButton: React.FC<GenerateReportProps> = ({
                 bidder_number: item.bidder.bidder_number,
                 qty: item.qty,
                 price: item.price,
+                was_bought_item: item.histories.some(
+                  (history) => history.inventory_status === "BOUGHT_ITEM",
+                ),
+                bought_item_price: item.inventory.is_bought_item ?? 0,
               })),
             },
             ["monitoring"],

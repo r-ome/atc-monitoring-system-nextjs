@@ -281,6 +281,7 @@ export type AuctionsInventory = {
     barcode: string;
     control: string;
     status: InventoryStatus;
+    is_bought_item?: number | null;
   };
   bidder: {
     bidder_id: string;

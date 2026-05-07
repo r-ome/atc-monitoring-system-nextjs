@@ -2,16 +2,23 @@ import * as xlsx from "xlsx-js-style";
 import { UnsoldMonitoring } from "./generateUnsoldReport";
 
 const generateInventoryList = (monitoring: UnsoldMonitoring[]) => {
-  const headers = ["Barcode", "Description", "SOLD / UNSOLD"];
-  const data = monitoring.map((item) => [
-    item.barcode,
-    item.description,
-    item.status,
-  ]);
+  const headers = ["Barcode", "CTRL #", "Description", "SOLD / UNSOLD"];
+  const data = monitoring
+    .filter((item) => item.barcode.split("-").length > 2)
+    .map((item) => [
+      item.barcode,
+      item.control,
+      item.description,
+      item.status === "BOUGHT_ITEM" ? "SOLD" : item.status,
+    ]);
 
-  const sheet = xlsx.utils.aoa_to_sheet([headers, ...data, [null, null]]);
-  sheet["!autofilter"] = { ref: "A1:C1" };
-  sheet["!cols"] = [{ wch: 15 }, { wch: 40 }, { wch: 30 }];
+  const sheet = xlsx.utils.aoa_to_sheet([
+    headers,
+    ...data,
+    Array(headers.length).fill(null),
+  ]);
+  sheet["!autofilter"] = { ref: "A1:D1" };
+  sheet["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 40 }, { wch: 30 }];
 
   headers.forEach((_, colIndex) => {
     const headerCell = xlsx.utils.encode_cell({ r: 0, c: colIndex });
