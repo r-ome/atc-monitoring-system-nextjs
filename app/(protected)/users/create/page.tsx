@@ -12,6 +12,7 @@ import {
 } from "@/app/components/ui/card";
 import { Label } from "@/app/components/ui/label";
 import { Input } from "@/app/components/ui/input";
+import { SelectWithSearch } from "@/app/components/ui/SelectWithSearch";
 import {
   Select,
   SelectTrigger,
@@ -28,15 +29,30 @@ import { getBranches } from "@/app/(protected)/branches/actions";
 import { Branch } from "src/entities/models/Branch";
 import { USER_ROLES } from "src/entities/models/User";
 
+type RoleOption = {
+  label: string;
+  value: string;
+  description: string;
+};
+
 const ASSIGNABLE_ROLES = USER_ROLES.filter(
   (r) => !["SUPER_ADMIN", "ADMIN", "OWNER"].includes(r),
 );
+
+const ROLE_ACCESS: Record<string, string> = {
+  CASHIER:
+    "Can access Home, Auctions, Bidders, Bought Items, Containers, Transactions, Configurations, and Reports.",
+  ENCODER: "Can access Home, Auctions, and Containers.",
+  MODERATOR:
+    "Can access Home, Auctions, and Reports for monitoring, review, and report viewing.",
+};
 
 export default function Page() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<RoleOption | null>(null);
   const [errors, setErrors] = useState<Record<string, string[]> | undefined>(
     undefined,
   );
@@ -57,6 +73,9 @@ export default function Page() {
     event.preventDefault();
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
+    if (selectedRole) {
+      formData.set("role", selectedRole.value);
+    }
     const res = await registerUser(formData);
     if (res) {
       setIsLoading(false);
@@ -91,20 +110,26 @@ export default function Page() {
               <div className="flex gap-4">
                 <div className="flex flex-col gap-2 w-1/2">
                   <Label htmlFor="roles">Roles:</Label>
-                  <Select required name="role">
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select User Role"></SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {ASSIGNABLE_ROLES.map((item) => (
-                          <SelectItem key={item} value={item}>
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <SelectWithSearch
+                    placeholder="Select User Role"
+                    options={ASSIGNABLE_ROLES.map((item) => ({
+                      label: item,
+                      value: item,
+                      description: ROLE_ACCESS[item],
+                    }))}
+                    setSelected={(option) =>
+                      setSelectedRole(option as RoleOption)
+                    }
+                    defaultValue={
+                      selectedRole
+                        ? {
+                            label: selectedRole.label,
+                            value: selectedRole.value,
+                          }
+                        : undefined
+                    }
+                  />
+                  <input type="hidden" name="role" value={selectedRole?.value ?? ""} />
                 </div>
 
                 <div className="flex flex-col gap-2 w-1/2">
@@ -138,6 +163,9 @@ export default function Page() {
                     name="username"
                     error={errors}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Username cannot contain spaces.
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-2 w-1/2">

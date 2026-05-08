@@ -14,6 +14,7 @@ import {
   CommandItem,
   CommandEmpty,
 } from "@/app/components/ui/command";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { cn } from "@/app/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 
@@ -22,7 +23,8 @@ interface SelectWithSearch {
   options: {
     label: string;
     value: string;
-    [key: string]: string | number | boolean;
+    description?: string;
+    [key: string]: string | number | boolean | undefined;
   }[];
   setSelected: (option: Record<string, string | number | boolean>) => void;
   modal?: boolean;
@@ -74,33 +76,51 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
           <CommandInput placeholder={placeholder} className="h-9 uppercase" />
           <CommandList>
             <CommandEmpty>Nothing found</CommandEmpty>
-            {options.map((option, i) => (
-              <CommandItem
-                className={cn(
-                  "cursor-pointer w-full",
-                  option.disabled && "text-red-500 cursor-not-allowed"
-                )}
-                disabled={option.disabled as boolean}
-                value={option.label}
-                key={i}
+            {options.map((option, i) => {
+              const item = (
+                <CommandItem
+                  className={cn(
+                    "cursor-pointer w-full",
+                    option.disabled && "text-red-500 cursor-not-allowed"
+                  )}
+                  disabled={option.disabled as boolean}
+                  value={option.label}
+                  key={i}
                 onSelect={() => {
                   setSearch(option.label);
-                  setSelected(option);
+                  const selectedOption = Object.fromEntries(
+                    Object.entries(option).filter(([, value]) => value !== undefined),
+                  ) as Record<string, string | number | boolean>;
+                  setSelected(selectedOption);
                   setOpen(false);
                 }}
               >
-                {option.label}
-                <Check
-                  className={cn(
-                    "ml-auto",
-                    search &&
-                      option.label.toLowerCase().includes(search.toLowerCase())
-                      ? "opacity-100"
-                      : "opacity-0"
-                  )}
-                />
-              </CommandItem>
-            ))}
+                  {option.label}
+                  <Check
+                    className={cn(
+                      "ml-auto",
+                      search &&
+                        option.label.toLowerCase().includes(search.toLowerCase())
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              );
+
+              if (!option.description) {
+                return item;
+              }
+
+              return (
+                <Tooltip key={i}>
+                  <TooltipTrigger asChild>{item}</TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs text-left">
+                    {option.description}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
           </CommandList>
         </Command>
       </PopoverContent>

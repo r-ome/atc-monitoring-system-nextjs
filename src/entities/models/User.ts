@@ -12,6 +12,13 @@ export const USER_ROLES = [
 
 export type UserRole = (typeof USER_ROLES)[number];
 
+const usernameNoWhitespaceSchema = z
+  .string()
+  .min(1)
+  .refine((value) => !/\s/.test(value), {
+    message: "Username cannot contain whitespace.",
+  });
+
 export const userWithBranchSelect = Prisma.validator<Prisma.usersDefaultArgs>()({
   select: {
     user_id: true,
@@ -76,7 +83,7 @@ export type User = {
 
 export const createUserSchema = z.object({
   name: z.string().min(1),
-  username: z.string().min(1),
+  username: usernameNoWhitespaceSchema,
   password: z.string().min(1),
   role: z.enum(["CASHIER", "ENCODER", "MODERATOR"]),
 });
@@ -90,7 +97,7 @@ export type LoginUserInput = z.infer<typeof loginUserSchema>;
 
 export const registerUserSchema = z.object({
   name: z.string().min(1),
-  username: z.string().min(1),
+  username: usernameNoWhitespaceSchema,
   branch_id: z.string(),
   password: z
     .string()
@@ -101,7 +108,7 @@ export type RegisterUserInput = z.infer<typeof registerUserSchema>;
 
 export const updateUserSchema = z.object({
   name: z.string().min(1),
-  username: z.string().min(1),
+  username: usernameNoWhitespaceSchema,
   branch_id: z.string(),
   role: z.enum(["CASHIER", "ENCODER", "MODERATOR"]),
 });
