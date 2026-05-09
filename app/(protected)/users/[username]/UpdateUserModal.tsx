@@ -39,9 +39,13 @@ type UpdateUserForm = {
 
 interface UpdateUserModalProps {
   user: User;
+  onUpdated?: (user: User) => void;
 }
 
-export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ user }) => {
+export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({
+  user,
+  onUpdated,
+}) => {
   const router = useRouter();
   const session = useSession();
 
@@ -65,6 +69,10 @@ export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ user }) => {
     fetchInitialData();
   }, []);
 
+  useEffect(() => {
+    setNewUser(user);
+  }, [user]);
+
   if (!session || !loggedInUser) {
     return <div></div>;
   }
@@ -75,13 +83,13 @@ export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ user }) => {
     const formData = new FormData(event.currentTarget);
 
     const res = await updateUser(user.user_id, formData);
-    const username = formData.get("username");
 
     if (res) {
       setIsLoading(false);
       if (res.ok) {
         toast.success("Successfully updated user!");
-        router.push(`/users/${username}`);
+        onUpdated?.(res.value);
+        router.refresh();
         setOpenDialog(false);
       } else {
         const description =

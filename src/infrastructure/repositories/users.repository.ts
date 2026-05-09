@@ -184,6 +184,46 @@ export const UserRepository: IUserRepository = {
       throw error;
     }
   },
+  deleteUser: async (user_id) => {
+    try {
+      const existingUser = await prisma.users.findFirst({
+        where: buildTenantWhere("users", { user_id }),
+        ...userWithBranchSelect,
+      });
+
+      if (!existingUser) {
+        throw new NotFoundError("User not found!");
+      }
+
+      const user = await prisma.users.delete({
+        where: { user_id },
+        ...userWithBranchSelect,
+      });
+
+      return {
+        user_id: user.user_id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+        branch_id: user.branch_id,
+        last_activity_at: user.last_activity_at,
+        branch: {
+          branch_id: user.branch.branch_id,
+          name: user.branch.name,
+        },
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      };
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error deleting user", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
   updateUser: async (user_id, data) => {
     try {
       const existingUser = await prisma.users.findFirst({

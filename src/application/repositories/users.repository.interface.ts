@@ -14,6 +14,7 @@ export interface IUserRepository {
   ) => Promise<AuthUserWithBranchRow | null>;
   getUsers: () => Promise<UserWithBranchRow[]>;
   registerUser: (input: RegisterUserInput) => Promise<UserWithBranchRow>;
+  deleteUser: (user_id: string) => Promise<UserWithBranchRow>;
   updateUser: (
     user_id: string,
     data: UpdateUserInput,

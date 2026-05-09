@@ -1,8 +1,6 @@
-import Link from "next/link";
-import { Button } from "@/app/components/ui/button";
 import { getUsers } from "./actions";
-import { UsersTable } from "./users-table";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { UsersList } from "./UsersList";
 
 export default async function Page() {
   const users_res = await getUsers();
@@ -13,16 +11,6 @@ export default async function Page() {
 
   const users = users_res.value;
   return (
-    <div className="space-y-2">
-      <div>
-        <Link href="users/create">
-          <Button>Register User</Button>
-        </Link>
-      </div>
-
-      <div>
-        <UsersTable users={users} />
-      </div>
-    </div>
+    <UsersList users={users} />
   );
 }
