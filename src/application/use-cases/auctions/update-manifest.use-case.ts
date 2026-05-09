@@ -7,7 +7,13 @@ import {
   CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES,
 } from "src/entities/models/Auction";
 import { ContainerBarcodeRow } from "src/entities/models/Container";
-import { divideIntoHundreds, divideQuantites, getContainerBarcode, isThreePartBarcode } from "src/application/use-cases/auctions/manifest-pipeline";
+import {
+  buildSoldInventoryConflictError,
+  divideIntoHundreds,
+  divideQuantites,
+  getContainerBarcode,
+  isThreePartBarcode,
+} from "src/application/use-cases/auctions/manifest-pipeline";
 import { formatNumberPadding, normalizeControl } from "@/app/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 
@@ -28,7 +34,8 @@ export const updateManifestUseCase = async (
   const withValidatedBidders = validateBidders(withFormattedBarcodes, registered_bidders);
   const withExistingInventories = formatExistingInventories(
     withValidatedBidders,
-    existing_inventories
+    existing_inventories,
+    auction_id
   );
   const withContainerIds = addContainerIdForNewInventories(withExistingInventories, containers);
   const withoutMonitoringDuplicates = removeMonitoringDuplicates(withContainerIds, monitoring);
@@ -70,6 +77,7 @@ const validateBidders = (
 const formatExistingInventories = (
   data: UpdateManifestInput[],
   existing_inventories: InventoryForManifestRow[],
+  auction_id?: string,
 ): UpdateManifestInput[] => {
   const inventoryByBarcode = new Map<string, InventoryForManifestRow>();
   const inventoryByBarcodeControl = new Map<string, InventoryForManifestRow>();
@@ -93,7 +101,7 @@ const formatExistingInventories = (
 
     if (existing_inventory.status === "SOLD") {
       item.isValid = false;
-      item.error = "Item already exists and SOLD in inventories";
+      item.error = buildSoldInventoryConflictError(existing_inventory, auction_id);
       return item;
     }
 

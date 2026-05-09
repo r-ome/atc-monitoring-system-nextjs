@@ -80,6 +80,32 @@ const buildMonitoringDuplicateError = (
   return "Already encoded";
 };
 
+export const buildSoldInventoryConflictError = (
+  inventory: InventoryForManifestRow,
+  auction_id?: string,
+) => {
+  const soldDate = formatAuctionDate(inventory.auction_date);
+  const bidderNumber =
+    inventory.auctions_inventory?.auction_bidder?.bidder?.bidder_number;
+  const existingAuctionId =
+    inventory.auctions_inventory?.auction_bidder?.auction_id;
+
+  if (auction_id && existingAuctionId === auction_id) {
+    return bidderNumber
+      ? `DOUBLE ENCODE: already encoded in this auction to bidder #${bidderNumber}`
+      : "DOUBLE ENCODE: already encoded in this auction";
+  }
+
+  if (soldDate && bidderNumber) {
+    return `Already encoded on ${soldDate} for bidder #${bidderNumber}`;
+  }
+
+  if (soldDate) return `Already encoded on ${soldDate}`;
+  if (bidderNumber) return `Already encoded for bidder #${bidderNumber}`;
+
+  return "Already encoded";
+};
+
 export const isThreePartBarcode = (barcode: string) =>
   barcode.split("-").length === 3;
 
