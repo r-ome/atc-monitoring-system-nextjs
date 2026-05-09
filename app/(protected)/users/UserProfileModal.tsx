@@ -48,24 +48,22 @@ export const UserProfileModal = ({
       <DialogContent className="sm:max-w-2xl">
         {currentUser ? (
           <>
-            <DialogHeader>
-              <DialogTitle>
-                <div className="flex items-center gap-2">
-                  <span>{currentUser.name}</span>
-                  <Badge>{currentUser.role}</Badge>
+            <DialogHeader className="relative">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <DialogTitle className="flex flex-wrap items-center gap-2">
+                    <span>{currentUser.name}</span>
+                    <Badge>{currentUser.role}</Badge>
+                    <BranchBadge branch={currentUser.branch.name} />
+                  </DialogTitle>
+                  <DialogDescription>
+                    <div>{currentUser.username}</div>
+                  </DialogDescription>
                 </div>
-              </DialogTitle>
-              <DialogDescription>
-                <div>{currentUser.username}</div>
-                <BranchBadge branch={currentUser.branch.name} />
-              </DialogDescription>
+              </div>
             </DialogHeader>
 
             <div className="grid gap-3 text-sm">
-              <div className="flex items-center justify-between border-b pb-2">
-                <span className="text-muted-foreground">User ID</span>
-                <span className="font-mono text-xs">{currentUser.user_id}</span>
-              </div>
               <div className="flex items-center justify-between border-b pb-2">
                 <span className="text-muted-foreground">Created</span>
                 <span>{currentUser.created_at}</span>
