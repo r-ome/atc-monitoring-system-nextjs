@@ -72,6 +72,8 @@ jobs:
               value="$2"
               file="$APP_DIR/.env"
               tmp_file="$(mktemp)"
+              deploy_user="$(id -un)"
+              deploy_group="$(id -gn)"
 
               if [ -f "$file" ]; then
                 if [ -r "$file" ]; then
@@ -92,7 +94,7 @@ jobs:
               elif [ ! -f "$file" ] && [ -w "$APP_DIR" ]; then
                 install -m 600 "$tmp_file" "$file"
               else
-                sudo install -m 600 "$tmp_file" "$file"
+                sudo install -m 600 -o "$deploy_user" -g "$deploy_group" "$tmp_file" "$file"
               fi
 
               rm -f "$tmp_file"
