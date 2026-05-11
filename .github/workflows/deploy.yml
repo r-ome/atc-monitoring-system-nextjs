@@ -71,13 +71,31 @@ jobs:
               key="$1"
               value="$2"
               file="$APP_DIR/.env"
+              tmp_file="$(mktemp)"
 
-              touch "$file"
-              if grep -q "^${key}=" "$file"; then
-                sed -i "s|^${key}=.*|${key}=${value}|" "$file"
-              else
-                printf "\n%s=%s\n" "$key" "$value" >> "$file"
+              if [ -f "$file" ]; then
+                if [ -r "$file" ]; then
+                  cp "$file" "$tmp_file"
+                else
+                  sudo cat "$file" > "$tmp_file"
+                fi
               fi
+
+              if grep -q "^${key}=" "$tmp_file"; then
+                sed -i "s|^${key}=.*|${key}=${value}|" "$tmp_file"
+              else
+                printf "\n%s=%s\n" "$key" "$value" >> "$tmp_file"
+              fi
+
+              if [ -f "$file" ] && [ -w "$file" ]; then
+                cat "$tmp_file" > "$file"
+              elif [ ! -f "$file" ] && [ -w "$APP_DIR" ]; then
+                install -m 600 "$tmp_file" "$file"
+              else
+                sudo install -m 600 "$tmp_file" "$file"
+              fi
+
+              rm -f "$tmp_file"
             }
 
             set_env_var "AWS_REGION" "$AWS_REGION"
