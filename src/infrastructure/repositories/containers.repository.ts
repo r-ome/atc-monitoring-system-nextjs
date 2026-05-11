@@ -15,6 +15,7 @@ import {
   FinalReportDraft,
   finalReportDraftSchema,
 } from "src/entities/models/FinalReportDraft";
+import { buildInventoryFileUpdatedHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
 
 export const ContainerRepository: IContainerRepository = {
   getContainerById: async (container_id: string) => {
@@ -206,11 +207,67 @@ export const ContainerRepository: IContainerRepository = {
       throw error;
     }
   },
-  uploadInventoryFile: async (rows) => {
+  uploadInventoryFile: async (input) => {
     try {
-      return await prisma.inventories.createMany({
-        data: rows,
-        skipDuplicates: true,
+      return await prisma.$transaction(async (tx) => {
+        const created = input.creates.length
+          ? await tx.inventories.createMany({
+              data: input.creates,
+              skipDuplicates: true,
+            })
+          : { count: 0 };
+
+        const appliedUpdates = (
+          await Promise.all(
+            input.updates.map(async (item) => {
+              const updated = await tx.inventories.updateMany({
+                where: {
+                  inventory_id: item.inventory_id,
+                  status: "UNSOLD",
+                },
+                data: {
+                  control: item.control,
+                  description: item.description,
+                },
+              });
+
+              return updated.count ? item : null;
+            }),
+          )
+        ).filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+        if (appliedUpdates.length) {
+          await tx.inventory_histories.createMany({
+            data: appliedUpdates.map((item) => {
+              const changes = [];
+              if ((item.previous_control ?? "") !== item.control) {
+                changes.push(
+                  `Control: ${item.previous_control ?? "NC"} -> ${item.control}`,
+                );
+              }
+              if (item.previous_description !== item.description) {
+                changes.push(
+                  `Description: ${item.previous_description} -> ${item.description}`,
+                );
+              }
+
+              return {
+                inventory_id: item.inventory_id,
+                auction_status: "DISCREPANCY",
+                inventory_status: "UNSOLD",
+                remarks: buildInventoryFileUpdatedHistoryRemark({
+                  changes,
+                  updated_by: input.updated_by,
+                }),
+              };
+            }),
+          });
+        }
+
+        return {
+          created: created.count,
+          updated: appliedUpdates.length,
+        };
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

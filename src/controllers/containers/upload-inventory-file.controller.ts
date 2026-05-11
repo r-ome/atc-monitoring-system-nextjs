@@ -1,5 +1,6 @@
 import { logger } from "@/app/lib/logger";
 import { logActivity } from "@/app/lib/log-activity";
+import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { getInventorySheetData, VALID_FILE_TYPES } from "@/app/lib/sheets";
 import { uploadInventoryFileUseCase } from "src/application/use-cases/containers/upload-inventory-file.use-case";
 import {
@@ -8,11 +9,33 @@ import {
   NotFoundError,
 } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
+import type { UploadInventoryFileResult } from "src/entities/models/Inventory";
+
+const buildUploadSummary = (result: UploadInventoryFileResult) => {
+  const parts = [
+    `${result.created} created`,
+    `${result.updated} updated`,
+    `${result.skipped} skipped`,
+    `${result.unchanged} unchanged`,
+  ];
+
+  if (result.duplicate_in_file) {
+    parts.push(`${result.duplicate_in_file} duplicate ignored`);
+  }
+
+  if (result.invalid) {
+    parts.push(`${result.invalid} invalid`);
+  }
+
+  return parts.join(", ");
+};
 
 export const UploadInventoryFileController = async (
   barcode: string,
   file: File,
 ) => {
+  const ctx = RequestContext.getStore();
+
   try {
     if (!file) {
       throw new InputParseError("Invalid Data!", {
@@ -49,9 +72,24 @@ export const UploadInventoryFileController = async (
       });
     }
 
-    await uploadInventoryFileUseCase(barcode, data);
-    await logActivity("CREATE", "inventory", barcode, `Uploaded inventory file for container ${barcode} (${data.length} items)`);
-    return ok({ success: true });
+    const result = await uploadInventoryFileUseCase(
+      barcode,
+      data,
+      ctx?.username,
+    );
+    const summary = buildUploadSummary(result);
+
+    await logActivity(
+      "CREATE",
+      "inventory",
+      barcode,
+      `Uploaded inventory file for container ${barcode} (${summary})`,
+    );
+    return ok({
+      success: true,
+      message: `Inventory upload complete: ${summary}.`,
+      result,
+    });
   } catch (error) {
     if (error instanceof InputParseError) {
       logger("UploadInventoryFileController", error, "warn");

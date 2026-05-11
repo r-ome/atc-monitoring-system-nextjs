@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
+import { InfoIcon, Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Input } from "@/app/components/ui/input";
@@ -16,6 +16,11 @@ import {
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
 import { uploadInventoryFile } from "@/app/(protected)/containers/actions";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/app/components/ui/alert";
 
 export const UploadInventoryModal = () => {
   const { barcode }: { barcode: string } = useParams();
@@ -35,7 +40,7 @@ export const UploadInventoryModal = () => {
     if (res) {
       setIsLoading(false);
       if (res.ok) {
-        toast.success("Successfully uploaded inventories!");
+        toast.success(res.value.message);
         setOpen(false);
         router.refresh();
       }
@@ -66,6 +71,22 @@ export const UploadInventoryModal = () => {
               </a>
             </DialogTitle>
           </DialogHeader>
+
+          <Alert>
+            <InfoIcon className="size-4" />
+            <AlertTitle>Inventory upload behavior</AlertTitle>
+            <AlertDescription>
+              <ul className="list-disc space-y-1 pl-4">
+                <li>New barcodes will be added.</li>
+                <li>
+                  Existing UNSOLD barcodes will have their control and
+                  description updated when those fields change.
+                </li>
+                <li>SOLD or Bought Item rows are skipped.</li>
+                <li>Duplicate barcodes are not uploaded again.</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
 
           <Input
             id="file"

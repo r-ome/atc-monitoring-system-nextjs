@@ -10,7 +10,10 @@ import {
   CreateContainerInput,
   UpdateContainerInput,
 } from "src/entities/models/Container";
-import { CreateInventoryInput } from "src/entities/models/Inventory";
+import {
+  UploadInventoryFileWriteInput,
+  UploadInventoryFileWriteResult,
+} from "src/entities/models/Inventory";
 import { ContainerTaxDeductionRecord } from "src/entities/models/FinalReport";
 import { FinalReportDraft } from "src/entities/models/FinalReportDraft";
 
@@ -34,8 +37,8 @@ export interface IContainerRepository {
     data: UpdateContainerInput,
   ) => Promise<ContainerWithSupplierAndBranchRow>;
   uploadInventoryFile: (
-    rows: CreateInventoryInput[],
-  ) => Promise<{ count: number }>;
+    input: UploadInventoryFileWriteInput,
+  ) => Promise<UploadInventoryFileWriteResult>;
   updateContainerStatus: (
     container_id: string,
     paid_at: string | null,

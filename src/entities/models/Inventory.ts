@@ -91,6 +91,37 @@ export const createInventorySchema = z.object({
 });
 export type CreateInventoryInput = z.infer<typeof createInventorySchema>;
 
+export type UploadInventoryFileCreateInput = CreateInventoryInput & {
+  status: "UNSOLD";
+};
+
+export type UploadInventoryFileUpdateInput = {
+  inventory_id: string;
+  control: string;
+  description: string;
+  previous_control: string | null;
+  previous_description: string;
+};
+
+export type UploadInventoryFileWriteInput = {
+  creates: UploadInventoryFileCreateInput[];
+  updates: UploadInventoryFileUpdateInput[];
+  updated_by?: string;
+};
+
+export type UploadInventoryFileWriteResult = {
+  created: number;
+  updated: number;
+};
+
+export type UploadInventoryFileResult = UploadInventoryFileWriteResult & {
+  skipped: number;
+  unchanged: number;
+  invalid: number;
+  duplicate_in_file: number;
+  total: number;
+};
+
 export type InventorySheetRecord = Record<
   "BARCODE" | "CONTROL" | "DESCRIPTION",
   string
