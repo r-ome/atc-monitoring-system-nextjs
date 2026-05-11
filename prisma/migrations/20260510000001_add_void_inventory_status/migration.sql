@@ -1,0 +1,2 @@
+ALTER TABLE `inventories` MODIFY COLUMN `status` ENUM('SOLD', 'UNSOLD', 'BOUGHT_ITEM', 'VOID') NOT NULL DEFAULT 'UNSOLD';
+ALTER TABLE `inventory_histories` MODIFY COLUMN `inventory_status` ENUM('SOLD', 'UNSOLD', 'BOUGHT_ITEM', 'VOID') NOT NULL;

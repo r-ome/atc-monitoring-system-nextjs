@@ -11,12 +11,13 @@ const generateUnsoldReport = (
   sheetDetails: {
     supplier: { name: string };
     barcode: string;
-  }
+  },
+  monitoringSheetName: string,
 ) => {
   const headers = ["BARCODE", "CONTROL", "DESCRIPTION"];
   const totalSale = monitoring
     .filter((item) => item.status === "SOLD" && item.price)
-    .reduce((acc, item) => acc + item.price, 0);
+    .reduce((acc, item) => acc + (item.was_bought_item && item.bought_item_price != null ? item.bought_item_price : item.price), 0);
   const data = monitoring
     .filter((item) => item.status === "UNSOLD" || !item.price)
     .map((item) => [
@@ -157,9 +158,14 @@ const generateUnsoldReport = (
     },
   };
 
+  // Excel formula referencing the dynamically-named monitoring sheet's F1
+  // (NUMBER OF ITEMS). Sheet names with spaces/punctuation need single-quote
+  // wrapping; any single quotes inside the name need to be doubled.
+  const monitoringRef = `'${monitoringSheetName.replace(/'/g, "''")}'!F1`;
   sheet["E11"] = {
-    v: monitoring.filter((item) => item.status === "SOLD").length,
-    t: "s",
+    f: monitoringRef,
+    t: "n",
+    z: "#,##0",
     s: {
       font: { name: "Calibri", sz: 48, bold: true, color: { rgb: "000000" } },
       alignment: { horizontal: "center", vertical: "center" },

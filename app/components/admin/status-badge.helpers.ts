@@ -12,6 +12,7 @@ const INVENTORY_STATUS_VARIANTS: Record<InventoryStatus, StatusBadgeVariant> = {
   SOLD: "success",
   UNSOLD: "error",
   BOUGHT_ITEM: "success",
+  VOID: "neutral",
 }
 
 const AUCTION_STATUS_VARIANTS: Record<AuctionItemStatus, StatusBadgeVariant> = {

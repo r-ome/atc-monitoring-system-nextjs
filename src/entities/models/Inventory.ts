@@ -6,6 +6,7 @@ export const INVENTORY_STATUS = [
   "SOLD",
   "UNSOLD",
   "BOUGHT_ITEM",
+  "VOID",
 ] as const;
 
 export type InventoryStatus = (typeof INVENTORY_STATUS)[number];
@@ -137,5 +138,6 @@ export type BoughtItems = {
 export const mergeInventoriesSchema = z.object({
   old_inventory_id: z.string(),
   new_inventory_id: z.string(),
+  control_choice: z.enum(["UNSOLD", "SOLD"]).optional(),
 });
 export type MergeInventoriesInput = z.infer<typeof mergeInventoriesSchema>;

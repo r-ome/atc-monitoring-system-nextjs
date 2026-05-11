@@ -48,6 +48,24 @@ export type ContainerWithDetailsRow = Prisma.containersGetPayload<{
   };
 }>;
 
+export type ContainerFinalReportRow = Prisma.containersGetPayload<{
+  include: {
+    branch: true;
+    supplier: true;
+    inventories: {
+      include: {
+        histories: true;
+        auctions_inventory: {
+          include: {
+            histories: true;
+            auction_bidder: { include: { bidder: true } };
+          };
+        };
+      };
+    };
+  };
+}>;
+
 export type Container = {
   container_id: string;
   barcode: string;

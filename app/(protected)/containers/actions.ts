@@ -15,6 +15,21 @@ import { DeleteContainerController } from "src/controllers/containers/delete-con
 import { MergeInventoriesController } from "src/controllers/inventories/merge-inventories.controller";
 import { AppendInventoriesController } from "src/controllers/inventories/append-inventories.controller";
 import { LogContainerReportController } from "src/controllers/containers/log-container-report.controller";
+import { GetFinalReportPreviewController } from "src/controllers/containers/get-final-report-preview.controller";
+import { ApplyFinalReportMatchesController } from "src/controllers/containers/apply-final-report-matches.controller";
+import { CreateFinalReportBoughtItemsController } from "src/controllers/containers/create-final-report-bought-items.controller";
+import { ApplyContainerTaxDeductionController } from "src/controllers/containers/apply-container-tax-deduction.controller";
+import { ClearContainerTaxDeductionController } from "src/controllers/containers/clear-container-tax-deduction.controller";
+import { ApplyFinalReportCounterCheckMatchesController } from "src/controllers/containers/apply-final-report-counter-check-matches.controller";
+import { CreateFinalReportAddOnsController } from "src/controllers/containers/create-final-report-add-ons.controller";
+import { ApplyFinalReportQtySplitController } from "src/controllers/containers/apply-final-report-qty-split.controller";
+import { ApplyFinalReportVoidController } from "src/controllers/containers/apply-final-report-void.controller";
+import { ApplyFinalReportDirectBoughtController } from "src/controllers/containers/apply-final-report-direct-bought.controller";
+import { SaveFinalReportDraftController } from "src/controllers/containers/save-final-report-draft.controller";
+import { GetFinalReportDraftController } from "src/controllers/containers/get-final-report-draft.controller";
+import { ClearFinalReportDraftController } from "src/controllers/containers/clear-final-report-draft.controller";
+import { FinalizeFinalReportController } from "src/controllers/containers/finalize-final-report.controller";
+import type { FinalReportDraft } from "src/entities/models/FinalReportDraft";
 
 export const getContainerByBarcode = async (barcode: string) => {
   const auth = await authorizeAction();
@@ -95,6 +110,20 @@ export const deleteContainer = async (container_id: string) => {
   );
 };
 
+export const mergeFinalReportInventories = async (input: {
+  old_inventory_id: string;
+  new_inventory_id: string;
+  control_choice?: "UNSOLD" | "SOLD";
+}) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await MergeInventoriesController(input),
+  );
+};
+
 export const mergeInventories = async (input: FormData) => {
   const auth = await authorizeAction();
   if (!auth.ok) return auth;
@@ -127,5 +156,170 @@ export const logContainerReport = async (input: Record<string, unknown>) => {
   return await runWithUserContext(
     auth.value,
     async () => await LogContainerReportController(input),
+  );
+};
+
+export const getFinalReportPreview = async (input: Record<string, unknown>) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(
+    auth.value,
+    async () => await GetFinalReportPreviewController(input),
+  );
+};
+
+export const applyFinalReportMatches = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await ApplyFinalReportMatchesController(input),
+  );
+};
+
+export const createFinalReportBoughtItems = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await CreateFinalReportBoughtItemsController(input),
+  );
+};
+
+export const applyContainerTaxDeduction = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await ApplyContainerTaxDeductionController(input),
+  );
+};
+
+export const clearContainerTaxDeduction = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await ClearContainerTaxDeductionController(input),
+  );
+};
+
+export const applyFinalReportCounterCheckMatches = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await ApplyFinalReportCounterCheckMatchesController(input),
+  );
+};
+
+export const createFinalReportAddOns = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await CreateFinalReportAddOnsController(input),
+  );
+};
+
+export const applyFinalReportQtySplit = async (input: {
+  source_auction_inventory_id: string;
+  splits: Array<{ target_inventory_id: string; price: number; qty: string }>;
+}) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await ApplyFinalReportQtySplitController(input),
+  );
+};
+
+export const applyFinalReportVoid = async (input: {
+  inventory_id: string;
+}) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await ApplyFinalReportVoidController(input),
+  );
+};
+
+export const applyFinalReportDirectBoughtItem = async (input: {
+  inventory_id: string;
+  auction_id: string;
+  price: number;
+  qty: string;
+}) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await ApplyFinalReportDirectBoughtController(input),
+  );
+};
+
+export const saveFinalReportDraft = async (input: {
+  container_id: string;
+  draft: FinalReportDraft;
+}) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await SaveFinalReportDraftController(input),
+  );
+};
+
+export const getFinalReportDraft = async (container_id: string) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(
+    auth.value,
+    async () => await GetFinalReportDraftController(container_id),
+  );
+};
+
+export const clearFinalReportDraft = async (container_id: string) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await ClearFinalReportDraftController(container_id),
+  );
+};
+
+export const finalizeFinalReport = async (container_id: string) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await FinalizeFinalReportController(container_id),
   );
 };

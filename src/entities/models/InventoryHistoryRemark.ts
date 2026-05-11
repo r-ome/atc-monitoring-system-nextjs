@@ -10,7 +10,10 @@ type InventoryHistoryAction =
   | "pullout_paid"
   | "pullout_undone"
   | "item_updated"
-  | "item_merged";
+  | "item_merged"
+  | "item_split_bought"
+  | "item_voided"
+  | "item_direct_bought";
 
 type BidderIdentity = {
   bidder_number: string;
@@ -32,6 +35,16 @@ type InventoryHistoryRemarkData = {
   new_price?: number;
   updated_by?: string;
   changes?: string[];
+  // item_merged fields
+  unsold_barcode?: string;
+  unsold_control?: string;
+  sold_barcode?: string;
+  sold_control?: string;
+  // item_split_bought fields
+  source_barcode?: string;
+  source_control?: string;
+  split_price?: number;
+  split_qty?: string;
 };
 
 const HISTORY_PREFIXES = {
@@ -47,6 +60,9 @@ const HISTORY_PREFIXES = {
   pullout_undone: "Pull-out undone",
   item_updated: "Item updated",
   item_merged: "Item merged",
+  item_split_bought: "Item split bought",
+  item_voided: "Item voided from final report",
+  item_direct_bought: "Item set as Bought Item",
 } as const;
 
 function buildBidderPart(bidder: BidderIdentity) {
@@ -161,8 +177,33 @@ export function buildItemUpdatedHistoryRemark(input: {
   return parts.join(" | ");
 }
 
-export function buildItemMergedHistoryRemark() {
-  return HISTORY_PREFIXES.item_merged;
+export function buildItemMergedHistoryRemark(params: {
+  unsold_barcode: string;
+  unsold_control: string;
+  sold_barcode: string;
+  sold_control: string;
+}): string {
+  return `${HISTORY_PREFIXES.item_merged}: UNSOLD item (barcode: ${params.unsold_barcode}, ctrl: ${params.unsold_control}) was linked to SOLD item (barcode: ${params.sold_barcode}, ctrl: ${params.sold_control}). SOLD item has been soft-deleted.`;
+}
+
+export function buildItemSplitBoughtHistoryRemark(params: {
+  source_barcode: string;
+  source_control: string;
+  split_price: number;
+  split_qty: string;
+}): string {
+  return `${HISTORY_PREFIXES.item_split_bought}: UNSOLD item split from SOLD item (barcode: ${params.source_barcode}, ctrl: ${params.source_control}). Split price: ${params.split_price}, qty: ${params.split_qty}. Recorded as Bought Item.`;
+}
+
+export function buildItemVoidedHistoryRemark(): string {
+  return HISTORY_PREFIXES.item_voided;
+}
+
+export function buildItemDirectBoughtHistoryRemark(params: {
+  price: number;
+  qty: string;
+}): string {
+  return `${HISTORY_PREFIXES.item_direct_bought}: price: ${params.price}, qty: ${params.qty}.`;
 }
 
 function parseLabeledField(
@@ -217,7 +258,38 @@ export function parseInventoryHistoryRemark(
   if (trimmed === HISTORY_PREFIXES.reassigned) return { action: "reassigned" };
   if (trimmed === HISTORY_PREFIXES.pullout_paid) return { action: "pullout_paid" };
   if (trimmed === HISTORY_PREFIXES.pullout_undone) return { action: "pullout_undone" };
-  if (trimmed === HISTORY_PREFIXES.item_merged) return { action: "item_merged" };
+  if (trimmed.startsWith(HISTORY_PREFIXES.item_merged)) {
+    const match = trimmed.match(
+      /UNSOLD item \(barcode: (.+?), ctrl: (.+?)\) was linked to SOLD item \(barcode: (.+?), ctrl: (.+?)\)/,
+    );
+    if (match) {
+      return {
+        action: "item_merged",
+        unsold_barcode: match[1],
+        unsold_control: match[2],
+        sold_barcode: match[3],
+        sold_control: match[4],
+      };
+    }
+    return { action: "item_merged" };
+  }
+  if (trimmed.startsWith(HISTORY_PREFIXES.item_split_bought)) {
+    const match = trimmed.match(
+      /SOLD item \(barcode: (.+?), ctrl: (.+?)\)\. Split price: (\d+), qty: (.+?)\./,
+    );
+    if (match) {
+      return {
+        action: "item_split_bought",
+        source_barcode: match[1],
+        source_control: match[2],
+        split_price: Number(match[3]),
+        split_qty: match[4],
+      };
+    }
+    return { action: "item_split_bought" };
+  }
+  if (trimmed === HISTORY_PREFIXES.item_voided) return { action: "item_voided" };
+  if (trimmed.startsWith(HISTORY_PREFIXES.item_direct_bought)) return { action: "item_direct_bought" };
 
   if (trimmed.startsWith(`${HISTORY_PREFIXES.encoded_again} | `)) {
     return {

@@ -10,6 +10,11 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
+import { ContainerTaxDeductionRecord } from "src/entities/models/FinalReport";
+import {
+  FinalReportDraft,
+  finalReportDraftSchema,
+} from "src/entities/models/FinalReportDraft";
 
 export const ContainerRepository: IContainerRepository = {
   getContainerById: async (container_id: string) => {
@@ -57,6 +62,36 @@ export const ContainerRepository: IContainerRepository = {
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting Container!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  getContainerFinalReportData: async (barcode: string) => {
+    try {
+      return await prisma.containers.findFirst({
+        where: { barcode },
+        include: {
+          branch: true,
+          supplier: true,
+          inventories: {
+            include: {
+              histories: true,
+              auctions_inventory: {
+                include: {
+                  histories: true,
+                  auction_bidder: { include: { bidder: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting final report data!", {
           cause: error.message,
         });
       }
@@ -304,6 +339,104 @@ export const ContainerRepository: IContainerRepository = {
         });
       }
 
+      throw error;
+    }
+  },
+  getContainerTaxDeduction: async (container_id) => {
+    try {
+      const container = await prisma.containers.findFirst({
+        where: { container_id },
+        select: { tax_deduction: true },
+      });
+      const value = container?.tax_deduction;
+      if (!value || typeof value !== "object") return null;
+      return value as unknown as ContainerTaxDeductionRecord;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error reading tax deduction!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  setContainerTaxDeduction: async (container_id, record) => {
+    try {
+      await prisma.containers.update({
+        where: { container_id },
+        data: { tax_deduction: record as unknown as Prisma.InputJsonValue },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error saving tax deduction!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  clearContainerTaxDeduction: async (container_id) => {
+    try {
+      await prisma.containers.update({
+        where: { container_id },
+        data: { tax_deduction: Prisma.JsonNull },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error clearing tax deduction!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  getFinalReportDraft: async (container_id) => {
+    try {
+      const container = await prisma.containers.findFirst({
+        where: { container_id },
+        select: { final_report_draft: true },
+      });
+      const value = container?.final_report_draft;
+      if (!value || typeof value !== "object") return null;
+      const parsed = finalReportDraftSchema.safeParse(value);
+      if (!parsed.success) return null;
+      return parsed.data as FinalReportDraft;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error reading final report draft!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  setFinalReportDraft: async (container_id, draft) => {
+    try {
+      await prisma.containers.update({
+        where: { container_id },
+        data: { final_report_draft: draft as unknown as Prisma.InputJsonValue },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error saving final report draft!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  clearFinalReportDraft: async (container_id) => {
+    try {
+      await prisma.containers.update({
+        where: { container_id },
+        data: { final_report_draft: Prisma.JsonNull },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error clearing final report draft!", {
+          cause: error.message,
+        });
+      }
       throw error;
     }
   },

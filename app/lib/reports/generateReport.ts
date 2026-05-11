@@ -52,8 +52,13 @@ const generateReport = (
   data: any,
   reports: ReportTypes[],
   filename: string,
+  // Optional override for the monitoring sheet's tab name. Defaults to `filename`
+  // for backward compatibility. Useful when the downloadable file name needs
+  // extra qualifiers (e.g. "-original") that shouldn't appear on the sheet tab.
+  monitoringSheetName?: string,
 ) => {
   const workbook = xlsx.utils.book_new();
+  const sheetTabName = monitoringSheetName ?? filename;
 
   if (reports.includes("monitoring")) {
     if (Array.isArray(data)) {
@@ -68,7 +73,7 @@ const generateReport = (
       xlsx.utils.book_append_sheet(
         workbook,
         generateMonitoringReport(data.monitoring),
-        filename,
+        sheetTabName,
       );
     }
   }
@@ -92,7 +97,7 @@ const generateReport = (
   if (reports.includes("unsold")) {
     xlsx.utils.book_append_sheet(
       workbook,
-      generateUnsoldReport(data.monitoring, data.sheetDetails),
+      generateUnsoldReport(data.monitoring, data.sheetDetails, sheetTabName),
       "UNSOLD",
     );
   }

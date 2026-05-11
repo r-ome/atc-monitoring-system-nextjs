@@ -16,8 +16,12 @@ import {
 } from "@/app/lib/utils";
 import {
   buildItemMergedHistoryRemark,
+  buildItemSplitBoughtHistoryRemark,
+  buildItemVoidedHistoryRemark,
+  buildItemDirectBoughtHistoryRemark,
   buildItemUpdatedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
+import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
 
 export const InventoryRepository: IInventoryRepository = {
@@ -363,6 +367,361 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
+  resolveFinalReportMatches: async (data, updated_by?) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const syncAuctionBidderBalance = async (auction_bidder_id: string) => {
+          const bidder = await tx.auctions_bidders.findFirst({
+            where: { auction_bidder_id },
+            include: {
+              auctions_inventories: {
+                include: {
+                  histories: {
+                    orderBy: { created_at: "desc" },
+                  },
+                },
+              },
+            },
+          });
+
+          if (!bidder) return;
+
+          const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
+            bidder.auctions_inventories,
+          );
+          const serviceChargeAmount =
+            (totalUnpaidItemsPrice * bidder.service_charge) / 100;
+          const registrationFeeAmount = bidder.already_consumed
+            ? 0
+            : bidder.registration_fee;
+
+          await tx.auctions_bidders.update({
+            where: { auction_bidder_id },
+            data: {
+              balance:
+                totalUnpaidItemsPrice +
+                serviceChargeAmount -
+                registrationFeeAmount,
+            },
+          });
+        };
+
+        for (const match of data.matches) {
+          if (match.source_inventory_id === match.target_inventory_id) {
+            throw new NotFoundError("Source and target inventory must differ.");
+          }
+
+          const auctionInventory = await tx.auctions_inventories.findFirst({
+            where: { auction_inventory_id: match.auction_inventory_id },
+            include: {
+              inventory: true,
+              auction_bidder: true,
+            },
+          });
+
+          if (!auctionInventory) {
+            throw new NotFoundError("Auction inventory not found.");
+          }
+
+          if (auctionInventory.inventory_id !== match.source_inventory_id) {
+            throw new NotFoundError("Auction inventory source does not match.");
+          }
+
+          if (auctionInventory.inventory.barcode.split("-").length !== 2) {
+            throw new NotFoundError("Only two-part monitoring rows can be resolved.");
+          }
+
+          const targetInventory = await tx.inventories.findFirst({
+            where: { inventory_id: match.target_inventory_id },
+            include: { auctions_inventory: true },
+          });
+
+          if (!targetInventory) {
+            throw new NotFoundError("Target inventory not found.");
+          }
+
+          if (targetInventory.status !== "UNSOLD") {
+            throw new NotFoundError("Target inventory is no longer UNSOLD.");
+          }
+
+          if (targetInventory.auctions_inventory) {
+            throw new NotFoundError("Target inventory is already linked to an auction item.");
+          }
+
+          await tx.inventory_histories.updateMany({
+            where: { inventory_id: match.source_inventory_id },
+            data: { inventory_id: match.target_inventory_id },
+          });
+
+          await tx.auctions_inventories.update({
+            where: { auction_inventory_id: match.auction_inventory_id },
+            data: {
+              inventory_id: match.target_inventory_id,
+              description: match.description,
+              price: match.price,
+              qty: match.qty,
+            },
+          });
+
+          await tx.inventories.update({
+            where: { inventory_id: match.target_inventory_id },
+            data: {
+              status: "SOLD",
+              auction_date: auctionInventory.auction_date,
+            },
+          });
+
+          await tx.inventory_histories.create({
+            data: {
+              auction_inventory_id: match.auction_inventory_id,
+              inventory_id: match.target_inventory_id,
+              auction_status: "DISCREPANCY",
+              inventory_status: "SOLD",
+              remarks: buildItemUpdatedHistoryRemark({
+                changes: [
+                  `Final report match: ${auctionInventory.inventory.barcode} -> ${targetInventory.barcode}`,
+                ],
+                updated_by,
+              }),
+            },
+          });
+
+          await tx.inventories.delete({
+            where: { inventory_id: match.source_inventory_id },
+          });
+
+          await syncAuctionBidderBalance(auctionInventory.auction_bidder_id);
+        }
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error resolving final report matches!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
+  resolveFinalReportCounterCheckMatches: async (data, updated_by?) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const syncAuctionBidderBalance = async (auction_bidder_id: string) => {
+          const bidder = await tx.auctions_bidders.findFirst({
+            where: { auction_bidder_id },
+            include: {
+              auctions_inventories: {
+                include: { histories: { orderBy: { created_at: "desc" } } },
+              },
+            },
+          });
+          if (!bidder) return;
+          const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
+            bidder.auctions_inventories,
+          );
+          const serviceChargeAmount =
+            (totalUnpaidItemsPrice * bidder.service_charge) / 100;
+          const registrationFeeAmount = bidder.already_consumed
+            ? 0
+            : bidder.registration_fee;
+          await tx.auctions_bidders.update({
+            where: { auction_bidder_id },
+            data: {
+              balance:
+                totalUnpaidItemsPrice +
+                serviceChargeAmount -
+                registrationFeeAmount,
+            },
+          });
+        };
+
+        for (const match of data.matches) {
+          const bidder = await tx.auctions_bidders.findFirst({
+            where: { auction_bidder_id: match.auction_bidder_id },
+          });
+          if (!bidder) {
+            throw new NotFoundError("Auction bidder not found.");
+          }
+
+          const counterCheck = await tx.counter_check.findFirst({
+            where: { counter_check_id: match.counter_check_id },
+          });
+          if (!counterCheck) {
+            throw new NotFoundError("Counter-check record not found.");
+          }
+
+          const targetInventory = await tx.inventories.findFirst({
+            where: { inventory_id: match.inventory_id },
+            include: { auctions_inventory: true },
+          });
+          if (!targetInventory) {
+            throw new NotFoundError("Target inventory not found.");
+          }
+          if (targetInventory.status !== "UNSOLD") {
+            throw new NotFoundError("Target inventory is no longer UNSOLD.");
+          }
+          if (targetInventory.auctions_inventory) {
+            throw new NotFoundError(
+              "Target inventory is already linked to an auction item.",
+            );
+          }
+
+          const auctionDate = new Date(match.auction_date);
+
+          const created = await tx.auctions_inventories.create({
+            data: {
+              auction_bidder_id: match.auction_bidder_id,
+              inventory_id: match.inventory_id,
+              description: match.description,
+              status: "UNPAID",
+              price: match.price,
+              qty: match.qty,
+              manifest_number: match.manifest_number,
+              auction_date: auctionDate,
+            },
+          });
+
+          await tx.inventories.update({
+            where: { inventory_id: match.inventory_id },
+            data: { status: "SOLD", auction_date: auctionDate },
+          });
+
+          await tx.inventory_histories.create({
+            data: {
+              auction_inventory_id: created.auction_inventory_id,
+              inventory_id: match.inventory_id,
+              auction_status: "UNPAID",
+              inventory_status: "SOLD",
+              remarks: buildItemUpdatedHistoryRemark({
+                changes: [
+                  `Final report counter-check match (counter_check ${counterCheck.counter_check_id})`,
+                ],
+                updated_by,
+              }),
+            },
+          });
+
+          await syncAuctionBidderBalance(match.auction_bidder_id);
+        }
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(
+          "Error resolving final report counter-check matches!",
+          { cause: error.message },
+        );
+      }
+      throw error;
+    }
+  },
+  createFinalReportAddOns: async (data, updated_by?) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const syncAuctionBidderBalance = async (auction_bidder_id: string) => {
+          const bidder = await tx.auctions_bidders.findFirst({
+            where: { auction_bidder_id },
+            include: {
+              auctions_inventories: {
+                include: { histories: { orderBy: { created_at: "desc" } } },
+              },
+            },
+          });
+          if (!bidder) return;
+          const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
+            bidder.auctions_inventories,
+          );
+          const serviceChargeAmount =
+            (totalUnpaidItemsPrice * bidder.service_charge) / 100;
+          const registrationFeeAmount = bidder.already_consumed
+            ? 0
+            : bidder.registration_fee;
+          await tx.auctions_bidders.update({
+            where: { auction_bidder_id },
+            data: {
+              balance:
+                totalUnpaidItemsPrice +
+                serviceChargeAmount -
+                registrationFeeAmount,
+            },
+          });
+        };
+
+        const touchedBidderIds = new Set<string>();
+
+        for (const item of data.items) {
+          const bidder = await tx.auctions_bidders.findFirst({
+            where: { auction_bidder_id: item.auction_bidder_id },
+          });
+          if (!bidder) {
+            throw new NotFoundError("Auction bidder not found.");
+          }
+
+          const targetInventory = await tx.inventories.findFirst({
+            where: { inventory_id: item.inventory_id },
+            include: { auctions_inventory: true },
+          });
+          if (!targetInventory) {
+            throw new NotFoundError("Target inventory not found.");
+          }
+          if (targetInventory.status !== "UNSOLD") {
+            throw new NotFoundError("Target inventory is no longer UNSOLD.");
+          }
+          if (targetInventory.auctions_inventory) {
+            throw new NotFoundError(
+              "Target inventory is already linked to an auction item.",
+            );
+          }
+
+          const auctionDate = new Date(item.auction_date);
+
+          const created = await tx.auctions_inventories.create({
+            data: {
+              auction_bidder_id: item.auction_bidder_id,
+              inventory_id: item.inventory_id,
+              description: item.description,
+              status: "UNPAID",
+              price: item.price,
+              qty: item.qty,
+              manifest_number: item.manifest_number,
+              auction_date: auctionDate,
+            },
+          });
+
+          await tx.inventories.update({
+            where: { inventory_id: item.inventory_id },
+            data: { status: "SOLD", auction_date: auctionDate },
+          });
+
+          await tx.inventory_histories.create({
+            data: {
+              auction_inventory_id: created.auction_inventory_id,
+              inventory_id: item.inventory_id,
+              auction_status: "UNPAID",
+              inventory_status: "SOLD",
+              remarks: buildItemUpdatedHistoryRemark({
+                changes: ["Final report Add-On"],
+                updated_by,
+              }),
+            },
+          });
+
+          touchedBidderIds.add(item.auction_bidder_id);
+        }
+
+        for (const auction_bidder_id of touchedBidderIds) {
+          await syncAuctionBidderBalance(auction_bidder_id);
+        }
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError(
+          "Error creating final report add-ons!",
+          { cause: error.message },
+        );
+      }
+      throw error;
+    }
+  },
   getInventory: async (inventory_id) => {
     try {
       const inventory = await prisma.inventories.findFirst({
@@ -447,7 +806,7 @@ export const InventoryRepository: IInventoryRepository = {
   ) => {
     try {
       return await prisma.inventories.findMany({
-        where: { status: { in: status } },
+        where: { status: { in: status }, deleted_at: null },
         select: {
           inventory_id: true,
           container_id: true,
@@ -597,13 +956,18 @@ export const InventoryRepository: IInventoryRepository = {
           data: { inventory_id: data.new_inventory_id },
         });
 
+        const autoInherit =
+          new_inventory.control === "0000" || new_inventory.control === "00NC";
+        const finalControl =
+          autoInherit || data.control_choice === "SOLD"
+            ? old_inventory.control
+            : new_inventory.control;
+
         await tx.inventories.update({
           where: { inventory_id: data.new_inventory_id },
           data: {
             status: "SOLD",
-            ...(new_inventory.control === "0000"
-              ? { control: old_inventory.control }
-              : {}),
+            control: finalControl,
             auction_date: old_auction_inventory.auction_date,
           },
         });
@@ -614,16 +978,39 @@ export const InventoryRepository: IInventoryRepository = {
             inventory_id: data.new_inventory_id,
             auction_status: "DISCREPANCY",
             inventory_status: "SOLD",
-            remarks: buildItemMergedHistoryRemark(),
+            remarks: buildItemMergedHistoryRemark({
+              unsold_barcode: new_inventory.barcode,
+              unsold_control: new_inventory.control ?? "NC",
+              sold_barcode: old_inventory.barcode,
+              sold_control: old_inventory.control ?? "NC",
+            }),
           },
         });
 
-        await tx.auctions_inventories.delete({
+        // If the surviving inventory already has an auction record (e.g. CANCELLED/REFUNDED),
+        // remove it before relinking the SOLD item's record.
+        const existing_new_auction = await tx.auctions_inventories.findFirst({
+          where: { inventory_id: data.new_inventory_id },
+        });
+        if (existing_new_auction) {
+          await tx.auctions_inventories.delete({
+            where: { inventory_id: data.new_inventory_id },
+          });
+        }
+
+        // Relink the SOLD item's auction record to the surviving (3-part) inventory.
+        await tx.auctions_inventories.update({
           where: { inventory_id: data.old_inventory_id },
+          data: { inventory_id: data.new_inventory_id },
         });
 
-        await tx.inventories.delete({
+        // Soft-delete the old 2-part inventory so its barcode remains discoverable.
+        await tx.inventories.update({
           where: { inventory_id: data.old_inventory_id },
+          data: {
+            deleted_at: new Date(),
+            description: `MERGED INTO: ${new_inventory.barcode} (ctrl: ${finalControl ?? "NC"})`,
+          },
         });
       });
     } catch (error) {
@@ -665,6 +1052,238 @@ export const InventoryRepository: IInventoryRepository = {
         throw new DatabaseOperationError("Error appending inventories", {
           cause: error.message,
         });
+      }
+      throw error;
+    }
+  },
+  applySplitBoughtItems: async (data, updated_by?) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const sourceAuctionInventory = await tx.auctions_inventories.findFirst({
+          where: { auction_inventory_id: data.source_auction_inventory_id },
+          include: {
+            auction_bidder: { select: { auction_id: true } },
+            inventory: { select: { barcode: true, control: true } },
+          },
+        });
+        if (!sourceAuctionInventory) {
+          throw new NotFoundError("Source auction inventory not found.");
+        }
+
+        const atcBidder = await tx.auctions_bidders.findFirst({
+          where: {
+            auction_id: sourceAuctionInventory.auction_bidder.auction_id,
+            bidder: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
+          },
+        });
+        if (!atcBidder) {
+          throw new NotFoundError("ATC bidder not registered on this auction.");
+        }
+
+        for (const split of data.splits) {
+          const targetInventory = await tx.inventories.findFirst({
+            where: { inventory_id: split.target_inventory_id },
+            include: { auctions_inventory: true },
+          });
+          if (!targetInventory) {
+            throw new NotFoundError(`Target inventory ${split.target_inventory_id} not found.`);
+          }
+          if (targetInventory.status !== "UNSOLD") {
+            throw new NotFoundError(`Target inventory ${targetInventory.barcode} is no longer UNSOLD.`);
+          }
+          if (targetInventory.auctions_inventory) {
+            throw new NotFoundError(`Target inventory ${targetInventory.barcode} already has an auction record.`);
+          }
+
+          const created = await tx.auctions_inventories.create({
+            data: {
+              auction_bidder_id: atcBidder.auction_bidder_id,
+              inventory_id: split.target_inventory_id,
+              description: targetInventory.description,
+              status: "UNPAID",
+              price: split.price,
+              qty: split.qty,
+              manifest_number: "BOUGHT ITEM",
+              auction_date: sourceAuctionInventory.auction_date,
+              split_from_auction_inventory_id: data.source_auction_inventory_id,
+            },
+          });
+
+          await tx.inventories.update({
+            where: { inventory_id: split.target_inventory_id },
+            data: {
+              status: "BOUGHT_ITEM",
+              auction_date: sourceAuctionInventory.auction_date,
+            },
+          });
+
+          await tx.inventory_histories.create({
+            data: {
+              auction_inventory_id: created.auction_inventory_id,
+              inventory_id: split.target_inventory_id,
+              auction_status: "UNPAID",
+              inventory_status: "BOUGHT_ITEM",
+              remarks: buildItemSplitBoughtHistoryRemark({
+                source_barcode: sourceAuctionInventory.inventory.barcode,
+                source_control: sourceAuctionInventory.inventory.control ?? "NC",
+                split_price: split.price,
+                split_qty: split.qty,
+              }),
+            },
+          });
+        }
+
+        // Sync ATC bidder balance
+        const atcBidderWithItems = await tx.auctions_bidders.findFirst({
+          where: { auction_bidder_id: atcBidder.auction_bidder_id },
+          include: {
+            auctions_inventories: {
+              include: { histories: { orderBy: { created_at: "desc" } } },
+            },
+          },
+        });
+        if (atcBidderWithItems) {
+          const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
+            atcBidderWithItems.auctions_inventories,
+          );
+          const serviceChargeAmount =
+            (totalUnpaidItemsPrice * atcBidderWithItems.service_charge) / 100;
+          const registrationFeeAmount = atcBidderWithItems.already_consumed
+            ? 0
+            : atcBidderWithItems.registration_fee;
+          await tx.auctions_bidders.update({
+            where: { auction_bidder_id: atcBidder.auction_bidder_id },
+            data: {
+              balance:
+                totalUnpaidItemsPrice + serviceChargeAmount - registrationFeeAmount,
+            },
+          });
+        }
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error applying qty split", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  applyVoidInventory: async (data, updated_by?) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const inventory = await tx.inventories.findFirst({
+          where: buildTenantWhere("inventories", { inventory_id: data.inventory_id }),
+        });
+        if (!inventory) throw new NotFoundError("Inventory not found.");
+        if (inventory.status !== "UNSOLD") {
+          throw new NotFoundError("Inventory is no longer UNSOLD.");
+        }
+
+        await tx.inventories.update({
+          where: { inventory_id: data.inventory_id },
+          data: { status: "VOID" },
+        });
+
+        await tx.inventory_histories.create({
+          data: {
+            inventory_id: data.inventory_id,
+            auction_status: "DISCREPANCY",
+            inventory_status: "VOID",
+            remarks: buildItemVoidedHistoryRemark(),
+          },
+        });
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error voiding inventory", { cause: error.message });
+      }
+      throw error;
+    }
+  },
+  applyDirectBoughtItem: async (data, updated_by?) => {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const atcBidder = await tx.auctions_bidders.findFirst({
+          where: {
+            auction_id: data.auction_id,
+            bidder: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
+          },
+          select: { auction_bidder_id: true, service_charge: true, registration_fee: true, already_consumed: true },
+        });
+        if (!atcBidder) throw new NotFoundError("ATC bidder not registered on this auction.");
+
+        const targetInventory = await tx.inventories.findFirst({
+          where: { inventory_id: data.inventory_id },
+          include: { auctions_inventory: true },
+        });
+        if (!targetInventory) throw new NotFoundError("Inventory not found.");
+        if (targetInventory.status !== "UNSOLD") {
+          throw new NotFoundError("Inventory is no longer UNSOLD.");
+        }
+        if (targetInventory.auctions_inventory) {
+          throw new NotFoundError("Inventory already has an auction record.");
+        }
+
+        const auctionDate = new Date();
+
+        const created = await tx.auctions_inventories.create({
+          data: {
+            auction_bidder_id: atcBidder.auction_bidder_id,
+            inventory_id: data.inventory_id,
+            description: targetInventory.description,
+            status: "UNPAID",
+            price: data.price,
+            qty: data.qty,
+            manifest_number: "BOUGHT ITEM",
+            auction_date: auctionDate,
+          },
+        });
+
+        await tx.inventories.update({
+          where: { inventory_id: data.inventory_id },
+          data: { status: "BOUGHT_ITEM", auction_date: auctionDate },
+        });
+
+        await tx.inventory_histories.create({
+          data: {
+            auction_inventory_id: created.auction_inventory_id,
+            inventory_id: data.inventory_id,
+            auction_status: "UNPAID",
+            inventory_status: "BOUGHT_ITEM",
+            remarks: buildItemDirectBoughtHistoryRemark({ price: data.price, qty: data.qty }),
+          },
+        });
+
+        // Sync ATC bidder balance
+        const atcBidderWithItems = await tx.auctions_bidders.findFirst({
+          where: { auction_bidder_id: atcBidder.auction_bidder_id },
+          include: {
+            auctions_inventories: {
+              include: { histories: { orderBy: { created_at: "desc" } } },
+            },
+          },
+        });
+        if (atcBidderWithItems) {
+          const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
+            atcBidderWithItems.auctions_inventories,
+          );
+          const serviceChargeAmount =
+            (totalUnpaidItemsPrice * atcBidderWithItems.service_charge) / 100;
+          const registrationFeeAmount = atcBidderWithItems.already_consumed
+            ? 0
+            : atcBidderWithItems.registration_fee;
+          await tx.auctions_bidders.update({
+            where: { auction_bidder_id: atcBidder.auction_bidder_id },
+            data: {
+              balance: totalUnpaidItemsPrice + serviceChargeAmount - registrationFeeAmount,
+            },
+          });
+        }
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error setting direct bought item", { cause: error.message });
       }
       throw error;
     }

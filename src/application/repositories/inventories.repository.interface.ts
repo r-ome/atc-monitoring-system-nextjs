@@ -14,6 +14,14 @@ import {
   AuctionInventorySearchRow,
   AuctionInventoryWithContainerDetailsRow,
 } from "src/entities/models/Auction";
+import {
+  ApplyFinalReportMatchesInput,
+  ApplyFinalReportCounterCheckMatchesInput,
+  CreateFinalReportAddOnsInput,
+  ApplyFinalReportQtySplitInput,
+  ApplyFinalReportVoidInput,
+  ApplyFinalReportDirectBoughtInput,
+} from "src/entities/models/FinalReport";
 
 export interface IInventoryRepository {
   getInventory: (inventory_id: string) => Promise<InventoryWithDetailsRow>;
@@ -25,6 +33,18 @@ export interface IInventoryRepository {
   ) => Promise<AuctionInventorySearchRow[]>;
   getUnsoldInventories: () => Promise<InventoryRow[]>;
   updateAuctionItem: (data: UpdateAuctionInventoryInput, updated_by?: string) => Promise<void>;
+  resolveFinalReportMatches: (
+    data: ApplyFinalReportMatchesInput,
+    updated_by?: string,
+  ) => Promise<void>;
+  resolveFinalReportCounterCheckMatches: (
+    data: ApplyFinalReportCounterCheckMatchesInput,
+    updated_by?: string,
+  ) => Promise<void>;
+  createFinalReportAddOns: (
+    data: CreateFinalReportAddOnsInput,
+    updated_by?: string,
+  ) => Promise<void>;
   updateInventory: (
     inventory_id: string,
     data: CreateInventoryInput,
@@ -52,6 +72,18 @@ export interface IInventoryRepository {
     data: CreateInventoryInput,
   ) => Promise<InventoryRow>;
   mergeInventories: (data: MergeInventoriesInput) => Promise<void>;
+  applySplitBoughtItems: (
+    data: ApplyFinalReportQtySplitInput,
+    updated_by?: string,
+  ) => Promise<void>;
+  applyVoidInventory: (
+    data: ApplyFinalReportVoidInput,
+    updated_by?: string,
+  ) => Promise<void>;
+  applyDirectBoughtItem: (
+    data: ApplyFinalReportDirectBoughtInput,
+    updated_by?: string,
+  ) => Promise<void>;
   appendInventories: (
     data: { barcode: string; inventory_id: string }[],
   ) => Promise<void>;

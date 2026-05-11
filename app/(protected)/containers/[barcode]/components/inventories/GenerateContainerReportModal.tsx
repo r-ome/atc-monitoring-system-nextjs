@@ -47,7 +47,7 @@ export const GenerateContainerReportModal = ({
 }: GenerateContainerReportModalProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [excludeBidder740, setExcludeBidder740] = useState<boolean>(false);
+  const [excludeBidder740, setExcludeBidder740] = useState<boolean>(true);
   const [excludeRefundedBidder5013, setExcludeRefundedBidder5013] =
     useState<boolean>(false);
   const [deductThirtyK, setDeductThirtyK] = useState<boolean>(false);

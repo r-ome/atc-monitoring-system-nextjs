@@ -1,7 +1,6 @@
 "use client";
 
 import { UploadInventoryModal } from "./UploadInventoryModal";
-import { MergeInventoriesModal } from "./MergeInventoriesModal";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./inventory-columns";
 import { Container } from "src/entities/models/Container";
@@ -9,6 +8,7 @@ import { Inventory } from "src/entities/models/Inventory";
 import { CoreRow } from "@tanstack/react-table";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { GenerateContainerReportModal } from "./GenerateContainerReportModal";
+import { FinalReportWorkbench } from "./FinalReportWorkbench";
 import { CreateInventoryModal } from "../../inventories/[inventory_id]/CreateInventoryModal";
 import { AppendInventoriesModal } from "./AppendInventoriesModal";
 import { useRouter } from "next/navigation";
@@ -67,7 +67,12 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
             userBranchId={userBranchId}
             tarlacBranchId={tarlacBranchId}
           />
-          <MergeInventoriesModal inventories={inventories} />
+          <FinalReportWorkbench
+            inventories={inventories}
+            container={container}
+            userBranchId={userBranchId}
+            tarlacBranchId={tarlacBranchId}
+          />
           <AppendInventoriesModal inventories={inventories} />
           <Button variant="outline" onClick={() => router.refresh()}>
             <RefreshCwIcon />
