@@ -380,12 +380,61 @@ Resources:
       StorageEncrypted: true
       AutoMinorVersionUpgrade: true
 
+  ContainerReportsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-container-reports"
+
+  AppInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ContainerReportsS3Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                Resource: !Sub "${ContainerReportsBucket.Arn}/*"
+
+  AppInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref AppInstanceRole
+
   # EC2 Instance (public subnet)
   AppInstance:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !Ref Ec2AmiSsmParameter
       InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref AppInstanceProfile
       KeyName: !Ref KeyName
       SubnetId: !Ref PublicSubnet1
       SecurityGroupIds:
@@ -437,3 +486,5 @@ Outputs:
     Value: !Ref Ec2SecurityGroup
   DbSubnetGroupName:
     Value: !Ref DbSubnetGroup
+  ContainerReportsBucketName:
+    Value: !Ref ContainerReportsBucket

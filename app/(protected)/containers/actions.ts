@@ -11,6 +11,9 @@ import { UpdateContainerController } from "src/controllers/containers/update-con
 import { UpdateContainerStatusController } from "src/controllers/containers/update-container-status.controller";
 import { GetContainerByBarcodeController } from "src/controllers/containers/get-container-by-barcode.controller";
 import { UploadInventoryFileController } from "src/controllers/containers/upload-inventory-file.controller";
+import { UploadContainerReportFileController } from "src/controllers/containers/upload-container-report-file.controller";
+import { GetContainerReportDownloadUrlController } from "src/controllers/containers/get-container-report-download-url.controller";
+import { DeleteContainerReportFileController } from "src/controllers/containers/delete-container-report-file.controller";
 import { DeleteContainerController } from "src/controllers/containers/delete-container.controller";
 import { MergeInventoriesController } from "src/controllers/inventories/merge-inventories.controller";
 import { AppendInventoriesController } from "src/controllers/inventories/append-inventories.controller";
@@ -84,6 +87,53 @@ export const uploadInventoryFile = async (
   return await runWithUserContext(
     auth.value,
     async () => await UploadInventoryFileController(barcode, file as File),
+  );
+};
+
+export const uploadContainerReportFile = async (
+  container_id: string,
+  form_data: FormData,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  const file = form_data.get("file");
+  const uploadFile =
+    file && typeof file === "object" && "arrayBuffer" in file
+      ? (file as File)
+      : null;
+
+  return await runWithUserContext(
+    auth.value,
+    async () =>
+      await UploadContainerReportFileController(
+        container_id,
+        uploadFile,
+      ),
+  );
+};
+
+export const getContainerReportDownloadUrl = async (
+  container_file_id: string,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await GetContainerReportDownloadUrlController(container_file_id),
+  );
+};
+
+export const deleteContainerReportFile = async (
+  container_file_id: string,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await DeleteContainerReportFileController(container_file_id),
   );
 };
 

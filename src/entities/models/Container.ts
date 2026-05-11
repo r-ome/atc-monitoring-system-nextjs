@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { Inventory } from "./Inventory";
 import { Branch } from "./Branch";
+import { ContainerReportFile } from "./ContainerFile";
 
 export type ContainerRow = Prisma.containersGetPayload<object>;
 
@@ -37,6 +38,7 @@ export type ContainerListRow = Prisma.containersGetPayload<{
 export type ContainerWithDetailsRow = Prisma.containersGetPayload<{
   include: {
     branch: true;
+    container_files: true;
     inventories: {
       include: {
         auctions_inventory: {
@@ -93,6 +95,7 @@ export type Container = {
   updated_at: string;
   deleted_at: string | null;
   inventories: Inventory[];
+  container_report_files: ContainerReportFile[];
 };
 
 export const CONTAINER_REPORT_SHEETS = [

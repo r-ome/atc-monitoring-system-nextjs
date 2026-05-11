@@ -29,9 +29,57 @@ test("presentContainerDetails includes derived paid date and status", () => {
       name: "Supplier",
       sales_remittance_account: "ATC",
     },
+    container_files: [
+      {
+        container_file_id: "file-2",
+        container_id: "container-1",
+        document_type: "CONTAINER_REPORT",
+        version: 2,
+        original_filename: "report-v2.docx",
+        s3_bucket: "container-reports",
+        s3_key: "report-v2.docx",
+        content_type:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        size_bytes: 2000,
+        uploaded_by: "jerome",
+        uploaded_at: new Date("2026-05-03T00:00:00.000Z"),
+        deleted_by: null,
+        deleted_at: null,
+        created_at: new Date("2026-05-03T00:00:00.000Z"),
+        updated_at: new Date("2026-05-03T00:00:00.000Z"),
+      },
+      {
+        container_file_id: "file-1",
+        container_id: "container-1",
+        document_type: "CONTAINER_REPORT",
+        version: 1,
+        original_filename: "report-v1.docx",
+        s3_bucket: "container-reports",
+        s3_key: "report-v1.docx",
+        content_type:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        size_bytes: 1000,
+        uploaded_by: "jerome",
+        uploaded_at: new Date("2026-05-02T00:00:00.000Z"),
+        deleted_by: null,
+        deleted_at: null,
+        created_at: new Date("2026-05-02T00:00:00.000Z"),
+        updated_at: new Date("2026-05-02T00:00:00.000Z"),
+      },
+    ],
     inventories: [],
   } as unknown as ContainerWithDetailsRow);
 
   assert.equal(result.status, "PAID");
   assert.equal(result.paid_at, "May 02, 2026");
+  assert.deepEqual(
+    result.container_report_files.map((file) => ({
+      version: file.version,
+      current: file.current,
+    })),
+    [
+      { version: 2, current: true },
+      { version: 1, current: false },
+    ],
+  );
 });

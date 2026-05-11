@@ -29,6 +29,7 @@ const BRANCH_FILTERS: Record<string, any> = {
   users: { branch_id: undefined },
   bidders: { branch_id: undefined },
   containers: { branch_id: undefined },
+  container_files: { container: { branch_id: undefined } },
   auctions: { branch_id: undefined },
   auctions_bidders: { auctions: { branch_id: undefined } },
   auctions_inventories: {

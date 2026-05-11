@@ -24,6 +24,13 @@ export const ContainerRepository: IContainerRepository = {
         where: buildTenantWhere("containers", { container_id }),
         include: {
           branch: true,
+          container_files: {
+            where: {
+              document_type: "CONTAINER_REPORT",
+              deleted_at: null,
+            },
+            orderBy: { version: "desc" },
+          },
           inventories: {
             include: {
               auctions_inventory: {
@@ -50,6 +57,13 @@ export const ContainerRepository: IContainerRepository = {
         where: { barcode },
         include: {
           branch: true,
+          container_files: {
+            where: {
+              document_type: "CONTAINER_REPORT",
+              deleted_at: null,
+            },
+            orderBy: { version: "desc" },
+          },
           inventories: {
             include: {
               auctions_inventory: {

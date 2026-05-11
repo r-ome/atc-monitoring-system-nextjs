@@ -8,6 +8,7 @@ import { logger } from "@/app/lib/logger";
 export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
   const date_format = "MMM dd, yyyy";
   const status: "PAID" | "UNPAID" = container.status ? "PAID" : "UNPAID";
+  const current_report_file_id = container.container_files[0]?.container_file_id;
 
   const timestamps = container.inventories
     .map((i) => i.auction_date)
@@ -57,6 +58,17 @@ export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
     deleted_at: container.deleted_at
       ? formatDate(container.deleted_at, date_format)
       : null,
+    container_report_files: container.container_files.map((item) => ({
+      container_file_id: item.container_file_id,
+      document_type: item.document_type,
+      version: item.version,
+      original_filename: item.original_filename,
+      content_type: item.content_type,
+      size_bytes: item.size_bytes,
+      uploaded_by: item.uploaded_by,
+      uploaded_at: formatDate(item.uploaded_at, date_format),
+      current: item.container_file_id === current_report_file_id,
+    })),
     inventories: container.inventories.map((item) => ({
       inventory_id: item.inventory_id,
       container_id: item.container_id,

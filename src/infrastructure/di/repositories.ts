@@ -5,6 +5,7 @@ export { BidderRequirementRepository } from "../repositories/bidder-requirement.
 export { BidderBanHistoryRepository } from "../repositories/bidder-ban-history.repository";
 export { BidderRepository } from "../repositories/bidders.repository";
 export { BranchRepository } from "../repositories/branch.repository";
+export { ContainerFileRepository } from "../repositories/container-files.repository";
 export { ContainerRepository } from "../repositories/containers.repository";
 export { ExpensesRepository } from "../repositories/expenses.repository";
 export { InventoryRepository } from "../repositories/inventories.repository";

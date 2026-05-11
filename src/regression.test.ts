@@ -3,6 +3,7 @@ import "./application/use-cases/auctions/revalidate-manifest.use-case.test";
 import "./application/use-cases/auctions/update-manifest.use-case.test";
 import "./application/use-cases/auctions/register-bidder.use-case.test";
 import "./application/use-cases/containers/get-final-report-preview.use-case.test";
+import "./application/use-cases/containers/container-report-file.use-case.test";
 import "./application/use-cases/containers/upload-inventory-file.use-case.test";
 import "./application/use-cases/inventories/upload-bought-items.use-case.test";
 import "./application/use-cases/inventories/update-auction-item.use-case.test";

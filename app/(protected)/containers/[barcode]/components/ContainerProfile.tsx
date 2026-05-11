@@ -1,13 +1,10 @@
-import {
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/app/components/ui/resizable";
 import { Separator } from "@/app/components/ui/separator";
 import { StatusBadge } from "@/app/components/admin";
 import { Container } from "src/entities/models/Container";
 import { UpdateContainerModal } from "./UpdateContainerModal";
 import { UpdateContainerStatusButton } from "./UpdateContainerStatusButton";
 import { DeleteContainerModal } from "./DeleteContainerModal";
+import { ContainerReportFiles } from "./ContainerReportFiles";
 
 type Field =
   | "bill_of_lading_number"
@@ -92,39 +89,35 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
   };
 
   return (
-    <ResizablePanelGroup
-      direction="vertical"
-      className="min-h-[350px] max-h-[500px] w-full rounded-lg border"
-    >
-      <ResizablePanel defaultSize={15}>
-        <div className="flex h-full items-center justify-between gap-4 p-6">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">Container: {container.barcode}</span>
-            <StatusBadge
-              variant={container.status === "PAID" ? "paid" : "unpaid"}
-            >
-              {container.status}
-            </StatusBadge>
-          </div>
-          <div className="flex gap-2">
-            <UpdateContainerStatusButton
-              container_id={container.container_id}
-              status={container.status}
-              paid_at={container.paid_at}
-            />
-            <UpdateContainerModal container={container} />
-            <DeleteContainerModal container={container} />
-          </div>
+    <div className="w-full overflow-hidden rounded-lg border">
+      <div className="flex items-center justify-between gap-4 p-6">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">Container: {container.barcode}</span>
+          <StatusBadge variant={container.status === "PAID" ? "paid" : "unpaid"}>
+            {container.status}
+          </StatusBadge>
         </div>
-      </ResizablePanel>
-
+        <div className="flex gap-2">
+          <UpdateContainerStatusButton
+            container_id={container.container_id}
+            status={container.status}
+            paid_at={container.paid_at}
+          />
+          <UpdateContainerModal container={container} />
+          <DeleteContainerModal container={container} />
+        </div>
+      </div>
       <Separator />
-
-      <ResizablePanel defaultSize={85}>
-        <div className="flex flex-col flex-wrap h-full px-6 py-4 space-y-4">
+      <div className="flex flex-col gap-6 px-6 py-4">
+        <div className="flex flex-col flex-wrap gap-4">
           <ContainerProfile container={container} />
         </div>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+        <Separator />
+        <ContainerReportFiles
+          container_id={container.container_id}
+          files={container.container_report_files}
+        />
+      </div>
+    </div>
   );
 };

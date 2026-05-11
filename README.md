@@ -2,6 +2,16 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Container report uploads require private S3 configuration:
+
+```bash
+AWS_REGION=ap-southeast-1
+AWS_S3_CONTAINER_REPORTS_BUCKET=<container-reports-bucket-name>
+```
+
+Local development uses the standard AWS SDK credential chain. EC2 deployments
+should use the instance profile from `network.yaml`.
+
 First, run the development server:
 
 ```bash

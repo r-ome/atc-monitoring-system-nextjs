@@ -47,16 +47,41 @@ jobs:
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION || secrets.AWS_REGION }}
+          AWS_S3_CONTAINER_REPORTS_BUCKET: ${{ vars.AWS_S3_CONTAINER_REPORTS_BUCKET || secrets.AWS_S3_CONTAINER_REPORTS_BUCKET }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: AWS_REGION,AWS_S3_CONTAINER_REPORTS_BUCKET
           script: |
             set -e
 
             APP_DIR=~/atc-monitoring-system
             RUNTIME_DIR=$APP_DIR/runtime
             MIG_DIR=$APP_DIR/migrations-runner
+
+            if [ -z "${AWS_REGION:-}" ] || [ -z "${AWS_S3_CONTAINER_REPORTS_BUCKET:-}" ]; then
+              echo "Missing AWS_REGION or AWS_S3_CONTAINER_REPORTS_BUCKET GitHub variable/secret."
+              exit 1
+            fi
+
+            set_env_var() {
+              key="$1"
+              value="$2"
+              file="$APP_DIR/.env"
+
+              touch "$file"
+              if grep -q "^${key}=" "$file"; then
+                sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+              else
+                printf "\n%s=%s\n" "$key" "$value" >> "$file"
+              fi
+            }
+
+            set_env_var "AWS_REGION" "$AWS_REGION"
+            set_env_var "AWS_S3_CONTAINER_REPORTS_BUCKET" "$AWS_S3_CONTAINER_REPORTS_BUCKET"
 
             # --- Deploy runtime (Next standalone) ---
             mkdir -p "$RUNTIME_DIR"

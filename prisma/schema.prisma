@@ -157,9 +157,33 @@ model containers {
   branch                branches                   @relation(fields: [branch_id], references: [branch_id], onDelete: Cascade, map: "fk_containers_branches")
   supplier              suppliers                  @relation(fields: [supplier_id], references: [supplier_id], onDelete: Cascade, map: "fk_containers_suppliers")
   inventories           inventories[]
+  container_files       container_files[]
 
   @@index([branch_id], map: "fk_containers_branches")
   @@index([supplier_id], map: "fk_containers_suppliers")
+}
+
+model container_files {
+  container_file_id String                  @id @default(uuid())
+  container_id      String
+  document_type     container_document_type
+  version           Int
+  original_filename String
+  s3_bucket         String
+  s3_key            String                  @db.Text
+  content_type      String
+  size_bytes        Int
+  uploaded_by       String
+  uploaded_at       DateTime                @default(now()) @db.Timestamp(0)
+  deleted_by        String?
+  deleted_at        DateTime?               @db.DateTime(0)
+  created_at        DateTime                @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                @default(now()) @updatedAt @db.DateTime(0)
+  container         containers              @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_container_files_containers")
+
+  @@unique([container_id, document_type, version], map: "container_files_container_document_version_key")
+  @@index([container_id, document_type, deleted_at], map: "container_files_container_document_deleted_idx")
+  @@index([container_id], map: "fk_container_files_containers")
 }
 
 model inventories {
@@ -382,6 +406,10 @@ enum auction_inventory_status {
 enum containers_auction_or_sell {
   AUCTION
   SELL
+}
+
+enum container_document_type {
+  CONTAINER_REPORT
 }
 
 enum bidder_status {
