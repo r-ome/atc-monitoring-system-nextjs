@@ -94,7 +94,7 @@ export function HomeCalendar() {
   return (
     <>
       <Card className="overflow-hidden">
-        {/* Top header row: title + legend + filter */}
+        {/* Top header row: title + legend */}
         <div className="flex items-center justify-between border-b px-5 py-3">
           <div className="flex items-center gap-2 text-[15px] font-semibold 2xl:text-[19px]">
             Events Calendar
@@ -108,13 +108,6 @@ export function HomeCalendar() {
                   {s.label}
                 </span>
               ))}
-            </div>
-            <Button variant="outline" size="sm" className="h-7 gap-1.5 text-[12px] 2xl:text-[16px]">
-              Filter
-            </Button>
-            <div className="flex overflow-hidden rounded-md border text-[12px] 2xl:text-[16px]">
-              <button className="bg-foreground px-3 py-1 font-medium text-background">Calendar</button>
-              <button className="px-3 py-1 text-muted-foreground hover:bg-muted">List</button>
             </div>
           </div>
         </div>
@@ -150,8 +143,7 @@ export function HomeCalendar() {
           <span className="flex-1 text-center text-[16px] font-semibold tracking-tight 2xl:text-[20px]">
             {format(currentMonth, "MMMM yyyy")}
           </span>
-          {/* Spacer to balance the left controls */}
-          <div className="w-[108px]" />
+          <div className="w-[120px]" />
         </div>
 
         {/* Day-of-week labels + calendar grid wrapped together to avoid Card's gap-6 */}

@@ -30,7 +30,7 @@ export function AppHeader({ session }: AppHeaderProps) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-card px-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground 2xl:text-[17px]">
+      <div className="flex items-center gap-2 text-[13px] text-muted-foreground 2xl:text-[17px]">
         <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-secondary text-secondary-foreground 2xl:text-[14px]">
           {session.user.role}
         </span>
@@ -38,12 +38,8 @@ export function AppHeader({ session }: AppHeaderProps) {
         <span className="font-medium text-foreground">
           {session.user.branch?.name ?? "Global"}
         </span>
-      </div>
-
-      {/* Search trigger */}
-      <div className="mx-auto hidden max-w-[480px] flex-1 md:flex">
         <button
-          className="flex w-full items-center gap-2 rounded-md border bg-secondary px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-secondary/80"
+          className="ml-1 hidden items-center gap-2 rounded-md border bg-secondary px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-secondary/80 md:flex"
           onClick={() => {
             const event = new KeyboardEvent("keydown", {
               key: "k",
@@ -54,7 +50,7 @@ export function AppHeader({ session }: AppHeaderProps) {
           }}
         >
           <Search size={14} />
-          <span className="flex-1 text-left">
+          <span className="max-w-[220px] truncate text-left">
             Search items by barcode, control, or description…
           </span>
           <kbd className="rounded border bg-background px-1.5 py-0.5 text-[11px] font-medium">

@@ -2,10 +2,7 @@ import { requireSession } from "@/app/lib/auth";
 import { format } from "date-fns";
 
 function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+  return "Welcome";
 }
 
 export async function HomeHero() {

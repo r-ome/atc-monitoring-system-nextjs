@@ -14,6 +14,7 @@ function presenter(bidders: AuctionBidderWithBidderInventoriesRow[]) {
     first_name: bidder.bidder.first_name,
     last_name: bidder.bidder.last_name,
     auction_date: formatDate(bidder.created_at, date_format),
+    auction_date_iso: bidder.created_at.toISOString(),
     auction_duration: formatDistanceToNow(new Date(bidder.created_at), {
       addSuffix: true,
     }),

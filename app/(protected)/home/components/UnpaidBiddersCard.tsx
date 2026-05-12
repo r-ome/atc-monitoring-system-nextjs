@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowUpDown } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
@@ -43,6 +43,7 @@ export function UnpaidBiddersCard() {
   const { data: sessionData } = useSession();
   const router = useRouter();
   const [unpaid, setUnpaid] = useState<UnpaidBidders[]>([]);
+  const [sortMode, setSortMode] = useState<"balance" | "age">("balance");
   const [summary, setSummary] = useState<UnpaidBidderBalanceSummary>({
     branches: [],
     total_balance: 0,
@@ -55,11 +56,6 @@ export function UnpaidBiddersCard() {
 
   const user = sessionData?.user;
   const canViewAll = !!user && PRIVILEGED_ROLES.has(user.role as UserRole);
-
-  const visibleBranches = useMemo(() => {
-    if (!user || canViewAll) return summary.branches;
-    return summary.branches.filter((b) => b.branch_id === user.branch?.branch_id);
-  }, [summary.branches, canViewAll, user]);
 
   useEffect(() => {
     Promise.all([
@@ -76,10 +72,19 @@ export function UnpaidBiddersCard() {
     });
   }, []);
 
-  const sortedUnpaid = useMemo(
-    () => [...unpaid].sort((a, b) => b.balance - a.balance),
-    [unpaid],
-  );
+  const sortedUnpaid = useMemo(() => {
+    const rows = [...unpaid];
+
+    if (sortMode === "age") {
+      return rows.sort(
+        (a, b) =>
+          new Date(a.auction_date_iso).getTime() -
+          new Date(b.auction_date_iso).getTime(),
+      );
+    }
+
+    return rows.sort((a, b) => b.balance - a.balance);
+  }, [unpaid, sortMode]);
 
   if (error) {
     return (
@@ -98,13 +103,13 @@ export function UnpaidBiddersCard() {
           <TabsList className="h-8 gap-0 bg-transparent p-0">
             <TabsTrigger
               value="unpaid"
-              className="h-8 rounded-none border-b-2 border-transparent px-3 text-[13px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:text-[17px]"
+              className="h-8 rounded-none border-x-0 border-b-2 border-t-0 border-transparent px-3 text-[13px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:text-[17px]"
             >
               Unpaid Bidders
             </TabsTrigger>
             <TabsTrigger
               value="banned"
-              className="h-8 rounded-none border-b-2 border-transparent px-3 text-[13px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:text-[17px]"
+              className="h-8 rounded-none border-x-0 border-b-2 border-t-0 border-transparent px-3 text-[13px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:text-[17px]"
             >
               Banned Bidders
             </TabsTrigger>
@@ -114,7 +119,13 @@ export function UnpaidBiddersCard() {
         {/* Unpaid tab */}
         <TabsContent value="unpaid" className="flex flex-col gap-0 mt-0 px-4 pb-3.5 pt-3 2xl:px-6 2xl:pb-5 2xl:pt-4">
           {/* Total + branch breakdown */}
-          <div className="flex flex-col gap-3 mb-3 sm:grid sm:grid-cols-[1fr_1px_1fr] sm:items-center sm:gap-3.5">
+          <div
+            className={
+              canViewAll
+                ? "mb-3 flex flex-col gap-3 sm:grid sm:grid-cols-[1fr_1px_1fr] sm:items-center sm:gap-3.5"
+                : "mb-3 flex flex-col gap-3"
+            }
+          >
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <AlertCircle size={11} className="text-destructive" />
@@ -126,19 +137,23 @@ export function UnpaidBiddersCard() {
                 {formatNumberToCurrency(summary.total_balance)}
               </div>
             </div>
-            <div className="hidden h-10 bg-border sm:block" />
-            <div className="flex flex-col gap-1">
-              {visibleBranches.map((b) => (
-                <div key={b.branch_id} className="flex items-baseline gap-1.5">
-                  <span className="min-w-[48px] text-[11px] font-semibold tracking-wide 2xl:text-[15px]">
-                    {b.branch_name.toUpperCase()}
-                  </span>
-                  <span className="font-mono ml-auto text-[12px] font-medium 2xl:text-[16px]">
-                    {formatNumberToCurrency(b.total_balance)}
-                  </span>
+            {canViewAll && (
+              <>
+                <div className="hidden h-10 bg-border sm:block" />
+                <div className="flex flex-col gap-1">
+                  {summary.branches.map((b) => (
+                    <div key={b.branch_id} className="flex items-baseline gap-1.5">
+                      <span className="min-w-[48px] text-[11px] font-semibold tracking-wide 2xl:text-[15px]">
+                        {b.branch_name.toUpperCase()}
+                      </span>
+                      <span className="font-mono ml-auto text-[12px] font-medium 2xl:text-[16px]">
+                        {formatNumberToCurrency(b.total_balance)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
 
           <div className="h-px bg-border mb-2" />
@@ -148,20 +163,44 @@ export function UnpaidBiddersCard() {
             <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground 2xl:text-[15px]">
               Unpaid Bidders
             </span>
-            {mounted && user && (
+            <div className="flex items-center gap-2">
               <Button
-                size="sm"
+                size="icon-sm"
+                variant="secondary"
+                className="shrink-0"
                 onClick={() =>
-                  generateReport(
-                    { branch: user.branch.name, bidders: unpaid },
-                    ["unpaid_bidders"],
-                    `UNPAID ${user.branch.name} ${new Date().getFullYear()}`,
+                  setSortMode((current) =>
+                    current === "balance" ? "age" : "balance",
                   )
                 }
+                aria-label={
+                  sortMode === "balance"
+                    ? "Sort unpaid bidders by oldest unpaid date"
+                    : "Sort unpaid bidders by balance"
+                }
+                title={
+                  sortMode === "balance"
+                    ? "Sort by longest unpaid date"
+                    : "Sort by balance"
+                }
               >
-                Generate Report
+                <ArrowUpDown className="size-4" />
               </Button>
-            )}
+              {mounted && user && (
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    generateReport(
+                      { branch: user.branch.name, bidders: unpaid },
+                      ["unpaid_bidders"],
+                      `UNPAID ${user.branch.name} ${new Date().getFullYear()}`,
+                    )
+                  }
+                >
+                  Generate Report
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Bidder rows */}
