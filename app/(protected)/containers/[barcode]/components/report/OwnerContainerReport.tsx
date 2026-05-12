@@ -171,7 +171,7 @@ export const OwnerContainerReport: React.FC<OwnerContainerReportProps> = ({
               ? "Total Item Sales"
               : `Total Item Sales (${selectedYear})`
           }
-          hint="Sum of PAID auction item prices in this owner container. Every peso here is owner profit (no supplier cost basis). Filtered by year of sale when a year is selected."
+          hint="Total amount earned from all items sold in this container. Since this is an owner container, every peso here counts as profit. When you select a year, only sales from that year are included."
           value={formatPeso(totalSales)}
           className="text-green-600"
         />
@@ -182,15 +182,15 @@ export const OwnerContainerReport: React.FC<OwnerContainerReportProps> = ({
           label="Items Sold"
           hint={
             selectedYear == null
-              ? "Number of items in this container with a PAID auctions_inventories row."
-              : `Number of items sold in ${selectedYear}.`
+              ? "Number of items in this container that have been sold and paid for."
+              : `Number of items sold and paid for during ${selectedYear}.`
           }
           value={itemsSold.toLocaleString("en-PH")}
         />
         {itemsUnsold != null ? (
           <ReportRow
             label="Items Unsold"
-            hint="Number of items still sitting in this container without a PAID resale (lifetime count, not year-scoped)."
+            hint="Number of items in this container that are still waiting to be sold. This is a lifetime count and does not change with the year filter."
             value={itemsUnsold.toLocaleString("en-PH")}
           />
         ) : null}
@@ -199,7 +199,7 @@ export const OwnerContainerReport: React.FC<OwnerContainerReportProps> = ({
 
         <ReportRow
           label="Owner Profit"
-          hint="Same as Total Item Sales for owner containers — there are no supplier deductions, commissions, or royalties on 00/T0 inventory."
+          hint="Same as Total Item Sales. Owner containers have no supplier deductions, commissions, or royalties applied to them."
           value={formatPeso(totalSales)}
           className="text-green-600"
         />
