@@ -1,6 +1,7 @@
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { uploadContainerReportFileUseCase } from "./upload-container-report-file.use-case";
+import { uploadGeneratedFinalReportFilesUseCase } from "./upload-generated-final-report-files.use-case";
 import { deleteContainerReportFileUseCase } from "./delete-container-report-file.use-case";
 import {
   ContainerFileRepository,
@@ -26,6 +27,13 @@ const createDocxFile = (name = "report.docx") => ({
   type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   size: 4,
   arrayBuffer: async () => Buffer.from("docx").buffer,
+});
+
+const createXlsxFile = (name = "report.xlsx", size = 4) => ({
+  name,
+  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  size,
+  arrayBuffer: async () => Buffer.from("xlsx").buffer,
 });
 
 test("uploadContainerReportFileUseCase rejects missing and non-docx files", async () => {
@@ -163,4 +171,127 @@ test("deleteContainerReportFileUseCase validates ownership, deletes S3 object, a
     },
   ]);
   assert.deepEqual(softDeleted, [{ id: "file-1", by: "jerome" }]);
+});
+
+test("uploadGeneratedFinalReportFilesUseCase rejects missing, non-xlsx, and oversized files", async () => {
+  await assert.rejects(
+    () =>
+      uploadGeneratedFinalReportFilesUseCase({
+        container_id: "container-1",
+        original_file: null,
+        modified_file: createXlsxFile("modified.xlsx"),
+        uploaded_by: "jerome",
+      }),
+    InputParseError,
+  );
+
+  await assert.rejects(
+    () =>
+      uploadGeneratedFinalReportFilesUseCase({
+        container_id: "container-1",
+        original_file: createXlsxFile("original.pdf"),
+        modified_file: createXlsxFile("modified.xlsx"),
+        uploaded_by: "jerome",
+      }),
+    InputParseError,
+  );
+
+  await assert.rejects(
+    () =>
+      uploadGeneratedFinalReportFilesUseCase({
+        container_id: "container-1",
+        original_file: createXlsxFile("original.xlsx", 25 * 1024 * 1024 + 1),
+        modified_file: createXlsxFile("modified.xlsx"),
+        uploaded_by: "jerome",
+      }),
+    InputParseError,
+  );
+});
+
+test("uploadGeneratedFinalReportFilesUseCase creates versioned original/modified pair and hides old generated reports", async () => {
+  process.env.AWS_S3_CONTAINER_REPORTS_BUCKET = "container-reports";
+  const uploadedKeys: string[] = [];
+  const deletedKeys: string[] = [];
+  const createdDocumentTypes: string[] = [];
+  const createdVersions: number[] = [];
+
+  const storage: ContainerReportStorageGateway = {
+    upload: async ({ key }) => {
+      uploadedKeys.push(key);
+    },
+    getSignedDownloadUrl: async () => "https://example.test/report",
+    delete: async ({ key }) => {
+      deletedKeys.push(key);
+    },
+  };
+
+  restorers.push(
+    patchMethod(ContainerRepository, "getContainerById", async () =>
+      ({
+        container_id: "container-1",
+        branch_id: "branch-1",
+      }) as never,
+    ),
+    patchMethod(
+      ContainerFileRepository,
+      "getNextGeneratedFinalReportVersion",
+      async () => 5,
+    ),
+    patchMethod(
+      ContainerFileRepository,
+      "createGeneratedFinalReportFiles",
+      async ({ files }) => {
+        createdDocumentTypes.push(...files.map((file) => file.document_type));
+        createdVersions.push(...files.map((file) => file.version));
+        return {
+          created: files as never,
+          deleted: [
+            {
+              container_file_id: "old-original",
+              s3_bucket: "container-reports",
+              s3_key:
+                "branches/branch-1/containers/container-1/final-report/v4/original/old.xlsx",
+            },
+            {
+              container_file_id: "old-modified",
+              s3_bucket: "container-reports",
+              s3_key:
+                "branches/branch-1/containers/container-1/final-report/v4/modified/old.xlsx",
+            },
+          ] as never,
+        };
+      },
+    ),
+  );
+
+  const result = await uploadGeneratedFinalReportFilesUseCase({
+    container_id: "container-1",
+    original_file: createXlsxFile("original.xlsx"),
+    modified_file: createXlsxFile("modified.xlsx"),
+    uploaded_by: "jerome",
+    storage,
+  });
+
+  assert.equal(result.version, 5);
+  assert.deepEqual(createdDocumentTypes, [
+    "FINAL_REPORT_ORIGINAL",
+    "FINAL_REPORT_MODIFIED",
+  ]);
+  assert.deepEqual(createdVersions, [5, 5]);
+  assert.equal(
+    uploadedKeys[0].includes(
+      "/containers/container-1/final-report/v5/original/",
+    ),
+    true,
+  );
+  assert.equal(
+    uploadedKeys[1].includes(
+      "/containers/container-1/final-report/v5/modified/",
+    ),
+    true,
+  );
+  assert.deepEqual(deletedKeys, [
+    "branches/branch-1/containers/container-1/final-report/v4/original/old.xlsx",
+    "branches/branch-1/containers/container-1/final-report/v4/modified/old.xlsx",
+  ]);
 });

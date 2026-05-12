@@ -12,6 +12,7 @@ import { UpdateContainerStatusController } from "src/controllers/containers/upda
 import { GetContainerByBarcodeController } from "src/controllers/containers/get-container-by-barcode.controller";
 import { UploadInventoryFileController } from "src/controllers/containers/upload-inventory-file.controller";
 import { UploadContainerReportFileController } from "src/controllers/containers/upload-container-report-file.controller";
+import { UploadGeneratedFinalReportFilesController } from "src/controllers/containers/upload-generated-final-report-files.controller";
 import { GetContainerReportDownloadUrlController } from "src/controllers/containers/get-container-report-download-url.controller";
 import { DeleteContainerReportFileController } from "src/controllers/containers/delete-container-report-file.controller";
 import { DeleteContainerController } from "src/controllers/containers/delete-container.controller";
@@ -109,6 +110,39 @@ export const uploadContainerReportFile = async (
       await UploadContainerReportFileController(
         container_id,
         uploadFile,
+      ),
+  );
+};
+
+export const uploadGeneratedFinalReportFiles = async (
+  container_id: string,
+  form_data: FormData,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  const originalFile = form_data.get("original_file");
+  const modifiedFile = form_data.get("modified_file");
+  const originalUploadFile =
+    originalFile &&
+    typeof originalFile === "object" &&
+    "arrayBuffer" in originalFile
+      ? (originalFile as File)
+      : null;
+  const modifiedUploadFile =
+    modifiedFile &&
+    typeof modifiedFile === "object" &&
+    "arrayBuffer" in modifiedFile
+      ? (modifiedFile as File)
+      : null;
+
+  return await runWithUserContext(
+    auth.value,
+    async () =>
+      await UploadGeneratedFinalReportFilesController(
+        container_id,
+        originalUploadFile,
+        modifiedUploadFile,
       ),
   );
 };

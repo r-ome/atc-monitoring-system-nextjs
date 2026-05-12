@@ -410,6 +410,8 @@ enum containers_auction_or_sell {
 
 enum container_document_type {
   CONTAINER_REPORT
+  FINAL_REPORT_ORIGINAL
+  FINAL_REPORT_MODIFIED
 }
 
 enum bidder_status {

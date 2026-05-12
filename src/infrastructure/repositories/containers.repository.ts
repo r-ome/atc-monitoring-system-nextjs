@@ -26,10 +26,9 @@ export const ContainerRepository: IContainerRepository = {
           branch: true,
           container_files: {
             where: {
-              document_type: "CONTAINER_REPORT",
               deleted_at: null,
             },
-            orderBy: { version: "desc" },
+            orderBy: [{ version: "desc" }, { uploaded_at: "desc" }],
           },
           inventories: {
             include: {
@@ -59,10 +58,9 @@ export const ContainerRepository: IContainerRepository = {
           branch: true,
           container_files: {
             where: {
-              document_type: "CONTAINER_REPORT",
               deleted_at: null,
             },
-            orderBy: { version: "desc" },
+            orderBy: [{ version: "desc" }, { uploaded_at: "desc" }],
           },
           inventories: {
             include: {

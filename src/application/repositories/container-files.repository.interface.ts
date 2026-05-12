@@ -2,6 +2,7 @@ import {
   ContainerFileRow,
   ContainerFileWithContainerRow,
   CreateContainerFileInput,
+  CreateGeneratedFinalReportFilesInput,
   ContainerFileDocumentType,
 } from "src/entities/models/ContainerFile";
 
@@ -20,4 +21,13 @@ export interface IContainerFileRepository {
     container_file_id: string,
     deleted_by: string,
   ) => Promise<ContainerFileRow>;
+  getNextGeneratedFinalReportVersion: (
+    container_id: string,
+  ) => Promise<number>;
+  createGeneratedFinalReportFiles: (
+    input: CreateGeneratedFinalReportFilesInput,
+  ) => Promise<{
+    created: [ContainerFileRow, ContainerFileRow];
+    deleted: ContainerFileRow[];
+  }>;
 }

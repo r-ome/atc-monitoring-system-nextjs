@@ -4,6 +4,7 @@ import {
   ContainerReportStorageGateway,
   S3ContainerReportStorage,
 } from "src/infrastructure/storage/s3-container-report-storage";
+import { CONTAINER_FILE_DOCUMENT_TYPES } from "src/entities/models/ContainerFile";
 
 type GetContainerReportDownloadUrlInput = {
   container_file_id: string;
@@ -19,8 +20,11 @@ export const getContainerReportDownloadUrlUseCase = async ({
   const file =
     await ContainerFileRepository.getContainerFileById(container_file_id);
 
-  if (!file || file.document_type !== "CONTAINER_REPORT") {
-    throw new NotFoundError("Container report file not found!");
+  if (
+    !file ||
+    !CONTAINER_FILE_DOCUMENT_TYPES.includes(file.document_type)
+  ) {
+    throw new NotFoundError("Container file not found!");
   }
 
   return await storage.getSignedDownloadUrl({

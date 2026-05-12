@@ -31,6 +31,42 @@ test("presentContainerDetails includes derived paid date and status", () => {
     },
     container_files: [
       {
+        container_file_id: "final-original-3",
+        container_id: "container-1",
+        document_type: "FINAL_REPORT_ORIGINAL",
+        version: 3,
+        original_filename: "original.xlsx",
+        s3_bucket: "container-reports",
+        s3_key: "original.xlsx",
+        content_type:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        size_bytes: 3000,
+        uploaded_by: "jerome",
+        uploaded_at: new Date("2026-05-04T00:00:00.000Z"),
+        deleted_by: null,
+        deleted_at: null,
+        created_at: new Date("2026-05-04T00:00:00.000Z"),
+        updated_at: new Date("2026-05-04T00:00:00.000Z"),
+      },
+      {
+        container_file_id: "final-modified-3",
+        container_id: "container-1",
+        document_type: "FINAL_REPORT_MODIFIED",
+        version: 3,
+        original_filename: "modified.xlsx",
+        s3_bucket: "container-reports",
+        s3_key: "modified.xlsx",
+        content_type:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        size_bytes: 3500,
+        uploaded_by: "jerome",
+        uploaded_at: new Date("2026-05-04T00:00:00.000Z"),
+        deleted_by: null,
+        deleted_at: null,
+        created_at: new Date("2026-05-04T00:00:00.000Z"),
+        updated_at: new Date("2026-05-04T00:00:00.000Z"),
+      },
+      {
         container_file_id: "file-2",
         container_id: "container-1",
         document_type: "CONTAINER_REPORT",
@@ -81,5 +117,14 @@ test("presentContainerDetails includes derived paid date and status", () => {
       { version: 2, current: true },
       { version: 1, current: false },
     ],
+  );
+  assert.equal(result.final_report_files?.version, 3);
+  assert.equal(
+    result.final_report_files?.original?.document_type,
+    "FINAL_REPORT_ORIGINAL",
+  );
+  assert.equal(
+    result.final_report_files?.modified?.document_type,
+    "FINAL_REPORT_MODIFIED",
   );
 });

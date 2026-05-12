@@ -6,6 +6,8 @@ import {
 } from "@/app/components/ui/tabs";
 import { requireUser } from "@/app/lib/auth";
 import { ContainerProfile } from "./components/ContainerProfile";
+import { ContainerReportFiles } from "./components/ContainerReportFiles";
+import { GeneratedFinalReportFiles } from "./components/GeneratedFinalReportFiles";
 import { ContainerInventoriesTable } from "./components/inventories/ContainerInventoriesTable";
 import { ContainerReport } from "./components/report/ContainerReport";
 import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
@@ -42,7 +44,7 @@ export default async function Page({
         <TabsList>
           <TabsTrigger value="inventory-list">Inventories</TabsTrigger>
           <TabsTrigger value="profile">Container Profile</TabsTrigger>
-          <TabsTrigger value="report">Report</TabsTrigger>
+          <TabsTrigger value="report">Reports</TabsTrigger>
         </TabsList>
         <TabsContent value="inventory-list">
           <ContainerInventoriesTable
@@ -56,7 +58,18 @@ export default async function Page({
           <ContainerProfile container={container} />
         </TabsContent>
         <TabsContent value="report">
-          <ContainerReport inventories={container.inventories} />
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+            <ContainerReport inventories={container.inventories} />
+            <div className="w-full max-w-lg rounded-lg border p-6">
+              <div className="space-y-6">
+                <GeneratedFinalReportFiles files={container.final_report_files} />
+                <ContainerReportFiles
+                  container_id={container.container_id}
+                  files={container.container_report_files}
+                />
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -25,6 +25,7 @@ import {
   finalizeFinalReport,
   getFinalReportPreview,
   logContainerReport,
+  uploadGeneratedFinalReportFiles,
 } from "@/app/(protected)/containers/actions";
 import { StepShell } from "../shared/StepShell";
 import { StepProps } from "../shared/types";
@@ -110,6 +111,34 @@ export const GenerateStep = ({
   const buildFilename = (variant: "modified" | "original") => {
     return `${buildSheetName()} - ${variant}`;
   };
+  const buildWorkbookBlob = (
+    previewForGen: NonNullable<typeof preview>,
+    splitSelections: string[],
+    variant: "modified" | "original",
+    download: boolean,
+  ) => {
+    const reportData = buildReportData(previewForGen, splitSelections);
+    const { monitoring: finalMonitoring, reassignedCount } =
+      reassign5013ToRandomBidders(
+        reportData.monitoring,
+        previewForGen.available_bidders,
+      );
+
+    const blob = generateReport(
+      {
+        monitoring: finalMonitoring,
+        inventories: reportData.inventories,
+        sheetDetails: container,
+        deductions: previewForGen.report.deductions,
+      },
+      sheets,
+      buildFilename(variant),
+      buildSheetName(),
+      { download },
+    );
+
+    return { blob, reassignedCount };
+  };
 
   // Generates the Excel workbook from the (draft-applied) preview, without
   // committing anything to the DB. Refreshes the preview first so any decisions
@@ -122,23 +151,11 @@ export const GenerateStep = ({
       const fresh = await refresh();
       const previewForGen = fresh ?? preview;
 
-      const reportData = buildReportData(previewForGen, state.splitSelections);
-      const { monitoring: finalMonitoring, reassignedCount } =
-        reassign5013ToRandomBidders(
-          reportData.monitoring,
-          previewForGen.available_bidders,
-        );
-
-      generateReport(
-        {
-          monitoring: finalMonitoring,
-          inventories: reportData.inventories,
-          sheetDetails: container,
-          deductions: previewForGen.report.deductions,
-        },
-        sheets,
-        buildFilename("modified"),
-        buildSheetName(),
+      const { reassignedCount } = buildWorkbookBlob(
+        previewForGen,
+        state.splitSelections,
+        "modified",
+        true,
       );
 
       if (reassignedCount > 0) {
@@ -178,23 +195,11 @@ export const GenerateStep = ({
       const rawPreview = res.value;
 
       // Original report ignores the wizard's split selections too.
-      const reportData = buildReportData(rawPreview, []);
-      const { monitoring: finalMonitoring, reassignedCount } =
-        reassign5013ToRandomBidders(
-          reportData.monitoring,
-          rawPreview.available_bidders,
-        );
-
-      generateReport(
-        {
-          monitoring: finalMonitoring,
-          inventories: reportData.inventories,
-          sheetDetails: container,
-          deductions: rawPreview.report.deductions,
-        },
-        sheets,
-        buildFilename("original"),
-        buildSheetName(),
+      const { reassignedCount } = buildWorkbookBlob(
+        rawPreview,
+        [],
+        "original",
+        true,
       );
 
       if (reassignedCount > 0) {
@@ -212,6 +217,31 @@ export const GenerateStep = ({
     setFinalizeOpen(false);
     setLoading("Finalizing & generating workbook...");
     try {
+      const originalRes = await getFinalReportPreview({
+        barcode: container.barcode,
+        selected_dates: state.options.selected_dates,
+        exclude_bidder_740: state.options.exclude_bidder_740,
+        exclude_refunded_bidder_5013: state.options.exclude_refunded_bidder_5013,
+        deduct_thirty_k: state.options.deduct_thirty_k,
+        ignore_draft: true,
+      });
+      if (!originalRes.ok) {
+        toast.error(originalRes.error.message, {
+          description:
+            typeof originalRes.error.cause === "string"
+              ? originalRes.error.cause
+              : undefined,
+        });
+        return;
+      }
+
+      const originalWorkbook = buildWorkbookBlob(
+        originalRes.value,
+        [],
+        "original",
+        false,
+      );
+
       const finRes = await finalizeFinalReport(container.container_id);
       if (!finRes.ok) {
         toast.error(finRes.error.message, {
@@ -244,31 +274,49 @@ export const GenerateStep = ({
       const fresh = await refresh();
       const previewForGen = fresh ?? preview;
 
-      const reportData = buildReportData(previewForGen, state.splitSelections);
-      const { monitoring: finalMonitoring, reassignedCount } =
-        reassign5013ToRandomBidders(
-          reportData.monitoring,
-          previewForGen.available_bidders,
-        );
-
-      generateReport(
-        {
-          monitoring: finalMonitoring,
-          inventories: reportData.inventories,
-          sheetDetails: container,
-          deductions: previewForGen.report.deductions,
-        },
-        sheets,
-        buildFilename("modified"),
-        buildSheetName(),
+      const modifiedWorkbook = buildWorkbookBlob(
+        previewForGen,
+        state.splitSelections,
+        "modified",
+        true,
       );
 
+      const formData = new FormData();
+      formData.append(
+        "original_file",
+        new File([originalWorkbook.blob], `${buildFilename("original")}.xlsx`, {
+          type: originalWorkbook.blob.type,
+        }),
+      );
+      formData.append(
+        "modified_file",
+        new File([modifiedWorkbook.blob], `${buildFilename("modified")}.xlsx`, {
+          type: modifiedWorkbook.blob.type,
+        }),
+      );
+      const uploadRes = await uploadGeneratedFinalReportFiles(
+        container.container_id,
+        formData,
+      );
+      if (!uploadRes.ok) {
+        toast.error(uploadRes.error.message, {
+          description:
+            typeof uploadRes.error.cause === "string"
+              ? uploadRes.error.cause
+              : undefined,
+        });
+        routerRefresh();
+        return;
+      }
+
+      const reassignedCount =
+        originalWorkbook.reassignedCount + modifiedWorkbook.reassignedCount;
       if (reassignedCount > 0) {
         toast.info(
           `Reassigned ${reassignedCount} bidder 5013 item(s) to random bidders on the same auction.`,
         );
       }
-      toast.success("Workbook generated and draft committed.");
+      toast.success("Workbook generated, uploaded, and draft committed.");
       routerRefresh();
     } finally {
       setLoading(null);

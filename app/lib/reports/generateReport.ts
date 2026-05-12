@@ -47,6 +47,18 @@ type ReportTypes =
   | "deductions"
   | "expenses_summary";
 
+type GenerateReportOptions = {
+  download?: boolean;
+};
+
+const downloadBlob = (blob: Blob, filename: string) => {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}.xlsx`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+};
+
 const generateReport = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
@@ -56,6 +68,7 @@ const generateReport = (
   // for backward compatibility. Useful when the downloadable file name needs
   // extra qualifiers (e.g. "-original") that shouldn't appear on the sheet tab.
   monitoringSheetName?: string,
+  options: GenerateReportOptions = {},
 ) => {
   const workbook = xlsx.utils.book_new();
   const sheetTabName = monitoringSheetName ?? filename;
@@ -176,14 +189,14 @@ const generateReport = (
   });
 
   const blob = new Blob([excelBuffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheet.sheet",
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${filename}.xlsx`;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  if (options.download !== false) {
+    downloadBlob(blob, filename);
+  }
+
+  return blob;
 };
 
 export default generateReport;

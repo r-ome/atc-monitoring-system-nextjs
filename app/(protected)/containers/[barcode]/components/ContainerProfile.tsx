@@ -4,7 +4,6 @@ import { Container } from "src/entities/models/Container";
 import { UpdateContainerModal } from "./UpdateContainerModal";
 import { UpdateContainerStatusButton } from "./UpdateContainerStatusButton";
 import { DeleteContainerModal } from "./DeleteContainerModal";
-import { ContainerReportFiles } from "./ContainerReportFiles";
 
 type Field =
   | "bill_of_lading_number"
@@ -112,11 +111,6 @@ export const ContainerProfile: React.FC<ContainerProfileProps> = async ({
         <div className="flex flex-col flex-wrap gap-4">
           <ContainerProfile container={container} />
         </div>
-        <Separator />
-        <ContainerReportFiles
-          container_id={container.container_id}
-          files={container.container_report_files}
-        />
       </div>
     </div>
   );

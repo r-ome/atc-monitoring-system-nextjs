@@ -1,14 +1,56 @@
 import { getContainerByBarcodeUseCase } from "src/application/use-cases/containers/get-container-by-barcode.use-case";
 import { ContainerWithDetailsRow } from "src/entities/models/Container";
+import {
+  FinalReportDocumentType,
+  FinalReportFile,
+} from "src/entities/models/ContainerFile";
 import { DatabaseOperationError, NotFoundError } from "src/entities/errors/common";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 
+const isFinalReportDocumentType = (
+  document_type: ContainerWithDetailsRow["container_files"][number]["document_type"],
+): document_type is FinalReportDocumentType =>
+  document_type === "FINAL_REPORT_ORIGINAL" ||
+  document_type === "FINAL_REPORT_MODIFIED";
+
+const isGeneratedFinalReportFile = (
+  file: ContainerWithDetailsRow["container_files"][number],
+): file is ContainerWithDetailsRow["container_files"][number] & {
+  document_type: FinalReportDocumentType;
+} => isFinalReportDocumentType(file.document_type);
+
 export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
   const date_format = "MMM dd, yyyy";
   const status: "PAID" | "UNPAID" = container.status ? "PAID" : "UNPAID";
-  const current_report_file_id = container.container_files[0]?.container_file_id;
+  const containerReportFiles = container.container_files.filter(
+    (file) => file.document_type === "CONTAINER_REPORT",
+  );
+  const generatedFinalReportFiles = container.container_files.filter(
+    isGeneratedFinalReportFile,
+  );
+  const current_report_file_id = containerReportFiles[0]?.container_file_id;
+  const latestFinalReportVersion = generatedFinalReportFiles[0]?.version;
+  const latestFinalReportFiles = generatedFinalReportFiles.filter(
+    (file) => file.version === latestFinalReportVersion,
+  );
+  const presentFinalReportFile = (
+    file: (typeof latestFinalReportFiles)[number],
+  ): FinalReportFile => ({
+    container_file_id: file.container_file_id,
+    document_type: file.document_type,
+    variant:
+      file.document_type === "FINAL_REPORT_ORIGINAL"
+        ? ("original" as const)
+        : ("modified" as const),
+    version: file.version,
+    original_filename: file.original_filename,
+    content_type: file.content_type,
+    size_bytes: file.size_bytes,
+    uploaded_by: file.uploaded_by,
+    uploaded_at: formatDate(file.uploaded_at, date_format),
+  });
 
   const timestamps = container.inventories
     .map((i) => i.auction_date)
@@ -58,7 +100,7 @@ export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
     deleted_at: container.deleted_at
       ? formatDate(container.deleted_at, date_format)
       : null,
-    container_report_files: container.container_files.map((item) => ({
+    container_report_files: containerReportFiles.map((item) => ({
       container_file_id: item.container_file_id,
       document_type: item.document_type,
       version: item.version,
@@ -69,6 +111,19 @@ export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
       uploaded_at: formatDate(item.uploaded_at, date_format),
       current: item.container_file_id === current_report_file_id,
     })),
+    final_report_files: latestFinalReportVersion
+      ? {
+          version: latestFinalReportVersion,
+          original:
+            latestFinalReportFiles
+              .filter((file) => file.document_type === "FINAL_REPORT_ORIGINAL")
+              .map(presentFinalReportFile)[0] ?? null,
+          modified:
+            latestFinalReportFiles
+              .filter((file) => file.document_type === "FINAL_REPORT_MODIFIED")
+              .map(presentFinalReportFile)[0] ?? null,
+        }
+      : null,
     inventories: container.inventories.map((item) => ({
       inventory_id: item.inventory_id,
       container_id: item.container_id,
