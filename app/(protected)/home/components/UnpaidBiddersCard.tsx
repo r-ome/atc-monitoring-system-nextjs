@@ -114,7 +114,7 @@ export function UnpaidBiddersCard() {
         {/* Unpaid tab */}
         <TabsContent value="unpaid" className="flex flex-col gap-0 mt-0 px-4 pb-3.5 pt-3 2xl:px-6 2xl:pb-5 2xl:pt-4">
           {/* Total + branch breakdown */}
-          <div className="grid grid-cols-[1fr_1px_1fr] items-center gap-3.5 mb-3">
+          <div className="flex flex-col gap-3 mb-3 sm:grid sm:grid-cols-[1fr_1px_1fr] sm:items-center sm:gap-3.5">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <AlertCircle size={11} className="text-destructive" />
@@ -126,7 +126,7 @@ export function UnpaidBiddersCard() {
                 {formatNumberToCurrency(summary.total_balance)}
               </div>
             </div>
-            <div className="h-10 bg-border" />
+            <div className="hidden h-10 bg-border sm:block" />
             <div className="flex flex-col gap-1">
               {visibleBranches.map((b) => (
                 <div key={b.branch_id} className="flex items-baseline gap-1.5">

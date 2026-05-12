@@ -229,7 +229,7 @@ export const AuctionItemSearchOverlay = () => {
         size="icon"
         aria-label="Search auction items"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 left-4 z-50 h-12 w-12 rounded-full shadow-lg sm:hidden"
+        className="fixed bottom-20 left-4 z-50 h-12 w-12 rounded-full shadow-lg sm:hidden"
       >
         <SearchIcon className="size-5" />
       </Button>
