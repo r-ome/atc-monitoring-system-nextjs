@@ -13,6 +13,7 @@ import {
   divideQuantites,
   getContainerBarcode,
   isThreePartBarcode,
+  normalizeThreePartBarcode,
 } from "src/application/use-cases/auctions/manifest-pipeline";
 import { formatNumberPadding, normalizeControl } from "@/app/lib/utils";
 import { v4 as uuidv4 } from "uuid";
@@ -158,6 +159,9 @@ const formatSlashedBarcodes = (
   const new_rows = new_barcodes.map((new_barcode, i) => {
     const is_inventory = !new_barcode.includes("-");
     new_barcode = formatNumberPadding(new_barcode, 3);
+    const barcode = is_inventory
+      ? `${parent}-${new_barcode}`
+      : normalizeThreePartBarcode(new_barcode);
 
     return {
       ...data,
@@ -166,7 +170,7 @@ const formatSlashedBarcodes = (
       error: "",
       isSlashItem: slashGroupUuid,
       price: new_prices[i].toString(),
-      barcode: is_inventory ? `${parent}-${new_barcode}` : new_barcode,
+      barcode,
       qty: new_quantities[i].toString(),
       control:
         new_control.length > 1

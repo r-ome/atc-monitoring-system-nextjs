@@ -13,6 +13,99 @@ afterEach(() => {
   }
 });
 
+test("updateManifest persists the normalized row barcode on the manifest record", async () => {
+  let manifestUpdateData: Record<string, unknown> | undefined;
+
+  const tx = {
+    manifest_records: {
+      update: async ({ data }: { data: Record<string, unknown> }) => {
+        manifestUpdateData = data;
+        return {
+          manifest_id: "manifest-1",
+          auction_id: "auction-1",
+          ...data,
+        };
+      },
+    },
+    auctions: {
+      findFirst: async () => ({
+        auction_id: "auction-1",
+        created_at: new Date("2026-04-11T00:00:00.000Z"),
+      }),
+    },
+    inventories: {
+      createMany: async () => ({ count: 0 }),
+      findMany: async () => [],
+      updateMany: async () => ({ count: 1 }),
+    },
+    auctions_inventories: {
+      create: async () => ({
+        auction_inventory_id: "auction-inventory-1",
+      }),
+      update: async () => ({
+        auction_inventory_id: "auction-inventory-1",
+      }),
+      findMany: async () => [],
+    },
+    inventory_histories: {
+      createMany: async () => ({ count: 1 }),
+    },
+    auctions_bidders: {
+      update: async () => ({ auction_bidder_id: "ab-1" }),
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await AuctionRepository.updateManifest(
+    "manifest-1",
+    [
+      {
+        manifest_id: "manifest-1",
+        barcode: "108-03-059",
+        control: "0001",
+        description: "ITEM",
+        bidder_number: "0007",
+        price: "100",
+        qty: "1",
+        manifest_number: "M-1",
+        auction_bidder_id: "ab-1",
+        service_charge: 0,
+        inventory_id: "inventory-1",
+        auction_inventory_id: "auction-inventory-1",
+        isValid: true,
+        forUpdating: true,
+        error: "",
+        isSlashItem: null,
+      },
+    ],
+    {
+      manifest_id: "manifest-1",
+      barcode: "108-03-59",
+      control: "1",
+      description: "ITEM",
+      bidder_number: "7",
+      price: "100",
+      qty: "1",
+      manifest_number: "M-1",
+      error: "",
+    },
+  );
+
+  assert.equal(manifestUpdateData?.barcode, "108-03-059");
+});
+
 test("uploadManifest does not increment bidder balance for bought items", async () => {
   const bidderBalanceWrites: Array<{
     where: { auction_bidder_id: string };

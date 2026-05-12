@@ -77,6 +77,63 @@ test("updateManifestUseCase normalizes control before inventory lookup and persi
   assert.equal(delegatedRows[0]?.inventory_id, "inventory-1");
 });
 
+test("updateManifestUseCase normalizes three-part barcode item segments before persistence", async () => {
+  let delegatedRows: Array<Record<string, unknown>> = [];
+
+  restorers.push(
+    patchMethod(
+      AuctionRepository,
+      "getRegisteredBiddersForManifest",
+      async () =>
+        [
+          {
+            auction_bidder_id: "ab-1",
+            service_charge: 0,
+            bidder: { bidder_number: "0007", status: "ACTIVE" },
+          },
+        ] as never,
+    ),
+    patchMethod(
+      InventoryRepository,
+      "getAllInventoriesForManifest",
+      async () => [] as never,
+    ),
+    patchMethod(
+      ContainerRepository,
+      "getContainerBarcodes",
+      async () =>
+        [
+          {
+            container_id: "container-1",
+            barcode: "108-03",
+          },
+        ] as never,
+    ),
+    patchMethod(AuctionRepository, "getMonitoring", async () => [] as never),
+    patchMethod(AuctionRepository, "updateManifest", async (_manifestId, rows) => {
+      delegatedRows = rows as never;
+      return { manifest_id: "manifest-1" } as never;
+    }),
+  );
+
+  await updateManifestUseCase("auction-1", "manifest-1", {
+    manifest_id: "manifest-1",
+    barcode: "108-03-59/9",
+    control: "1",
+    description: "ITEM",
+    bidder_number: "7",
+    price: "200",
+    qty: "2",
+    manifest_number: "M-1",
+    error: "",
+  });
+
+  assert.deepEqual(
+    delegatedRows.map((row) => row.barcode),
+    ["108-03-059", "108-03-009"],
+  );
+});
+
 test("updateManifestUseCase marks sold items in the same auction as DOUBLE ENCODE", async () => {
   let delegatedRows: Array<Record<string, unknown>> = [];
 

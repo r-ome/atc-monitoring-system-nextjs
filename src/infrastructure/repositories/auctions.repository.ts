@@ -1055,7 +1055,7 @@ export const AuctionRepository: IAuctionRepository = {
           const manifest = await tx.manifest_records.update({
             where: { manifest_id },
             data: {
-              barcode: original.barcode,
+              barcode: data[0]?.barcode ?? original.barcode,
               control: normalizeControl(original.control),
               description: original.description,
               price: original.price.toString(),

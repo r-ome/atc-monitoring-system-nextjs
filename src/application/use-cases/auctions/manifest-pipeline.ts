@@ -115,6 +115,16 @@ export const buildSoldInventoryConflictError = (
 export const isThreePartBarcode = (barcode: string) =>
   barcode.split("-").length === 3;
 
+export const normalizeThreePartBarcode = (barcode: string) => {
+  const parts = barcode.split("-");
+  if (parts.length !== 3) return barcode;
+
+  return parts
+    .slice(0, -1)
+    .concat(formatNumberPadding(parts[2].trim(), 3))
+    .join("-");
+};
+
 export const getContainerBarcode = (barcode: string) =>
   isThreePartBarcode(barcode)
     ? barcode.split("-").slice(0, -1).join("-")
@@ -303,12 +313,15 @@ export const formatSlashedBarcodes = (
     const new_rows = new_barcodes.map((new_barcode, i) => {
       const is_inventory = !new_barcode.includes("-");
       new_barcode = formatNumberPadding(new_barcode, 3);
+      const barcode = is_inventory
+        ? `${parent}-${new_barcode}`
+        : normalizeThreePartBarcode(new_barcode);
 
       return {
         ...item,
         isSlashItem: slashGroupUuid,
         PRICE: new_prices[i].toString(),
-        BARCODE: is_inventory ? `${parent}-${new_barcode}` : new_barcode,
+        BARCODE: barcode,
         QTY: new_quantities[i].toString(),
         CONTROL:
           new_control.length > 1

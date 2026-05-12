@@ -9,6 +9,7 @@ import {
   formatExistingInventories,
   formatSlashedBarcodes,
   normalizeManifestDescriptions,
+  normalizeThreePartBarcode,
   removeManifestDuplicates,
   removeMonitoringDuplicates,
   validateBidders,
@@ -169,6 +170,48 @@ test("formatSlashedBarcodes expands slash rows into individual logical items", (
   );
   assert.ok(rows.every((row) => row.isSlashItem));
   assert.equal(new Set(rows.map((row) => row.isSlashItem)).size, 1);
+});
+
+test("normalizeThreePartBarcode pads only the inventory segment", () => {
+  assert.equal(normalizeThreePartBarcode("108-03-59"), "108-03-059");
+  assert.equal(normalizeThreePartBarcode("108-03-9"), "108-03-009");
+  assert.equal(normalizeThreePartBarcode("108-03"), "108-03");
+});
+
+test("formatSlashedBarcodes normalizes three-part barcode item segments", () => {
+  const rows = formatSlashedBarcodes([
+    {
+      BARCODE: "108-03-59/9/108-03-7",
+      CONTROL: "1",
+      DESCRIPTION: "TOOLS",
+      BIDDER: "0007",
+      PRICE: "900",
+      QTY: "3 PCS",
+      MANIFEST: "M-1",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    },
+    {
+      BARCODE: "108-03",
+      CONTROL: "2",
+      DESCRIPTION: "TOOLS",
+      BIDDER: "0007",
+      PRICE: "100",
+      QTY: "1",
+      MANIFEST: "M-1",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    },
+  ]);
+
+  assert.deepEqual(
+    rows.map((row) => row.BARCODE),
+    ["108-03-059", "108-03-009", "108-03-007", "108-03"],
+  );
 });
 
 test("removeManifestDuplicates uses barcode-only keys for three-part barcodes and barcode-control for two-part ones", () => {
