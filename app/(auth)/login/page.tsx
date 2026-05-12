@@ -46,7 +46,7 @@ export default function Page() {
     if (res) {
       setIsLoading(false);
       if (res?.ok) {
-        router.push("/auctions");
+        router.push("/home");
       } else {
         if (res?.error === "CredentialsSignin") {
           toast.error("The password you've entered is incorrect!");

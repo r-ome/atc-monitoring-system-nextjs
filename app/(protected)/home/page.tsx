@@ -1,42 +1,20 @@
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/app/components/ui/tabs";
-import { AuctionStatisticsTable } from "./components/AuctionStatisticsTable/AuctionStatisticsTable";
-import { BidderStatsCard } from "./components/BidderStatsCard";
-import { ContainersDueDateTable } from "./components/ContainersTable/ContainersDueDateTable";
+import { HomeHero } from "./components/HomeHero";
+import { UnpaidBiddersCard } from "./components/UnpaidBiddersCard";
+import { ContainersDueCard } from "./components/ContainersDueCard";
 import { HomeCalendar } from "./components/HomeCalendar";
 
 const Page = async () => {
   return (
-    <div className="flex flex-col gap-4">
-      <Tabs defaultValue="calendar" className="gap-4">
-        <div className="flex justify-end">
-          <TabsList>
-            <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-            <TabsTrigger value="list">List View</TabsTrigger>
-          </TabsList>
-        </div>
+    <div className="mx-auto flex max-w-[1400px] flex-col gap-[18px]">
+      <HomeHero />
 
-        <TabsContent value="calendar">
-          <HomeCalendar />
-        </TabsContent>
+      {/* Action tiles: Unpaid Bidders (wider) + Containers Due */}
+      <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[1.45fr_1fr]">
+        <UnpaidBiddersCard />
+        <ContainersDueCard />
+      </div>
 
-        <TabsContent value="list">
-          <div className="flex flex-col gap-4 lg:flex-row">
-            <div className="lg:w-3/5">
-              <AuctionStatisticsTable />
-            </div>
-            <div className="lg:w-2/5">
-              <ContainersDueDateTable />
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <BidderStatsCard />
+      <HomeCalendar />
     </div>
   );
 };

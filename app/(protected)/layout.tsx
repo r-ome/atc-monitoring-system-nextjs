@@ -1,19 +1,10 @@
 export const dynamic = "force-dynamic";
 
-import {
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
-} from "@/app/components/ui/sidebar";
-
-import { AppSideBar } from "@/app/components/sidebar/sidebar";
-import { Separator } from "@/app/components/ui/separator";
-import { AppBreadcrumb } from "@/app/components/breadcrumbs/breadcrumbs";
 import { requireSession } from "@/app/lib/auth";
-import { AppTimer } from "@/app/components/timer/timer";
-import { ThemeToggle } from "@/app/components/admin";
 import { SessionActivityWatcher } from "./SessionActivityWatcher";
 import { AuctionItemSearchOverlay } from "@/app/(protected)/auctions/[auction_date]/AuctionItemSearchOverlay";
+import { RailNav } from "@/app/components/rail/RailNav";
+import { AppHeader } from "@/app/components/header/AppHeader";
 
 export default async function RootLayout({
   children,
@@ -23,37 +14,19 @@ export default async function RootLayout({
   const session = await requireSession();
 
   return (
-    <SidebarProvider>
+    <div className="flex h-screen overflow-hidden">
       <SessionActivityWatcher
         initialLastActivityAt={session.user.lastActivityAt ?? null}
       />
       <AuctionItemSearchOverlay />
-      <AppSideBar />
+      <RailNav session={session} />
 
-      <SidebarInset>
-        <header className="flex justify-between h-16 items-center gap-2 border-b px-4 w-full">
-          <div className="flex items-center">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <AppBreadcrumb branch={session.user.branch?.name} />
-          </div>
-
-          <div className="flex gap-4 h-10 items-center">
-            <div className="flex">
-              {session.user.name}
-              <span className="hidden md:flex"> ({session.user.role})</span>
-            </div>
-            <ThemeToggle />
-            <Separator
-              orientation="vertical"
-              className="mx-2 h-5 bg-gray-400"
-            />
-            <AppTimer />
-          </div>
-        </header>
-
-        <main className="w-full w-max-[1000px] p-2">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <AppHeader session={session} />
+        <main className="flex-1 overflow-y-auto bg-background p-4 pb-20 md:p-6 md:pb-6">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }
