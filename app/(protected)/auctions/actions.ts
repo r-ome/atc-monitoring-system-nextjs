@@ -31,7 +31,10 @@ import { RevalidateManifestController } from "src/controllers/auctions/revalidat
 import { PreviewAddOnController } from "src/controllers/auctions/preview-add-on.controller";
 import { ConfirmAddOnController } from "src/controllers/auctions/confirm-add-on.controller";
 import { DeleteFailedManifestRecordController } from "src/controllers/auctions/delete-failed-manifest-record.controller";
-import { type UploadManifestInput } from "src/entities/models/Manifest";
+import {
+  type ManifestSheetRecord,
+  type UploadManifestInput,
+} from "src/entities/models/Manifest";
 import { type PullOutPaymentInput } from "src/entities/models/Payment";
 
 export const startAuction = async (auctionDate: string) => {
@@ -324,9 +327,11 @@ export const insertAuctionInventory = async (
   );
 };
 
-export const previewAddOn = async (auction_id: string, formData: FormData) => {
+export const previewAddOn = async (
+  auction_id: string,
+  data: Array<Partial<ManifestSheetRecord>>,
+) => {
   const user = await requireUser();
-  const data = Object.fromEntries(formData.entries());
 
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },

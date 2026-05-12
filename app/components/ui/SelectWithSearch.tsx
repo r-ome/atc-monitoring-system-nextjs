@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -31,6 +31,8 @@ interface SelectWithSearch {
   side?: "bottom" | "top" | "right" | "left";
   defaultValue?: { label: string; value: string };
   disabled?: boolean;
+  openOnFocus?: boolean;
+  onSelectComplete?: () => void;
 }
 
 export const SelectWithSearch: React.FC<SelectWithSearch> = ({
@@ -41,9 +43,12 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
   modal = false,
   side = "bottom",
   disabled = false,
+  openOnFocus = false,
+  onSelectComplete,
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (defaultValue) {
@@ -52,6 +57,18 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
     }
   }, [defaultValue, options]);
 
+  useEffect(() => {
+    if (!open || !openOnFocus) return;
+
+    const timeout = window.setTimeout(() => {
+      contentRef.current
+        ?.querySelector<HTMLInputElement>('[data-slot="command-input"]')
+        ?.focus();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [open, openOnFocus]);
+
   return (
     <Popover modal={modal} open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild className="w-full">
@@ -59,6 +76,9 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
           variant="outline"
           className={cn("justify-between", !search && "text-muted-foreground")}
           disabled={disabled}
+          onFocus={() => {
+            if (openOnFocus) setOpen(true);
+          }}
         >
           {search
             ? options.find(
@@ -69,6 +89,7 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        ref={contentRef}
         className="w-[var(--radix-popover-trigger-width)] h-fit"
         side={side}
       >
@@ -93,6 +114,7 @@ export const SelectWithSearch: React.FC<SelectWithSearch> = ({
                   ) as Record<string, string | number | boolean>;
                   setSelected(selectedOption);
                   setOpen(false);
+                  onSelectComplete?.();
                 }}
               >
                   {option.label}

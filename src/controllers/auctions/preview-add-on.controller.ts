@@ -20,12 +20,14 @@ const toManifestSheetRecord = (
 
 export const PreviewAddOnController = async (
   auction_id: string,
-  input: Partial<ManifestSheetRecord>,
+  input: Partial<ManifestSheetRecord> | Array<Partial<ManifestSheetRecord>>,
 ) => {
   try {
-    const processed = await previewManifestUseCase(auction_id, [
-      toManifestSheetRecord(input),
-    ]);
+    const rows = Array.isArray(input) ? input : [input];
+    const processed = await previewManifestUseCase(
+      auction_id,
+      rows.map(toManifestSheetRecord),
+    );
 
     return ok(processed);
   } catch (error) {

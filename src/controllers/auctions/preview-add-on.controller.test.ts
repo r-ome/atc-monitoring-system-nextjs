@@ -62,3 +62,69 @@ test("PreviewAddOnController converts form input into a manifest row before prev
   ]);
   assert.equal(result.ok, true);
 });
+
+test("PreviewAddOnController converts multiple add-on rows before previewing", async () => {
+  const previewModule = await import(
+    "src/application/use-cases/auctions/preview-manifest.use-case"
+  );
+
+  let capturedRows: unknown[] = [];
+
+  restorers.push(
+    patchMethod(
+      previewModule,
+      "previewManifestUseCase",
+      async (_auction_id, data) => {
+        capturedRows = data;
+        return data.map((row) => ({
+          ...row,
+          isValid: true,
+          forUpdating: false,
+          isSlashItem: "",
+          error: "",
+        })) as never;
+      },
+    ),
+  );
+
+  const result = await PreviewAddOnController("auction-1", [
+    {
+      BARCODE: "32-04-001",
+      CONTROL: "1",
+      DESCRIPTION: "ITEM A",
+      BIDDER: "7",
+      PRICE: "100",
+      QTY: "1",
+    },
+    {
+      BARCODE: "32-04-002",
+      CONTROL: "2",
+      DESCRIPTION: "ITEM B",
+      BIDDER: "8",
+      PRICE: "200",
+      QTY: "2",
+    },
+  ]);
+
+  assert.deepEqual(capturedRows, [
+    {
+      BARCODE: "32-04-001",
+      CONTROL: "1",
+      DESCRIPTION: "ITEM A",
+      BIDDER: "7",
+      PRICE: "100",
+      QTY: "1",
+      MANIFEST: "ADD ON",
+    },
+    {
+      BARCODE: "32-04-002",
+      CONTROL: "2",
+      DESCRIPTION: "ITEM B",
+      BIDDER: "8",
+      PRICE: "200",
+      QTY: "2",
+      MANIFEST: "ADD ON",
+    },
+  ]);
+  assert.equal(result.ok, true);
+});
