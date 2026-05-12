@@ -34,6 +34,7 @@ type ItemTableActivityDescription = {
   items: {
     barcode: string;
     control: string;
+    bidder_number: string;
     price: string;
   }[];
 };
@@ -97,6 +98,7 @@ function parseItemTableActivityDescription(
       items: parsed.items.map((item) => ({
         barcode: item.barcode?.toString() ?? "",
         control: item.control?.toString() ?? "",
+        bidder_number: item.bidder_number?.toString() ?? "",
         price: item.price?.toString() ?? "",
       })),
     };
@@ -177,6 +179,9 @@ DescriptionSummary.displayName = "DescriptionSummary";
 function ActivityDescriptionCell({ description }: { description: string }) {
   const itemActivity = parseItemTableActivityDescription(description);
   const optionsActivity = parseOptionsTableActivityDescription(description);
+  const hasBidderNumbers = itemActivity?.items.some(
+    (item) => item.bidder_number,
+  );
 
   if (itemActivity) {
     return (
@@ -198,6 +203,11 @@ function ActivityDescriptionCell({ description }: { description: string }) {
               <tr className="border-b border-primary-foreground/30">
                 <th className="py-1 pr-3 text-left font-semibold">Barcode</th>
                 <th className="px-3 py-1 text-left font-semibold">Control</th>
+                {hasBidderNumbers ? (
+                  <th className="px-3 py-1 text-left font-semibold">
+                    Bidder #
+                  </th>
+                ) : null}
                 <th className="py-1 pl-3 text-right font-semibold">Price</th>
               </tr>
             </thead>
@@ -209,6 +219,9 @@ function ActivityDescriptionCell({ description }: { description: string }) {
                 >
                   <td className="py-1 pr-3">{item.barcode}</td>
                   <td className="px-3 py-1">{item.control}</td>
+                  {hasBidderNumbers ? (
+                    <td className="px-3 py-1">{item.bidder_number}</td>
+                  ) : null}
                   <td className="py-1 pl-3 text-right tabular-nums">
                     {item.price}
                   </td>

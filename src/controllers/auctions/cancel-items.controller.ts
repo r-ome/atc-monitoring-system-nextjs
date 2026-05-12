@@ -17,6 +17,7 @@ function buildCancelledItemsLogDescription(
   data: CancelItemsInput,
   items: {
     inventory?: { barcode: string; control: string | null } | null;
+    auction_bidder?: { bidder?: { bidder_number: string } | null } | null;
     price: number;
   }[],
   bidder: { bidder_number: string; first_name: string; last_name: string },
@@ -27,6 +28,7 @@ function buildCancelledItemsLogDescription(
     items: items.map((item) => ({
       barcode: item.inventory?.barcode ?? "",
       control: item.inventory?.control ?? "",
+      bidder_number: item.auction_bidder?.bidder?.bidder_number ?? "",
       price: item.price.toString(),
     })),
   });

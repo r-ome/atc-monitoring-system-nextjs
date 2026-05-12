@@ -25,7 +25,12 @@ const toSheetRecord = (row: UploadManifestInput): ManifestSheetRecord => ({
 
 function buildAddOnItemsLogDescription(
   summary: string,
-  items: Array<{ BARCODE: string; CONTROL: string; PRICE: string }>,
+  items: Array<{
+    BARCODE: string;
+    CONTROL: string;
+    BIDDER: string;
+    PRICE: string;
+  }>,
 ) {
   return JSON.stringify({
     type: "add_on_items",
@@ -33,6 +38,7 @@ function buildAddOnItemsLogDescription(
     items: items.map((item) => ({
       barcode: item.BARCODE?.toString() ?? "",
       control: item.CONTROL?.toString() ?? "",
+      bidder_number: item.BIDDER?.toString() ?? "",
       price: item.PRICE?.toString() ?? "",
     })),
   });

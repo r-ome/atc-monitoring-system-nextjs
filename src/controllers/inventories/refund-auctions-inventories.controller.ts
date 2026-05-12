@@ -20,6 +20,7 @@ function buildRefundedItemsLogDescription(
   items: {
     auction_inventory_id: string;
     inventory?: { barcode: string; control: string | null } | null;
+    auction_bidder?: { bidder?: { bidder_number: string } | null } | null;
   }[],
 ) {
   return JSON.stringify({
@@ -34,6 +35,7 @@ function buildRefundedItemsLogDescription(
       return {
         barcode: item?.inventory?.barcode ?? "",
         control: item?.inventory?.control ?? "",
+        bidder_number: item?.auction_bidder?.bidder?.bidder_number ?? "",
         price: inputItem.prev_price.toString(),
       };
     }),

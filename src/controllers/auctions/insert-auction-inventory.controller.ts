@@ -19,6 +19,7 @@ function buildAddOnItemLogDescription(
       {
         barcode: input.BARCODE?.toString() ?? "",
         control: input.CONTROL?.toString() ?? "",
+        bidder_number: input.BIDDER?.toString() ?? "",
         price: input.PRICE?.toString() ?? "",
       },
     ],
