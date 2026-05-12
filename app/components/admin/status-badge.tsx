@@ -49,9 +49,9 @@ const statusBadgeVariants = cva(
         addon: "bg-status-info text-status-info-foreground",
       },
       size: {
-        sm: "px-2 py-0.5 text-[10px]",
-        default: "px-2.5 py-0.5 text-xs",
-        lg: "px-3 py-1 text-sm",
+        sm: "status-badge-sm px-2 py-0.5 text-[10px]",
+        default: "status-badge-default px-2.5 py-0.5 text-xs",
+        lg: "status-badge-lg px-3 py-1 text-sm",
       },
     },
     defaultVariants: {

@@ -21,6 +21,15 @@ body {
       font-size: 1rem !important;
       line-height: 1.5rem !important;
     }
+    .status-badge-sm {
+      font-size: 11px !important;
+    }
+    .status-badge-default {
+      font-size: 13px !important;
+    }
+    .status-badge-lg {
+      font-size: 14px !important;
+    }
   }
 }
 
