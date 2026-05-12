@@ -46,6 +46,12 @@ export const SalesTable = ({ summary }: SalesTableProps) => {
             </span>
           </div>
           <div className="flex justify-between gap-8">
+            <span>00 Sales:</span>
+            <span className="text-green-500">
+              {formatNumberToCurrency(summary.totals.owner_sales_00)}
+            </span>
+          </div>
+          <div className="flex justify-between gap-8">
             <span>Sorting / Preparation Fee:</span>
             <span>
               {formatNumberToCurrency(summary.totals.sorting_preparation_fee)}

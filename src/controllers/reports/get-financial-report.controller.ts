@@ -3,8 +3,11 @@ import { ReportsRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { err, ok } from "src/entities/models/Result";
 import {
+  BoughtItemGainRow,
+  BoughtItemLossRow,
   ExpenseSummaryRow,
   FilterMode,
+  OwnerOrganicSaleRow,
   PaidContainerFinancialRow,
   SalesExpensesSummary,
   SalesExpensesSummaryEntry,
@@ -47,6 +50,7 @@ function emptyTotals(): SalesExpensesSummaryTotals {
     sales_commission: 0,
     service_charge: 0,
     bought_items_profit_loss: 0,
+    owner_sales_00: 0,
     sorting_preparation_fee: 0,
     total_expenses: 0,
     expenses: 0,
@@ -107,6 +111,7 @@ function finalizeTotals(totals: SalesExpensesSummaryTotals) {
     totals.sales_commission +
     totals.service_charge +
     totals.bought_items_profit_loss +
+    totals.owner_sales_00 +
     totals.sorting_preparation_fee;
   totals.total_expenses =
     totals.expenses + totals.atc_group_commission + totals.royalty;
@@ -120,6 +125,7 @@ function addTotals(
   target.sales_commission += source.sales_commission;
   target.service_charge += source.service_charge;
   target.bought_items_profit_loss += source.bought_items_profit_loss;
+  target.owner_sales_00 += source.owner_sales_00;
   target.sorting_preparation_fee += source.sorting_preparation_fee;
   target.expenses += source.expenses;
   target.atc_group_commission += source.atc_group_commission;
@@ -129,6 +135,9 @@ function addTotals(
 export function presentSalesExpensesSummary(
   containers: PaidContainerFinancialRow[],
   expenses: ExpenseSummaryRow[],
+  boughtItemLosses: BoughtItemLossRow[],
+  boughtItemGains: BoughtItemGainRow[],
+  ownerOrganicSales: OwnerOrganicSaleRow[],
   mode: FilterMode,
 ): SalesExpensesSummary {
   const buckets = new Map<string, SalesExpensesSummaryEntry>();
@@ -147,7 +156,6 @@ export function presentSalesExpensesSummary(
   for (const container of containers) {
     const sales_commission = computeSalesCommission(container.total_item_sales);
     const service_charge = container.total_service_charge;
-    const bought_items_profit_loss = container.bought_items_profit_loss;
     const sorting_preparation_fee = Math.round(container.total_item_sales * 0.05);
     const atc_group_commission = Math.round(sales_commission / 3);
     const royalty = computeRoyalty(container.total_item_sales);
@@ -155,7 +163,6 @@ export function presentSalesExpensesSummary(
 
     entry.sales_commission += sales_commission;
     entry.service_charge += service_charge;
-    entry.bought_items_profit_loss += bought_items_profit_loss;
     entry.sorting_preparation_fee += sorting_preparation_fee;
     entry.atc_group_commission += atc_group_commission;
     entry.royalty += royalty;
@@ -164,6 +171,21 @@ export function presentSalesExpensesSummary(
       total_item_sales: container.total_item_sales,
       total_service_charge: container.total_service_charge,
     });
+  }
+
+  for (const loss of boughtItemLosses) {
+    const entry = getEntry(loss.paid_at);
+    entry.bought_items_profit_loss -= loss.declared_price;
+  }
+
+  for (const gain of boughtItemGains) {
+    const entry = getEntry(gain.auction_date);
+    entry.bought_items_profit_loss += gain.price;
+  }
+
+  for (const sale of ownerOrganicSales) {
+    const entry = getEntry(sale.auction_date);
+    entry.owner_sales_00 += sale.price;
   }
 
   for (const expense of expenses) {
@@ -190,14 +212,25 @@ export const GetFinancialReportController = async (
   mode: FilterMode,
 ) => {
   try {
-    const [salesRows, expenseRows, containerFinancialRows, paymentRows, cashFlowRows] =
-      await Promise.all([
-        ReportsRepository.getTotalSales(branch_id, date),
-        ReportsRepository.getTotalExpenses(branch_id, date),
-        ReportsRepository.getPaidContainerFinancials(branch_id, date),
-        ReportsRepository.getPaymentMethodBreakdown(branch_id, date),
-        ReportsRepository.getDailyCashFlowPayments(branch_id, date),
-      ]);
+    const [
+      salesRows,
+      expenseRows,
+      containerFinancialRows,
+      boughtItemLossRows,
+      boughtItemGainRows,
+      ownerOrganicSaleRows,
+      paymentRows,
+      cashFlowRows,
+    ] = await Promise.all([
+      ReportsRepository.getTotalSales(branch_id, date),
+      ReportsRepository.getTotalExpenses(branch_id, date),
+      ReportsRepository.getPaidContainerFinancials(branch_id, date),
+      ReportsRepository.getBoughtItemLossEvents(branch_id, date),
+      ReportsRepository.getBoughtItemGainEvents(branch_id, date),
+      ReportsRepository.getOwnerOrganicSales(branch_id, date),
+      ReportsRepository.getPaymentMethodBreakdown(branch_id, date),
+      ReportsRepository.getDailyCashFlowPayments(branch_id, date),
+    ]);
 
     return ok({
       sales: presentTotalSales(salesRows, mode),
@@ -205,6 +238,9 @@ export const GetFinancialReportController = async (
       salesExpensesSummary: presentSalesExpensesSummary(
         containerFinancialRows,
         expenseRows,
+        boughtItemLossRows,
+        boughtItemGainRows,
+        ownerOrganicSaleRows,
         mode,
       ),
       paymentMethodBreakdown: presentPaymentMethodBreakdown(paymentRows),

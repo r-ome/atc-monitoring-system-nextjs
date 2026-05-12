@@ -1,7 +1,10 @@
 import {
   AuctionSalesSummaryRow,
+  BoughtItemGainRow,
+  BoughtItemLossRow,
   ExpenseSummaryDetailRow,
   ExpenseSummaryRow,
+  OwnerOrganicSaleRow,
   PaidContainerFinancialRow,
   PaymentMethodBreakdownRow,
   DailyCashFlowPaymentRow,
@@ -29,6 +32,18 @@ export interface IReportsRepository {
     branch_id: string,
     date: string,
   ) => Promise<PaidContainerFinancialRow[]>;
+  getBoughtItemLossEvents: (
+    branch_id: string,
+    date: string,
+  ) => Promise<BoughtItemLossRow[]>;
+  getBoughtItemGainEvents: (
+    branch_id: string,
+    date: string,
+  ) => Promise<BoughtItemGainRow[]>;
+  getOwnerOrganicSales: (
+    branch_id: string,
+    date: string,
+  ) => Promise<OwnerOrganicSaleRow[]>;
   getPaymentMethodBreakdown: (
     branch_id: string,
     date: string,

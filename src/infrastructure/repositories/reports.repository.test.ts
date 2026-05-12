@@ -127,7 +127,6 @@ test("getPaidContainerFinancials filters by paid container date and excluded bar
             paid_at: new Date("2026-05-04T00:00:00.000Z"),
             total_item_sales: "800000.00",
             total_service_charge: "40000.00",
-            bought_items_profit_loss: "12000.00",
           },
         ];
       }) as typeof prisma.$queryRaw,
@@ -147,6 +146,7 @@ test("getPaidContainerFinancials filters by paid container date and excluded bar
   assert.match(capturedQuery.sql, /c\.status </);
   assert.match(capturedQuery.sql, /c\.barcode NOT LIKE '00%'/);
   assert.match(capturedQuery.sql, /UPPER\(c\.barcode\) NOT LIKE 'T0%'/);
+  assert.doesNotMatch(capturedQuery.sql, /bought_items_profit_loss/);
   assert.deepEqual(rows, [
     {
       container_id: "container-1",
@@ -154,7 +154,6 @@ test("getPaidContainerFinancials filters by paid container date and excluded bar
       paid_at: new Date("2026-05-04T00:00:00.000Z"),
       total_item_sales: 800000,
       total_service_charge: 40000,
-      bought_items_profit_loss: 12000,
     },
   ]);
 });
@@ -184,5 +183,145 @@ test("getPaidContainerFinancials service charge only uses paid auction items", a
     capturedQuery.sql,
     /SUM\(CASE WHEN ai\.status = 'PAID' THEN ai\.price ELSE 0 END\)/,
   );
+});
+
+test("getBoughtItemLossEvents returns declared prices keyed by container PAID date", async () => {
+  let capturedQuery: { sql: string } | undefined;
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$queryRaw",
+      (async (query: { sql: string }) => {
+        capturedQuery = query;
+        return [
+          {
+            container_id: "container-1",
+            barcode: "32-04",
+            paid_at: new Date("2026-04-16T00:00:00.000Z"),
+            declared_price: "100.00",
+          },
+          {
+            container_id: "container-1",
+            barcode: "32-04",
+            paid_at: new Date("2026-04-16T00:00:00.000Z"),
+            declared_price: "250",
+          },
+        ];
+      }) as typeof prisma.$queryRaw,
+    ),
+  );
+
+  const rows = await ReportsRepository.getBoughtItemLossEvents(
+    "branch-1",
+    "2026-04",
+  );
+
+  assert.ok(capturedQuery);
   assert.match(capturedQuery.sql, /i\.is_bought_item IS NOT NULL/);
+  assert.match(capturedQuery.sql, /c\.status AS paid_at/);
+  assert.match(capturedQuery.sql, /c\.status IS NOT NULL/);
+  assert.match(capturedQuery.sql, /c\.barcode NOT LIKE '00%'/);
+  assert.match(capturedQuery.sql, /UPPER\(c\.barcode\) NOT LIKE 'T0%'/);
+  assert.deepEqual(rows, [
+    {
+      container_id: "container-1",
+      barcode: "32-04",
+      paid_at: new Date("2026-04-16T00:00:00.000Z"),
+      declared_price: 100,
+    },
+    {
+      container_id: "container-1",
+      barcode: "32-04",
+      paid_at: new Date("2026-04-16T00:00:00.000Z"),
+      declared_price: 250,
+    },
+  ]);
+});
+
+test("getBoughtItemGainEvents returns PAID resale prices keyed by auction_date", async () => {
+  let capturedQuery: { sql: string } | undefined;
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$queryRaw",
+      (async (query: { sql: string }) => {
+        capturedQuery = query;
+        return [
+          {
+            container_id: "container-1",
+            barcode: "32-04",
+            auction_date: new Date("2026-07-04T00:00:00.000Z"),
+            price: "500",
+          },
+        ];
+      }) as typeof prisma.$queryRaw,
+    ),
+  );
+
+  const rows = await ReportsRepository.getBoughtItemGainEvents(
+    "branch-1",
+    "2026",
+  );
+
+  assert.ok(capturedQuery);
+  assert.match(capturedQuery.sql, /ai\.status = 'PAID'/);
+  assert.match(capturedQuery.sql, /i\.is_bought_item IS NOT NULL/);
+  assert.match(capturedQuery.sql, /ai\.auction_date >=/);
+  assert.match(capturedQuery.sql, /ai\.auction_date </);
+  assert.match(capturedQuery.sql, /c\.barcode NOT LIKE '00%'/);
+  assert.match(capturedQuery.sql, /UPPER\(c\.barcode\) NOT LIKE 'T0%'/);
+  assert.deepEqual(rows, [
+    {
+      container_id: "container-1",
+      barcode: "32-04",
+      auction_date: new Date("2026-07-04T00:00:00.000Z"),
+      price: 500,
+    },
+  ]);
+});
+
+test("getOwnerOrganicSales returns 00/T0 PAID resales keyed by auction_date", async () => {
+  let capturedQuery: { sql: string } | undefined;
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$queryRaw",
+      (async (query: { sql: string }) => {
+        capturedQuery = query;
+        return [
+          {
+            container_id: "container-owner-1",
+            barcode: "00-08",
+            auction_date: new Date("2026-06-15T00:00:00.000Z"),
+            price: "350",
+          },
+        ];
+      }) as typeof prisma.$queryRaw,
+    ),
+  );
+
+  const rows = await ReportsRepository.getOwnerOrganicSales(
+    "branch-1",
+    "2026",
+  );
+
+  assert.ok(capturedQuery);
+  assert.match(capturedQuery.sql, /ai\.status = 'PAID'/);
+  assert.match(capturedQuery.sql, /ai\.auction_date >=/);
+  assert.match(capturedQuery.sql, /ai\.auction_date </);
+  assert.match(
+    capturedQuery.sql,
+    /c\.barcode LIKE '00%' OR UPPER\(c\.barcode\) LIKE 'T0%'/,
+  );
+  assert.deepEqual(rows, [
+    {
+      container_id: "container-owner-1",
+      barcode: "00-08",
+      auction_date: new Date("2026-06-15T00:00:00.000Z"),
+      price: 350,
+    },
+  ]);
 });

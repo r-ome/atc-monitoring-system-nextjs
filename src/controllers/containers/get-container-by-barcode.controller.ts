@@ -160,6 +160,9 @@ export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
             auction_date: item.auctions_inventory
               ? formatDate(item.auctions_inventory?.auction_date, date_format)
               : "",
+            sale_year: item.auctions_inventory?.auction_date
+              ? new Date(item.auctions_inventory.auction_date).getFullYear()
+              : null,
             created_at: item.auctions_inventory
               ? formatDate(item.auctions_inventory?.created_at, date_format)
               : "",

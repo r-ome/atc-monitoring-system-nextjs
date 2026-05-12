@@ -163,6 +163,26 @@ export const columns: ColumnDef<SalesRowType>[] = [
     ),
   },
   {
+    accessorKey: "owner_sales_00",
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          00 Sales
+          <ArrowUpDown />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center text-status-success">
+        {formatNumberToCurrency(row.original.owner_sales_00)}
+      </div>
+    ),
+  },
+  {
     accessorKey: "sorting_preparation_fee",
     header: ({ column }) => (
       <div className="flex justify-center">

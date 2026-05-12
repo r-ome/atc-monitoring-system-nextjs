@@ -10,6 +10,8 @@ import { ContainerReportFiles } from "./components/ContainerReportFiles";
 import { GeneratedFinalReportFiles } from "./components/GeneratedFinalReportFiles";
 import { ContainerInventoriesTable } from "./components/inventories/ContainerInventoriesTable";
 import { ContainerReport } from "./components/report/ContainerReport";
+import { OwnerContainerReport } from "./components/report/OwnerContainerReport";
+import { BoughtItemPnL } from "./components/report/BoughtItemPnL";
 import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
 import { getBranches } from "@/app/(protected)/branches/actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
@@ -37,6 +39,9 @@ export default async function Page({
     ? (branchesRes.value.find((branch) => branch.name === "TARLAC")
         ?.branch_id ?? null)
     : null;
+  const isOwnerContainer =
+    container.barcode.startsWith("00") ||
+    container.barcode.toUpperCase().startsWith("T0");
 
   return (
     <div className="h-full w-full p-4">
@@ -59,7 +64,17 @@ export default async function Page({
         </TabsContent>
         <TabsContent value="report">
           <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-            <ContainerReport inventories={container.inventories} />
+            {isOwnerContainer ? (
+              <OwnerContainerReport inventories={container.inventories} />
+            ) : (
+              <div className="space-y-6">
+                <ContainerReport inventories={container.inventories} />
+                <BoughtItemPnL
+                  containerStatus={container.status}
+                  inventories={container.inventories}
+                />
+              </div>
+            )}
             <div className="w-full max-w-lg rounded-lg border p-6">
               <div className="space-y-6">
                 <GeneratedFinalReportFiles files={container.final_report_files} />

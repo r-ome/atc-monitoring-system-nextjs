@@ -9,8 +9,11 @@ import {
 import {
   AuctionSalesSummaryRow,
   BidderReportRow,
+  BoughtItemGainRow,
+  BoughtItemLossRow,
   ExpenseSummaryDetailRow,
   ExpenseSummaryRow,
+  OwnerOrganicSaleRow,
   PaidContainerFinancialRow,
 } from "src/entities/models/Report";
 
@@ -206,7 +209,6 @@ export const ReportsRepository: IReportsRepository = {
           paid_at: Date;
           total_item_sales: Prisma.Decimal | number | string | null;
           total_service_charge: Prisma.Decimal | number | string | null;
-          bought_items_profit_loss: Prisma.Decimal | number | string | null;
         }>
       >(Prisma.sql`
         SELECT
@@ -214,14 +216,7 @@ export const ReportsRepository: IReportsRepository = {
           c.barcode,
           c.status AS paid_at,
           COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS total_item_sales,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge,
-          COALESCE(SUM(
-            CASE
-              WHEN i.is_bought_item IS NOT NULL THEN
-                (CASE WHEN i.status = 'BOUGHT_ITEM' THEN 0 ELSE COALESCE(ai.price, 0) END) - i.is_bought_item
-              ELSE 0
-            END
-          ), 0) AS bought_items_profit_loss
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge
         FROM containers c
         LEFT JOIN inventories i
           ON i.container_id = c.container_id
@@ -250,11 +245,143 @@ export const ReportsRepository: IReportsRepository = {
           paid_at: row.paid_at,
           total_item_sales: toNumber(row.total_item_sales),
           total_service_charge: toNumber(row.total_service_charge),
-          bought_items_profit_loss: toNumber(row.bought_items_profit_loss),
         }),
       );
     } catch (error) {
       handleError("Error getting paid container financials", error);
+    }
+  },
+
+  getBoughtItemLossEvents: async (branch_id, date) => {
+    try {
+      const { start, end } = parseDateRange(date);
+      const rows = await prisma.$queryRaw<
+        Array<{
+          container_id: string;
+          barcode: string;
+          paid_at: Date;
+          declared_price: Prisma.Decimal | number | string | null;
+        }>
+      >(Prisma.sql`
+        SELECT
+          c.container_id,
+          c.barcode,
+          c.status AS paid_at,
+          i.is_bought_item AS declared_price
+        FROM inventories i
+        INNER JOIN containers c
+          ON c.container_id = i.container_id
+          AND c.deleted_at IS NULL
+        WHERE c.branch_id = ${branch_id}
+          AND i.deleted_at IS NULL
+          AND i.is_bought_item IS NOT NULL
+          AND c.status IS NOT NULL
+          AND c.status >= ${start}
+          AND c.status < ${end}
+          AND c.barcode NOT LIKE '00%'
+          AND UPPER(c.barcode) NOT LIKE 'T0%'
+      `);
+
+      return rows.map(
+        (row): BoughtItemLossRow => ({
+          container_id: row.container_id,
+          barcode: row.barcode,
+          paid_at: row.paid_at,
+          declared_price: toNumber(row.declared_price),
+        }),
+      );
+    } catch (error) {
+      handleError("Error getting bought item loss events", error);
+    }
+  },
+
+  getBoughtItemGainEvents: async (branch_id, date) => {
+    try {
+      const { start, end } = parseDateRange(date);
+      const rows = await prisma.$queryRaw<
+        Array<{
+          container_id: string;
+          barcode: string;
+          auction_date: Date;
+          price: Prisma.Decimal | number | string | null;
+        }>
+      >(Prisma.sql`
+        SELECT
+          c.container_id,
+          c.barcode,
+          ai.auction_date,
+          ai.price
+        FROM auctions_inventories ai
+        INNER JOIN inventories i
+          ON i.inventory_id = ai.inventory_id
+          AND i.deleted_at IS NULL
+        INNER JOIN containers c
+          ON c.container_id = i.container_id
+          AND c.deleted_at IS NULL
+        WHERE c.branch_id = ${branch_id}
+          AND ai.deleted_at IS NULL
+          AND ai.status = 'PAID'
+          AND i.is_bought_item IS NOT NULL
+          AND ai.auction_date >= ${start}
+          AND ai.auction_date < ${end}
+          AND c.barcode NOT LIKE '00%'
+          AND UPPER(c.barcode) NOT LIKE 'T0%'
+      `);
+
+      return rows.map(
+        (row): BoughtItemGainRow => ({
+          container_id: row.container_id,
+          barcode: row.barcode,
+          auction_date: row.auction_date,
+          price: toNumber(row.price),
+        }),
+      );
+    } catch (error) {
+      handleError("Error getting bought item gain events", error);
+    }
+  },
+
+  getOwnerOrganicSales: async (branch_id, date) => {
+    try {
+      const { start, end } = parseDateRange(date);
+      const rows = await prisma.$queryRaw<
+        Array<{
+          container_id: string;
+          barcode: string;
+          auction_date: Date;
+          price: Prisma.Decimal | number | string | null;
+        }>
+      >(Prisma.sql`
+        SELECT
+          c.container_id,
+          c.barcode,
+          ai.auction_date,
+          ai.price
+        FROM auctions_inventories ai
+        INNER JOIN inventories i
+          ON i.inventory_id = ai.inventory_id
+          AND i.deleted_at IS NULL
+        INNER JOIN containers c
+          ON c.container_id = i.container_id
+          AND c.deleted_at IS NULL
+        WHERE c.branch_id = ${branch_id}
+          AND ai.deleted_at IS NULL
+          AND ai.status = 'PAID'
+          AND ai.auction_date >= ${start}
+          AND ai.auction_date < ${end}
+          AND (c.barcode LIKE '00%' OR UPPER(c.barcode) LIKE 'T0%')
+      `);
+
+      return rows.map(
+        (row): OwnerOrganicSaleRow => ({
+          container_id: row.container_id,
+          barcode: row.barcode,
+          auction_date: row.auction_date,
+          price: toNumber(row.price),
+        }),
+      );
+    } catch (error) {
+      handleError("Error getting owner organic sales", error);
     }
   },
 

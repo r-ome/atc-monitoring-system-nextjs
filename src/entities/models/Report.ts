@@ -65,7 +65,27 @@ export type PaidContainerFinancialRow = {
   paid_at: Date;
   total_item_sales: number;
   total_service_charge: number;
-  bought_items_profit_loss: number;
+};
+
+export type BoughtItemLossRow = {
+  container_id: string;
+  barcode: string;
+  paid_at: Date;
+  declared_price: number;
+};
+
+export type BoughtItemGainRow = {
+  container_id: string;
+  barcode: string;
+  auction_date: Date;
+  price: number;
+};
+
+export type OwnerOrganicSaleRow = {
+  container_id: string;
+  barcode: string;
+  auction_date: Date;
+  price: number;
 };
 
 export type SalesExpensesSummaryContainer = {
@@ -79,6 +99,7 @@ export type SalesExpensesSummaryTotals = {
   sales_commission: number;
   service_charge: number;
   bought_items_profit_loss: number;
+  owner_sales_00: number;
   sorting_preparation_fee: number;
   total_expenses: number;
   expenses: number;

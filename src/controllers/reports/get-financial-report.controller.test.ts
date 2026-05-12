@@ -12,7 +12,6 @@ test("presentSalesExpensesSummary totals income, expenses, and net income", () =
         paid_at: new Date("2026-05-04T00:00:00.000Z"),
         total_item_sales: 800000,
         total_service_charge: 40000,
-        bought_items_profit_loss: 0,
       },
     ],
     [
@@ -21,6 +20,9 @@ test("presentSalesExpensesSummary totals income, expenses, and net income", () =
         total_amount: 5000,
       },
     ],
+    [],
+    [],
+    [],
     "daily",
   );
 
@@ -28,6 +30,7 @@ test("presentSalesExpensesSummary totals income, expenses, and net income", () =
     sales_commission: 120000,
     service_charge: 40000,
     bought_items_profit_loss: 0,
+    owner_sales_00: 0,
     sorting_preparation_fee: 40000,
     total_income: 200000,
     expenses: 5000,
@@ -43,6 +46,7 @@ test("presentSalesExpensesSummary totals income, expenses, and net income", () =
       sales_commission: 120000,
       service_charge: 40000,
       bought_items_profit_loss: 0,
+      owner_sales_00: 0,
       sorting_preparation_fee: 40000,
       total_income: 200000,
       expenses: 5000,
@@ -70,9 +74,11 @@ test("presentSalesExpensesSummary exposes only the requested income and expense 
         paid_at: new Date("2026-05-04T00:00:00.000Z"),
         total_item_sales: 100000,
         total_service_charge: 5000,
-        bought_items_profit_loss: 0,
       },
     ],
+    [],
+    [],
+    [],
     [],
     "daily",
   );
@@ -84,6 +90,7 @@ test("presentSalesExpensesSummary exposes only the requested income and expense 
     "sales_commission",
     "service_charge",
     "bought_items_profit_loss",
+    "owner_sales_00",
     "sorting_preparation_fee",
     "total_expenses",
     "expenses",
@@ -94,41 +101,68 @@ test("presentSalesExpensesSummary exposes only the requested income and expense 
   ]);
 });
 
-test("presentSalesExpensesSummary adds bought item profit or loss to income and net income", () => {
+test("presentSalesExpensesSummary books declared losses at PAID date and resale gains at auction_date", () => {
   const result = presentSalesExpensesSummary(
+    [],
+    [],
     [
       {
         container_id: "container-1",
-        barcode: "32-04",
-        paid_at: new Date("2026-05-04T00:00:00.000Z"),
-        total_item_sales: 100000,
-        total_service_charge: 5000,
-        bought_items_profit_loss: -3000,
-      },
-      {
-        container_id: "container-2",
-        barcode: "32-05",
-        paid_at: new Date("2026-05-04T00:00:00.000Z"),
-        total_item_sales: 200000,
-        total_service_charge: 10000,
-        bought_items_profit_loss: 8000,
+        barcode: "32-07",
+        paid_at: new Date("2026-04-16T00:00:00.000Z"),
+        declared_price: 100,
       },
     ],
     [
       {
-        created_at: new Date("2026-05-04T10:00:00.000Z"),
-        total_amount: 7000,
+        container_id: "container-1",
+        barcode: "32-07",
+        auction_date: new Date("2026-07-10T00:00:00.000Z"),
+        price: 150,
       },
     ],
-    "daily",
+    [],
+    "monthly",
   );
 
-  assert.equal(result.breakdown[0].bought_items_profit_loss, 5000);
-  assert.equal(result.breakdown[0].total_income, 110000);
-  assert.equal(result.breakdown[0].net_income, 38000);
-  assert.equal(result.totals.bought_items_profit_loss, 5000);
-  assert.equal(result.totals.total_income, 110000);
-  assert.equal(result.totals.net_income, 38000);
+  const april = result.breakdown.find((row) => row.period === "APR");
+  const july = result.breakdown.find((row) => row.period === "JUL");
+
+  assert.ok(april);
+  assert.ok(july);
+  assert.equal(april.bought_items_profit_loss, -100);
+  assert.equal(july.bought_items_profit_loss, 150);
+  assert.equal(result.totals.bought_items_profit_loss, 50);
+});
+
+test("presentSalesExpensesSummary attributes 00/T0 organic sales by auction_date", () => {
+  const result = presentSalesExpensesSummary(
+    [],
+    [],
+    [],
+    [],
+    [
+      {
+        container_id: "container-owner-1",
+        barcode: "00-08",
+        auction_date: new Date("2026-06-15T00:00:00.000Z"),
+        price: 350,
+      },
+      {
+        container_id: "container-owner-2",
+        barcode: "T0-03",
+        auction_date: new Date("2026-06-22T00:00:00.000Z"),
+        price: 200,
+      },
+    ],
+    "monthly",
+  );
+
+  const june = result.breakdown.find((row) => row.period === "JUN");
+  assert.ok(june);
+  assert.equal(june.owner_sales_00, 550);
+  assert.equal(result.totals.owner_sales_00, 550);
+  assert.equal(june.total_income, 550);
 });
 
 test("presentSalesExpensesSummary daily buckets merge expense-only and container-only periods", () => {
@@ -140,7 +174,6 @@ test("presentSalesExpensesSummary daily buckets merge expense-only and container
         paid_at: new Date("2026-05-04T00:00:00.000Z"),
         total_item_sales: 100000,
         total_service_charge: 5000,
-        bought_items_profit_loss: 0,
       },
     ],
     [
@@ -149,6 +182,9 @@ test("presentSalesExpensesSummary daily buckets merge expense-only and container
         total_amount: 7000,
       },
     ],
+    [],
+    [],
+    [],
     "daily",
   );
 
@@ -177,7 +213,6 @@ test("presentSalesExpensesSummary weekly buckets merge expense-only and containe
         paid_at: new Date("2026-05-04T00:00:00.000Z"),
         total_item_sales: 100000,
         total_service_charge: 5000,
-        bought_items_profit_loss: 0,
       },
     ],
     [
@@ -186,6 +221,9 @@ test("presentSalesExpensesSummary weekly buckets merge expense-only and containe
         total_amount: 7000,
       },
     ],
+    [],
+    [],
+    [],
     "weekly",
   );
 
@@ -212,7 +250,6 @@ test("presentSalesExpensesSummary monthly buckets merge expense-only and contain
         paid_at: new Date("2026-05-04T00:00:00.000Z"),
         total_item_sales: 100000,
         total_service_charge: 5000,
-        bought_items_profit_loss: 0,
       },
     ],
     [
@@ -221,6 +258,9 @@ test("presentSalesExpensesSummary monthly buckets merge expense-only and contain
         total_amount: 7000,
       },
     ],
+    [],
+    [],
+    [],
     "monthly",
   );
 
