@@ -388,7 +388,7 @@ test("formatExistingInventories blocks sold items, allows reuse, and tightens bo
   const normalMode = formatExistingInventories(baseRows, inventories as never);
   assert.equal(
     normalMode[0].error,
-    "Already sold to bidder #0007 on Apr 25, 2026",
+    "Already encoded to #0007 on Apr 25, 2026",
   );
   assert.equal(normalMode[1].forUpdating, true);
   assert.equal(normalMode[1].inventory_id, "inv-unsold");
@@ -402,7 +402,7 @@ test("formatExistingInventories blocks sold items, allows reuse, and tightens bo
   );
   assert.equal(
     boughtMode[2].error,
-    "Already uploaded as Bought Item on May 02, 2026",
+    "Already encoded as Bought Item on May 02, 2026",
   );
 
   const sameAuctionBoughtMode = formatExistingInventories(
@@ -554,7 +554,7 @@ test("removeMonitoringDuplicates enforces cross-auction duplicate protection whi
   );
   assert.equal(
     normalMode[0].error,
-    "Already encoded on May 02, 2026 for bidder #0001",
+    "Already encoded to #0001 on May 02, 2026",
   );
   assert.equal(normalMode[1].forUpdating, true);
   assert.equal(normalMode[1].auction_inventory_id, "ai-cancelled");
@@ -570,6 +570,6 @@ test("removeMonitoringDuplicates enforces cross-auction duplicate protection whi
   );
   assert.equal(
     boughtMode[2].error,
-    "DOUBLE ENCODE: already encoded in this auction",
+    "DOUBLE ENCODE: already encoded to #5013 on May 02, 2026",
   );
 });

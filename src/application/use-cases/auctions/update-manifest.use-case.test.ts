@@ -142,7 +142,7 @@ test("updateManifestUseCase marks sold items in the same auction as DOUBLE ENCOD
 
   assert.equal(
     delegatedRows[0]?.error,
-    "DOUBLE ENCODE: already encoded in this auction to bidder #0043",
+    "DOUBLE ENCODE: already encoded to #0043 on May 09, 2026",
   );
   assert.equal(delegatedRows[0]?.isValid, false);
 });

@@ -29,13 +29,13 @@ const buildAlreadySoldError = (inventory: InventoryForManifestRow) => {
     inventory.auctions_inventory?.auction_bidder?.bidder?.bidder_number;
 
   if (soldDate && bidderNumber) {
-    return `Already sold to bidder #${bidderNumber} on ${soldDate}`;
+    return `Already encoded to #${bidderNumber} on ${soldDate}`;
   }
 
-  if (soldDate) return `Already sold on ${soldDate}`;
-  if (bidderNumber) return `Already sold to bidder #${bidderNumber}`;
+  if (soldDate) return `Already encoded on ${soldDate}`;
+  if (bidderNumber) return `Already encoded to #${bidderNumber}`;
 
-  return "Already sold";
+  return "Already encoded";
 };
 
 const buildBoughtItemUnavailableError = (
@@ -52,8 +52,8 @@ const buildBoughtItemUnavailableError = (
     }
 
     return boughtItemDate
-      ? `Already uploaded as Bought Item on ${boughtItemDate}`
-      : "Already uploaded as Bought Item";
+      ? `Already encoded as Bought Item on ${boughtItemDate}`
+      : "Already encoded as Bought Item";
   }
 
   return "Item is not available for Bought Item upload";
@@ -67,15 +67,19 @@ const buildMonitoringDuplicateError = (
   const auctionDate = formatAuctionDate(item.auction_date);
 
   if (auction_id && item.auction_bidder?.auction_id === auction_id) {
-    return "DOUBLE ENCODE: already encoded in this auction";
+    return bidderNumber && auctionDate
+      ? `DOUBLE ENCODE: already encoded to #${bidderNumber} on ${auctionDate}`
+      : bidderNumber
+        ? `DOUBLE ENCODE: already encoded to #${bidderNumber} in this auction`
+        : "DOUBLE ENCODE: already encoded in this auction";
   }
 
   if (auctionDate && bidderNumber) {
-    return `Already encoded on ${auctionDate} for bidder #${bidderNumber}`;
+    return `Already encoded to #${bidderNumber} on ${auctionDate}`;
   }
 
   if (auctionDate) return `Already encoded on ${auctionDate}`;
-  if (bidderNumber) return `Already encoded for bidder #${bidderNumber}`;
+  if (bidderNumber) return `Already encoded to #${bidderNumber}`;
 
   return "Already encoded";
 };
@@ -91,17 +95,19 @@ export const buildSoldInventoryConflictError = (
     inventory.auctions_inventory?.auction_bidder?.auction_id;
 
   if (auction_id && existingAuctionId === auction_id) {
-    return bidderNumber
-      ? `DOUBLE ENCODE: already encoded in this auction to bidder #${bidderNumber}`
-      : "DOUBLE ENCODE: already encoded in this auction";
+    return bidderNumber && soldDate
+      ? `DOUBLE ENCODE: already encoded to #${bidderNumber} on ${soldDate}`
+      : bidderNumber
+        ? `DOUBLE ENCODE: already encoded to #${bidderNumber} in this auction`
+        : "DOUBLE ENCODE: already encoded in this auction";
   }
 
   if (soldDate && bidderNumber) {
-    return `Already encoded on ${soldDate} for bidder #${bidderNumber}`;
+    return `Already encoded to #${bidderNumber} on ${soldDate}`;
   }
 
   if (soldDate) return `Already encoded on ${soldDate}`;
-  if (bidderNumber) return `Already encoded for bidder #${bidderNumber}`;
+  if (bidderNumber) return `Already encoded to #${bidderNumber}`;
 
   return "Already encoded";
 };

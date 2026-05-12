@@ -36,7 +36,7 @@ test("ConfirmAddOnController revalidates previewed rows before saving", async ()
       isValid: true,
       forUpdating: false,
       isSlashItem: "",
-      error: "Already sold to bidder #0060 on Apr 25, 2026",
+      error: "Already encoded to #0060 on Apr 25, 2026",
       warning: 'Normalized description from "ASIS ITEM" to "AS IS ITEM".',
     },
   ];
