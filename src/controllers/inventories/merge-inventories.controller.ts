@@ -22,8 +22,19 @@ export const MergeInventoriesController = async (
       });
     }
 
-    await InventoryRepository.mergeInventories(data);
-    await logActivity("UPDATE", "inventory", "bulk", `Merged inventories into container`);
+    const mergeResult = await InventoryRepository.mergeInventories(data);
+    const description = JSON.stringify({
+      type: "merged_inventories",
+      summary: `Merged inventories into container ${mergeResult.merged_into_barcode}`,
+      items: mergeResult.items,
+    });
+
+    await logActivity(
+      "UPDATE",
+      "inventory",
+      data.new_inventory_id,
+      description,
+    );
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

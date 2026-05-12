@@ -22,6 +22,19 @@ export const FinalizeFinalReportController = async (container_id: string) => {
       username: ctx?.username,
     });
 
+    for (const merge of result.merged_inventories) {
+      await logActivity(
+        "UPDATE",
+        "inventory",
+        merge.entity_id,
+        JSON.stringify({
+          type: "merged_inventories",
+          summary: `Merged inventories into container ${merge.result.merged_into_barcode}`,
+          items: merge.result.items,
+        }),
+      );
+    }
+
     await logActivity(
       "UPDATE",
       "container",

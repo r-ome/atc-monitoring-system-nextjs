@@ -4,22 +4,42 @@ import {
   InventoryRepository,
 } from "src/infrastructure/di/repositories";
 import { uploadBoughtItemsUseCase } from "src/application/use-cases/inventories/upload-bought-items.use-case";
+import type { MergeInventoriesResult } from "src/entities/models/Inventory";
+
+export type FinalizeFinalReportResult = {
+  container_id: string;
+  merged_inventories: Array<{
+    entity_id: string;
+    result: MergeInventoriesResult;
+  }>;
+};
 
 export const finalizeFinalReportUseCase = async (input: {
   container_id: string;
   username?: string;
-}): Promise<{ container_id: string }> => {
+}): Promise<FinalizeFinalReportResult> => {
   const draft = await ContainerRepository.getFinalReportDraft(input.container_id);
   if (!draft) {
     throw new NotFoundError("No draft to finalize for this container.");
   }
+
+  const mergedInventories: FinalizeFinalReportResult["merged_inventories"] = [];
 
   // Apply mutations in a sensible order. Each existing repo method opens its own
   // transaction; sequencing them is not fully atomic, but each method validates
   // its own preconditions and throws on conflict, leaving the draft intact so
   // the user can refresh and retry.
 
-  // 1) VOIDs
+  // 1) Manual merges staged from the UNSOLD overview
+  for (const merge of draft.merged_inventories) {
+    const result = await InventoryRepository.mergeInventories(merge);
+    mergedInventories.push({
+      entity_id: merge.new_inventory_id,
+      result,
+    });
+  }
+
+  // 2) VOIDs
   for (const item of draft.bought_items) {
     if (item.action === "VOID") {
       await InventoryRepository.applyVoidInventory(
@@ -29,7 +49,7 @@ export const finalizeFinalReportUseCase = async (input: {
     }
   }
 
-  // 2) Matches (auto-resolved + reviewed)
+  // 3) Matches (auto-resolved + reviewed)
   if (draft.matches.length > 0) {
     await InventoryRepository.resolveFinalReportMatches(
       { matches: draft.matches },
@@ -37,7 +57,7 @@ export const finalizeFinalReportUseCase = async (input: {
     );
   }
 
-  // 3) Counter-check matches
+  // 4) Counter-check matches
   if (draft.counter_check_matches.length > 0) {
     await InventoryRepository.resolveFinalReportCounterCheckMatches(
       {
@@ -56,12 +76,12 @@ export const finalizeFinalReportUseCase = async (input: {
     );
   }
 
-  // 4) Qty splits (one transaction per split source)
+  // 5) Qty splits (one transaction per split source)
   for (const split of draft.qty_splits) {
     await InventoryRepository.applySplitBoughtItems(split, input.username);
   }
 
-  // 5) Warehouse add-ons
+  // 6) Warehouse add-ons
   if (draft.warehouse_add_ons.length > 0) {
     await InventoryRepository.createFinalReportAddOns(
       {
@@ -79,7 +99,7 @@ export const finalizeFinalReportUseCase = async (input: {
     );
   }
 
-  // 6) Warehouse-staged brand-new bought items
+  // 7) Warehouse-staged brand-new bought items
   if (
     draft.warehouse_bought_items.length > 0 &&
     draft.warehouse_bought_items_branch_id
@@ -97,7 +117,7 @@ export const finalizeFinalReportUseCase = async (input: {
     );
   }
 
-  // 7) BOUGHT decisions (creates auction_inventories)
+  // 8) BOUGHT decisions (creates auction_inventories)
   for (const item of draft.bought_items) {
     if (item.action === "BOUGHT") {
       await InventoryRepository.applyDirectBoughtItem(
@@ -112,8 +132,8 @@ export const finalizeFinalReportUseCase = async (input: {
     }
   }
 
-  // 8) Clear the draft only on full success
+  // 9) Clear the draft only on full success
   await ContainerRepository.clearFinalReportDraft(input.container_id);
 
-  return { container_id: input.container_id };
+  return { container_id: input.container_id, merged_inventories: mergedInventories };
 };

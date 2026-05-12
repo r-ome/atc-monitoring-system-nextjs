@@ -72,7 +72,6 @@ export type StepProps = {
     barcode: string;
   };
   userBranchId: string;
-  shouldShowExcludeBidder740: boolean;
   inventories: InventoryRowType[];
   sheets: ContainerReportSheet[];
   saveDraft: (next: FinalReportDraft) => Promise<void>;
@@ -95,7 +94,10 @@ export const stepHasWork = (
     case "setup":
       return true;
     case "unsold-overview":
-      return preview.unsold_items.length > 0;
+      return (
+        preview.unsold_items.length > 0 ||
+        draftHas((d) => d.merged_inventories.length > 0)
+      );
     case "qty-split":
       return (
         (preview.unsold_items.length > 0 &&

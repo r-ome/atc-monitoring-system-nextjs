@@ -60,6 +60,26 @@ type DraftPreviewState = {
   unsoldItems: FinalReportInventoryRow[];
 };
 
+const getMergedControl = ({
+  oldControl,
+  newControl,
+  controlChoice,
+}: {
+  oldControl: string | null | undefined;
+  newControl: string | null | undefined;
+  controlChoice?: "UNSOLD" | "SOLD";
+}) => {
+  const normalizedNewControl = newControl ?? "NC";
+  if (
+    normalizedNewControl === "0000" ||
+    normalizedNewControl === "00NC" ||
+    controlChoice === "SOLD"
+  ) {
+    return oldControl ?? "NC";
+  }
+  return normalizedNewControl;
+};
+
 const applyDraftToPreviewState = ({
   draft,
   rawUnsoldItems,
@@ -78,6 +98,9 @@ const applyDraftToPreviewState = ({
   // Collect inventory_ids resolved by the draft (so they leave the unsold list / candidate computations)
   const resolved = new Set<string>();
   for (const item of draft.bought_items) resolved.add(item.inventory_id);
+  for (const merge of draft.merged_inventories) {
+    resolved.add(merge.new_inventory_id);
+  }
   for (const m of draft.matches) resolved.add(m.source_inventory_id);
   for (const ccm of draft.counter_check_matches) resolved.add(ccm.inventory_id);
   for (const split of draft.qty_splits) {
@@ -87,11 +110,34 @@ const applyDraftToPreviewState = ({
 
   const unsoldItems = rawUnsoldItems.filter((item) => !resolved.has(item.inventory_id));
 
-  // Start by applying matches: update each matched monitoring row to point at the 3-part inventory
+  // Start by applying manual merges staged from the UNSOLD overview: update the
+  // selected two-part monitoring row to point at the selected three-part inventory.
+  const mergeByOldInventoryId = new Map(
+    draft.merged_inventories.map((merge) => [merge.old_inventory_id, merge]),
+  );
+  let monitoring: FinalReportMonitoringRow[] = rawMonitoring.map((row) => {
+    const merge = mergeByOldInventoryId.get(row.inventory_id);
+    if (!merge) return row;
+    const target = inventoryMap.get(merge.new_inventory_id);
+    if (!target) return row;
+    return {
+      ...row,
+      inventory_id: target.inventory_id,
+      barcode: target.barcode,
+      control: getMergedControl({
+        oldControl: row.control,
+        newControl: target.control,
+        controlChoice: merge.control_choice,
+      }),
+      status: "SOLD",
+    };
+  });
+
+  // Apply matches: update each matched monitoring row to point at the 3-part inventory
   const matchByAuctionInventoryId = new Map(
     draft.matches.map((m) => [m.auction_inventory_id, m]),
   );
-  let monitoring: FinalReportMonitoringRow[] = rawMonitoring.map((row) => {
+  monitoring = monitoring.map((row) => {
     const match = matchByAuctionInventoryId.get(row.auction_inventory_id);
     if (!match) return row;
     const source = inventoryMap.get(match.source_inventory_id);
@@ -384,8 +430,24 @@ export const getFinalReportPreviewUseCase = async (
     ),
   );
 
+  const isRefundedBidder5013 = (item: (typeof container.inventories)[number]) =>
+    item.auctions_inventory?.status === "REFUNDED" &&
+    item.auctions_inventory.auction_bidder.bidder.bidder_number ===
+      ATC_DEFAULT_BIDDER_NUMBER;
+
+  const isRefundedReviewItem = (item: (typeof container.inventories)[number]) =>
+    item.auctions_inventory?.status === "REFUNDED" &&
+    !isRefundedBidder5013(item) &&
+    Boolean(item.auction_date) &&
+    input.selected_dates.includes(formatDate(item.auction_date!, DATE_FORMAT));
+
   const rawUnsoldItems = container.inventories
-    .filter((item) => item.status === "UNSOLD" && isThreePartBarcode(item.barcode))
+    .filter(
+      (item) =>
+        isThreePartBarcode(item.barcode) &&
+        !isRefundedBidder5013(item) &&
+        (item.status === "UNSOLD" || isRefundedReviewItem(item)),
+    )
     .map(toInventoryRow);
 
   // Apply draft virtually: filter resolved inventories and synthesize monitoring rows
@@ -552,21 +614,6 @@ export const getFinalReportPreviewUseCase = async (
   ]);
   const warehouseCheckItems = unsoldItems.filter((item) => !candidateInventoryIds.has(item.inventory_id));
 
-  const bidder740Monitoring =
-    input.deduct_thirty_k && input.exclude_bidder_740
-      ? selectedAuctionInventories
-          .filter((item) => item.auctions_inventory?.auction_bidder.bidder.bidder_number === "0740")
-          .map((item) => {
-            const auctionInventory = item.auctions_inventory!;
-            return {
-              control: item.control ?? "NC",
-              description: auctionInventory.description,
-              bidder_number: "0740",
-              price: auctionInventory.price,
-            };
-          })
-      : [];
-
   const persistedTaxDeduction = await ContainerRepository.getContainerTaxDeduction(
     container.container_id,
   );
@@ -599,21 +646,10 @@ export const getFinalReportPreviewUseCase = async (
       if (!reduction) return item;
       return { ...item, price: Math.max(0, item.price - reduction) };
     });
-  } else if (input.deduct_thirty_k) {
-    // 0740 deductions always go in (full price each, outside the 30k cap).
-    deductions.push(
-      ...bidder740Monitoring.map((item) => ({
-        control: item.control,
-        description: item.description,
-        bidder_number: item.bidder_number,
-        original_price: item.price,
-        deducted_amount: item.price,
-      })),
-    );
-
-    // Non-0740 deductions come exclusively from the user's draft.tax_edits.
-    // The server no longer auto-computes 30k deductions; the user configures
-    // them themselves in the Container Tax step.
+  } else {
+    // Deductions come exclusively from the user's draft.tax_edits. The server
+    // does not auto-compute the initial 30k deduction; the user configures
+    // deductions manually in the Container Tax step.
     if (draft && draft.tax_edits.length > 0) {
       const editsByBarcodeControl = new Map(
         draft.tax_edits.map((e) => [`${e.barcode}|${e.control}`, e]),

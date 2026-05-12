@@ -95,6 +95,7 @@ export const GenerateStep = ({
       boughts,
       matches: d.matches.length,
       qty_splits: d.qty_splits.reduce((acc, s) => acc + s.splits.length, 0),
+      merges: d.merged_inventories.length,
       tax_edits: d.tax_edits.length,
       split_selections: d.split_selections.length,
     };
@@ -338,6 +339,9 @@ export const GenerateStep = ({
         <span className="font-medium">{draftSummary.qty_splits}</span> qty split target(s)
       </li>
       <li>
+        <span className="font-medium">{draftSummary.merges}</span> staged merge(s)
+      </li>
+      <li>
         <span className="font-medium">{draftSummary.split_selections}</span> split selection(s)
         {withDbHint ? (
           <span className="text-muted-foreground"> — workbook only, not written to DB</span>
@@ -360,7 +364,7 @@ export const GenerateStep = ({
       onJumpTo={goTo}
       jumpDisabled={jumpDisabled}
       loading={loading}
-      description="Final review. Generate Report builds a preview Excel workbook from your staged draft without committing anything. Finalize & Generate commits the draft to the database (matches, voids, bought items, etc.) and then builds the workbook. In both cases, monitoring rows with bidder 5013 are reassigned to a random non-5013 bidder from the same auction."
+      description="Final review. All auction dates for this container are included. Generate Report builds a preview Excel workbook from your staged draft without committing anything. Finalize & Generate commits the draft to the database (matches, voids, bought items, etc.) and then builds the workbook. In both cases, monitoring rows with bidder 5013 are reassigned to a random non-5013 bidder from the same auction."
       rightSlot={
         <div className="flex gap-2">
           <DropdownMenu>
@@ -390,7 +394,7 @@ export const GenerateStep = ({
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
         <div className="border rounded p-3">
-          <p className="text-xs text-muted-foreground">Auction dates</p>
+          <p className="text-xs text-muted-foreground">Included auction dates</p>
           <p className="font-medium">{state.options.selected_dates.join(", ")}</p>
         </div>
       </div>
@@ -413,6 +417,10 @@ export const GenerateStep = ({
           <div>
             <span className="text-muted-foreground">Qty splits: </span>
             <span className="font-medium">{draftSummary.qty_splits}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Merges: </span>
+            <span className="font-medium">{draftSummary.merges}</span>
           </div>
         </div>
       </div>
@@ -511,6 +519,14 @@ export const GenerateStep = ({
                       inventories will be soft-deleted
                     </li>
                   )}
+                  {draftSummary.merges > 0 && (
+                    <li>
+                      <span className="font-medium">{draftSummary.merges}</span>{" "}
+                      manual merge(s) — selected UNSOLD inventories will inherit
+                      their selected two-part auction records; the two-part
+                      inventories will be soft-deleted
+                    </li>
+                  )}
                   {draftSummary.qty_splits > 0 && (
                     <li>
                       <span className="font-medium">{draftSummary.qty_splits}</span>{" "}
@@ -522,6 +538,7 @@ export const GenerateStep = ({
                   {draftSummary.voids === 0 &&
                     draftSummary.boughts === 0 &&
                     draftSummary.matches === 0 &&
+                    draftSummary.merges === 0 &&
                     draftSummary.qty_splits === 0 && (
                       <li className="text-muted-foreground italic">
                         No DB-mutating decisions in the draft.

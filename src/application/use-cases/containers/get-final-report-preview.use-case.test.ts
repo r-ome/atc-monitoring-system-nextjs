@@ -6,6 +6,7 @@ import {
   ContainerRepository,
 } from "src/infrastructure/di/repositories";
 import { patchMethod } from "src/test-utils/patch";
+import { emptyFinalReportDraft } from "src/entities/models/FinalReportDraft";
 
 const date = new Date("2026-05-07T00:00:00.000Z");
 
@@ -158,6 +159,63 @@ test("getFinalReportPreviewUseCase auto-resolves exact two-part monitoring match
   }
 });
 
+test("getFinalReportPreviewUseCase applies staged manual merges virtually", async () => {
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => buildContainer(),
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      merged_inventories: [
+        {
+          old_inventory_id: "monitoring-source-1",
+          new_inventory_id: "unsold-1",
+        },
+      ],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    assert.equal(preview.unsold_items.length, 0);
+    assert.equal(preview.auto_resolved.length, 0);
+    assert.equal(preview.report.monitoring[0].inventory_id, "unsold-1");
+    assert.equal(preview.report.monitoring[0].barcode, "32-04-001");
+    assert.equal(preview.report.monitoring[0].control, "0001");
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
 test("getFinalReportPreviewUseCase excludes refunded bidder 740 monitoring rows when requested", async () => {
   const restoreContainer = patchMethod(
     ContainerRepository,
@@ -192,6 +250,136 @@ test("getFinalReportPreviewUseCase excludes refunded bidder 740 monitoring rows 
     assert.equal(
       preview.report.monitoring.some(
         (item) => item.bidder_number === "0740" && item.auction_status === "REFUNDED",
+      ),
+      false,
+    );
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
+test("getFinalReportPreviewUseCase includes refunded non-5013 rows in UNSOLD review", async () => {
+  const container = buildContainer() as {
+    inventories: Array<Record<string, unknown>>;
+  };
+  container.inventories.push(
+    {
+      inventory_id: "refunded-review-1",
+      container_id: "container-1",
+      barcode: "32-04-002",
+      control: "0002",
+      description: "REFUNDED BAG",
+      status: "SOLD",
+      is_bought_item: 0,
+      auction_date: date,
+      created_at: date,
+      updated_at: date,
+      deleted_at: null,
+      histories: [],
+      auctions_inventory: {
+        auction_inventory_id: "auction-inventory-refunded-review",
+        auction_bidder_id: "ab-refunded-review",
+        inventory_id: "refunded-review-1",
+        description: "REFUNDED BAG",
+        status: "REFUNDED",
+        price: 900,
+        qty: "1",
+        manifest_number: "M3",
+        is_slash_item: null,
+        auction_date: date,
+        auction_bidder: {
+          auction_id: "auction-3",
+          bidder: {
+            bidder_id: "bidder-3",
+            bidder_number: "0003",
+            first_name: "F",
+            middle_name: null,
+            last_name: "L",
+          },
+        },
+        histories: [],
+      },
+    },
+    {
+      inventory_id: "refunded-5013-1",
+      container_id: "container-1",
+      barcode: "32-04-003",
+      control: "0003",
+      description: "REFUNDED 5013 BAG",
+      status: "SOLD",
+      is_bought_item: 0,
+      auction_date: date,
+      created_at: date,
+      updated_at: date,
+      deleted_at: null,
+      histories: [],
+      auctions_inventory: {
+        auction_inventory_id: "auction-inventory-refunded-5013",
+        auction_bidder_id: "ab-refunded-5013",
+        inventory_id: "refunded-5013-1",
+        description: "REFUNDED 5013 BAG",
+        status: "REFUNDED",
+        price: 1000,
+        qty: "1",
+        manifest_number: "M4",
+        is_slash_item: null,
+        auction_date: date,
+        auction_bidder: {
+          auction_id: "auction-4",
+          bidder: {
+            bidder_id: "bidder-5013",
+            bidder_number: "5013",
+            first_name: "ATC",
+            middle_name: null,
+            last_name: "Account",
+          },
+        },
+        histories: [],
+      },
+    },
+  );
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => container as never,
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => null,
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: true,
+      deduct_thirty_k: false,
+    });
+
+    assert.equal(
+      preview.unsold_items.some(
+        (item) => item.inventory_id === "refunded-review-1",
+      ),
+      true,
+    );
+    assert.equal(
+      preview.unsold_items.some(
+        (item) => item.inventory_id === "refunded-5013-1",
       ),
       false,
     );

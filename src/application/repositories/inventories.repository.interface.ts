@@ -7,6 +7,7 @@ import type {
   UpdateAuctionInventoryInput,
   CreateInventoryInput,
   MergeInventoriesInput,
+  MergeInventoriesResult,
   InventoryStatus,
 } from "src/entities/models/Inventory";
 import {
@@ -71,7 +72,9 @@ export interface IInventoryRepository {
   createInventory: (
     data: CreateInventoryInput,
   ) => Promise<InventoryRow>;
-  mergeInventories: (data: MergeInventoriesInput) => Promise<void>;
+  mergeInventories: (
+    data: MergeInventoriesInput,
+  ) => Promise<MergeInventoriesResult>;
   applySplitBoughtItems: (
     data: ApplyFinalReportQtySplitInput,
     updated_by?: string,

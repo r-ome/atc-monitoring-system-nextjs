@@ -337,7 +337,7 @@ export const TaxStep = ({
         }
         goNext();
       }}
-      nextLabel="Continue"
+      nextLabel="Save & Continue"
       loading={loading}
       description={
         showFilter

@@ -210,7 +210,7 @@ export const QtySplitStep = ({
       onJumpTo={goTo}
       jumpDisabled={jumpDisabled}
       onNext={goNext}
-      nextLabel="Continue"
+      nextLabel="Save & Continue"
       loading={loading}
       description="Match UNSOLD items to a sold multi-qty entry. Select one or more UNSOLD items on the left, then select the source row on the right. Each selected UNSOLD will be recorded as a Bought Item at the split price."
     >

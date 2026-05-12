@@ -172,3 +172,16 @@ export const mergeInventoriesSchema = z.object({
   control_choice: z.enum(["UNSOLD", "SOLD"]).optional(),
 });
 export type MergeInventoriesInput = z.infer<typeof mergeInventoriesSchema>;
+
+export type MergeInventoriesActivityItem = {
+  barcode: string;
+  control: string;
+  description: string;
+  price: string;
+  bidder_number: string;
+};
+
+export type MergeInventoriesResult = {
+  merged_into_barcode: string;
+  items: MergeInventoriesActivityItem[];
+};

@@ -45,7 +45,7 @@ export const SplitsStep = ({
       onJumpTo={goTo}
       jumpDisabled={jumpDisabled}
       onNext={goNext}
-      nextLabel="Continue"
+      nextLabel="Save & Continue"
       loading={loading}
       description="Splits are applied to the generated workbook only — they do not change the database. Tick a row to split that monitoring entry's qty/price between the original and the UNSOLD item."
     >

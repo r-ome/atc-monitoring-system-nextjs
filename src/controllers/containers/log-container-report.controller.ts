@@ -45,10 +45,6 @@ export const LogContainerReportController = async (
         option: "Remove REFUNDED items from Bidder 5013",
         value: data.exclude_refunded_bidder_5013 ? "Yes" : "No",
       },
-      {
-        option: "Less 30,000",
-        value: data.deduct_thirty_k ? "Yes" : "No",
-      },
     ];
 
     if (ctx?.branch_name !== "TARLAC") {

@@ -65,7 +65,6 @@ export const FinalReportWorkbench = ({
 }: FinalReportWorkbenchProps) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const shouldShowExcludeBidder740 = userBranchId !== tarlacBranchId;
 
   const allAuctionDates = useMemo(
     () =>
@@ -82,11 +81,11 @@ export const FinalReportWorkbench = ({
   const defaultOptions = useMemo(
     () => ({
       selected_dates: allAuctionDates,
-      exclude_bidder_740: shouldShowExcludeBidder740,
-      exclude_refunded_bidder_5013: false,
+      exclude_bidder_740: true,
+      exclude_refunded_bidder_5013: true,
       deduct_thirty_k: true,
     }),
-    [allAuctionDates, shouldShowExcludeBidder740],
+    [allAuctionDates],
   );
 
   const [state, setState] = useState<WizardState>({
@@ -104,12 +103,37 @@ export const FinalReportWorkbench = ({
   const setLoading = (msg: string | null) =>
     setState((prev) => ({ ...prev, loading: msg }));
 
+  const normalizeDraftDates = useCallback(
+    (draft: FinalReportDraft): FinalReportDraft => ({
+      ...draft,
+      options: {
+        ...draft.options,
+        selected_dates: allAuctionDates,
+        exclude_bidder_740: true,
+        exclude_refunded_bidder_5013: true,
+        deduct_thirty_k: true,
+      },
+    }),
+    [allAuctionDates],
+  );
+
   const saveDraft = useCallback(
     async (next: FinalReportDraft) => {
-      setState((prev) => ({ ...prev, draft: next }));
+      const normalized = normalizeDraftDates(next);
+      setState((prev) => ({
+        ...prev,
+        draft: normalized,
+        options: {
+          ...prev.options,
+          selected_dates: allAuctionDates,
+          exclude_bidder_740: true,
+          exclude_refunded_bidder_5013: true,
+          deduct_thirty_k: true,
+        },
+      }));
       const res = await saveFinalReportDraft({
         container_id: container.container_id,
-        draft: next,
+        draft: normalized,
       });
       if (!res.ok) {
         toast.error(res.error.message, {
@@ -118,7 +142,7 @@ export const FinalReportWorkbench = ({
         });
       }
     },
-    [container.container_id],
+    [allAuctionDates, container.container_id, normalizeDraftDates],
   );
 
   // Load existing draft when dialog opens. Wizard always starts at step 1, but
@@ -131,23 +155,24 @@ export const FinalReportWorkbench = ({
       if (cancelled || !res.ok) return;
       const loaded = res.value;
       if (loaded) {
+        const normalized = normalizeDraftDates(loaded);
         setState((prev) => ({
           ...prev,
-          draft: loaded,
+          draft: normalized,
           options: {
-            selected_dates: loaded.options.selected_dates,
-            exclude_bidder_740: loaded.options.exclude_bidder_740,
-            exclude_refunded_bidder_5013: loaded.options.exclude_refunded_bidder_5013,
-            deduct_thirty_k: loaded.options.deduct_thirty_k,
+            selected_dates: allAuctionDates,
+            exclude_bidder_740: true,
+            exclude_refunded_bidder_5013: true,
+            deduct_thirty_k: true,
           },
-          splitSelections: loaded.split_selections,
+          splitSelections: normalized.split_selections,
         }));
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [open, container.container_id]);
+  }, [allAuctionDates, open, container.container_id, normalizeDraftDates]);
 
   const handleOpenChange = (value: boolean) => {
     setOpen(value);
@@ -215,7 +240,6 @@ export const FinalReportWorkbench = ({
     loading: loading ? "Loading preview..." : state.loading,
     container,
     userBranchId,
-    shouldShowExcludeBidder740,
     inventories,
     sheets: SELECTED_SHEETS,
     saveDraft,

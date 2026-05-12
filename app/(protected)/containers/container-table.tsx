@@ -1,8 +1,18 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { CoreRow } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
+import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
 import { columns } from "./container-columns";
+import type { UserRole } from "src/entities/models/User";
+
+const FILTER_ALLOWED_ROLES = new Set<UserRole>(["SUPER_ADMIN", "OWNER"]);
+
+const STATUS_OPTIONS = [
+  { value: "PAID", label: "PAID" },
+  { value: "UNPAID", label: "UNPAID" },
+];
 
 export type ContainerRowType = {
   container_id: string;
@@ -29,11 +39,52 @@ export type ContainerRowType = {
 
 interface ContainersTableProps {
   containers: ContainerRowType[];
+  userRole: UserRole;
 }
 
 export const ContainersTable: React.FC<ContainersTableProps> = ({
   containers,
+  userRole,
 }) => {
+  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const canUseFilters = FILTER_ALLOWED_ROLES.has(userRole);
+
+  const branchOptions = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          containers.map((container) => [
+            container.branch.branch_id,
+            { value: container.branch.branch_id, label: container.branch.name },
+          ]),
+        ).values(),
+      ).sort((a, b) => a.label.localeCompare(b.label)),
+    [containers],
+  );
+
+  const filteredContainers = useMemo(() => {
+    if (!canUseFilters) return containers;
+
+    return containers.filter((container) => {
+      if (
+        selectedBranches.length > 0 &&
+        !selectedBranches.includes(container.branch.branch_id)
+      ) {
+        return false;
+      }
+
+      if (
+        selectedStatuses.length > 0 &&
+        !selectedStatuses.includes(container.status)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [canUseFilters, containers, selectedBranches, selectedStatuses]);
+
   const globalFilterFn = (
     row: CoreRow<ContainerRowType>,
     columnId?: string,
@@ -48,7 +99,23 @@ export const ContainersTable: React.FC<ContainersTableProps> = ({
   return (
     <DataTable
       columns={columns}
-      data={containers}
+      data={filteredContainers}
+      actionButtons={
+        canUseFilters ? (
+          <div className="flex flex-col gap-2 md:flex-row">
+            <FilterColumnComponent
+              options={branchOptions}
+              onChangeEvent={setSelectedBranches}
+              placeholder="Filter by Branch"
+            />
+            <FilterColumnComponent
+              options={STATUS_OPTIONS}
+              onChangeEvent={setSelectedStatuses}
+              placeholder="Filter by Status"
+            />
+          </div>
+        ) : null
+      }
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {

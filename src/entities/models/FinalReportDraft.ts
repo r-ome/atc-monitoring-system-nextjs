@@ -21,6 +21,12 @@ const taxEditEntrySchema = z.object({
 
 export type FinalReportDraftTaxEdit = z.infer<typeof taxEditEntrySchema>;
 
+const mergedInventorySchema = z.object({
+  old_inventory_id: z.string().min(1),
+  new_inventory_id: z.string().min(1),
+  control_choice: z.enum(["UNSOLD", "SOLD"]).optional(),
+});
+
 export const FINAL_REPORT_DRAFT_VERSION = 1;
 
 export const finalReportDraftOptionsSchema = z.object({
@@ -71,6 +77,7 @@ export const finalReportDraftSchema = z.object({
   matches: z.array(finalReportMatchSchema),
   counter_check_matches: z.array(finalReportDraftCounterCheckMatchSchema),
   qty_splits: z.array(applyFinalReportQtySplitSchema),
+  merged_inventories: z.array(mergedInventorySchema).default([]),
   warehouse_add_ons: z.array(finalReportDraftAddOnSchema),
   warehouse_bought_items: z.array(warehouseBoughtItemSchema),
   warehouse_bought_items_branch_id: z.string().nullable(),
@@ -99,6 +106,7 @@ export const emptyFinalReportDraft = (options: FinalReportDraftOptions): FinalRe
   matches: [],
   counter_check_matches: [],
   qty_splits: [],
+  merged_inventories: [],
   warehouse_add_ons: [],
   warehouse_bought_items: [],
   warehouse_bought_items_branch_id: null,

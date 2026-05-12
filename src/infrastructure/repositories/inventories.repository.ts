@@ -927,25 +927,51 @@ export const InventoryRepository: IInventoryRepository = {
   },
   mergeInventories: async (data) => {
     try {
-      await prisma.$transaction(async (tx) => {
-        const [old_inventory, new_inventory, old_auction_inventory] =
-          await Promise.all([
-            tx.inventories.findFirst({
-              where: buildTenantWhere("inventories", {
-                inventory_id: data.old_inventory_id,
-              }),
+      return await prisma.$transaction(async (tx) => {
+        const [
+          old_inventory,
+          new_inventory,
+          old_auction_inventory,
+          new_auction_inventory,
+        ] = await Promise.all([
+          tx.inventories.findFirst({
+            where: buildTenantWhere("inventories", {
+              inventory_id: data.old_inventory_id,
             }),
-            tx.inventories.findFirst({
-              where: buildTenantWhere("inventories", {
-                inventory_id: data.new_inventory_id,
-              }),
+          }),
+          tx.inventories.findFirst({
+            where: buildTenantWhere("inventories", {
+              inventory_id: data.new_inventory_id,
             }),
-            tx.auctions_inventories.findFirst({
-              where: buildTenantWhere("auctions_inventories", {
-                inventory_id: data.old_inventory_id,
-              }),
+            include: {
+              container: { select: { barcode: true } },
+            },
+          }),
+          tx.auctions_inventories.findFirst({
+            where: buildTenantWhere("auctions_inventories", {
+              inventory_id: data.old_inventory_id,
             }),
-          ]);
+            include: {
+              auction_bidder: {
+                include: {
+                  bidder: { select: { bidder_number: true } },
+                },
+              },
+            },
+          }),
+          tx.auctions_inventories.findFirst({
+            where: buildTenantWhere("auctions_inventories", {
+              inventory_id: data.new_inventory_id,
+            }),
+            include: {
+              auction_bidder: {
+                include: {
+                  bidder: { select: { bidder_number: true } },
+                },
+              },
+            },
+          }),
+        ]);
 
         if (!old_inventory || !new_inventory || !old_auction_inventory) {
           throw new NotFoundError("Inventory / Auction inventory not found!");
@@ -989,10 +1015,7 @@ export const InventoryRepository: IInventoryRepository = {
 
         // If the surviving inventory already has an auction record (e.g. CANCELLED/REFUNDED),
         // remove it before relinking the SOLD item's record.
-        const existing_new_auction = await tx.auctions_inventories.findFirst({
-          where: { inventory_id: data.new_inventory_id },
-        });
-        if (existing_new_auction) {
+        if (new_auction_inventory) {
           await tx.auctions_inventories.delete({
             where: { inventory_id: data.new_inventory_id },
           });
@@ -1012,6 +1035,30 @@ export const InventoryRepository: IInventoryRepository = {
             description: `MERGED INTO: ${new_inventory.barcode} (ctrl: ${finalControl ?? "NC"})`,
           },
         });
+
+        return {
+          merged_into_barcode: new_inventory.container.barcode,
+          items: [
+            {
+              barcode: old_inventory.barcode,
+              control: old_inventory.control ?? "NC",
+              description:
+                old_auction_inventory.description ?? old_inventory.description,
+              price: old_auction_inventory.price.toString(),
+              bidder_number:
+                old_auction_inventory.auction_bidder.bidder.bidder_number,
+            },
+            {
+              barcode: new_inventory.barcode,
+              control: new_inventory.control ?? "NC",
+              description:
+                new_auction_inventory?.description ?? new_inventory.description,
+              price: new_auction_inventory?.price.toString() ?? "",
+              bidder_number:
+                new_auction_inventory?.auction_bidder.bidder.bidder_number ?? "",
+            },
+          ],
+        };
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

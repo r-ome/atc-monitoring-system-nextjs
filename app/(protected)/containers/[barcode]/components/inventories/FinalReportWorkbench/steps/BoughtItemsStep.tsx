@@ -166,7 +166,7 @@ export const BoughtItemsStep = ({
       onJumpTo={goTo}
       jumpDisabled={jumpDisabled}
       onNext={goNext}
-      nextLabel="Continue"
+      nextLabel="Save & Continue"
       loading={loading}
       description="Resolve remaining UNSOLD items. Select an item on the left, then either void it (hidden from report, kept in system) or record it as a Bought Item with a price, qty, and auction."
     >

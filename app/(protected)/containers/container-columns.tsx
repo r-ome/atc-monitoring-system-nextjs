@@ -46,7 +46,7 @@ export const columns: ColumnDef<ContainerRowType>[] = [
     },
   },
   {
-    accessorKey: "inventories.length",
+    accessorKey: "inventory_count",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

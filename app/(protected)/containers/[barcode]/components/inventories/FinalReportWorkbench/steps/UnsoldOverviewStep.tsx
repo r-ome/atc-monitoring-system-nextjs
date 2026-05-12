@@ -25,7 +25,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
-import { mergeFinalReportInventories } from "@/app/(protected)/containers/actions";
 import { type FinalReportInventoryRow } from "src/entities/models/FinalReport";
 import { StepShell } from "../shared/StepShell";
 import { StepProps } from "../shared/types";
@@ -50,7 +49,8 @@ export const UnsoldOverviewStep = ({
   loading,
   setLoading,
   refresh,
-  routerRefresh,
+  state,
+  saveDraft,
 }: StepProps) => {
   const [selectedUnsoldId, setSelectedUnsoldId] = useState<string | null>(null);
   const [selectedSoldId, setSelectedSoldId] = useState<string | null>(null);
@@ -214,25 +214,56 @@ export const UnsoldOverviewStep = ({
   const doMerge = async (control_choice: ControlChoice | undefined) => {
     if (!selectedUnsold || !selectedSold) return;
     setConflictOpen(false);
-    setLoading("Merging items...");
+    setLoading("Staging merge...");
     try {
-      const res = await mergeFinalReportInventories({
+      const nextMerge = {
         old_inventory_id: selectedSold.inventory_id,
         new_inventory_id: selectedUnsold.inventory_id,
-        control_choice,
+        ...(control_choice ? { control_choice } : {}),
+      };
+
+      await saveDraft({
+        ...state.draft,
+        merged_inventories: [
+          ...state.draft.merged_inventories.filter(
+            (merge) =>
+              merge.old_inventory_id !== nextMerge.old_inventory_id &&
+              merge.new_inventory_id !== nextMerge.new_inventory_id,
+          ),
+          nextMerge,
+        ],
+        bought_items: state.draft.bought_items.filter(
+          (item) => item.inventory_id !== nextMerge.new_inventory_id,
+        ),
+        matches: state.draft.matches.filter(
+          (match) =>
+            match.source_inventory_id !== nextMerge.new_inventory_id &&
+            match.target_inventory_id !== nextMerge.old_inventory_id,
+        ),
+        counter_check_matches: state.draft.counter_check_matches.filter(
+          (match) => match.inventory_id !== nextMerge.new_inventory_id,
+        ),
+        qty_splits: state.draft.qty_splits
+          .filter(
+            (split) =>
+              split.source_auction_inventory_id !==
+              selectedSold.auction_inventory_id,
+          )
+          .map((split) => ({
+            ...split,
+            splits: split.splits.filter(
+              (item) => item.target_inventory_id !== nextMerge.new_inventory_id,
+            ),
+          }))
+          .filter((split) => split.splits.length > 0),
+        warehouse_add_ons: state.draft.warehouse_add_ons.filter(
+          (item) => item.inventory_id !== nextMerge.new_inventory_id,
+        ),
       });
-      if (!res.ok) {
-        toast.error(res.error.message, {
-          description:
-            typeof res.error.cause === "string" ? res.error.cause : undefined,
-        });
-        return;
-      }
-      toast.success("Items merged.");
+      toast.success("Merge staged.");
       setSelectedUnsoldId(null);
       setSelectedSoldId(null);
       await refresh();
-      routerRefresh();
     } finally {
       setLoading(null);
     }
@@ -247,9 +278,9 @@ export const UnsoldOverviewStep = ({
         onJumpTo={goTo}
         jumpDisabled={jumpDisabled}
         onNext={goNext}
-        nextLabel="Continue"
+        nextLabel="Save & Continue"
         loading={loading}
-        description="Review UNSOLD and SOLD items. Select one from each side to merge them — the UNSOLD item inherits the SOLD item's auction record."
+        description="Review UNSOLD and SOLD items. Select one from each side to stage a merge — the UNSOLD item will inherit the SOLD item's auction record when you finalize."
       >
         <div className="mb-3">
           <Input
@@ -528,13 +559,13 @@ export const UnsoldOverviewStep = ({
                 onClick={handleMergeClick}
                 disabled={Boolean(loading)}
               >
-                Merge
+                Stage Merge
               </Button>
             </div>
           </div>
         ) : (
           <p className="mt-3 text-xs text-muted-foreground">
-            Click a row on each side to select items to merge. CANCELLED and REFUNDED items cannot be merged.
+            Click a row on each side to select items to stage for merging. CANCELLED and REFUNDED items cannot be merged.
           </p>
         )}
       </StepShell>

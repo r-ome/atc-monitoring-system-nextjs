@@ -68,7 +68,6 @@ test("LogContainerReportController logs selected report options in the descripti
       { option: "Auction dates", value: "Apr 13, 2026, Apr 14, 2026" },
       { option: "Remove REFUNDED items from Bidder 5013", value: "No" },
       { option: "Remove Bidder 740", value: "Yes" },
-      { option: "Less 30,000", value: "Yes" },
     ],
   });
 });
@@ -126,7 +125,6 @@ test("LogContainerReportController omits bidder 740 option in the description fo
     options: [
       { option: "Auction dates", value: "Apr 13, 2026, Apr 14, 2026" },
       { option: "Remove REFUNDED items from Bidder 5013", value: "No" },
-      { option: "Less 30,000", value: "Yes" },
     ],
   });
 });

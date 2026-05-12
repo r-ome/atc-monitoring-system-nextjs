@@ -70,7 +70,7 @@ export const AutoResolvedStep = ({
       onJumpTo={goTo}
       jumpDisabled={jumpDisabled}
       onNext={handleApply}
-      nextLabel={items.length ? `Apply ${items.length} & Continue` : "Continue"}
+      nextLabel="Save & Continue"
       loading={loading}
       description="High-confidence matches between UNSOLD inventory and 2-part monitoring rows. Review the list before applying."
     >

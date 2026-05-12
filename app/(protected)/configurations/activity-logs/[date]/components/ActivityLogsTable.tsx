@@ -28,12 +28,14 @@ type ItemTableActivityDescription = {
     | "bought_items_upload"
     | "cancelled_items"
     | "refunded_items"
-    | "add_on_items";
+    | "add_on_items"
+    | "merged_inventories";
   summary: string;
   reason: string | null;
   items: {
     barcode: string;
     control: string;
+    description: string;
     bidder_number: string;
     price: string;
   }[];
@@ -81,7 +83,8 @@ function parseItemTableActivityDescription(
       (type !== "bought_items_upload" &&
         type !== "cancelled_items" &&
         type !== "refunded_items" &&
-        type !== "add_on_items") ||
+        type !== "add_on_items" &&
+        type !== "merged_inventories") ||
       !Array.isArray(parsed.items)
     ) {
       return null;
@@ -98,6 +101,7 @@ function parseItemTableActivityDescription(
       items: parsed.items.map((item) => ({
         barcode: item.barcode?.toString() ?? "",
         control: item.control?.toString() ?? "",
+        description: item.description?.toString() ?? "",
         bidder_number: item.bidder_number?.toString() ?? "",
         price: item.price?.toString() ?? "",
       })),
@@ -182,6 +186,9 @@ function ActivityDescriptionCell({ description }: { description: string }) {
   const hasBidderNumbers = itemActivity?.items.some(
     (item) => item.bidder_number,
   );
+  const hasDescriptions = itemActivity?.items.some(
+    (item) => item.description,
+  );
 
   if (itemActivity) {
     return (
@@ -203,6 +210,11 @@ function ActivityDescriptionCell({ description }: { description: string }) {
               <tr className="border-b border-primary-foreground/30">
                 <th className="py-1 pr-3 text-left font-semibold">Barcode</th>
                 <th className="px-3 py-1 text-left font-semibold">Control</th>
+                {hasDescriptions ? (
+                  <th className="px-3 py-1 text-left font-semibold">
+                    Description
+                  </th>
+                ) : null}
                 {hasBidderNumbers ? (
                   <th className="px-3 py-1 text-left font-semibold">
                     Bidder #
@@ -219,6 +231,11 @@ function ActivityDescriptionCell({ description }: { description: string }) {
                 >
                   <td className="py-1 pr-3">{item.barcode}</td>
                   <td className="px-3 py-1">{item.control}</td>
+                  {hasDescriptions ? (
+                    <td className="max-w-[18rem] px-3 py-1 whitespace-normal">
+                      {item.description}
+                    </td>
+                  ) : null}
                   {hasBidderNumbers ? (
                     <td className="px-3 py-1">{item.bidder_number}</td>
                   ) : null}

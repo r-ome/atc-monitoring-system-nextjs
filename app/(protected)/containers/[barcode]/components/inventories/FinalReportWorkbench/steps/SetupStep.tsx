@@ -1,8 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-import { Checkbox } from "@/app/components/ui/checkbox";
-import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { StepShell } from "../shared/StepShell";
 import { StepProps, STEP_ORDER, stepHasWork } from "../shared/types";
 
@@ -13,44 +10,11 @@ export const SetupStep = ({
   refresh,
   saveDraft,
   visibleSteps,
-  goNext,
   goBack,
   goTo,
   jumpDisabled,
   loading,
-  shouldShowExcludeBidder740,
-  inventories,
 }: StepProps) => {
-  const auctionDates = useMemo(() => {
-    return inventories.reduce<Record<string, number>>((acc, item) => {
-      if (!item.auctions_inventory || !item.auction_date) return acc;
-      acc[item.auction_date] = (acc[item.auction_date] ?? 0) + 1;
-      return acc;
-    }, {});
-  }, [inventories]);
-
-  const setOption = <K extends keyof typeof state.options>(
-    key: K,
-    value: (typeof state.options)[K],
-  ) =>
-    setState((prev) => ({
-      ...prev,
-      options: { ...prev.options, [key]: value },
-    }));
-
-  const toggleDate = (date: string, checked: boolean) =>
-    setState((prev) => ({
-      ...prev,
-      options: {
-        ...prev.options,
-        selected_dates: checked
-          ? prev.options.selected_dates.includes(date)
-            ? prev.options.selected_dates
-            : [...prev.options.selected_dates, date]
-          : prev.options.selected_dates.filter((item) => item !== date),
-      },
-    }));
-
   const handlePreview = async () => {
     // Persist options into the draft so the preview reflects them on refresh.
     const nextDraft = { ...state.draft, options: state.options };
@@ -83,10 +47,10 @@ export const SetupStep = ({
       jumpDisabled={jumpDisabled}
       backDisabled
       onNext={handlePreview}
-      nextLabel={preview ? "Re-build preview" : "Build preview"}
+      nextLabel={preview ? "Save & Re-build Preview" : "Save & Build Preview"}
       nextDisabled={!state.options.selected_dates.length}
       loading={loading}
-      description="Pick the auction dates and toggles, then build a preview. The wizard will skip steps that have no work."
+      description="Final reports include all auction dates for this container. Build a preview, then review the steps that have work."
       rightSlot={
         canFastForward ? (
           <button
@@ -104,66 +68,20 @@ export const SetupStep = ({
       <div className="grid gap-6 md:grid-cols-[280px_1fr]">
         <div className="space-y-2">
           <p className="text-sm font-medium">Auction dates</p>
-          {Object.keys(auctionDates).length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              No auctioned inventory found for this container.
-            </p>
-          ) : (
-            Object.keys(auctionDates).map((date) => (
-              <label
-                key={date}
-                className="flex items-center gap-2 text-sm cursor-pointer"
-              >
-                <Checkbox
-                  checked={state.options.selected_dates.includes(date)}
-                  onCheckedChange={(checked) =>
-                    toggleDate(date, checked === true)
-                  }
-                />
-                <span>
-                  {date} ({auctionDates[date]})
-                </span>
-              </label>
-            ))
-          )}
+          <p className="text-sm text-muted-foreground">
+            All auction dates are included automatically.
+          </p>
+          <p className="text-xs">
+            {state.options.selected_dates.length} date
+            {state.options.selected_dates.length === 1 ? "" : "s"} selected
+          </p>
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Options</p>
-          {shouldShowExcludeBidder740 ? (
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <Checkbox
-                checked={state.options.exclude_bidder_740}
-                onCheckedChange={(checked) =>
-                  setOption("exclude_bidder_740", checked === true)
-                }
-              />
-              <span>Remove Bidder 740</span>
-            </label>
-          ) : null}
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <Checkbox
-              checked={state.options.exclude_refunded_bidder_5013}
-              onCheckedChange={(checked) =>
-                setOption(
-                  "exclude_refunded_bidder_5013",
-                  checked === true,
-                )
-              }
-            />
-            <span>
-              Remove REFUNDED items from Bidder {ATC_DEFAULT_BIDDER_NUMBER}
-            </span>
-          </label>
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <Checkbox
-              checked={state.options.deduct_thirty_k}
-              onCheckedChange={(checked) =>
-                setOption("deduct_thirty_k", checked === true)
-              }
-            />
-            <span>Less 30,000 Container Tax</span>
-          </label>
+          <p className="text-sm font-medium">Preview</p>
+          <p className="text-sm text-muted-foreground">
+            REFUNDED rows from Bidder 5013 are removed automatically.
+          </p>
 
           {preview ? (
             <div className="border rounded p-3 mt-3 text-xs space-y-1">
