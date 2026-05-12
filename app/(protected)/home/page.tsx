@@ -5,7 +5,7 @@ import { HomeCalendar } from "./components/HomeCalendar";
 
 const Page = async () => {
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-[18px]">
+    <div className="mx-auto flex max-w-[1400px] flex-col gap-[18px] 2xl:max-w-[1700px] 2xl:gap-6">
       <HomeHero />
 
       {/* Action tiles: Unpaid Bidders (wider) + Containers Due */}

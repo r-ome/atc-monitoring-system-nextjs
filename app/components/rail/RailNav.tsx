@@ -65,7 +65,7 @@ function RailItem({
       <Link
         href={href}
         className={cn(
-          "flex w-12 h-[50px] flex-col items-center justify-center gap-[3px] rounded-[10px] border transition-colors duration-[120ms] text-[9.5px] font-medium",
+          "flex w-12 h-[50px] flex-col items-center justify-center gap-[3px] rounded-[10px] border transition-colors duration-[120ms] text-[9.5px] font-medium 2xl:text-[13.5px]",
           active
             ? "bg-card border-border text-primary shadow-xs"
             : "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -99,9 +99,9 @@ export function RailNav({ session }: RailNavProps) {
   return (
     <>
       {/* Desktop icon rail */}
-      <aside className="hidden md:flex w-[68px] shrink-0 flex-col items-center border-r bg-background px-[10px] py-3 gap-1 h-screen sticky top-0">
+      <aside className="hidden md:flex w-[74px] shrink-0 flex-col items-center border-r bg-background px-[10px] py-3 gap-1 h-screen sticky top-0">
         <div
-          className="mb-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11.5px] font-bold tracking-tight text-white"
+          className="mb-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11.5px] font-bold tracking-tight text-white 2xl:text-[15.5px]"
           style={{ background: "linear-gradient(135deg, var(--primary), oklch(0.35 0.18 256))" }}
         >
           ATC
@@ -125,14 +125,14 @@ export function RailNav({ session }: RailNavProps) {
             await logSessionLogout("manual");
             await signOut({ callbackUrl: "/login" });
           }}
-          className="flex w-12 h-[50px] flex-col items-center justify-center gap-[3px] rounded-[10px] border border-transparent text-[9.5px] font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          className="flex w-12 h-[50px] flex-col items-center justify-center gap-[3px] rounded-[10px] border border-transparent text-[9.5px] font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors 2xl:text-[13.5px]"
         >
           <LogOut size={18} />
           <span>Logout</span>
         </button>
 
         {/* User avatar */}
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground 2xl:text-[15px]">
           {initials}
         </div>
       </aside>

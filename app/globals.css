@@ -9,6 +9,21 @@ body {
   margin: 0;
 }
 
+@media (min-width: 1536px) {
+  html {
+    font-size: 19px;
+  }
+}
+
+@layer utilities {
+  @media (min-width: 1536px) {
+    .text-xs {
+      font-size: 1rem !important;
+      line-height: 1.5rem !important;
+    }
+  }
+}
+
 :root {
   --background: oklch(0.985 0 0);
   --foreground: oklch(0.145 0 0);

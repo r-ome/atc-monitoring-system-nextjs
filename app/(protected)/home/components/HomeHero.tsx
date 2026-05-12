@@ -15,10 +15,10 @@ export async function HomeHero() {
 
   return (
     <div>
-      <h1 className="text-[22px] font-semibold tracking-tight">
+      <h1 className="text-[22px] font-semibold tracking-tight 2xl:text-[28px]">
         {greeting()}, {firstName}
       </h1>
-      <p className="mt-0.5 text-[13.5px] text-muted-foreground">{today}</p>
+      <p className="mt-0.5 text-[13.5px] text-muted-foreground 2xl:text-[15px]">{today}</p>
     </div>
   );
 }

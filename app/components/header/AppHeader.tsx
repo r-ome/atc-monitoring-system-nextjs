@@ -30,8 +30,8 @@ export function AppHeader({ session }: AppHeaderProps) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-card px-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
-        <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-secondary text-secondary-foreground">
+      <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground 2xl:text-[17px]">
+        <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-secondary text-secondary-foreground 2xl:text-[14px]">
           {session.user.role}
         </span>
         <span>/</span>
@@ -66,10 +66,10 @@ export function AppHeader({ session }: AppHeaderProps) {
       {/* Right side */}
       <div className="ml-auto flex items-center gap-2">
         <div className="hidden flex-col text-right leading-tight md:flex">
-          <span className="text-[12.5px] font-medium text-secondary-foreground">
+          <span className="text-[12.5px] font-medium text-secondary-foreground 2xl:text-[16.5px]">
             {now ? format(now, "EEEE, MMM d, yyyy") : ""}
           </span>
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-[11px] text-muted-foreground 2xl:text-[15px]">
             {now ? format(now, "hh:mm:ss aa") : ""}
           </span>
         </div>
@@ -82,12 +82,12 @@ export function AppHeader({ session }: AppHeaderProps) {
 
         {/* User chip */}
         <div className="flex cursor-pointer items-center gap-2 rounded-full bg-secondary px-2 py-1">
-          <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+          <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground 2xl:text-[15px]">
             {initials}
           </div>
           <div className="hidden flex-col leading-tight md:flex">
-            <span className="text-[12.5px] font-medium">{session.user.name}</span>
-            <span className="text-[10.5px] text-muted-foreground">
+            <span className="text-[12.5px] font-medium 2xl:text-[16.5px]">{session.user.name}</span>
+            <span className="text-[10.5px] text-muted-foreground 2xl:text-[14.5px]">
               {session.user.role}
             </span>
           </div>

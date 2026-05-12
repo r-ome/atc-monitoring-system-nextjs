@@ -29,7 +29,7 @@ function BranchChip({ branch }: { branch: string }) {
   const isBinan = branch.toUpperCase().includes("BI");
   return (
     <span
-      className="rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-secondary-foreground"
+      className="rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-secondary-foreground 2xl:text-[14px]"
       style={{
         background: isBinan ? "var(--branch-binan)" : "var(--branch-tarlac)",
       }}
@@ -91,20 +91,20 @@ export function UnpaidBiddersCard() {
   }
 
   return (
-    <Card className="flex flex-col p-0 overflow-hidden">
+    <Card className="flex flex-col p-0 overflow-hidden 2xl:text-[15px]">
       <Tabs defaultValue="unpaid" className="flex flex-col flex-1">
         {/* Tab header */}
         <div className="flex items-center justify-between px-4 pt-3.5 pb-0">
           <TabsList className="h-8 gap-0 bg-transparent p-0">
             <TabsTrigger
               value="unpaid"
-              className="h-8 rounded-none border-b-2 border-transparent px-3 text-[13px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="h-8 rounded-none border-b-2 border-transparent px-3 text-[13px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:text-[17px]"
             >
               Unpaid Bidders
             </TabsTrigger>
             <TabsTrigger
               value="banned"
-              className="h-8 rounded-none border-b-2 border-transparent px-3 text-[13px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="h-8 rounded-none border-b-2 border-transparent px-3 text-[13px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none 2xl:text-[17px]"
             >
               Banned Bidders
             </TabsTrigger>
@@ -112,28 +112,28 @@ export function UnpaidBiddersCard() {
         </div>
 
         {/* Unpaid tab */}
-        <TabsContent value="unpaid" className="flex flex-col gap-0 mt-0 px-4 pb-3.5 pt-3">
+        <TabsContent value="unpaid" className="flex flex-col gap-0 mt-0 px-4 pb-3.5 pt-3 2xl:px-6 2xl:pb-5 2xl:pt-4">
           {/* Total + branch breakdown */}
           <div className="grid grid-cols-[1fr_1px_1fr] items-center gap-3.5 mb-3">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <AlertCircle size={11} className="text-destructive" />
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-destructive">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-destructive 2xl:text-[14px]">
                   Total Outstanding
                 </span>
               </div>
-              <div className="font-mono text-[22px] font-semibold leading-tight tracking-tight text-destructive">
+              <div className="font-mono text-[22px] font-semibold leading-tight tracking-tight text-destructive 2xl:text-[26px]">
                 {formatNumberToCurrency(summary.total_balance)}
               </div>
             </div>
             <div className="h-10 bg-border" />
             <div className="flex flex-col gap-1">
-{visibleBranches.map((b) => (
+              {visibleBranches.map((b) => (
                 <div key={b.branch_id} className="flex items-baseline gap-1.5">
-                  <span className="min-w-[48px] text-[11px] font-semibold tracking-wide">
+                  <span className="min-w-[48px] text-[11px] font-semibold tracking-wide 2xl:text-[15px]">
                     {b.branch_name.toUpperCase()}
                   </span>
-                  <span className="font-mono ml-auto text-[12px] font-medium">
+                  <span className="font-mono ml-auto text-[12px] font-medium 2xl:text-[16px]">
                     {formatNumberToCurrency(b.total_balance)}
                   </span>
                 </div>
@@ -145,7 +145,7 @@ export function UnpaidBiddersCard() {
 
           {/* List header */}
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground 2xl:text-[15px]">
               Unpaid Bidders
             </span>
             {mounted && user && (
@@ -165,7 +165,7 @@ export function UnpaidBiddersCard() {
           </div>
 
           {/* Bidder rows */}
-          <div className="flex flex-col overflow-y-auto" style={{ maxHeight: 196 }}>
+          <div className="flex flex-col overflow-y-auto max-h-[196px] xl:max-h-[210px] 2xl:max-h-[310px]">
             {sortedUnpaid.map((b, i) => (
               <div
                 key={`${b.bidder_id}-${b.auction_date}`}
@@ -177,10 +177,10 @@ export function UnpaidBiddersCard() {
                   )
                 }
               >
-                <span className="font-mono min-w-[44px] text-[12px] font-semibold text-muted-foreground">
+                <span className="font-mono min-w-[44px] text-[12px] font-semibold text-muted-foreground 2xl:text-[16px]">
                   #{b.bidder_number}
                 </span>
-                <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-muted-foreground">
+                <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-muted-foreground 2xl:text-[16px]">
                   {b.first_name} {b.last_name} · {b.items} item{b.items > 1 ? "s" : ""} ·{" "}
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -189,7 +189,7 @@ export function UnpaidBiddersCard() {
                     <TooltipContent>{b.auction_date}</TooltipContent>
                   </Tooltip>
                 </span>
-                <span className="font-mono text-[13px] font-semibold text-destructive">
+                <span className="font-mono text-[13px] font-semibold text-destructive 2xl:text-[17px]">
                   {formatNumberToCurrency(b.balance)}
                 </span>
               </div>
@@ -200,15 +200,15 @@ export function UnpaidBiddersCard() {
         {/* Banned tab */}
         <TabsContent value="banned" className="mt-0 px-4 pb-3.5 pt-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground 2xl:text-[15px]">
               Banned Bidders
             </span>
-            <span className="text-[11px] text-muted-foreground">{banned.length} bidders</span>
+            <span className="text-[11px] text-muted-foreground 2xl:text-[15px]">{banned.length} bidders</span>
           </div>
           <div className="overflow-y-auto" style={{ maxHeight: 320 }}>
-            <table className="w-full border-collapse text-[12px]">
+            <table className="w-full border-collapse text-[12px] 2xl:text-[16px]">
               <thead>
-                <tr className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <tr className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground 2xl:text-[14px]">
                   <th className="text-left py-1.5 px-1.5">Bidder #</th>
                   <th className="text-left py-1.5 px-1.5">Full Name</th>
                   <th className="text-left py-1.5 px-1.5">Branch</th>

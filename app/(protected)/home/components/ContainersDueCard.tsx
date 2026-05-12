@@ -58,17 +58,17 @@ export function ContainersDueCard() {
   const overdueCount = sorted.filter((c) => getDueStatus(c) === "overdue").length;
 
   return (
-    <Card className="flex flex-col p-3.5">
+    <Card className="flex flex-col p-3.5 2xl:p-5 2xl:text-[15px]">
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <Container size={14} className="text-muted-foreground" />
-        <span className="text-[13.5px] font-semibold">Containers Due</span>
+        <span className="text-[13.5px] font-semibold 2xl:text-[17.5px]">Containers Due</span>
         {overdueCount > 0 && (
-          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive 2xl:text-[15px]">
             {overdueCount} overdue
           </span>
         )}
-        <span className="ml-auto text-[11px] text-muted-foreground">
+        <span className="ml-auto text-[11px] text-muted-foreground 2xl:text-[15px]">
           {containers.length} this month
         </span>
       </div>
@@ -83,14 +83,14 @@ export function ContainersDueCard() {
               className="flex cursor-pointer items-center gap-2 rounded-md bg-secondary px-2.5 py-2 hover:bg-secondary/70"
               onClick={() => router.push(`/containers/${c.barcode}`)}
             >
-              <span className="font-mono min-w-[56px] text-[12.5px] font-semibold">
+              <span className="font-mono min-w-[56px] text-[12.5px] font-semibold 2xl:text-[16.5px]">
                 {c.barcode}
               </span>
-              <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-muted-foreground">
+              <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-muted-foreground 2xl:text-[16px]">
                 {c.container_number || c.bill_of_lading_number || "—"}
               </span>
               <span
-                className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${STATUS_STYLES[status]}`}
+                className={`rounded px-1.5 py-0.5 text-[11px] font-semibold 2xl:text-[15px] ${STATUS_STYLES[status]}`}
               >
                 {getDueLabel(c)}
               </span>
@@ -98,7 +98,7 @@ export function ContainersDueCard() {
           );
         })}
         {containers.length === 0 && (
-          <p className="py-4 text-center text-[13px] text-muted-foreground">
+          <p className="py-4 text-center text-[13px] text-muted-foreground 2xl:text-[17px]">
             No containers due this month
           </p>
         )}
@@ -108,7 +108,7 @@ export function ContainersDueCard() {
       <div className="mt-2 flex justify-end">
         <button
           onClick={() => router.push("/containers")}
-          className="flex items-center gap-1 text-[12px] font-medium text-primary"
+          className="flex items-center gap-1 text-[12px] font-medium text-primary 2xl:text-[16px]"
         >
           View all containers <ArrowRight size={12} />
         </button>

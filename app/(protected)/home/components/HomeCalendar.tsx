@@ -62,14 +62,12 @@ export function HomeCalendar() {
     });
   }, []);
 
-  // Build calendar grid cells
   const cells = useMemo(() => {
     const start = startOfWeek(startOfMonth(currentMonth));
     const end = endOfWeek(endOfMonth(currentMonth));
     return eachDayOfInterval({ start, end });
   }, [currentMonth]);
 
-  // Group events by date string "yyyy-MM-dd"
   const eventsByDate = useMemo(() => {
     const map: Record<string, HomeCalendarEvent[]> = {};
     for (const event of events) {
@@ -98,12 +96,12 @@ export function HomeCalendar() {
       <Card className="overflow-hidden">
         {/* Top header row: title + legend + filter */}
         <div className="flex items-center justify-between border-b px-5 py-3">
-          <div className="flex items-center gap-2 text-[15px] font-semibold">
+          <div className="flex items-center gap-2 text-[15px] font-semibold 2xl:text-[19px]">
             Events Calendar
           </div>
           <div className="flex items-center gap-4">
             {/* Legend */}
-            <div className="hidden items-center gap-4 text-[12px] text-muted-foreground sm:flex">
+            <div className="hidden items-center gap-4 text-[12px] text-muted-foreground sm:flex 2xl:text-[16px]">
               {Object.values(EVENT_STYLES).map((s) => (
                 <span key={s.label} className="flex items-center gap-1.5">
                   <span className={cn("inline-block h-2 w-2 rounded-full", s.dot)} />
@@ -111,10 +109,10 @@ export function HomeCalendar() {
                 </span>
               ))}
             </div>
-            <Button variant="outline" size="sm" className="h-7 gap-1.5 text-[12px]">
+            <Button variant="outline" size="sm" className="h-7 gap-1.5 text-[12px] 2xl:text-[16px]">
               Filter
             </Button>
-            <div className="flex overflow-hidden rounded-md border text-[12px]">
+            <div className="flex overflow-hidden rounded-md border text-[12px] 2xl:text-[16px]">
               <button className="bg-foreground px-3 py-1 font-medium text-background">Calendar</button>
               <button className="px-3 py-1 text-muted-foreground hover:bg-muted">List</button>
             </div>
@@ -143,13 +141,13 @@ export function HomeCalendar() {
             <Button
               variant="outline"
               size="sm"
-              className="h-7 text-[12px]"
+              className="h-7 text-[12px] 2xl:text-[16px]"
               onClick={() => setCurrentMonth(new Date())}
             >
               Today
             </Button>
           </div>
-          <span className="flex-1 text-center text-[16px] font-semibold tracking-tight">
+          <span className="flex-1 text-center text-[16px] font-semibold tracking-tight 2xl:text-[20px]">
             {format(currentMonth, "MMMM yyyy")}
           </span>
           {/* Spacer to balance the left controls */}
@@ -163,7 +161,7 @@ export function HomeCalendar() {
             <div
               key={d}
               className={cn(
-                "border-r px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground",
+                "border-r px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground 2xl:text-[15px]",
                 i === 6 && "border-r-0",
               )}
             >
@@ -184,7 +182,7 @@ export function HomeCalendar() {
               <div
                 key={key}
                 className={cn(
-                  "min-h-[90px] border-b border-r p-1.5",
+                  "min-h-[90px] border-b border-r p-1.5 2xl:min-h-[120px] 2xl:p-2",
                   !isCurrentMonth && "bg-muted/40",
                   today && "bg-blue-50 dark:bg-blue-950/30",
                   (i + 1) % 7 === 0 && "border-r-0",
@@ -194,7 +192,7 @@ export function HomeCalendar() {
                 <div className="mb-1 flex justify-end">
                   <span
                     className={cn(
-                      "flex h-6 w-6 items-center justify-center rounded text-[12px] font-medium",
+                      "flex h-6 w-6 items-center justify-center rounded text-[12px] font-medium 2xl:text-[16px]",
                       !isCurrentMonth ? "text-muted-foreground" : "text-foreground",
                     )}
                     style={today ? { background: "var(--primary)", color: "var(--primary-foreground)" } : undefined}
@@ -212,7 +210,7 @@ export function HomeCalendar() {
                         key={event.id}
                         onClick={() => setSelectedEvent(event)}
                         className={cn(
-                          "flex w-full items-center gap-1 rounded px-1 py-0.5 text-left text-[11px] font-medium leading-tight transition-opacity hover:opacity-80",
+                          "flex w-full items-center gap-1 rounded px-1 py-0.5 text-left text-[11px] font-medium leading-tight transition-opacity hover:opacity-80 2xl:text-[15px]",
                           style.pill,
                         )}
                       >
@@ -222,7 +220,7 @@ export function HomeCalendar() {
                     );
                   })}
                   {dayEvents.length > 3 && (
-                    <span className="px-1 text-[10.5px] text-muted-foreground">
+                    <span className="px-1 text-[10.5px] text-muted-foreground 2xl:text-[14.5px]">
                       +{dayEvents.length - 3} more
                     </span>
                   )}
