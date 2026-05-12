@@ -168,6 +168,7 @@ export function presentSalesExpensesSummary(
     entry.royalty += royalty;
     entry.paid_containers.push({
       barcode: container.barcode,
+      paid_at: container.paid_at,
       total_item_sales: container.total_item_sales,
       total_service_charge: container.total_service_charge,
     });

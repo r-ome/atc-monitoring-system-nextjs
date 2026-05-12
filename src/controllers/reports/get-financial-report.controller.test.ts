@@ -57,6 +57,7 @@ test("presentSalesExpensesSummary totals income, expenses, and net income", () =
       paid_containers: [
         {
           barcode: "32-04",
+          paid_at: new Date("2026-05-04T00:00:00.000Z"),
           total_item_sales: 800000,
           total_service_charge: 40000,
         },
@@ -193,6 +194,7 @@ test("presentSalesExpensesSummary daily buckets merge expense-only and container
   assert.deepEqual(result.breakdown[0].paid_containers, [
     {
       barcode: "32-04",
+      paid_at: new Date("2026-05-04T00:00:00.000Z"),
       total_item_sales: 100000,
       total_service_charge: 5000,
     },
@@ -233,6 +235,7 @@ test("presentSalesExpensesSummary weekly buckets merge expense-only and containe
   assert.deepEqual(result.breakdown[0].paid_containers, [
     {
       barcode: "32-04",
+      paid_at: new Date("2026-05-04T00:00:00.000Z"),
       total_item_sales: 100000,
       total_service_charge: 5000,
     },
@@ -270,6 +273,7 @@ test("presentSalesExpensesSummary monthly buckets merge expense-only and contain
   assert.deepEqual(result.breakdown[0].paid_containers, [
     {
       barcode: "32-04",
+      paid_at: new Date("2026-05-04T00:00:00.000Z"),
       total_item_sales: 100000,
       total_service_charge: 5000,
     },

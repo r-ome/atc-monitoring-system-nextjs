@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { SalesRowType } from "./SalesTable";
-import { formatNumberToCurrency } from "@/app/lib/utils";
+import { formatDate, formatNumberToCurrency } from "@/app/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -29,6 +29,7 @@ function PeriodCell({ row }: { row: SalesRowType }) {
         {row.paid_containers.length === 1 ? (
           <div className="space-y-1">
             <p className="font-semibold">{row.paid_containers[0].barcode}</p>
+            <p>Paid: {formatDate(row.paid_containers[0].paid_at)}</p>
             <p>
               Total Sales:{" "}
               {formatNumberToCurrency(row.paid_containers[0].total_item_sales)}
@@ -41,12 +42,13 @@ function PeriodCell({ row }: { row: SalesRowType }) {
             </p>
           </div>
         ) : (
-          <table className="min-w-[28rem] border-collapse">
+          <table className="min-w-[32rem] border-collapse">
             <thead>
               <tr className="border-b border-primary-foreground/30">
                 <th className="py-1 pr-3 text-left font-semibold">
                   Container Barcode
                 </th>
+                <th className="px-3 py-1 text-left font-semibold">Paid</th>
                 <th className="px-3 py-1 text-right font-semibold">
                   Total Sales
                 </th>
@@ -62,6 +64,7 @@ function PeriodCell({ row }: { row: SalesRowType }) {
                   className="border-b border-primary-foreground/15 last:border-0"
                 >
                   <td className="py-1 pr-3">{container.barcode}</td>
+                  <td className="px-3 py-1">{formatDate(container.paid_at, "MMM dd")}</td>
                   <td className="px-3 py-1 text-right tabular-nums">
                     {formatNumberToCurrency(container.total_item_sales)}
                   </td>
@@ -78,7 +81,11 @@ function PeriodCell({ row }: { row: SalesRowType }) {
   );
 }
 
-export const columns: ColumnDef<SalesRowType>[] = [
+export const buildColumns = ({
+  ownerSalesLabel,
+}: {
+  ownerSalesLabel: string;
+}): ColumnDef<SalesRowType>[] => [
   {
     accessorKey: "period",
     size: 100,
@@ -171,7 +178,7 @@ export const columns: ColumnDef<SalesRowType>[] = [
           className="cursor-pointer"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          00 Sales
+          {ownerSalesLabel}
           <ArrowUpDown />
         </Button>
       </div>

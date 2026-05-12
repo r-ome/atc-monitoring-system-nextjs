@@ -90,6 +90,7 @@ export type OwnerOrganicSaleRow = {
 
 export type SalesExpensesSummaryContainer = {
   barcode: string;
+  paid_at: Date;
   total_item_sales: number;
   total_service_charge: number;
 };
