@@ -362,10 +362,31 @@ export const getFinalReportPreviewUseCase = async (
       : null,
   });
 
-  const selectedAuctionInventories = container.inventories
+  const selectedDatedAuctionInventories = container.inventories
     .filter((item) => item.auctions_inventory && item.auction_date)
     .filter((item) => input.selected_dates.includes(formatDate(item.auction_date!, DATE_FORMAT)))
-    .filter((item) => item.auctions_inventory?.status !== "CANCELLED")
+    .filter((item) => item.auctions_inventory?.status !== "CANCELLED");
+
+  const excludedBidder740DeductionItems: FinalReportDeductionItem[] =
+    input.exclude_bidder_740
+      ? selectedDatedAuctionInventories
+          .filter(
+            (item) =>
+              item.auctions_inventory?.auction_bidder.bidder.bidder_number === "0740",
+          )
+          .map((item) => {
+            const auctionInventory = item.auctions_inventory!;
+            return {
+              control: item.control ?? "NC",
+              description: auctionInventory.description,
+              bidder_number: auctionInventory.auction_bidder.bidder.bidder_number,
+              original_price: auctionInventory.price,
+              deducted_amount: auctionInventory.price,
+            };
+          })
+      : [];
+
+  const selectedAuctionInventories = selectedDatedAuctionInventories
     .filter((item) => {
       const auctionInventory = item.auctions_inventory;
       if (!auctionInventory) return false;
@@ -625,7 +646,9 @@ export const getFinalReportPreviewUseCase = async (
       exclude_refunded_bidder_5013: input.exclude_refunded_bidder_5013,
     });
 
-  const deductions: FinalReportDeductionItem[] = [];
+  const deductions: FinalReportDeductionItem[] = [
+    ...excludedBidder740DeductionItems,
+  ];
   let adjustedMonitoring = effectiveMonitoring;
   let taxDeductionPersisted = false;
 

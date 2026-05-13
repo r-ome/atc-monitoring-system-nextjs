@@ -521,61 +521,43 @@ export const TaxStep = ({
             </div>
           </div>
 
-          {/* Breakdown panel */}
-          <div className="w-[282px] shrink-0 flex flex-col gap-3 border rounded p-3 self-start">
-            <p className="text-sm font-medium uppercase tracking-wide">Breakdown</p>
-
-            {/* Bidder 0740 items — only shown when rows exist */}
-            {bidder740Rows.length > 0 && (
-              <div className="border rounded overflow-hidden">
-                <Table>
-                  <TableBody>
-                    {bidder740Rows.map((item, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="py-1 text-sm truncate max-w-[120px] uppercase" title={item.description}>
-                          {item.control} — {item.description}
-                        </TableCell>
-                        <TableCell className="py-1 text-sm text-right">{item.deducted_amount.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+          {/* Totals panel */}
+          <div className="w-[340px] shrink-0 flex flex-col gap-3 border rounded p-3 self-start">
+            <p className="text-sm font-medium uppercase tracking-wide">Totals</p>
 
             {/* Totals — only shown in table phase */}
             {(() => {
               const needed = 30000 - grandTotal;
               return (
                 <div className="border rounded overflow-hidden">
-                  <Table>
+                  <Table className="table-fixed">
                     <TableBody>
                       <TableRow>
-                        <TableCell className="py-1 text-sm text-muted-foreground uppercase">0740 Total</TableCell>
-                        <TableCell className="py-1 text-sm text-right">{bidder740Total.toLocaleString()}</TableCell>
+                        <TableCell className="w-[52%] py-1 text-sm text-muted-foreground uppercase">0740 Total</TableCell>
+                        <TableCell className="w-[48%] py-1 text-sm text-right tabular-nums whitespace-nowrap">{bidder740Total.toLocaleString()}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell className="py-1 text-sm text-muted-foreground uppercase">Items Deducted</TableCell>
-                        <TableCell className="py-1 text-sm text-right">{itemsTotal.toLocaleString()}</TableCell>
+                        <TableCell className="py-1 text-sm text-right tabular-nums whitespace-nowrap">{itemsTotal.toLocaleString()}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell className="py-1 text-sm text-muted-foreground uppercase">
                           {needed > 0 ? "Still Needed" : "Over By"}
                         </TableCell>
-                        <TableCell className={`py-1 text-sm text-right font-medium ${needed > 0 ? "text-destructive" : "text-green-600 dark:text-green-400"}`}>
+                        <TableCell className={`py-1 text-sm text-right font-medium tabular-nums whitespace-nowrap ${needed > 0 ? "text-destructive" : "text-green-600 dark:text-green-400"}`}>
                           {Math.abs(needed).toLocaleString()}
                         </TableCell>
                       </TableRow>
                       <TableRow className="font-medium">
                         <TableCell className="py-1 text-sm uppercase">Total</TableCell>
-                        <TableCell className="py-1 text-sm text-right">
+                        <TableCell className="py-1 text-sm text-right tabular-nums whitespace-nowrap">
                           {grandTotal.toLocaleString()}
                           <span className="text-muted-foreground font-normal"> / 30,000</span>
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell className="py-1 text-sm text-muted-foreground uppercase">Item Price Total</TableCell>
-                        <TableCell className="py-1 text-sm text-right">{itemsPriceTotal.toLocaleString()}</TableCell>
+                        <TableCell className="py-1 text-sm text-right tabular-nums whitespace-nowrap">{itemsPriceTotal.toLocaleString()}</TableCell>
                       </TableRow>
                       <TableRow className="font-medium">
                         <TableCell className="py-1 text-sm uppercase">
@@ -593,7 +575,7 @@ export const TaxStep = ({
                             </TooltipProvider>
                           </span>
                         </TableCell>
-                        <TableCell className="py-1 text-sm text-right">{netTotal.toLocaleString()}</TableCell>
+                        <TableCell className="py-1 text-sm text-right tabular-nums whitespace-nowrap">{netTotal.toLocaleString()}</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>

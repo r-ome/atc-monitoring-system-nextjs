@@ -216,7 +216,7 @@ test("getFinalReportPreviewUseCase applies staged manual merges virtually", asyn
   }
 });
 
-test("getFinalReportPreviewUseCase excludes refunded bidder 740 monitoring rows when requested", async () => {
+test("getFinalReportPreviewUseCase moves excluded bidder 740 rows to deductions", async () => {
   const restoreContainer = patchMethod(
     ContainerRepository,
     "getContainerFinalReportData",
@@ -253,6 +253,15 @@ test("getFinalReportPreviewUseCase excludes refunded bidder 740 monitoring rows 
       ),
       false,
     );
+    assert.deepEqual(preview.report.deductions, [
+      {
+        control: "0002",
+        description: "BAG",
+        bidder_number: "0740",
+        original_price: 700,
+        deducted_amount: 700,
+      },
+    ]);
   } finally {
     restoreTax();
     restoreCounterCheck();
