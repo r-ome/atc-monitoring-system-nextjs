@@ -6,6 +6,18 @@ import { toast } from "sonner";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { DataTable } from "@/app/components/data-table/data-table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/app/components/ui/alert-dialog";
+import { Loader2Icon } from "lucide-react";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import type { PayrollPeriod } from "src/entities/models/PayrollPeriod";
 import type { PayrollEntry } from "src/entities/models/PayrollEntry";
@@ -44,7 +56,6 @@ export const PayrollPeriodDetail: React.FC<Props> = ({
   const totalNetPay = entries.reduce((s, e) => s + e.net_pay, 0);
 
   const handlePost = async () => {
-    if (!confirm("Post this payroll period? Snapshots will be locked.")) return;
     setIsPosting(true);
     try {
       const res = await postPayrollPeriod(period.payroll_period_id);
@@ -108,9 +119,38 @@ export const PayrollPeriodDetail: React.FC<Props> = ({
             </>
           )}
           {isAdmin && (
-            <Button size="sm" variant="secondary" onClick={handlePost} disabled={isPosting}>
-              {isPosting ? "Posting…" : "Post Period"}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="secondary" disabled={isPosting}>
+                  {isPosting && <Loader2Icon className="mr-2 h-3 w-3 animate-spin" />}
+                  {isPosting ? "Posting…" : "Post Period"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Post this payroll period?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    All {entries.length} {entries.length === 1 ? "entry" : "entries"} will be
+                    locked and one expense row (purpose = SALARY) will be created per employee.
+                    Total payout:{" "}
+                    <span className="font-semibold text-foreground">
+                      {formatNumberToCurrency(totalNetPay)}
+                    </span>
+                    . Posting will fail if the branch&apos;s petty cash on the pay date can&apos;t
+                    cover this amount.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isPosting}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button onClick={handlePost} disabled={isPosting}>
+                      {isPosting && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+                      Post Period
+                    </Button>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       )}

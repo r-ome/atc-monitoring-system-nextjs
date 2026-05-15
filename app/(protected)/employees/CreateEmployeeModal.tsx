@@ -230,8 +230,8 @@ export const CreateEmployeeModal: React.FC<CreateEmployeeModalProps> = ({
                 </div>
               ) : (
                 <div className="flex gap-4">
-                  <Label className="w-40 pt-2">Monthly Salary (₱)</Label>
-                  <Input type="number" step="0.01" min="0" name="default_monthly_salary" />
+                  <Label className="w-40 pt-2">Basic Pay / Cutoff (₱)</Label>
+                  <Input type="number" step="0.01" min="0" name="default_monthly_salary" placeholder="Per semi-monthly cutoff" />
                 </div>
               )}
               <div className="flex gap-4">

@@ -62,7 +62,7 @@ export const getColumns = (isAdmin: boolean): ColumnDef<Employee>[] => [
       if (salary_type === "DAILY_RATE" && default_daily_rate != null)
         return <div className="text-center">₱{Number(default_daily_rate).toLocaleString()}<span className="text-muted-foreground text-xs">/day</span></div>;
       if (salary_type === "FIXED_MONTHLY" && default_monthly_salary != null)
-        return <div className="text-center">₱{Number(default_monthly_salary).toLocaleString()}<span className="text-muted-foreground text-xs">/mo</span></div>;
+        return <div className="text-center">₱{Number(default_monthly_salary).toLocaleString()}<span className="text-muted-foreground text-xs">/cutoff</span></div>;
       return <div className="text-center text-muted-foreground">—</div>;
     },
   },
