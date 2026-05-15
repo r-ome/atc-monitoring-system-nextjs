@@ -26,27 +26,34 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { addExpense } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { toast } from "sonner";
 import { formatDate } from "@/app/lib/utils";
-import { PettyCash } from "src/entities/models/Expense";
-
-// NOTES
-// BALANCE PETTY CASH: Balance from yesterday
-// PETTY CASH: amount that is added today
-// TOTAL: Total of both
+import { PettyCash, EXPENSE_PURPOSE } from "src/entities/models/Expense";
+import { Employee } from "src/entities/models/Employee";
 
 interface AddExpenseModalProps {
   currentPettyCash: PettyCash | null;
   selectedBranch: { branch_id: string };
+  employees: Pick<Employee, "employee_id" | "first_name" | "last_name">[];
 }
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   currentPettyCash,
   selectedBranch,
+  employees,
 }) => {
   const router = useRouter();
   const { transaction_date } = useParams();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpenDialog] = useState<boolean>(false);
-  const [purpose, setPurpose] = useState<"EXPENSE" | "ADD_PETTY_CASH">("EXPENSE");
+  const [purpose, setPurpose] = useState<(typeof EXPENSE_PURPOSE)[number]>("EXPENSE");
+  const [employeeId, setEmployeeId] = useState<string>("");
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setPurpose("EXPENSE");
+      setEmployeeId("");
+    }
+    setOpenDialog(next);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -57,6 +64,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const remarks = formData.get("remarks") as string;
     formData.set("remarks", remarks.toUpperCase());
     formData.append("branch_id", selectedBranch.branch_id);
+    if (purpose === "SALARY" && employeeId) {
+      formData.append("employee_id", employeeId);
+    }
 
     let pettyCashDate = null;
     let pettyCashId = "CREATE";
@@ -89,13 +99,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     <>
       <Button onClick={() => setOpenDialog(true)}>Add Expense</Button>
 
-      <Dialog
-        open={open}
-        onOpenChange={(next) => {
-          if (!next) setPurpose("EXPENSE");
-          setOpenDialog(next);
-        }}
-      >
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Expense</DialogTitle>
@@ -124,18 +128,19 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 required
                 name="purpose"
                 value={purpose}
-                onValueChange={(val: "EXPENSE" | "ADD_PETTY_CASH") =>
-                  setPurpose(val)
-                }
+                onValueChange={(val: (typeof EXPENSE_PURPOSE)[number]) => {
+                  setPurpose(val);
+                  setEmployeeId("");
+                }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Payment Type"></SelectValue>
+                  <SelectValue placeholder="Select Purpose" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {(["EXPENSE", "ADD_PETTY_CASH"] as const).map((item) => (
+                    {(["EXPENSE", "ADD_PETTY_CASH", "SALARY"] as const).map((item) => (
                       <SelectItem key={item} value={item}>
-                        {item.replace(/_/g, " ")}
+                        {item === "ADD_PETTY_CASH" ? "ADD PETTY CASH" : item}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -143,18 +148,45 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               </Select>
             </div>
 
+            {purpose === "SALARY" && (
+              <div className="flex gap-4">
+                <Label className="w-40">Employee</Label>
+                <Select
+                  required
+                  value={employeeId}
+                  onValueChange={setEmployeeId}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {employees.map((e) => (
+                        <SelectItem key={e.employee_id} value={e.employee_id}>
+                          {e.first_name} {e.last_name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="flex gap-4">
               <Label htmlFor="remarks" className="w-40">
                 Remarks
               </Label>
-              <Textarea name="remarks" required></Textarea>
+              <Textarea name="remarks" required />
             </div>
 
             <DialogFooter>
               <DialogClose asChild>
                 <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
               </DialogClose>
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={isLoading || (purpose === "SALARY" && !employeeId)}
+              >
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>

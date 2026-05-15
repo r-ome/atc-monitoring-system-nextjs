@@ -26,6 +26,14 @@ function presenter(expense: ExpenseWithBranchRow) {
       branch_id: expense.branch.branch_id,
       name: expense.branch.name,
     },
+    employee: expense.employee
+      ? {
+          employee_id: expense.employee.employee_id,
+          first_name: expense.employee.first_name,
+          last_name: expense.employee.last_name,
+          full_name: `${expense.employee.first_name} ${expense.employee.last_name}`,
+        }
+      : null,
     created_at: formatDate(expense.created_at, DATE_FORMAT),
     updated_at: formatDate(expense.updated_at, DATE_FORMAT),
   };

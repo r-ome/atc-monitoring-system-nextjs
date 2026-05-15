@@ -23,7 +23,7 @@ export const ExpensesTable: React.FC<ExpensesTableProps> = ({
     expense_id: string;
     amount: number;
     remarks: string;
-    purpose: "EXPENSE" | "ADD_PETTY_CASH";
+    purpose: "EXPENSE" | "ADD_PETTY_CASH" | "SALARY";
   }>({
     expense_id: "",
     amount: 0,

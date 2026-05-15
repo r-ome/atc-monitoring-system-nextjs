@@ -23,6 +23,7 @@ import {
   Cog,
   List,
   ChartPie,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 
@@ -74,6 +75,12 @@ const items = [
     url: "/suppliers",
     icon: ShieldUser,
     allowed_roles: ["OWNER", "SUPER_ADMIN"],
+  },
+  {
+    title: "Payroll",
+    url: "/payroll",
+    icon: Banknote,
+    allowed_roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
   },
   {
     title: "Users",

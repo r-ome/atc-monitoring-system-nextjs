@@ -46,7 +46,7 @@ async function computeBalanceForDay(
       where: {
         branch_id,
         created_at: { gte: startOfDay, lte: endOfDay },
-        purpose: "EXPENSE",
+        purpose: { in: ["EXPENSE", "SALARY"] },
       },
     }),
   ]);
@@ -139,7 +139,7 @@ async function getDriftedRecords(
     const day = formatInTimeZone(e.created_at, TZ, "yyyy-MM-dd");
     if (!acc[day]) acc[day] = { add: 0, expense: 0 };
     if (e.purpose === "ADD_PETTY_CASH") acc[day].add += e.amount.toNumber();
-    else acc[day].expense += e.amount.toNumber();
+    else if (e.purpose === "EXPENSE" || e.purpose === "SALARY") acc[day].expense += e.amount.toNumber();
     return acc;
   }, {});
 
@@ -170,7 +170,7 @@ export const ExpensesRepository: IExpenseRepository = {
       const endOfDay = fromZonedTime(`${date} 23:59:59.999`, TZ);
 
       const expenses = await prisma.expenses.findMany({
-        include: { branch: true },
+        include: { branch: true, employee: true },
         where: {
           created_at: { gte: startOfDay, lte: endOfDay },
           ...(branch_id ? { branch_id } : {}),
@@ -230,13 +230,14 @@ export const ExpensesRepository: IExpenseRepository = {
     try {
       return await prisma.$transaction(async (tx) => {
         const created = await tx.expenses.create({
-          include: { branch: true },
+          include: { branch: true, employee: true },
           data: {
             amount: input.amount,
             purpose: input.purpose,
             remarks: input.remarks,
             created_at: fromZonedTime(input.created_at, TZ),
             ...(input.branch_id ? { branch_id: input.branch_id } : {}),
+            ...(input.employee_id ? { employee_id: input.employee_id } : {}),
           },
         });
 
@@ -262,12 +263,13 @@ export const ExpensesRepository: IExpenseRepository = {
         const previous_expense = await tx.expenses.findFirst({ where: { expense_id } });
 
         const updated_expense = await tx.expenses.update({
-          include: { branch: true },
+          include: { branch: true, employee: true },
           where: { expense_id },
           data: {
             amount: data.amount,
             remarks: data.remarks,
             purpose: data.purpose,
+            employee_id: data.employee_id ?? null,
           },
         });
 

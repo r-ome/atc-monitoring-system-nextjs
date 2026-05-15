@@ -52,7 +52,7 @@ interface UpdateExpenseModalProps {
     expense_id: string;
     amount: number;
     remarks: string;
-    purpose: "EXPENSE" | "ADD_PETTY_CASH";
+    purpose: "EXPENSE" | "ADD_PETTY_CASH" | "SALARY";
   };
   user: { role: string; branch: { branch_id: string } };
 }
@@ -153,7 +153,7 @@ export const UpdateExpenseModal = ({
                 required
                 name="purpose"
                 value={selectedExpense?.purpose}
-                onValueChange={(purpose: "EXPENSE" | "ADD_PETTY_CASH") =>
+                onValueChange={(purpose: "EXPENSE" | "ADD_PETTY_CASH" | "SALARY") =>
                   setSelectedExpense((prev) => ({ ...prev, purpose }))
                 }
               >
@@ -162,7 +162,7 @@ export const UpdateExpenseModal = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {["EXPENSE", "ADD_PETTY_CASH"].map((item) => (
+                    {["EXPENSE", "ADD_PETTY_CASH", "SALARY"].map((item) => (
                       <SelectItem key={item} value={item}>
                         {item.replace(/_/g, " ")}
                       </SelectItem>

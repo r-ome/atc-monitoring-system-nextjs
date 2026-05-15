@@ -27,6 +27,7 @@ const AUCTION_STATUS_VARIANTS: Record<AuctionItemStatus, StatusBadgeVariant> = {
 const EXPENSE_TYPE_VARIANTS: Record<ExpensePurpose, StatusBadgeVariant> = {
   ADD_PETTY_CASH: "success",
   EXPENSE: "error",
+  SALARY: "error",
 }
 
 const formatStatusLabel = (status: string) =>

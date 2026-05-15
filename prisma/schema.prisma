@@ -43,26 +43,26 @@ model auctions_bidders {
 }
 
 model auctions_inventories {
-  auction_inventory_id String                   @id @default(uuid())
-  auction_bidder_id    String
-  inventory_id         String                   @unique
-  receipt_id           String?
-  description          String
-  status               auction_inventory_status @default(UNPAID)
-  price                Int                      @default(0)
-  qty                  String
-  manifest_number      String
-  is_slash_item                    String?
-  split_from_auction_inventory_id  String?
-  auction_date                     DateTime
-  created_at           DateTime                 @default(now()) @db.Timestamp(0)
-  updated_at           DateTime                 @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at           DateTime?                @db.DateTime(0)
-  auction_bidder       auctions_bidders         @relation(fields: [auction_bidder_id], references: [auction_bidder_id], onDelete: Cascade, map: "fk_auctions_inventories_auctions_bidders")
+  auction_inventory_id            String                   @id @default(uuid())
+  auction_bidder_id               String
+  inventory_id                    String                   @unique
+  receipt_id                      String?
+  description                     String
+  status                          auction_inventory_status @default(UNPAID)
+  price                           Int                      @default(0)
+  qty                             String
+  manifest_number                 String
+  is_slash_item                   String?
+  split_from_auction_inventory_id String?
+  auction_date                    DateTime
+  created_at                      DateTime                 @default(now()) @db.Timestamp(0)
+  updated_at                      DateTime                 @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at                      DateTime?                @db.DateTime(0)
+  auction_bidder                  auctions_bidders         @relation(fields: [auction_bidder_id], references: [auction_bidder_id], onDelete: Cascade, map: "fk_auctions_inventories_auctions_bidders")
   // inventory            inventories              @relation(fields: [inventory_id], references: [inventory_id], onDelete: Cascade, map: "fk_auctions_inventories_inventories")
-  inventory            inventories              @relation("InventoryToAuctionInventories", fields: [inventory_id], references: [inventory_id])
-  receipt              receipt_records?         @relation(fields: [receipt_id], references: [receipt_id], onDelete: Cascade, map: "fk_auctions_inventories_receipt")
-  histories            inventory_histories[]
+  inventory                       inventories              @relation("InventoryToAuctionInventories", fields: [inventory_id], references: [inventory_id])
+  receipt                         receipt_records?         @relation(fields: [receipt_id], references: [receipt_id], onDelete: Cascade, map: "fk_auctions_inventories_receipt")
+  histories                       inventory_histories[]
 
   @@index([auction_bidder_id], map: "fk_auctions_inventories_auctions_bidders")
   @@index([inventory_id], map: "fk_auctions_inventories_inventories")
@@ -122,42 +122,44 @@ model bidder_ban_histories {
 }
 
 model branches {
-  branch_id      String           @id @default(uuid())
-  name           String
-  created_at     DateTime         @default(now()) @db.Timestamp(0)
-  updated_at     DateTime         @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at     DateTime?
-  containers     containers[]
-  users          users[]
-  bidders        bidders[]
-  auctions       auctions[]
-  expenses       expenses[]
-  pettyCashes    petty_cash[]
-  activity_logs  activity_logs[]
+  branch_id       String            @id @default(uuid())
+  name            String
+  created_at      DateTime          @default(now()) @db.Timestamp(0)
+  updated_at      DateTime          @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?
+  containers      containers[]
+  users           users[]
+  bidders         bidders[]
+  auctions        auctions[]
+  expenses        expenses[]
+  pettyCashes     petty_cash[]
+  activity_logs   activity_logs[]
+  employees       employees[]
+  payroll_periods payroll_periods[]
 }
 
 model containers {
-  container_id          String                     @id @default(uuid())
-  supplier_id           String
-  branch_id             String
-  barcode               String                     @unique
-  bill_of_lading_number String?                    @db.VarChar(255)
-  container_number      String?
-  arrival_date          DateTime?                  @db.DateTime(0)
-  due_date              DateTime?                  @db.DateTime(0)
-  gross_weight          String?                    @db.VarChar(255)
-  auction_or_sell       containers_auction_or_sell @default(SELL)
-  status                DateTime?                  @db.Date
-  duties_and_taxes      Decimal                    @default(0) @db.Decimal(10, 2)
-  tax_deduction         Json?
-  final_report_draft    Json?
-  created_at            DateTime                   @default(now()) @db.Timestamp(0)
-  updated_at            DateTime                   @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at            DateTime?                  @db.DateTime(0)
-  branch                branches                   @relation(fields: [branch_id], references: [branch_id], onDelete: Cascade, map: "fk_containers_branches")
-  supplier              suppliers                  @relation(fields: [supplier_id], references: [supplier_id], onDelete: Cascade, map: "fk_containers_suppliers")
-  inventories           inventories[]
-  container_files       container_files[]
+  container_id               String                                 @id @default(uuid())
+  supplier_id                String
+  branch_id                  String
+  barcode                    String                                 @unique
+  bill_of_lading_number      String?                                @db.VarChar(255)
+  container_number           String?
+  arrival_date               DateTime?                              @db.DateTime(0)
+  due_date                   DateTime?                              @db.DateTime(0)
+  gross_weight               String?                                @db.VarChar(255)
+  auction_or_sell            containers_auction_or_sell             @default(SELL)
+  status                     DateTime?                              @db.Date
+  duties_and_taxes           Decimal                                @default(0) @db.Decimal(10, 2)
+  tax_deduction              Json?
+  final_report_draft         Json?
+  created_at                 DateTime                               @default(now()) @db.Timestamp(0)
+  updated_at                 DateTime                               @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at                 DateTime?                              @db.DateTime(0)
+  branch                     branches                               @relation(fields: [branch_id], references: [branch_id], onDelete: Cascade, map: "fk_containers_branches")
+  supplier                   suppliers                              @relation(fields: [supplier_id], references: [supplier_id], onDelete: Cascade, map: "fk_containers_suppliers")
+  inventories                inventories[]
+  container_files            container_files[]
   item_categories            container_item_categories[]
   item_category_descriptions container_item_category_descriptions[]
 
@@ -344,15 +346,186 @@ model users {
 }
 
 model expenses {
-  expense_id String          @id @default(uuid())
-  amount     Decimal         @default(0) @db.Decimal(10, 2)
-  purpose    expense_purpose
-  remarks    String
-  branch_id  String          @default("bd163cce-98e5-4513-b69e-875bd89c5f5c")
-  created_at DateTime        @default(now()) @db.Timestamp(0)
-  updated_at DateTime        @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at DateTime?       @db.DateTime(0)
-  branch     branches        @relation(fields: [branch_id], references: [branch_id])
+  expense_id    String           @id @default(uuid())
+  amount        Decimal          @default(0) @db.Decimal(10, 2)
+  purpose       expense_purpose
+  remarks       String
+  branch_id     String           @default("bd163cce-98e5-4513-b69e-875bd89c5f5c")
+  employee_id   String?
+  created_at    DateTime         @default(now()) @db.Timestamp(0)
+  updated_at    DateTime         @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at    DateTime?        @db.DateTime(0)
+  branch        branches         @relation(fields: [branch_id], references: [branch_id])
+  employee      employees?       @relation(fields: [employee_id], references: [employee_id])
+  payroll_entry payroll_entries?
+
+  @@index([employee_id], map: "fk_expenses_employees")
+}
+
+model employees {
+  employee_id    String          @id @default(uuid())
+  first_name     String
+  middle_name    String?
+  last_name      String
+  position       String?
+  employee_type  employee_type   @default(REGULAR)
+  status         employee_status @default(ACTIVE)
+  contact_number String?
+  remarks        String?         @db.Text
+  branch_id      String
+
+  // Personal & government info (from STAFF INFO sheet)
+  birthday                 DateTime? @db.Date
+  date_hired               DateTime? @db.Date
+  address                  String?   @db.Text
+  tin                      String?
+  sss_number               String?
+  philhealth_number        String?
+  pagibig_number           String?
+  emergency_contact_name   String?
+  emergency_contact_number String?
+
+  // Payroll configuration
+  salary_type            salary_type        @default(DAILY_RATE)
+  worker_type            worker_type        @default(REGULAR_WORKER)
+  declaration_status     declaration_status @default(DECLARED)
+  default_daily_rate     Decimal?           @db.Decimal(12, 2)
+  default_monthly_salary Decimal?           @db.Decimal(12, 2)
+  default_auction_rate   Decimal?           @db.Decimal(12, 2)
+  default_container_rate Decimal?           @db.Decimal(12, 2)
+  default_ot_hour_rate   Decimal?           @db.Decimal(10, 4)
+  default_ot_minute_rate Decimal?           @db.Decimal(10, 4)
+
+  created_at        DateTime                     @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                     @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at        DateTime?                    @db.DateTime(0)
+  branch            branches                     @relation(fields: [branch_id], references: [branch_id])
+  expenses          expenses[]
+  payroll_entries   payroll_entries[]
+  employment_events employee_employment_events[]
+
+  @@index([branch_id], map: "fk_employees_branches")
+  @@index([status])
+  @@index([worker_type])
+}
+
+model employee_employment_events {
+  event_id       String                @id @default(uuid())
+  employee_id    String
+  event_type     employment_event_type
+  effective_date DateTime              @db.Date
+  remarks        String?               @db.Text
+  created_at     DateTime              @default(now()) @db.Timestamp(0)
+  updated_at     DateTime              @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at     DateTime?             @db.DateTime(0)
+  employee       employees             @relation(fields: [employee_id], references: [employee_id])
+
+  @@index([employee_id, effective_date], map: "idx_employment_events_employee_date")
+}
+
+model payroll_periods {
+  payroll_period_id String             @id @default(uuid())
+  branch_id         String
+  label             String
+  period_start      DateTime           @db.Date
+  period_end        DateTime           @db.Date
+  pay_date          DateTime?          @db.Date
+  status            payroll_run_status @default(DRAFT)
+  posted_at         DateTime?          @db.DateTime(0)
+  posted_by         String?
+  remarks           String?            @db.Text
+  created_at        DateTime           @default(now()) @db.Timestamp(0)
+  updated_at        DateTime           @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at        DateTime?          @db.DateTime(0)
+  branch            branches           @relation(fields: [branch_id], references: [branch_id])
+  entries           payroll_entries[]
+
+  @@unique([branch_id, period_start, period_end], map: "uq_payroll_periods_branch_dates")
+  @@index([branch_id, period_end], map: "idx_payroll_periods_branch_end")
+  @@index([status])
+}
+
+model payroll_entries {
+  payroll_entry_id  String @id @default(uuid())
+  payroll_period_id String
+  employee_id       String
+
+  // Snapshot — frozen at the time of posting
+  name_snapshot               String
+  position_snapshot           String?
+  salary_type_snapshot        salary_type
+  worker_type_snapshot        worker_type
+  declaration_status_snapshot declaration_status @default(DECLARED)
+  daily_rate_snapshot         Decimal?           @db.Decimal(12, 2)
+  monthly_salary_snapshot     Decimal?           @db.Decimal(12, 2)
+  auction_rate_snapshot       Decimal?           @db.Decimal(12, 2)
+  ot_hour_rate_snapshot       Decimal?           @db.Decimal(10, 4)
+  ot_minute_rate_snapshot     Decimal?           @db.Decimal(10, 4)
+  ot_rate_is_manual           Boolean            @default(false)
+  sss_snapshot                String?
+  philhealth_snapshot         String?
+  pagibig_snapshot            String?
+  tin_snapshot                String?
+
+  // Inputs
+  days_worked     Decimal @default(0) @db.Decimal(6, 2)
+  days_leave_paid Decimal @default(0) @db.Decimal(6, 2)
+  ot_hours        Decimal @default(0) @db.Decimal(6, 2)
+  ot_minutes      Decimal @default(0) @db.Decimal(6, 2)
+  worked_dates    Json?
+
+  // Cached computed totals (recomputed on every save)
+  basic_pay        Decimal @default(0) @db.Decimal(12, 2)
+  gross_pay        Decimal @default(0) @db.Decimal(12, 2)
+  total_deductions Decimal @default(0) @db.Decimal(12, 2)
+  net_pay          Decimal @default(0) @db.Decimal(12, 2)
+
+  // Payout link — set when period is marked paid
+  expense_id String? @unique
+  remarks    String? @db.Text
+
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at DateTime? @db.DateTime(0)
+
+  period     payroll_periods      @relation(fields: [payroll_period_id], references: [payroll_period_id])
+  employee   employees            @relation(fields: [employee_id], references: [employee_id])
+  expense    expenses?            @relation(fields: [expense_id], references: [expense_id])
+  earnings   payroll_earnings[]
+  deductions payroll_deductions[]
+
+  @@unique([payroll_period_id, employee_id], map: "uq_payroll_entries_period_employee")
+  @@index([employee_id], map: "idx_payroll_entries_employee")
+  @@index([payroll_period_id], map: "idx_payroll_entries_period")
+  @@index([expense_id], map: "idx_payroll_entries_expense")
+}
+
+model payroll_earnings {
+  payroll_earning_id String               @id @default(uuid())
+  payroll_entry_id   String
+  type               payroll_earning_type
+  amount             Decimal              @default(0) @db.Decimal(12, 2)
+  quantity           Decimal?             @db.Decimal(10, 4)
+  rate               Decimal?             @db.Decimal(10, 4)
+  remarks            String?
+  created_at         DateTime             @default(now()) @db.Timestamp(0)
+  updated_at         DateTime             @default(now()) @updatedAt @db.DateTime(0)
+  entry              payroll_entries      @relation(fields: [payroll_entry_id], references: [payroll_entry_id], onDelete: Cascade)
+
+  @@index([payroll_entry_id], map: "idx_payroll_earnings_entry")
+}
+
+model payroll_deductions {
+  payroll_deduction_id String                 @id @default(uuid())
+  payroll_entry_id     String
+  type                 payroll_deduction_type
+  amount               Decimal                @default(0) @db.Decimal(12, 2)
+  remarks              String?
+  created_at           DateTime               @default(now()) @db.Timestamp(0)
+  updated_at           DateTime               @default(now()) @updatedAt @db.DateTime(0)
+  entry                payroll_entries        @relation(fields: [payroll_entry_id], references: [payroll_entry_id], onDelete: Cascade)
+
+  @@index([payroll_entry_id], map: "idx_payroll_deductions_entry")
 }
 
 model petty_cash {
@@ -454,6 +627,73 @@ enum bidder_status {
 enum expense_purpose {
   ADD_PETTY_CASH
   EXPENSE
+  SALARY
+}
+
+enum employee_type {
+  REGULAR
+  CONTRACTUAL
+}
+
+enum employee_status {
+  ACTIVE
+  INACTIVE
+}
+
+enum salary_type {
+  FIXED_MONTHLY
+  DAILY_RATE
+  TASK_BASED
+}
+
+enum worker_type {
+  REGULAR_WORKER
+  EXTRA_WORKER
+}
+
+enum payroll_run_status {
+  DRAFT
+  POSTED
+  VOID
+}
+
+enum payroll_earning_type {
+  BASIC_PAY
+  OVERTIME_HOUR
+  OVERTIME_MINUTE
+  AUCTION
+  CONTAINER
+  LEAVE_WITH_PAY
+  HOLIDAY
+  SSS_ALLOWANCE
+  PHILHEALTH_ALLOWANCE
+  PAGIBIG_ALLOWANCE
+  OTHER_EARNING
+}
+
+enum declaration_status {
+  DECLARED
+  NON_DECLARED
+}
+
+enum payroll_deduction_type {
+  SSS
+  PHILHEALTH
+  PAGIBIG
+  PAGIBIG_LOAN
+  SLC
+  LATE
+  UNDERTIME
+  OTHER_DEDUCTION
+}
+
+enum employment_event_type {
+  RESIGNED
+  TERMINATED
+  AWOL
+  END_OF_CONTRACT
+  REHIRED
+  RECALLED
 }
 
 enum activity_action {

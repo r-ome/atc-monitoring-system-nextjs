@@ -15,6 +15,7 @@ import {
   HandCoins,
   Cog,
   UsersRound,
+  Banknote,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
@@ -23,17 +24,18 @@ import { signOut } from "next-auth/react";
 import { logSessionLogout } from "@/app/(protected)/session-actions";
 
 const NAV_ITEMS = [
-  { id: "home", label: "Home", href: "/home", icon: Home },
-  { id: "auctions", label: "Auctions", href: "/auctions", icon: Gavel },
-  { id: "bidders", label: "Bidders", href: "/bidders", icon: Users },
-  { id: "items", label: "Bought Items", href: "/bought-items", icon: Package },
-  { id: "branches", label: "Branches", href: "/branches", icon: Building2 },
-  { id: "containers", label: "Containers", href: "/containers", icon: Container },
-  { id: "suppliers", label: "Suppliers", href: "/suppliers", icon: Truck },
-  { id: "transactions", label: "Transactions", href: "/transactions", icon: HandCoins },
-  { id: "users", label: "Users", href: "/users", icon: UsersRound },
-  { id: "reports", label: "Reports", href: "/reports", icon: BarChart3 },
-  { id: "config", label: "Config", href: "/configurations", icon: Cog },
+  { id: "home", label: "Home", href: "/home", icon: Home, roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "ENCODER"] },
+  { id: "auctions", label: "Auctions", href: "/auctions", icon: Gavel, roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "ENCODER"] },
+  { id: "bidders", label: "Bidders", href: "/bidders", icon: Users, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
+  { id: "items", label: "Bought Items", href: "/bought-items", icon: Package, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
+  { id: "branches", label: "Branches", href: "/branches", icon: Building2, roles: ["OWNER", "SUPER_ADMIN"] },
+  { id: "containers", label: "Containers", href: "/containers", icon: Container, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
+  { id: "suppliers", label: "Suppliers", href: "/suppliers", icon: Truck, roles: ["OWNER", "SUPER_ADMIN"] },
+  { id: "payroll", label: "Payroll", href: "/payroll", icon: Banknote, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
+  { id: "transactions", label: "Transactions", href: "/transactions", icon: HandCoins, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
+  { id: "users", label: "Users", href: "/users", icon: UsersRound, roles: ["OWNER", "SUPER_ADMIN"] },
+  { id: "reports", label: "Reports", href: "/reports", icon: BarChart3, roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "MODERATOR"] },
+  { id: "config", label: "Config", href: "/configurations", icon: Cog, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
 ];
 
 const MOBILE_TABS = [
@@ -107,7 +109,7 @@ export function RailNav({ session }: RailNavProps) {
           ATC
         </div>
 
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.filter((item) => item.roles.includes(session.user.role)).map((item) => (
           <RailItem
             key={item.id}
             label={item.label}

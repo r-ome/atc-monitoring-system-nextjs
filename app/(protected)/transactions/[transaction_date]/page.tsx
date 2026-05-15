@@ -23,11 +23,13 @@ import { subDays } from "date-fns";
 import { formatDate } from "@/app/lib/utils";
 
 import { getBranches } from "../../branches/actions";
+import { getEmployees } from "../../employees/actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { requireSession } from "@/app/lib/auth";
 import { TransactionHeader } from "./components/TransactionHeader";
 import { InwardTransactionsTab } from "./InwardTransactionsTab";
 import { ExpensesTab } from "./ExpensesTab";
+import { PayrollTab } from "./PayrollTab";
 import { GenerateExpenseReport } from "./GenerateExpenseReport";
 
 export default async function Page({
@@ -47,6 +49,7 @@ export default async function Page({
     getEnabledPaymentMethods(),
     getBranches(),
   ]);
+
 
   if (!payment_methods_res.ok || !branches_res.ok) {
     return <ErrorComponent error={{ message: "Server Error" }} />;
@@ -74,18 +77,21 @@ export default async function Page({
     expenses_res,
     current_petty_cash_res,
     last_petty_cash_res,
+    employees_res,
   ] = await Promise.all([
     getPaymentsByDate(transaction_date, selected_branch?.branch_id),
     getExpensesByDate(transaction_date, selected_branch?.branch_id),
     getPettyCashBalance(transaction_date, selected_branch?.branch_id),
     getPettyCashBalance(last_working_day, selected_branch?.branch_id),
+    getEmployees(selected_branch?.branch_id),
   ]);
 
   if (
     !transactions_res.ok ||
     !expenses_res.ok ||
     !current_petty_cash_res.ok ||
-    !last_petty_cash_res.ok
+    !last_petty_cash_res.ok ||
+    !employees_res.ok
   ) {
     return <ErrorComponent error={{ message: "Server Error" }} />;
   }
@@ -94,6 +100,7 @@ export default async function Page({
   const transactions = transactions_res.value;
   const current_petty_cash = current_petty_cash_res.value;
   const last_petty_cash = last_petty_cash_res.value;
+  const active_employees = employees_res.value.filter((e) => e.status === "ACTIVE");
 
   return (
     <>
@@ -124,6 +131,9 @@ export default async function Page({
               <TabsTrigger value="expense" className="flex-none">
                 Expenses
               </TabsTrigger>
+              <TabsTrigger value="payroll" className="flex-none">
+                Payroll
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="inward">
               <InwardTransactionsTab transactions={transactions} />
@@ -135,6 +145,13 @@ export default async function Page({
                 currentPettyCash={current_petty_cash}
                 lastPettyCash={last_petty_cash}
                 user={user}
+                employees={active_employees}
+              />
+            </TabsContent>
+            <TabsContent value="payroll">
+              <PayrollTab
+                expenses={expenses}
+                selectedBranch={selected_branch}
               />
             </TabsContent>
           </Tabs>
