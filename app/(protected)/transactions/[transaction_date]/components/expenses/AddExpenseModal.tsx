@@ -27,30 +27,25 @@ import { addExpense } from "@/app/(protected)/auctions/[auction_date]/payments/a
 import { toast } from "sonner";
 import { formatDate } from "@/app/lib/utils";
 import { PettyCash, EXPENSE_PURPOSE } from "src/entities/models/Expense";
-import { Employee } from "src/entities/models/Employee";
 
 interface AddExpenseModalProps {
   currentPettyCash: PettyCash | null;
   selectedBranch: { branch_id: string };
-  employees: Pick<Employee, "employee_id" | "first_name" | "last_name">[];
 }
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   currentPettyCash,
   selectedBranch,
-  employees,
 }) => {
   const router = useRouter();
   const { transaction_date } = useParams();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpenDialog] = useState<boolean>(false);
   const [purpose, setPurpose] = useState<(typeof EXPENSE_PURPOSE)[number]>("EXPENSE");
-  const [employeeId, setEmployeeId] = useState<string>("");
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
       setPurpose("EXPENSE");
-      setEmployeeId("");
     }
     setOpenDialog(next);
   };
@@ -64,9 +59,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const remarks = formData.get("remarks") as string;
     formData.set("remarks", remarks.toUpperCase());
     formData.append("branch_id", selectedBranch.branch_id);
-    if (purpose === "SALARY" && employeeId) {
-      formData.append("employee_id", employeeId);
-    }
 
     let pettyCashDate = null;
     let pettyCashId = "CREATE";
@@ -130,7 +122,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 value={purpose}
                 onValueChange={(val: (typeof EXPENSE_PURPOSE)[number]) => {
                   setPurpose(val);
-                  setEmployeeId("");
                 }}
               >
                 <SelectTrigger className="w-full">
@@ -148,30 +139,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               </Select>
             </div>
 
-            {purpose === "SALARY" && (
-              <div className="flex gap-4">
-                <Label className="w-40">Employee</Label>
-                <Select
-                  required
-                  value={employeeId}
-                  onValueChange={setEmployeeId}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select employee" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {employees.map((e) => (
-                        <SelectItem key={e.employee_id} value={e.employee_id}>
-                          {e.first_name} {e.last_name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
             <div className="flex gap-4">
               <Label htmlFor="remarks" className="w-40">
                 Remarks
@@ -183,10 +150,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               <DialogClose asChild>
                 <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
               </DialogClose>
-              <Button
-                type="submit"
-                disabled={isLoading || (purpose === "SALARY" && !employeeId)}
-              >
+              <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>

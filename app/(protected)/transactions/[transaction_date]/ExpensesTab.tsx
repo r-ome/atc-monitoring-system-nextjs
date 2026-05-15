@@ -1,7 +1,6 @@
 "use client";
 
 import { Expense, PettyCash } from "src/entities/models/Expense";
-import { Employee } from "src/entities/models/Employee";
 import { AddExpenseModal } from "./components/expenses/AddExpenseModal";
 import { UpdatePettyCashModal } from "./components/expenses/UpdatePettyCashModal";
 import { ExpensesTable } from "./components/expenses/ExpensesTable";
@@ -13,7 +12,6 @@ interface ExpensesTabProps {
   selectedBranch: { branch_id: string } | null;
   lastPettyCash: PettyCash | null;
   currentPettyCash: PettyCash | null;
-  employees: Pick<Employee, "employee_id" | "first_name" | "last_name">[];
 }
 
 export const ExpensesTab: React.FC<ExpensesTabProps> = ({
@@ -22,7 +20,6 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
   currentPettyCash,
   lastPettyCash,
   user,
-  employees,
 }) => {
   return (
     <div className="flex flex-col gap-4">
@@ -32,7 +29,6 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
             <AddExpenseModal
               currentPettyCash={currentPettyCash}
               selectedBranch={selectedBranch}
-              employees={employees}
             />
             {["SUPER_ADMIN", "OWNER"].includes(user.role) ? (
               <UpdatePettyCashModal
