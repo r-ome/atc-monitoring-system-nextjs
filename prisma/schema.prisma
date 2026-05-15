@@ -158,6 +158,8 @@ model containers {
   supplier              suppliers                  @relation(fields: [supplier_id], references: [supplier_id], onDelete: Cascade, map: "fk_containers_suppliers")
   inventories           inventories[]
   container_files       container_files[]
+  item_categories            container_item_categories[]
+  item_category_descriptions container_item_category_descriptions[]
 
   @@index([branch_id], map: "fk_containers_branches")
   @@index([supplier_id], map: "fk_containers_suppliers")
@@ -205,6 +207,35 @@ model inventories {
   histories          inventory_histories[]
 
   @@index([container_id], map: "fk_inventories_container_id")
+}
+
+model container_item_categories {
+  category_id  String                                 @id @default(uuid())
+  container_id String
+  name         String                                 @db.VarChar(100)
+  created_at   DateTime                               @default(now()) @db.Timestamp(0)
+  updated_at   DateTime                               @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at   DateTime?                              @db.DateTime(0)
+  container    containers                             @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_container_item_categories_containers")
+  descriptions container_item_category_descriptions[]
+
+  @@index([container_id], map: "fk_container_item_categories_containers")
+}
+
+model container_item_category_descriptions {
+  category_description_id String                    @id @default(uuid())
+  category_id             String
+  container_id            String
+  description             String                    @db.VarChar(255)
+  normalized_description  String                    @db.VarChar(255)
+  created_at              DateTime                  @default(now()) @db.Timestamp(0)
+  updated_at              DateTime                  @default(now()) @updatedAt @db.DateTime(0)
+  category                container_item_categories @relation(fields: [category_id], references: [category_id], onDelete: Cascade, map: "fk_container_item_category_desc_categories")
+  container               containers                @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_container_item_category_desc_containers")
+
+  @@unique([container_id, normalized_description], map: "container_item_category_desc_container_desc_key")
+  @@index([category_id], map: "fk_container_item_category_desc_categories")
+  @@index([container_id], map: "fk_container_item_category_desc_containers")
 }
 
 model inventory_histories {

@@ -12,7 +12,11 @@ import { ContainerInventoriesTable } from "./components/inventories/ContainerInv
 import { ContainerReport } from "./components/report/ContainerReport";
 import { OwnerContainerReport } from "./components/report/OwnerContainerReport";
 import { BoughtItemPnL } from "./components/report/BoughtItemPnL";
-import { getContainerByBarcode } from "@/app/(protected)/containers/actions";
+import { HotItemsByCategory } from "./components/report/HotItemsByCategory";
+import {
+  getContainerByBarcode,
+  getContainerHotItemCategories,
+} from "@/app/(protected)/containers/actions";
 import { getBranches } from "@/app/(protected)/branches/actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
@@ -35,6 +39,9 @@ export default async function Page({
   }
 
   const container = res.value;
+  const hotItemsRes = await getContainerHotItemCategories({
+    container_id: container.container_id,
+  });
   const tarlacBranchId = branchesRes.ok
     ? (branchesRes.value.find((branch) => branch.name === "TARLAC")
         ?.branch_id ?? null)
@@ -63,27 +70,37 @@ export default async function Page({
           <ContainerProfile container={container} />
         </TabsContent>
         <TabsContent value="report">
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-            {isOwnerContainer ? (
-              <OwnerContainerReport inventories={container.inventories} />
-            ) : (
-              <div className="space-y-6">
-                <ContainerReport inventories={container.inventories} />
-                <BoughtItemPnL
-                  containerStatus={container.status}
-                  inventories={container.inventories}
-                />
-              </div>
-            )}
-            <div className="w-full max-w-lg rounded-lg border p-6">
-              <div className="space-y-6">
-                <GeneratedFinalReportFiles files={container.final_report_files} />
-                <ContainerReportFiles
-                  container_id={container.container_id}
-                  files={container.container_report_files}
-                />
+          <div className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+              {isOwnerContainer ? (
+                <OwnerContainerReport inventories={container.inventories} />
+              ) : (
+                <div className="space-y-6">
+                  <ContainerReport inventories={container.inventories} />
+                  <BoughtItemPnL
+                    containerStatus={container.status}
+                    inventories={container.inventories}
+                  />
+                </div>
+              )}
+              <div className="w-full max-w-lg rounded-lg border p-6">
+                <div className="space-y-6">
+                  <GeneratedFinalReportFiles files={container.final_report_files} />
+                  <ContainerReportFiles
+                    container_id={container.container_id}
+                    files={container.container_report_files}
+                  />
+                </div>
               </div>
             </div>
+            {hotItemsRes.ok ? (
+              <HotItemsByCategory
+                containerId={container.container_id}
+                initialReport={hotItemsRes.value}
+              />
+            ) : (
+              <ErrorComponent error={hotItemsRes.error} />
+            )}
           </div>
         </TabsContent>
       </Tabs>

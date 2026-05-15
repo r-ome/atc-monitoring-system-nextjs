@@ -33,6 +33,12 @@ import { SaveFinalReportDraftController } from "src/controllers/containers/save-
 import { GetFinalReportDraftController } from "src/controllers/containers/get-final-report-draft.controller";
 import { ClearFinalReportDraftController } from "src/controllers/containers/clear-final-report-draft.controller";
 import { FinalizeFinalReportController } from "src/controllers/containers/finalize-final-report.controller";
+import {
+  CreateContainerHotItemCategoryController,
+  DeleteContainerHotItemCategoryController,
+  GetContainerHotItemCategoriesController,
+  UpdateContainerHotItemCategoryController,
+} from "src/controllers/containers/container-hot-item-categories.controller";
 import type { FinalReportDraft } from "src/entities/models/FinalReportDraft";
 
 export const getContainerByBarcode = async (barcode: string) => {
@@ -41,6 +47,54 @@ export const getContainerByBarcode = async (barcode: string) => {
 
   return await runWithBranchContext(auth.value, async () =>
     GetContainerByBarcodeController(barcode),
+  );
+};
+
+export const getContainerHotItemCategories = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(
+    auth.value,
+    async () => await GetContainerHotItemCategoriesController(input),
+  );
+};
+
+export const createContainerHotItemCategory = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await CreateContainerHotItemCategoryController(input),
+  );
+};
+
+export const updateContainerHotItemCategory = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await UpdateContainerHotItemCategoryController(input),
+  );
+};
+
+export const deleteContainerHotItemCategory = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await DeleteContainerHotItemCategoryController(input),
   );
 };
 
