@@ -84,7 +84,7 @@ export default async function Page({
           </span>
         </div>
 
-        <div className="grid gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2.5 [&>*:nth-child(5)]:col-span-2 sm:grid-cols-3 sm:[&>*:nth-child(5)]:col-span-1 lg:grid-cols-5">
           <AuctionMiniStat
             label="Auction Date"
             value={

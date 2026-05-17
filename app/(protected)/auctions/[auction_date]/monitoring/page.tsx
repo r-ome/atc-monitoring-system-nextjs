@@ -82,7 +82,7 @@ export default async function Page({
 
       <AuctionSectionNav basePath={`/auctions/${auction_date}`} />
 
-      <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-4 2xl:gap-6">
+      <div className="grid grid-cols-2 gap-[18px] lg:grid-cols-4 2xl:gap-6">
         <AuctionMiniStat
           label="Total Items"
           value={stats.total.toLocaleString()}

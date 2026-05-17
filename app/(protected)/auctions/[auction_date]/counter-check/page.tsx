@@ -50,16 +50,11 @@ export default async function Page({
 
       <AuctionSectionNav basePath={`/auctions/${auction_date}`} />
 
-      <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3 2xl:gap-6">
+      <div className="grid grid-cols-2 gap-[18px] [&>*:nth-child(3)]:col-span-2 lg:grid-cols-3 lg:[&>*:nth-child(3)]:col-span-1 2xl:gap-6">
         <AuctionMiniStat
           label="Total Records"
           value={counter_check.length.toLocaleString()}
           sub="From uploaded sheets"
-        />
-        <AuctionMiniStat
-          label="Counter Check Total"
-          value={formatNumberToCurrency(total_value)}
-          sub="Summed line totals"
         />
         <AuctionMiniStat
           label="Errors"
@@ -70,6 +65,11 @@ export default async function Page({
               : "Needs reconciliation"
           }
           danger={error_count > 0}
+        />
+        <AuctionMiniStat
+          label="Counter Check Total"
+          value={formatNumberToCurrency(total_value)}
+          sub="Summed line totals"
         />
       </div>
 

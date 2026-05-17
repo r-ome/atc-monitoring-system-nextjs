@@ -3,11 +3,15 @@
 import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
-import { CoreRow } from "@tanstack/react-table";
+import { CoreRow, Row } from "@tanstack/react-table";
 import { columns } from "./manifest-columns";
 import { Manifest } from "src/entities/models/Manifest";
 import { UpdateManifestModal } from "./UpdateManifestModal";
-import { buildGroupIndexMap, cn } from "@/app/lib/utils";
+import {
+  buildGroupIndexMap,
+  cn,
+  formatNumberToCurrency,
+} from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
 import { Card } from "@/app/components/ui/card";
 import { AlertCircle, RefreshCw, FileText, X } from "lucide-react";
@@ -305,6 +309,89 @@ export const ManifestRecordsTable = ({
           searchComponentProps: {
             placeholder: "Search barcode, control, bidder…",
           },
+        }}
+        renderMobileCard={(row: Row<Manifest>) => {
+          const it = row.original;
+          const hasError = !!it.error_message?.trim();
+          const idx = it.is_slash_item
+            ? groupIndexMap[it.is_slash_item]
+            : undefined;
+          const price = it.price ? parseInt(it.price, 10) : 0;
+          return (
+            <div
+              className={cn(
+                "flex gap-0",
+                hasError && "bg-destructive/5",
+              )}
+            >
+              {hasError ? (
+                <div className="w-[3px] shrink-0 bg-destructive" />
+              ) : null}
+              <div className="flex flex-1 flex-col gap-1 px-4 py-3">
+                <div className="flex items-baseline gap-1.5">
+                  <span
+                    className={cn(
+                      "font-mono text-[12px] font-semibold",
+                      hasError &&
+                        "cursor-pointer underline decoration-dotted underline-offset-2",
+                    )}
+                    onClick={() => {
+                      if (hasError) {
+                        setSelected(it);
+                        setOpen(true);
+                      }
+                    }}
+                  >
+                    {it.barcode}
+                  </span>
+                  <span className="font-mono text-[10.5px] text-muted-foreground">
+                    · {it.control}
+                    {idx ? `(A${idx})` : ""}
+                  </span>
+                  {it.manifest_number ? (
+                    <span className="ml-auto rounded bg-secondary px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-foreground/80">
+                      {it.manifest_number}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="truncate text-[13px] font-medium">
+                    {it.description}
+                  </span>
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    #{it.bidder_number}
+                  </span>
+                  <span className="ml-auto font-mono text-[12.5px] font-semibold">
+                    {formatNumberToCurrency(price)}
+                  </span>
+                </div>
+                {hasError ? (
+                  <div className="mt-0.5 flex items-center gap-1.5">
+                    <AlertCircle size={11} className="text-destructive" />
+                    <span className="text-[11px] font-medium text-destructive">
+                      {it.error_message}
+                    </span>
+                    {it.remarks ? (
+                      <span className="ml-auto text-[10px] text-muted-foreground">
+                        {it.remarks}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="mt-0.5 flex items-center gap-1.5">
+                    <span className="text-[10.5px] font-semibold uppercase tracking-wider text-status-success">
+                      Encoded
+                    </span>
+                    {it.remarks ? (
+                      <span className="ml-auto text-[10px] text-muted-foreground">
+                        {it.remarks}
+                      </span>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
         }}
         actionButtons={
           <div className="flex flex-wrap items-center gap-3">

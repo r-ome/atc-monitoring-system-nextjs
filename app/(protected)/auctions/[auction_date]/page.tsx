@@ -236,7 +236,7 @@ export default async function Page({
       </nav>
 
       {/* Hero strip */}
-      <Card className="flex flex-row flex-wrap items-center justify-between gap-6 p-5 2xl:p-6">
+      <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4 sm:gap-6 sm:p-5 2xl:p-6">
         <div className="flex min-w-0 flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="caps-label text-[11px] 2xl:text-[14px]">
@@ -255,12 +255,12 @@ export default async function Page({
               </span>
             ) : null}
           </div>
-          <h1 className="text-[22px] font-semibold tracking-tight 2xl:text-[28px]">
+          <h1 className="truncate text-[18px] font-semibold tracking-tight sm:text-[22px] 2xl:text-[28px]">
             {longDate}
           </h1>
         </div>
         {session.user.role !== "MODERATOR" ? (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 [&>*]:flex-1 sm:w-auto sm:[&>*]:flex-initial">
             {session.user.role !== "ENCODER" ? (
               <GenerateReportButton monitoring={monitoringRes.value} />
             ) : null}
@@ -291,7 +291,7 @@ export default async function Page({
       >
         <StatCardGroup
           columns={5}
-          className="sm:[&>*:nth-child(5)]:col-span-2 lg:[&>*:nth-child(5)]:col-span-1"
+          className="grid-cols-2 [&>*:nth-child(5)]:col-span-2 lg:grid-cols-5 lg:[&>*:nth-child(5)]:col-span-1"
         >
           <StatCard
             title="Registered Bidders"
@@ -299,7 +299,7 @@ export default async function Page({
             description={`${auction.registered_bidders.length} total entries`}
             icon={Users}
             variant="default"
-            contentClassName="py-0"
+            contentClassName="px-4 py-0 sm:px-6"
           />
           <StatCard
             title="Registration Fee"
@@ -307,7 +307,7 @@ export default async function Page({
             description="Collected from registrations"
             icon={DollarSign}
             variant="primary"
-            contentClassName="py-0"
+            contentClassName="px-4 py-0 sm:px-6"
           />
           <StatCard
             title="Items Sold"
@@ -315,7 +315,7 @@ export default async function Page({
             description={`${item_summary.paid_items} paid · ${item_summary.unpaid_items} unpaid`}
             icon={Package}
             variant="default"
-            contentClassName="py-0"
+            contentClassName="px-4 py-0 sm:px-6"
           />
           <StatCard
             title="Total Sales"
@@ -323,7 +323,7 @@ export default async function Page({
             description={`+${formatNumberToCurrency(total_service_charge_amount)} service charge`}
             icon={TrendingUp}
             variant="success"
-            contentClassName="py-0"
+            contentClassName="px-4 py-0 sm:px-6"
           />
           <StatCard
             title="Avg Selling Price"
@@ -341,14 +341,14 @@ export default async function Page({
             }
             icon={Tag}
             variant="default"
-            contentClassName="py-0"
+            contentClassName="px-4 py-0 sm:px-6"
           />
         </StatCardGroup>
 
         <div className="grid gap-[18px] lg:grid-cols-[1.55fr_1fr] 2xl:gap-6">
           {/* Wrap left column in a relative cell so the right column drives
               the row height; the table card stretches to fill it and scrolls. */}
-          <div className="lg:relative lg:min-h-[420px]">
+          <div className="min-w-0 lg:relative lg:min-h-[420px]">
             <div className="lg:absolute lg:inset-0">
               <AuctionContainerSummaryTable
                 containerSummary={container_summary}

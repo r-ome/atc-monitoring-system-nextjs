@@ -61,7 +61,15 @@ export function AuctionSecondaryHeader({
       </div>
 
       {actions ? (
-        <div className="flex flex-wrap items-center gap-2">{actions}</div>
+        <div className="hidden flex-wrap items-center gap-2 sm:flex">{actions}</div>
+      ) : null}
+
+      {actions ? (
+        <div className="fixed inset-x-0 bottom-[64px] z-40 border-t bg-card/95 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:hidden">
+          <div className="flex flex-wrap items-center gap-2 [&>*]:flex-1">
+            {actions}
+          </div>
+        </div>
       ) : null}
     </Card>
   );

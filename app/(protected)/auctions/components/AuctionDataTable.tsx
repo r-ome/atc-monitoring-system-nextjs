@@ -35,6 +35,7 @@ export interface AuctionDataTableProps<TData, TValue>
   icon?: ComponentType<{ size?: number; className?: string }>;
   meta?: ReactNode;
   rowLabel?: string;
+  renderMobileCard?: (row: Row<TData>) => ReactNode;
 }
 
 export const AuctionDataTable = <TData, TValue>({
@@ -53,6 +54,7 @@ export const AuctionDataTable = <TData, TValue>({
   icon: Icon,
   meta,
   rowLabel = "row",
+  renderMobileCard,
 }: AuctionDataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
@@ -144,7 +146,7 @@ export const AuctionDataTable = <TData, TValue>({
       {hasToolbar ? (
         <div className="flex flex-col gap-2 border-b px-[18px] py-3 md:flex-row md:items-center 2xl:px-5">
           {searchFilter?.globalFilterFn ? (
-            <div className="w-full max-w-[420px]">
+            <div className="w-full md:max-w-[420px]">
               <SearchComponent
                 value={globalFilter}
                 onChangeEvent={(value) => setGlobalFilter?.(value)}
@@ -169,7 +171,44 @@ export const AuctionDataTable = <TData, TValue>({
         </div>
       ) : null}
 
-      <div className="overflow-auto">
+      {renderMobileCard ? (
+        <div className="md:hidden">
+          {visibleRows.length ? (
+            <ul className="flex flex-col">
+              {visibleRows.map((row, i) => (
+                <li
+                  key={row.id}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={cn(
+                    "transition-colors hover:bg-secondary/50",
+                    i !== visibleRows.length - 1 && "border-b",
+                    onRowClick && "cursor-pointer",
+                  )}
+                >
+                  {renderMobileCard(row)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Empty className="py-10">
+              <EmptyMedia variant="icon">
+                <InboxIcon />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No results</EmptyTitle>
+                <EmptyDescription>No data to display.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
+        </div>
+      ) : null}
+
+      <div
+        className={cn(
+          "overflow-auto",
+          renderMobileCard && "hidden md:block",
+        )}
+      >
         <table className="w-full border-collapse text-[13px] 2xl:text-[15px]">
           <thead className="sticky top-0 z-10 bg-card">
             {table.getHeaderGroups().map((headerGroup) => (

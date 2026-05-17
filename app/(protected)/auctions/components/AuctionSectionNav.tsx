@@ -64,7 +64,7 @@ export function AuctionSectionNav({ basePath }: AuctionSectionNavProps) {
             role="tab"
             aria-selected={isActive}
             className={cn(
-              "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors 2xl:text-[15px]",
+              "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-1.5 2xl:text-[15px]",
               isActive
                 ? "bg-background text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground",

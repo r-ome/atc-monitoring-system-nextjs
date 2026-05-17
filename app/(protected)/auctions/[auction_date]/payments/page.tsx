@@ -49,7 +49,7 @@ export default async function Page({
 
       <AuctionSectionNav basePath={`/auctions/${auction_date}`} />
 
-      <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3 2xl:gap-6">
+      <div className="grid grid-cols-2 gap-[18px] [&>*:nth-child(3)]:col-span-2 lg:grid-cols-3 lg:[&>*:nth-child(3)]:col-span-1 2xl:gap-6">
         <AuctionMiniStat
           label="Collected"
           value={formatNumberToCurrency(collected)}

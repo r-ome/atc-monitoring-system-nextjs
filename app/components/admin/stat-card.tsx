@@ -44,12 +44,12 @@ export function StatCard({
   }
 
   return (
-    <Card className={cn("relative overflow-hidden", variantStyles[variant], className)}>
+    <Card className={cn("relative min-w-0 overflow-hidden", variantStyles[variant], className)}>
       <CardContent className={cn("p-6", contentClassName)}>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1 space-y-1">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold tracking-tight">{value}</p>
+            <p className="truncate text-lg font-bold tracking-tight sm:text-2xl">{value}</p>
             {description && (
               <p className="text-xs text-muted-foreground">{description}</p>
             )}
@@ -73,7 +73,7 @@ export function StatCard({
             )}
           </div>
           {Icon && (
-            <div className={cn("rounded-lg p-2.5 bg-muted/50", iconStyles[variant])}>
+            <div className={cn("hidden shrink-0 rounded-lg bg-muted/50 p-2.5 sm:block", iconStyles[variant])}>
               <Icon className="size-5" />
             </div>
           )}

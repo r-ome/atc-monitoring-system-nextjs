@@ -16,11 +16,11 @@ export function AuctionMiniStat({
   danger,
 }: AuctionMiniStatProps) {
   return (
-    <Card className="flex flex-col gap-1 p-[14px] 2xl:p-4 2xl:text-[15px]">
+    <Card className="flex min-w-0 flex-col gap-1 p-[14px] 2xl:p-4 2xl:text-[15px]">
       <span className="caps-label text-[11px] 2xl:text-[13px]">{label}</span>
       <span
         className={cn(
-          "font-mono text-[20px] font-semibold tracking-tight 2xl:text-[24px]",
+          "font-mono truncate text-[17px] font-semibold tracking-tight sm:text-[20px] 2xl:text-[24px]",
           danger ? "text-destructive" : "text-foreground",
         )}
       >

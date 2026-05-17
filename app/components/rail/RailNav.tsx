@@ -47,10 +47,10 @@ const NAV_ITEMS = [
 ];
 
 const MOBILE_TABS = [
-  { id: "home", label: "Home", href: "/home", icon: Home },
-  { id: "auctions", label: "Auctions", href: "/auctions", icon: Gavel },
-  { id: "bidders", label: "Bidders", href: "/bidders", icon: Users },
-  { id: "containers", label: "Containers", href: "/containers", icon: Container },
+  { id: "home", label: "Home", href: "/home", icon: Home, roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "ENCODER"] },
+  { id: "auctions", label: "Auctions", href: "/auctions", icon: Gavel, roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "ENCODER"] },
+  { id: "bidders", label: "Bidders", href: "/bidders", icon: Users, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
+  { id: "containers", label: "Containers", href: "/containers", icon: Container, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
 ];
 
 function RailItem({
@@ -107,7 +107,10 @@ export function RailNav({ session }: RailNavProps) {
     .join("")
     .slice(0, 2) ?? "?";
 
-  const mobileTabIds = new Set(MOBILE_TABS.map((t) => t.id));
+  const mobileTabs = MOBILE_TABS.filter((t) =>
+    t.roles.includes(session.user.role),
+  );
+  const mobileTabIds = new Set(mobileTabs.map((t) => t.id));
   const drawerItems = NAV_ITEMS.filter(
     (item) =>
       !mobileTabIds.has(item.id) && item.roles.includes(session.user.role),
@@ -158,7 +161,7 @@ export function RailNav({ session }: RailNavProps) {
 
       {/* Mobile bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 flex justify-around border-t bg-card px-1 pb-safe pt-1.5 shadow-[0_-1px_8px_rgba(0,0,0,0.06)]">
-        {MOBILE_TABS.map((tab) => {
+        {mobileTabs.map((tab) => {
           const Icon = tab.icon;
           const active = pathname === tab.href || (tab.href !== "/home" && pathname.startsWith(tab.href));
           return (
