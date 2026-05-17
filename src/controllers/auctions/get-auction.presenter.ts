@@ -12,7 +12,12 @@ export function presenter(auction: AuctionWithDetailsRow) {
     auction_id: auction.auction_id,
     auctions_inventories,
     auction_date: formatDate(auction.created_at, date_format),
+    started_at: formatDate(auction.created_at, "hh:mm a"),
     updated_at: formatDate(auction.updated_at, date_format),
+    branch: {
+      branch_id: auction.branch.branch_id,
+      name: auction.branch.name,
+    },
     registered_bidders: auction.registered_bidders.map((registered_bidder) => {
       const receipt_records = registered_bidder.receipt_records.find(
         (item) => item.purpose === "REGISTRATION",

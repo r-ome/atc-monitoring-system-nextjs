@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/app/components/ui/button";
-import Link from "next/link";
 import { User } from "src/entities/models/User";
 import { UsersTable } from "./users-table";
 import { UserProfileModal } from "./UserProfileModal";
@@ -16,13 +14,7 @@ export const UsersList = ({ users }: UsersListProps) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="space-y-2">
-      <div>
-        <Link href="users/create">
-          <Button>Register User</Button>
-        </Link>
-      </div>
-
+    <>
       <UsersTable
         users={users}
         onRowClick={(user) => {
@@ -41,6 +33,6 @@ export const UsersList = ({ users }: UsersListProps) => {
           }
         }}
       />
-    </div>
+    </>
   );
 };

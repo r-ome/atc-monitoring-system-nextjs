@@ -61,6 +61,7 @@ export const AuctionRepository: IAuctionRepository = {
             },
           },
           include: {
+            branch: true,
             registered_bidders: {
               include: {
                 bidder: true,
@@ -88,6 +89,7 @@ export const AuctionRepository: IAuctionRepository = {
       return await prisma.auctions.findFirst({
         where: { auction_id },
         include: {
+          branch: true,
           registered_bidders: {
             include: {
               bidder: true,
@@ -150,6 +152,7 @@ export const AuctionRepository: IAuctionRepository = {
       return await prisma.auctions.findFirst({
         where: { created_at: { gte: start, lte: end } },
         include: {
+          branch: true,
           registered_bidders: {
             include: {
               bidder: true,

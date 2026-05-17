@@ -153,7 +153,7 @@ export function HomeCalendar() {
             <div
               key={d}
               className={cn(
-                "border-r px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground 2xl:text-[15px]",
+                "caps-label border-r px-2 py-1.5 text-[11px] 2xl:text-[15px]",
                 i === 6 && "border-r-0",
               )}
             >

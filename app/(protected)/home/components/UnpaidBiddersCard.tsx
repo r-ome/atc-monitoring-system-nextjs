@@ -160,7 +160,7 @@ export function UnpaidBiddersCard() {
 
           {/* List header */}
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground 2xl:text-[15px]">
+            <span className="text-[11px] caps-label 2xl:text-[15px]">
               Unpaid Bidders
             </span>
             <div className="flex items-center gap-2">
@@ -239,7 +239,7 @@ export function UnpaidBiddersCard() {
         {/* Banned tab */}
         <TabsContent value="banned" className="mt-0 px-4 pb-3.5 pt-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground 2xl:text-[15px]">
+            <span className="text-[11px] caps-label 2xl:text-[15px]">
               Banned Bidders
             </span>
             <span className="text-[11px] text-muted-foreground 2xl:text-[15px]">{banned.length} bidders</span>
@@ -247,7 +247,7 @@ export function UnpaidBiddersCard() {
           <div className="overflow-y-auto" style={{ maxHeight: 320 }}>
             <table className="w-full border-collapse text-[12px] 2xl:text-[16px]">
               <thead>
-                <tr className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground 2xl:text-[14px]">
+                <tr className="text-[10px] caps-label 2xl:text-[14px]">
                   <th className="text-left py-1.5 px-1.5">Bidder #</th>
                   <th className="text-left py-1.5 px-1.5">Full Name</th>
                   <th className="text-left py-1.5 px-1.5">Branch</th>

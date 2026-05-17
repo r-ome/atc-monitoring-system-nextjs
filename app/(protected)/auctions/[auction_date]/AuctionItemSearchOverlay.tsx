@@ -6,7 +6,7 @@ import {
   getAuctionItemDetails,
   searchAuctionItems,
 } from "@/app/(protected)/inventories/actions";
-import { AuctionStatusBadge } from "@/app/components/admin";
+import { AuctionStatusPill } from "@/app/(protected)/auctions/components/AuctionStatusPill";
 import { AuctionInventoryDetailsView } from "@/app/(protected)/auctions/[auction_date]/monitoring/[auction_inventory_id]/components/AuctionInventoryDetailsView";
 import {
   AuctionsInventory,
@@ -239,7 +239,7 @@ export const AuctionItemSearchOverlay = () => {
         onOpenChange={handleOpenChange}
         title="Search auction item"
         description="Search auction items by barcode, control, or barcode:control."
-        className="top-8 translate-y-0 sm:max-w-4xl"
+        className="top-8 translate-y-0 sm:max-w-[560px]"
       >
         <CommandInput
           value={query}
@@ -331,7 +331,7 @@ export const AuctionItemSearchOverlay = () => {
                               <span className="font-mono text-sm">
                                 {item.inventory.barcode}:{item.inventory.control}
                               </span>
-                              <AuctionStatusBadge status={item.status} />
+                              <AuctionStatusPill status={item.status} />
                             </div>
                             <div className="truncate text-sm">
                               {item.description}

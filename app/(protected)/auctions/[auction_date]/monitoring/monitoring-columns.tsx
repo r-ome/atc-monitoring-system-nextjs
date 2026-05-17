@@ -2,13 +2,12 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { AuctionStatusBadge } from "@/app/components/admin";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { createGroupSortingFn } from "@/app/lib/utils";
-import { cn } from "@/app/lib/utils";
+import { cn, formatNumberToCurrency } from "@/app/lib/utils";
 import { CounterCheck } from "src/entities/models/CounterCheck";
+import { AuctionStatusPill } from "@/app/(protected)/auctions/components/AuctionStatusPill";
+import { SortableHeader } from "@/app/(protected)/auctions/components/SortableHeader";
 
 import {
   Popover,
@@ -28,7 +27,7 @@ import {
 const controlGroupSortingFn = createGroupSortingFn<AuctionsInventory, string>(
   (row) => row.is_slash_item ?? row.auction_inventory_id,
   (row) => row.inventory.control,
-  (a, b) => a.localeCompare(b)
+  (a, b) => a.localeCompare(b),
 );
 
 function MonitoringBarcodeCell({
@@ -44,10 +43,10 @@ function MonitoringBarcodeCell({
   const router = useRouter();
 
   return (
-    <div
+    <span
       className={cn(
-        "flex justify-center",
-        !isMasterList && "hover:underline hover:cursor-pointer"
+        "font-mono text-[12.5px] font-semibold",
+        !isMasterList && "cursor-pointer hover:underline",
       )}
       onClick={() => {
         if (!isMasterList) {
@@ -56,60 +55,35 @@ function MonitoringBarcodeCell({
       }}
     >
       {barcode}
-    </div>
+    </span>
   );
 }
 
 export const columns = (
   slashGroupMap: Record<string, number>,
   isMasterList = false,
-  counterCheck: CounterCheck[] = []
+  counterCheck: CounterCheck[] = [],
 ): ColumnDef<AuctionsInventory>[] => [
   {
     accessorKey: "inventory.barcode",
-    size: 100,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer flex justify-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Barcode
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const auction_inventory = row.original;
-      return <MonitoringBarcodeCell
-        auctionInventoryId={auction_inventory.auction_inventory_id}
-        barcode={auction_inventory.inventory.barcode}
+    size: 110,
+    header: ({ column }) => <SortableHeader column={column} label="Barcode" />,
+    cell: ({ row }) => (
+      <MonitoringBarcodeCell
+        auctionInventoryId={row.original.auction_inventory_id}
+        barcode={row.original.inventory.barcode}
         isMasterList={isMasterList}
-      />;
-    },
+      />
+    ),
   },
   {
     accessorKey: "inventory.control",
     enableResizing: true,
     size: 100,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Control #
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
     sortingFn: controlGroupSortingFn,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Control #" />
+    ),
     cell: ({ row }) => {
       const auction_inventory = row.original;
       const is_slash_item = auction_inventory.is_slash_item;
@@ -118,29 +92,32 @@ export const columns = (
       const counterChecks = counterCheck.filter(
         (item) =>
           item.control === auction_inventory.inventory.control &&
-          item.bidder_number === auction_inventory.bidder.bidder_number
+          item.bidder_number === auction_inventory.bidder.bidder_number,
       );
 
-      return isMasterList || !counterChecks.length ? (
-        <div className="flex justify-center">
+      const label = (
+        <span className="font-mono">
           {auction_inventory.inventory.control}
           {idx ? `(A${idx})` : ""}
-        </div>
-      ) : (
+        </span>
+      );
+
+      if (isMasterList || !counterChecks.length) {
+        return label;
+      }
+
+      return (
         <Popover>
           <PopoverTrigger asChild>
-            <div className="flex justify-center cursor-pointer">
-              {auction_inventory.inventory.control}
-              {idx ? `(A${idx})` : ""}
-            </div>
+            <span className="cursor-pointer underline decoration-dotted underline-offset-2">
+              {label}
+            </span>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
+          <PopoverContent className="w-[220px] p-0">
             <Table className="border">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-center font-bold">
-                    CONTROL
-                  </TableHead>
+                  <TableHead className="text-center font-bold">CONTROL</TableHead>
                   <TableHead className="text-center font-bold">PRICE</TableHead>
                   <TableHead className="text-center font-bold">PAGE</TableHead>
                 </TableRow>
@@ -148,10 +125,8 @@ export const columns = (
               <TableBody>
                 {counterChecks.map((item) => (
                   <TableRow key={item.counter_check_id}>
-                    <TableCell className="text-center">
-                      {item.control}
-                    </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center">{item.control}</TableCell>
+                    <TableCell className="text-center font-mono">
                       {parseInt(item.price ?? "", 10)?.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-center">{item.page}</TableCell>
@@ -166,190 +141,86 @@ export const columns = (
   },
   {
     accessorKey: "description",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Description
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const auction_inventory = row.original;
-      return (
-        <div className="flex justify-center">
-          {auction_inventory.description}
-        </div>
-      );
-    },
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Description" />
+    ),
+    cell: ({ row }) => (
+      <span className="text-foreground/90">{row.original.description}</span>
+    ),
   },
   {
     accessorKey: "qty",
-    size: 100,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            QTY
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const auction_inventory = row.original;
-      return (
-        <div className="flex justify-center">
-          {auction_inventory.qty === "0.5" ? "1/2" : auction_inventory.qty}
-        </div>
-      );
-    },
+    size: 70,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Qty" align="right" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-right font-mono">
+        {row.original.qty === "0.5" ? "½" : row.original.qty}
+      </div>
+    ),
   },
   {
     id: "auction_bidder.bidder.bidder_number",
     accessorFn: (row) => row.bidder.bidder_number,
-    size: 100,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Bidder
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 90,
+    header: ({ column }) => <SortableHeader column={column} label="Bidder" />,
     cell: ({ row }) => {
-      const auction_inventory = row.original;
-      const bidder_number =
-        auction_inventory.bidder.bidder_number === "5013"
-          ? "ATC"
-          : auction_inventory.bidder.bidder_number;
-      return <div className="flex justify-center">{bidder_number}</div>;
+      const v = row.original.bidder.bidder_number;
+      const label = v === "5013" ? "ATC" : `#${v}`;
+      return (
+        <span className="font-mono text-[12.5px] font-semibold text-muted-foreground">
+          {label}
+        </span>
+      );
     },
   },
   {
     accessorKey: "price",
-    size: 80,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Price
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const auction_inventory = row.original;
-      return (
-        <div className="flex justify-center">
-          {auction_inventory.price.toLocaleString()}
-        </div>
-      );
-    },
+    size: 110,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Price" align="right" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-right font-mono font-medium">
+        {formatNumberToCurrency(row.original.price)}
+      </div>
+    ),
   },
   {
     accessorKey: "status",
-    size: 80,
+    size: 100,
     enableColumnFilter: true,
     filterFn: "includesIn",
-    header: ({ column }) => {
-      return (
-        <div className="justify-center flex">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Status
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const auction_inventory = row.original;
-      return (
-        <div className="flex justify-center">
-          <AuctionStatusBadge status={auction_inventory.status} />
-        </div>
-      );
-    },
+    header: ({ column }) => <SortableHeader column={column} label="Status" />,
+    cell: ({ row }) => <AuctionStatusPill status={row.original.status} />,
   },
   {
     accessorKey: "manifest_number",
-    size: 80,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Manifest
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const auction_inventory = row.original;
-      return (
-        <div className="flex justify-center">
-          {auction_inventory.manifest_number}
-        </div>
-      );
-    },
+    size: 90,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Manifest" />
+    ),
+    cell: ({ row }) => (
+      <span className="font-mono text-muted-foreground">
+        {row.original.manifest_number || (
+          <span className="text-muted-foreground/60">—</span>
+        )}
+      </span>
+    ),
   },
   ...(isMasterList
     ? [
         {
           accessorKey: "auction_date",
-          header: ({ column }) => {
-            return (
-              <div className="justify-center flex">
-                <Button
-                  variant="ghost"
-                  className="cursor-pointer"
-                  onClick={() =>
-                    column.toggleSorting(column.getIsSorted() === "asc")
-                  }
-                >
-                  Auction Date
-                  <ArrowUpDown />
-                </Button>
-              </div>
-            );
-          },
-          cell: ({ row }) => {
-            const auction_inventory = row.original;
-            return (
-              <div className="flex justify-center">
-                {auction_inventory.auction_date}
-              </div>
-            );
-          },
+          header: ({ column }) => (
+            <SortableHeader column={column} label="Auction Date" />
+          ),
+          cell: ({ row }) => (
+            <span className="text-muted-foreground">
+              {row.original.auction_date}
+            </span>
+          ),
         } as ColumnDef<AuctionsInventory>,
       ]
     : []),

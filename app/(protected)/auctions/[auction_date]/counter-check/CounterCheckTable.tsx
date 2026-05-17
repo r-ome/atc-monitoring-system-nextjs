@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { ClipboardCheck } from "lucide-react";
 import { CounterCheck } from "src/entities/models/CounterCheck";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./counter-check-columns";
 import { UpdateCounterCheckModal } from "./components/UpdateCounterCheckModal";
+import { formatNumberToCurrency } from "@/app/lib/utils";
 
 interface CounterCheckTableProps {
   counterCheck: CounterCheck[];
@@ -28,13 +30,10 @@ export const CounterCheckTable = ({ counterCheck }: CounterCheckTableProps) => {
       .some((field) => field!.toLowerCase().includes(search));
   };
 
-  const totalCounterCheckPrice = counterCheck
-    .reduce((acc, item) => {
-      const price = item.price ? parseInt(item.price, 10) : 0;
-      acc += price;
-      return acc;
-    }, 0)
-    .toLocaleString();
+  const totalCounterCheckPrice = counterCheck.reduce((acc, item) => {
+    const price = item.price ? parseInt(item.price, 10) : 0;
+    return acc + price;
+  }, 0);
 
   return (
     <>
@@ -44,9 +43,11 @@ export const CounterCheckTable = ({ counterCheck }: CounterCheckTableProps) => {
         selected={selected}
       />
 
-      <div>Total: {totalCounterCheckPrice}</div>
-
-      <DataTable
+      <AuctionDataTable
+        icon={ClipboardCheck}
+        title="Counter Check"
+        meta={`Total ${formatNumberToCurrency(totalCounterCheckPrice)}`}
+        rowLabel="row"
         columns={columns()}
         data={counterCheck}
         onRowClick={(row) => {
@@ -56,7 +57,7 @@ export const CounterCheckTable = ({ counterCheck }: CounterCheckTableProps) => {
         searchFilter={{
           globalFilterFn,
           searchComponentProps: {
-            placeholder: "Search item here",
+            placeholder: "Search control # or bidder…",
           },
         }}
       />

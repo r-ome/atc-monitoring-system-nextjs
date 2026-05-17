@@ -28,6 +28,7 @@ export type AuctionWithSalesRow = Prisma.auctionsGetPayload<{
 
 export type AuctionWithDetailsRow = Prisma.auctionsGetPayload<{
   include: {
+    branch: true;
     registered_bidders: {
       include: {
         bidder: true;

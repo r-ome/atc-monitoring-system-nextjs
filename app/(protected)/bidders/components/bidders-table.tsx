@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./bidder-columns";
+import { BiddersMobileList } from "./bidders-mobile-list";
 
 export type BidderRowType = {
   bidder_id: string;
@@ -56,25 +57,32 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
   };
 
   return (
-    <DataTable
-      columns={columns}
-      data={bidders}
-      onRowClick={(bidder) =>
-        router.push(`/bidders/${bidder.bidder_number}-${bidder.branch.name}`)
-      }
-      searchFilter={{
-        globalFilterFn,
-        searchComponentProps: {
-          placeholder: "Search By Name or Bidder Number",
-        },
-      }}
-      columnFilter={{
-        column: "branch_name",
-        options: branchOptions,
-        filterComponentProps: {
-          placeholder: "Filter by Branch",
-        },
-      }}
-    />
+    <>
+      <div className="hidden md:block">
+        <DataTable
+          columns={columns}
+          data={bidders}
+          onRowClick={(bidder) =>
+            router.push(`/bidders/${bidder.bidder_number}-${bidder.branch.name}`)
+          }
+          searchFilter={{
+            globalFilterFn,
+            searchComponentProps: {
+              placeholder: "Search By Name or Bidder Number",
+            },
+          }}
+          columnFilter={{
+            column: "branch_name",
+            options: branchOptions,
+            filterComponentProps: {
+              placeholder: "Filter by Branch",
+            },
+          }}
+        />
+      </div>
+      <div className="md:hidden">
+        <BiddersMobileList bidders={bidders} branchOptions={branchOptions} />
+      </div>
+    </>
   );
 };

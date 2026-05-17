@@ -3,8 +3,11 @@ import {
   getManifestRecords,
 } from "@/app/(protected)/auctions/actions";
 import { ManifestRecordsTable } from "@/app/(protected)/auctions/[auction_date]/manifest/ManifestRecordsTable";
-import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { UploadManifestModal } from "@/app/(protected)/auctions/[auction_date]/monitoring/components/UploadManifestModal";
+import { AuctionSectionNav } from "@/app/(protected)/auctions/components/AuctionSectionNav";
+import { AuctionSecondaryHeader } from "@/app/(protected)/auctions/components/AuctionSecondaryHeader";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { PageContainer } from "@/app/components/PageContainer";
 import { requireUser } from "@/app/lib/auth";
 
 export default async function Page({
@@ -28,14 +31,20 @@ export default async function Page({
   const manifest_records = manifest_res.value;
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-4">
-        <UploadManifestModal auction_id={auction.auction_id} />
-      </div>
+    <PageContainer>
+      <AuctionSecondaryHeader
+        auctionDate={auction_date}
+        branchName={auction.branch.name}
+        startedAt={auction.started_at}
+        actions={<UploadManifestModal auction_id={auction.auction_id} />}
+      />
+
+      <AuctionSectionNav basePath={`/auctions/${auction_date}`} />
+
       <ManifestRecordsTable
         manifestRecords={manifest_records}
         canDeleteFailedRecords={user.role === "SUPER_ADMIN"}
       />
-    </div>
+    </PageContainer>
   );
 }

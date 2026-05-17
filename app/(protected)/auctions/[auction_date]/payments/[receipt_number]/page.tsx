@@ -1,16 +1,10 @@
 import Link from "next/link";
+import { Receipt as ReceiptIcon } from "lucide-react";
 import { getReceiptDetails } from "../actions";
 import { getAuction } from "@/app/(protected)/auctions/actions";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card";
+import { Card } from "@/app/components/ui/card";
 import {
   Table,
-  TableCaption,
   TableBody,
   TableCell,
   TableFooter,
@@ -18,14 +12,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/components/ui/table";
-import { Badge } from "@/app/components/ui/badge";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Button } from "@/app/components/ui/button";
 import { UpdatePaymentMethodModal } from "./UpdatePaymentMethodModal/UpdatePaymentMethodModal";
 import { UndoPaymentButton } from "./UndoReceiptButton";
 import AddStorageFeeModal from "./AddStorageFeeModal/AddStorageFeeModal";
-import { cn } from "@/app/lib/utils";
+import { cn, formatNumberToCurrency } from "@/app/lib/utils";
 import { REFUND_PURPOSES } from "src/entities/models/Payment";
+import { PageContainer } from "@/app/components/PageContainer";
+import { AuctionSecondaryHeader } from "@/app/(protected)/auctions/components/AuctionSecondaryHeader";
+import { AuctionSectionNav } from "@/app/(protected)/auctions/components/AuctionSectionNav";
 
 export default async function Page({
   params,
@@ -43,118 +39,156 @@ export default async function Page({
     auction.auction_id,
     receipt_number,
   );
-
   if (!receipt_res.ok) {
     return <ErrorComponent error={receipt_res.error} />;
   }
 
   const receipt = receipt_res.value;
+  const isRefund = REFUND_PURPOSES.includes(receipt.purpose);
+  const initials = receipt.bidder.full_name
+    .split(" ")
+    .slice(0, 2)
+    .map((s) => s[0])
+    .join("");
+  const isAmountSignedNegative = isRefund;
+  const itemsCount = receipt.auctions_inventories?.length ?? 0;
+  const canViewReceipt = !["REGISTRATION", "STORAGE_FEE"].includes(
+    receipt.purpose,
+  );
+  const canAddStorage = ["PULL_OUT", "ADD_ON"].includes(receipt.purpose);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <div className="flex justify-between">
-            <div>
-              {receipt.receipt_number} {receipt.bidder.full_name}
+    <PageContainer>
+      <AuctionSecondaryHeader
+        auctionDate={auction_date}
+        branchName={auction.branch.name}
+        startedAt={auction.started_at}
+        actions={
+          <>
+            {receipt.purpose === "PULL_OUT" ? (
+              <UndoPaymentButton receipt_id={receipt.receipt_id} />
+            ) : null}
+            {canAddStorage ? (
+              <AddStorageFeeModal receipt_id={receipt.receipt_id} />
+            ) : null}
+            {canViewReceipt ? (
+              <Link href={`${receipt_number}/receipt`}>
+                <Button>View Receipt</Button>
+              </Link>
+            ) : null}
+          </>
+        }
+      />
+
+      <AuctionSectionNav basePath={`/auctions/${auction_date}`} />
+
+      {/* Receipt header card */}
+      <Card className="flex flex-row flex-wrap items-start justify-between gap-4 p-[18px] 2xl:p-5 2xl:text-[15px]">
+        <div className="flex min-w-0 items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-[15px] font-bold text-accent-foreground">
+            {initials}
+          </span>
+          <div className="flex min-w-0 flex-col leading-tight">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[18px] font-semibold tracking-tight 2xl:text-[22px]">
+                #{receipt.receipt_number}
+              </span>
+              <span
+                className={cn(
+                  "inline-flex items-center rounded px-2 py-0.5 text-[10.5px] font-semibold uppercase",
+                  isRefund
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-status-success/15 text-status-success",
+                )}
+                style={{ letterSpacing: "0.04em" }}
+              >
+                {receipt.purpose.replace(/_/g, " ")}
+              </span>
             </div>
-
-            <div className="flex gap-2">
-              {receipt.purpose === "PULL_OUT" ? (
-                <UndoPaymentButton receipt_id={receipt.receipt_id} />
-              ) : null}
-
-              {["PULL_OUT", "ADD_ON"].includes(receipt.purpose) ? (
-                <AddStorageFeeModal receipt_id={receipt.receipt_id} />
-              ) : null}
-
-              {!["REGISTRATION", "STORAGE_FEE"].includes(receipt.purpose) ? (
-                <Link href={`${receipt_number}/receipt`}>
-                  <Button>View Receipt</Button>
-                </Link>
-              ) : null}
-            </div>
-          </div>
-        </CardTitle>
-        <CardDescription>
-          <div className="flex gap-4">
-            <div className="flex flex-col justify-start items-start gap-2">
-              <div className="flex">
-                <div className="leading-7 text-md">
-                  <Badge
-                    variant={
-                      REFUND_PURPOSES.includes(receipt.purpose)
-                        ? "destructive"
-                        : "success"
-                    }
-                  >
-                    {receipt.purpose.replace(/_/g, " ")}
-                  </Badge>
-                </div>
-                {REFUND_PURPOSES.includes(receipt.purpose) ? (
-                  <div className="font-black text-lg ml-4">
-                    REASON: {receipt.remarks}
-                  </div>
-                ) : null}
-              </div>
-
+            <span className="text-[14px] text-foreground/80 2xl:text-[16px]">
+              {receipt.bidder.full_name}
+            </span>
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11.5px] text-muted-foreground 2xl:text-[13.5px]">
               {receipt.purpose !== "REGISTRATION" ? (
-                <div className="flex flex-col items-center">
-                  <p className="leading-7 text-md w-fit">
-                    TOTAL ITEMS: {receipt.auctions_inventories?.length} items
-                  </p>
-                </div>
+                <span>
+                  {itemsCount.toLocaleString()} item
+                  {itemsCount === 1 ? "" : "s"}
+                </span>
               ) : null}
-
-              {/* <div className="flex flex-col items-center">
-                <p className="leading-7 text-md w-fit">
-                  TOTAL AMOUNT PAID: ₱
-                  {receipt.total_amount_paid.toLocaleString()}
-                </p>
-              </div> */}
+              {isRefund && receipt.remarks ? (
+                <span>
+                  Reason:{" "}
+                  <span className="text-destructive">{receipt.remarks}</span>
+                </span>
+              ) : null}
             </div>
           </div>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-4">
+        </div>
+
+        <div className="flex flex-col items-end">
+          <span className="caps-label text-[10.5px] 2xl:text-[13px]">
+            Total Amount Paid
+          </span>
+          <span
+            className={cn(
+              "font-mono text-[24px] font-semibold tracking-tight 2xl:text-[28px]",
+              isAmountSignedNegative
+                ? "text-destructive"
+                : "text-status-success",
+            )}
+          >
+            {isAmountSignedNegative
+              ? `(${formatNumberToCurrency(receipt.total_amount_paid)})`
+              : formatNumberToCurrency(receipt.total_amount_paid)}
+          </span>
+        </div>
+      </Card>
+
+      {/* Payments table */}
+      <Card className="flex flex-col gap-0 overflow-hidden p-0 2xl:text-[15px]">
+        <div className="flex items-center gap-2 border-b px-[18px] py-3.5 2xl:px-5">
+          <ReceiptIcon size={14} className="text-muted-foreground" />
+          <span className="text-[14px] font-semibold 2xl:text-[17.5px]">
+            Payments
+          </span>
+          <span className="ml-auto text-[11px] text-muted-foreground 2xl:text-[14px]">
+            {receipt.payments.length} method
+            {receipt.payments.length === 1 ? "" : "s"}
+          </span>
+        </div>
+
+        <div className="overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date & Time</TableHead>
+                <TableHead>Date &amp; Time</TableHead>
                 <TableHead>Payment Method</TableHead>
-                <TableHead>
-                  Amount Paid{" "}
-                  {REFUND_PURPOSES.includes(receipt.purpose) ? "to Bidder" : ""}
+                <TableHead className="text-right">
+                  Amount Paid{isRefund ? " to Bidder" : ""}
                 </TableHead>
-                {REFUND_PURPOSES.includes(receipt.purpose) ? (
-                  <>
-                    <TableHead className="w-20">Reason</TableHead>
-                  </>
-                ) : null}
+                {isRefund ? <TableHead>Reason</TableHead> : null}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {receipt.payments.map((item) => (
                 <TableRow key={item.payment_id}>
-                  <TableCell>{item.created_at}</TableCell>
-                  <TableCell>{item.payment_method.name}</TableCell>
-                  <TableCell>
-                    <div
-                      className={cn(
-                        REFUND_PURPOSES.includes(receipt.purpose)
-                          ? "text-red-500"
-                          : "",
-                      )}
-                    >
-                      ₱ {item.amount_paid.toLocaleString()}
-                    </div>
+                  <TableCell className="font-mono text-muted-foreground">
+                    {item.created_at}
                   </TableCell>
-                  {REFUND_PURPOSES.includes(receipt.purpose) ? (
-                    <>
-                      <TableCell>{receipt?.remarks}</TableCell>
-                    </>
+                  <TableCell>{item.payment_method.name}</TableCell>
+                  <TableCell
+                    className={cn(
+                      "text-right font-mono font-medium",
+                      isRefund && "text-destructive",
+                    )}
+                  >
+                    {formatNumberToCurrency(item.amount_paid)}
+                  </TableCell>
+                  {isRefund ? (
+                    <TableCell className="text-muted-foreground">
+                      {receipt.remarks}
+                    </TableCell>
                   ) : null}
                   <TableCell className="text-right">
                     <UpdatePaymentMethodModal payment={item} />
@@ -164,62 +198,80 @@ export default async function Page({
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={1}></TableCell>
-                <TableCell className="font-bold text-right">
-                  Total Amount Paid
+                <TableCell colSpan={isRefund ? 2 : 1} />
+                <TableCell className="caps-label text-right text-[11px]">
+                  Total
                 </TableCell>
-                <TableCell className="font-bold">
-                  <div
-                    className={cn(
-                      REFUND_PURPOSES.includes(receipt.purpose)
-                        ? "text-red-500"
-                        : "",
-                    )}
-                  >
-                    ₱ {receipt.total_amount_paid.toLocaleString()}
-                  </div>
+                <TableCell
+                  className={cn(
+                    "text-right font-mono font-semibold",
+                    isRefund && "text-destructive",
+                  )}
+                >
+                  {isRefund
+                    ? `(${formatNumberToCurrency(receipt.total_amount_paid)})`
+                    : formatNumberToCurrency(receipt.total_amount_paid)}
                 </TableCell>
-                {REFUND_PURPOSES.includes(receipt.purpose) ? (
-                  <TableCell></TableCell>
-                ) : null}
-                <TableCell></TableCell>
+                <TableCell />
               </TableRow>
             </TableFooter>
           </Table>
-
-          {!["REGISTRATION", "STORAGE_FEE"].includes(receipt.purpose) ? (
-            <div className="max-h-[400px] overflow-y-auto relative">
-              <Table>
-                <TableCaption>
-                  A list of all items under this receipt.
-                </TableCaption>
-                <TableHeader className="sticky top-0 bg-secondary">
-                  <TableRow>
-                    <TableHead>Barcode</TableHead>
-                    <TableHead>Control</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>QTY</TableHead>
-                    <TableHead>Manifest</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {receipt.auctions_inventories?.map((item) => (
-                    <TableRow key={item.auction_inventory_id}>
-                      <TableCell>{item.barcode}</TableCell>
-                      <TableCell>{item.control}</TableCell>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell>{item.price?.toLocaleString()}</TableCell>
-                      <TableCell>{item.qty}</TableCell>
-                      <TableCell>{item.manifest_number}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : null}
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+
+      {/* Items table */}
+      {canViewReceipt ? (
+        <Card className="flex flex-col gap-0 overflow-hidden p-0 2xl:text-[15px]">
+          <div className="flex items-center gap-2 border-b px-[18px] py-3.5 2xl:px-5">
+            <span className="text-[14px] font-semibold 2xl:text-[17.5px]">
+              Items under this receipt
+            </span>
+            <span className="ml-auto text-[11px] text-muted-foreground 2xl:text-[14px]">
+              {itemsCount.toLocaleString()} item{itemsCount === 1 ? "" : "s"}
+            </span>
+          </div>
+          <div className="max-h-[420px] overflow-auto">
+            <Table>
+              <TableHeader className="sticky top-0 bg-card">
+                <TableRow>
+                  <TableHead>Barcode</TableHead>
+                  <TableHead>Control</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">Qty</TableHead>
+                  <TableHead>Manifest</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {receipt.auctions_inventories?.map((item) => (
+                  <TableRow key={item.auction_inventory_id}>
+                    <TableCell className="font-mono font-semibold">
+                      {item.barcode}
+                    </TableCell>
+                    <TableCell className="font-mono">{item.control}</TableCell>
+                    <TableCell className="text-foreground/90">
+                      {item.description}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-medium">
+                      {item.price
+                        ? formatNumberToCurrency(item.price)
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {item.qty}
+                    </TableCell>
+                    <TableCell className="font-mono text-muted-foreground">
+                      {item.manifest_number || (
+                        <span className="text-muted-foreground/60">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      ) : null}
+    </PageContainer>
   );
 }

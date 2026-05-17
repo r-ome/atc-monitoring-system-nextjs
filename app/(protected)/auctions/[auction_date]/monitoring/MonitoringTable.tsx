@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import { BarChart3 } from "lucide-react";
 import { AuctionsInventory } from "src/entities/models/Auction";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./monitoring-columns";
 import { buildGroupIndexMap } from "@/app/lib/utils";
@@ -50,7 +51,11 @@ export const MonitoringTable = ({
   );
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={BarChart3}
+      title="Monitoring"
+      meta={`${monitoring.length.toLocaleString()} items`}
+      rowLabel="item"
       pageSize={isMasterList ? 20 : 10}
       columns={columns(groupIndexMap, isMasterList, counterCheck)}
       data={monitoring}
@@ -62,12 +67,12 @@ export const MonitoringTable = ({
           { label: "CANCELLED", value: "CANCELLED" },
           { label: "REFUNDED", value: "REFUNDED" },
         ],
-        filterComponentProps: { placeholder: "Filter By Status" },
+        filterComponentProps: { placeholder: "Filter by status" },
       }}
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {
-          placeholder: "Search item here",
+          placeholder: "Search barcode, control, description…",
         },
       }}
     />

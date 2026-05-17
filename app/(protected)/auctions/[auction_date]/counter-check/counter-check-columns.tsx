@@ -1,182 +1,101 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { cn } from "@/app/lib/utils";
-
+import { formatNumberToCurrency } from "@/app/lib/utils";
 import { CounterCheck } from "src/entities/models/CounterCheck";
+import { SortableHeader } from "@/app/(protected)/auctions/components/SortableHeader";
 
 export const columns = (): ColumnDef<CounterCheck>[] => [
   {
     accessorKey: "description",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer flex justify-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Description
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const counter_check = row.original;
-      return (
-        <div className="flex justify-center">{counter_check.description}</div>
-      );
-    },
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Description" />
+    ),
+    cell: ({ row }) => (
+      <span className="text-foreground/90">{row.original.description}</span>
+    ),
   },
   {
     accessorKey: "time",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer flex justify-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Time
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const counter_check = row.original;
-      return <div className="flex justify-center">{counter_check.time}</div>;
-    },
+    size: 90,
+    header: ({ column }) => <SortableHeader column={column} label="Time" />,
+    cell: ({ row }) => (
+      <span className="font-mono text-muted-foreground">{row.original.time}</span>
+    ),
   },
   {
     accessorKey: "control",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer flex justify-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Control #
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const counter_check = row.original;
-      return <div className="flex justify-center">{counter_check.control}</div>;
-    },
+    size: 100,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Control #" />
+    ),
+    cell: ({ row }) => (
+      <span className="font-mono">{row.original.control}</span>
+    ),
   },
   {
     accessorKey: "bidder_number",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Bidder
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 90,
+    header: ({ column }) => <SortableHeader column={column} label="Bidder" />,
     cell: ({ row }) => {
-      const counter_check = row.original;
+      const v = row.original.bidder_number;
+      if (v === "0000") {
+        return (
+          <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[10.5px] font-semibold uppercase text-destructive">
+            No bidder
+          </span>
+        );
+      }
       return (
-        <div
-          className={cn(
-            "flex justify-center",
-            counter_check.bidder_number === "0000" ? "bg-status-error text-status-error-foreground" : "",
-          )}
-        >
-          {counter_check.bidder_number === "0000"
-            ? "NO BIDDER"
-            : counter_check.bidder_number}
-        </div>
+        <span className="font-mono text-[12.5px] font-semibold text-muted-foreground">
+          #{v}
+        </span>
       );
     },
   },
   {
     accessorKey: "price",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Price
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 110,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Price" align="right" />
+    ),
     cell: ({ row }) => {
-      const counter_check = row.original;
+      const raw = row.original.price;
+      if (!raw) {
+        return (
+          <div className="text-right">
+            <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[10.5px] font-semibold uppercase text-destructive">
+              No price
+            </span>
+          </div>
+        );
+      }
       return (
-        <div
-          className={cn(
-            "flex justify-center",
-            counter_check.price ? "" : "bg-status-error text-status-error-foreground",
-          )}
-        >
-          {counter_check.price
-            ? parseInt(counter_check.price).toLocaleString()
-            : "NO PRICE"}
+        <div className="text-right font-mono font-medium">
+          {formatNumberToCurrency(parseInt(raw, 10))}
         </div>
       );
     },
   },
   {
     accessorKey: "page",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Page
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const counter_check = row.original;
-      return <div className="flex justify-center">{counter_check.page}</div>;
-    },
+    size: 70,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Page" align="right" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-right font-mono text-muted-foreground">
+        {row.original.page}
+      </div>
+    ),
   },
   {
     accessorKey: "remarks",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Remarks
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const counter_check = row.original;
-      return <div className="flex justify-center">{counter_check.remarks}</div>;
-    },
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Remarks" />
+    ),
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.remarks}</span>
+    ),
   },
 ];

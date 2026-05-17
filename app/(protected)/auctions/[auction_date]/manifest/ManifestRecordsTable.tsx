@@ -2,14 +2,18 @@
 
 import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./manifest-columns";
 import { Manifest } from "src/entities/models/Manifest";
 import { UpdateManifestModal } from "./UpdateManifestModal";
-import { buildGroupIndexMap } from "@/app/lib/utils";
+import { buildGroupIndexMap, cn } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { Card } from "@/app/components/ui/card";
+import { AlertCircle, RefreshCw, FileText, X } from "lucide-react";
+
+type EncoderMode = "encoded" | "errors";
+type EncoderFilter = { name: string; mode: EncoderMode } | null;
 
 interface ManifestRecordsTableProps {
   manifestRecords: Manifest[];
@@ -33,6 +37,23 @@ export const ManifestRecordsTable = ({
     manifest_number: "",
   } as Manifest);
   const [open, setOpen] = useState<boolean>(false);
+  const [errorsOnly, setErrorsOnly] = useState(false);
+  const [encoderFilter, setEncoderFilter] = useState<EncoderFilter>(null);
+
+  // Errors-only and the encoder filter are mutually exclusive — toggling
+  // one clears the other to keep the surface honest.
+  const toggleErrorsOnly = () => {
+    setEncoderFilter(null);
+    setErrorsOnly((v) => !v);
+  };
+  const toggleEncoderFilter = (name: string, mode: EncoderMode) => {
+    setErrorsOnly(false);
+    setEncoderFilter((current) =>
+      current && current.name === name && current.mode === mode
+        ? null
+        : { name, mode },
+    );
+  };
 
   const globalFilterFn = (
     row: CoreRow<Manifest>,
@@ -66,25 +87,46 @@ export const ManifestRecordsTable = ({
     [manifestRecords]
   );
 
-  const errorStats = useMemo(() => {
-    const rowsWithErrors = manifestRecords.filter(
-      (record) => record.error_message?.trim(),
-    );
-    const errorsByUploader = Array.from(
-      rowsWithErrors
-        .reduce((map, record) => {
-          const uploadedBy = record.remarks?.trim() || "Unknown";
-          map.set(uploadedBy, (map.get(uploadedBy) ?? 0) + 1);
-          return map;
-        }, new Map<string, number>())
-        .entries(),
-    ).sort(([a], [b]) => a.localeCompare(b));
-
-    return {
-      totalErrors: rowsWithErrors.length,
-      errorsByUploader,
-    };
+  const encoderStats = useMemo(() => {
+    const byEncoder = new Map<string, { encoded: number; errors: number }>();
+    for (const record of manifestRecords) {
+      const name = record.remarks?.trim() || "Unknown";
+      const entry = byEncoder.get(name) ?? { encoded: 0, errors: 0 };
+      if (record.error_message?.trim()) {
+        entry.errors += 1;
+      } else {
+        entry.encoded += 1;
+      }
+      byEncoder.set(name, entry);
+    }
+    const encoders = Array.from(byEncoder.entries())
+      .map(([name, counts]) => ({ name, ...counts }))
+      .sort((a, b) => b.errors - a.errors || a.name.localeCompare(b.name));
+    const totalErrors = encoders.reduce((s, e) => s + e.errors, 0);
+    return { encoders, totalErrors };
   }, [manifestRecords]);
+
+  const tableData = useMemo(() => {
+    const base = manifestRecords.filter(
+      (item) => item.barcode && !item.barcode?.match(/barcode/gi),
+    );
+    if (encoderFilter) {
+      return base.filter((item) => {
+        const name = item.remarks?.trim() || "Unknown";
+        if (name !== encoderFilter.name) return false;
+        const isError = !!item.error_message?.trim();
+        return encoderFilter.mode === "errors" ? isError : !isError;
+      });
+    }
+    if (errorsOnly) {
+      return base.filter((item) => item.error_message?.trim());
+    }
+    return base;
+  }, [manifestRecords, errorsOnly, encoderFilter]);
+
+  const titleSuffix = encoderFilter
+    ? ` · ${encoderFilter.name} (${encoderFilter.mode})`
+    : "";
 
   return (
     <>
@@ -94,42 +136,211 @@ export const ManifestRecordsTable = ({
         selected={selected}
         canDeleteFailedRecord={canDeleteFailedRecords}
       />
-      <DataTable
-        pageSize={15}
+
+      {encoderStats.encoders.length > 0 ? (
+        <Card className="flex flex-col gap-2.5 p-[14px] 2xl:p-4 2xl:text-[15px]">
+          <div className="flex items-center justify-between">
+            <span className="caps-label text-[11px] 2xl:text-[13px]">
+              Encoders Today
+            </span>
+            <span className="text-[11px] text-muted-foreground 2xl:text-[13.5px]">
+              {encoderStats.encoders.length} encoder
+              {encoderStats.encoders.length === 1 ? "" : "s"}
+              {encoderStats.totalErrors > 0
+                ? ` · ${encoderStats.totalErrors.toLocaleString()} total error${
+                    encoderStats.totalErrors === 1 ? "" : "s"
+                  }`
+                : ""}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {encoderStats.encoders.map((e) => {
+              const hasErrors = e.errors > 0;
+              const initials = e.name
+                .split(" ")
+                .slice(0, 2)
+                .map((s) => s[0])
+                .join("")
+                .toUpperCase();
+              const isEncodedActive =
+                encoderFilter?.name === e.name &&
+                encoderFilter?.mode === "encoded";
+              const isErrorsActive =
+                encoderFilter?.name === e.name &&
+                encoderFilter?.mode === "errors";
+              return (
+                <div
+                  key={e.name}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full border px-2.5 py-1 text-[12.5px] transition-colors 2xl:text-[14px]",
+                    hasErrors
+                      ? "border-destructive/30 bg-destructive/10"
+                      : "border-border bg-card",
+                    isEncodedActive && "ring-2 ring-primary ring-offset-1",
+                    isErrorsActive && "ring-2 ring-destructive ring-offset-1",
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleEncoderFilter(e.name, "encoded")}
+                    className="flex cursor-pointer items-center gap-2"
+                    aria-pressed={isEncodedActive}
+                    aria-label={`Filter to records encoded by ${e.name}`}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-[9.5px] font-bold",
+                        hasErrors
+                          ? "bg-destructive text-destructive-foreground"
+                          : "bg-accent text-accent-foreground",
+                      )}
+                    >
+                      {initials}
+                    </span>
+                    <span
+                      className={cn(
+                        "font-semibold",
+                        hasErrors ? "text-destructive" : "text-foreground",
+                      )}
+                    >
+                      {e.name}
+                    </span>
+                    <span className="font-mono text-[11.5px] text-muted-foreground 2xl:text-[13.5px]">
+                      {e.encoded.toLocaleString()} encoded
+                    </span>
+                  </button>
+                  {hasErrors ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleEncoderFilter(e.name, "errors")}
+                      className={cn(
+                        "cursor-pointer rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-destructive-foreground transition-opacity",
+                        !isErrorsActive && "hover:opacity-90",
+                      )}
+                      aria-pressed={isErrorsActive}
+                      aria-label={`Filter to ${e.errors} error${
+                        e.errors === 1 ? "" : "s"
+                      } from ${e.name}`}
+                    >
+                      {e.errors} ERR
+                    </button>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      ) : null}
+
+      {encoderFilter ? (
+        <div className="flex items-center gap-3 rounded-lg border bg-secondary px-4 py-3 text-[13px] 2xl:text-[15px]">
+          <span
+            className={cn(
+              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide",
+              encoderFilter.mode === "errors"
+                ? "bg-destructive text-destructive-foreground"
+                : "bg-primary text-primary-foreground",
+            )}
+          >
+            {encoderFilter.mode.toUpperCase()}
+          </span>
+          <div className="flex-1">
+            <div className="font-semibold">
+              Showing {encoderFilter.mode} by {encoderFilter.name}
+            </div>
+            <div className="text-[12px] text-muted-foreground 2xl:text-[14px]">
+              {tableData.length.toLocaleString()} record
+              {tableData.length === 1 ? "" : "s"} match.
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => setEncoderFilter(null)}
+          >
+            <X size={13} /> Clear
+          </Button>
+        </div>
+      ) : null}
+
+      {errorsOnly && encoderStats.totalErrors > 0 ? (
+        <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] 2xl:text-[15px]">
+          <AlertCircle size={16} className="shrink-0 text-destructive" />
+          <div className="flex-1">
+            <div className="font-semibold text-destructive">
+              {encoderStats.totalErrors.toLocaleString()} encoding error
+              {encoderStats.totalErrors === 1 ? "" : "s"} need attention
+            </div>
+            <div className="text-[12px] text-muted-foreground 2xl:text-[14px]">
+              Reconcile by editing each row, or contact the encoder responsible.
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <AuctionDataTable
+        icon={FileText}
+        title={
+          (errorsOnly ? "Manifest Errors" : "Manifest Records") + titleSuffix
+        }
+        meta={
+          encoderFilter
+            ? `${tableData.length.toLocaleString()} of ${manifestRecords.length.toLocaleString()} records`
+            : errorsOnly
+              ? `${tableData.length.toLocaleString()} of ${manifestRecords.length.toLocaleString()} records`
+              : encoderStats.totalErrors > 0
+                ? `${encoderStats.totalErrors.toLocaleString()} error${
+                    encoderStats.totalErrors === 1 ? "" : "s"
+                  }`
+                : `${manifestRecords.length.toLocaleString()} records`
+        }
+        rowLabel="record"
+        pageSize={10}
         columns={columns(setOpen, setSelected, groupIndexMap)}
-        data={manifestRecords.filter(
-          (item) => item.barcode && !item.barcode?.match(/barcode/gi)
-        )}
+        data={tableData}
         searchFilter={{
           globalFilterFn,
           searchComponentProps: {
-            placeholder: "Search item here",
+            placeholder: "Search barcode, control, bidder…",
           },
         }}
         actionButtons={
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex flex-wrap items-center gap-6 text-sm">
-              <span>
-                Errors:{" "}
-                <span className="font-semibold text-red-500">
-                  {errorStats.totalErrors}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-8 gap-1.5",
+                errorsOnly &&
+                  "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive",
+              )}
+              disabled={encoderStats.totalErrors === 0}
+              onClick={toggleErrorsOnly}
+              aria-pressed={errorsOnly}
+            >
+              <AlertCircle size={13} />
+              Errors only
+              {errorsOnly ? (
+                <span className="font-mono ml-1 text-[10.5px] font-semibold">
+                  · {encoderStats.totalErrors}
                 </span>
-              </span>
-              {errorStats.errorsByUploader.map(([uploadedBy, count]) => (
-                <span key={uploadedBy}>
-                  {uploadedBy}:{" "}
-                  <span className="font-semibold text-red-500">{count}</span>
-                </span>
-              ))}
-            </div>
+              ) : null}
+            </Button>
             <Button
               variant="outline"
               size="icon"
+              className="h-8 w-8"
               disabled={isPending}
               onClick={() => startTransition(() => router.refresh())}
               title="Refresh"
             >
-              <RefreshCw className={isPending ? "animate-spin" : ""} />
+              <RefreshCw
+                size={14}
+                className={isPending ? "animate-spin" : ""}
+              />
             </Button>
           </div>
         }

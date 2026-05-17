@@ -1,151 +1,96 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { AuctionTransaction, REFUND_PURPOSES } from "src/entities/models/Payment";
-import { StatusBadge } from "@/app/components/admin";
-import { cn } from "@/app/lib/utils";
+import {
+  AuctionTransaction,
+  REFUND_PURPOSES,
+} from "src/entities/models/Payment";
+import { cn, formatNumberToCurrency } from "@/app/lib/utils";
+import { SortableHeader } from "@/app/(protected)/auctions/components/SortableHeader";
 
 export const columns: ColumnDef<AuctionTransaction>[] = [
   {
     accessorKey: "created_at",
-    size: 200,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Date & Time
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 170,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Date & Time" />
+    ),
     sortingFn: (rowA, rowB, columnId) => {
       const a = new Date(rowA.getValue<string>(columnId)).getTime();
       const b = new Date(rowB.getValue<string>(columnId)).getTime();
       return a - b;
     },
-    cell: ({ row }) => {
-      const transaction = row.original;
-      return (
-        <div className="flex justify-center"> {transaction.created_at}</div>
-      );
-    },
+    cell: ({ row }) => (
+      <span className="font-mono text-muted-foreground">
+        {row.original.created_at}
+      </span>
+    ),
   },
   {
     accessorKey: "total_amount_paid",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Amount Paid
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 140,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Amount" align="right" />
+    ),
     cell: ({ row }) => {
-      const receipt = row.original;
+      const t = row.original;
+      const isRefund = REFUND_PURPOSES.includes(t.purpose);
       return (
         <div
           className={cn(
-            "flex justify-center",
-            REFUND_PURPOSES.includes(receipt.purpose) ? "text-status-error" : "text-status-success"
+            "text-right font-mono font-semibold",
+            isRefund ? "text-destructive" : "text-status-success",
           )}
         >
-          ₱{" "}
-          {REFUND_PURPOSES.includes(receipt.purpose)
-            ? `(${receipt.total_amount_paid.toLocaleString()})`
-            : receipt.total_amount_paid.toLocaleString()}
+          {isRefund
+            ? `(${formatNumberToCurrency(t.total_amount_paid)})`
+            : formatNumberToCurrency(t.total_amount_paid)}
         </div>
       );
     },
   },
   {
     accessorKey: "receipt_number",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Receipt
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const receipt = row.original;
-      return (
-        <div className="flex justify-center">{receipt.receipt_number}</div>
-      );
-    },
+    size: 130,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Receipt" />
+    ),
+    cell: ({ row }) => (
+      <span className="font-mono text-[12.5px] font-semibold">
+        {row.original.receipt_number}
+      </span>
+    ),
   },
   {
     accessorKey: "bidder.bidder_number",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Bidder
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const receipt = row.original;
-      return (
-        <div className="flex justify-center">
-          {receipt.bidder.bidder_number}
-        </div>
-      );
-    },
+    size: 110,
+    header: ({ column }) => <SortableHeader column={column} label="Bidder" />,
+    cell: ({ row }) => (
+      <span className="font-mono text-[12.5px] font-semibold text-muted-foreground">
+        #{row.original.bidder.bidder_number}
+      </span>
+    ),
   },
   {
     accessorKey: "purpose",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Purpose
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Purpose" />
+    ),
     cell: ({ row }) => {
-      const receipt = row.original;
+      const t = row.original;
+      const isRefund = REFUND_PURPOSES.includes(t.purpose);
       return (
-        <div className="flex justify-center">
-          <StatusBadge
-            variant={
-              REFUND_PURPOSES.includes(receipt.purpose) ? "error" : "success"
-            }
-          >
-            {receipt.purpose.replace(/_/g, " ")}
-          </StatusBadge>
-        </div>
+        <span
+          className={cn(
+            "inline-flex items-center rounded px-2 py-0.5 text-[10.5px] font-semibold uppercase",
+            isRefund
+              ? "bg-destructive/10 text-destructive"
+              : "bg-status-success/15 text-status-success",
+          )}
+          style={{ letterSpacing: "0.04em" }}
+        >
+          {t.purpose.replace(/_/g, " ")}
+        </span>
       );
     },
   },

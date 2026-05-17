@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { Users } from "lucide-react";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/registered-bidders-columns";
 import type { RegisteredBidderSummary } from "src/entities/models/Bidder";
@@ -31,7 +32,11 @@ export const RegisteredBiddersTable = ({
   };
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Users}
+      title="Registered Bidders"
+      meta={`${registeredBidders.length.toLocaleString()} entries`}
+      rowLabel="bidder"
       columns={columns}
       data={registeredBidders}
       initialSorting={[{ id: "created_at", desc: false }]}
@@ -43,7 +48,7 @@ export const RegisteredBiddersTable = ({
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {
-          placeholder: "Search By Name or Bidder Number",
+          placeholder: "Search by bidder # or name…",
         },
       }}
     />

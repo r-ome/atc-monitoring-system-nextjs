@@ -1,3 +1,4 @@
+import { Package } from "lucide-react";
 import { getBoughtItems } from "@/app/(protected)/inventories/actions";
 import { UploadBoughtItemsModal } from "./UploadBoughtItemsModal";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
@@ -6,10 +7,13 @@ import { GenerateBoughtItemsReport } from "./GenerateBoughtItemsReport";
 import { getBranches } from "../branches/actions";
 import { requireSession } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
-import { BoughtItemsHeader } from "./BoughtItemsHeader";
 import { BoughtItemsFilter } from "./BoughtItemsFilter";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { StatCard, StatCardGroup } from "@/app/components/admin/stat-card";
+import { BranchBadge } from "@/app/components/admin";
+import { Card } from "@/app/components/ui/card";
+import { PageContainer } from "@/app/components/PageContainer";
+import { PageHeader } from "@/app/components/PageHeader";
 
 export default async function Page({
   searchParams,
@@ -58,11 +62,25 @@ export default async function Page({
   const totalDifference = bought_items.reduce((sum, item) => sum + (item.profit_loss ?? 0), 0);
 
   return (
-    <div className="flex flex-col gap-2">
-      <BoughtItemsHeader
-        selectedBranch={selected_branch}
+    <PageContainer>
+      <PageHeader
+        title="Bought Items"
+        subtitle={
+          selected_branch ? (
+            <span className="flex items-center gap-2">
+              Master list for <BranchBadge branch={selected_branch.name} />
+            </span>
+          ) : (
+            "Master list across branches"
+          )
+        }
+        actions={
+          <>
+            <UploadBoughtItemsModal selectedBranch={selected_branch} />
+            <GenerateBoughtItemsReport boughtItems={bought_items} />
+          </>
+        }
       />
-      <h1 className="text-2xl text-center">Bought Items Master List</h1>
 
       <BoughtItemsFilter
         user={user}
@@ -72,11 +90,6 @@ export default async function Page({
         selectedView={selectedView}
         selectedMonth={selectedMonth}
       />
-
-      <div className="flex gap-4">
-        <UploadBoughtItemsModal selectedBranch={selected_branch} />
-        <GenerateBoughtItemsReport boughtItems={bought_items} />
-      </div>
 
       <StatCardGroup columns={3}>
         <StatCard
@@ -100,7 +113,19 @@ export default async function Page({
         />
       </StatCardGroup>
 
-      <BoughtItemsTable boughtItems={bought_items} />
-    </div>
+      <Card className="flex flex-col p-3.5 2xl:p-5 2xl:text-[15px]">
+        <div className="mb-3 flex items-center gap-2">
+          <Package size={14} className="text-muted-foreground" />
+          <span className="text-[13.5px] font-semibold 2xl:text-[17.5px]">
+            Bought Items
+          </span>
+          <span className="ml-auto text-[11px] text-muted-foreground 2xl:text-[15px]">
+            {bought_items.length.toLocaleString()} items
+          </span>
+        </div>
+
+        <BoughtItemsTable boughtItems={bought_items} />
+      </Card>
+    </PageContainer>
   );
 }

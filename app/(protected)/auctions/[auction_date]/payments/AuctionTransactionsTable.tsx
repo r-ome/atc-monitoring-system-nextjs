@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { Receipt } from "lucide-react";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow } from "@tanstack/react-table";
 import { columns } from "./transactions-columns";
 import { AuctionTransaction } from "src/entities/models/Payment";
@@ -29,7 +30,11 @@ export const AuctionTransactionsTable = ({
   };
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Receipt}
+      title="Transactions"
+      meta={`${transactions.length.toLocaleString()} records`}
+      rowLabel="transaction"
       columns={columns}
       data={transactions}
       onRowClick={(receipt) =>
@@ -38,7 +43,7 @@ export const AuctionTransactionsTable = ({
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {
-          placeholder: "Search item here",
+          placeholder: "Search bidder, receipt #…",
         },
       }}
     />

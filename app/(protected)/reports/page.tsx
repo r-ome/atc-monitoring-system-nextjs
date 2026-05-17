@@ -13,6 +13,8 @@ import { InventoryTabContent } from "./components/InventoryTabContent";
 import { OperationalTabContent } from "./components/OperationalTabContent";
 import { SupplierTabContent } from "./components/SupplierTabContent";
 import { Card, CardHeader } from "@/app/components/ui/card";
+import { PageContainer } from "@/app/components/PageContainer";
+import { PageHeader } from "@/app/components/PageHeader";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { FilterMode } from "src/entities/models/Report";
 
@@ -133,7 +135,12 @@ const Page = async ({
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer>
+      <PageHeader
+        title="Reports"
+        subtitle="Financial, bidder, inventory, operational, and supplier views"
+      />
+
       <Card>
         <CardHeader>
           <SalesFilter
@@ -148,7 +155,7 @@ const Page = async ({
       </Card>
 
       <ReportTabs tabs={tabs} />
-    </div>
+    </PageContainer>
   );
 };
 

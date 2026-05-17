@@ -17,11 +17,19 @@ import {
   UsersRound,
   Banknote,
   LogOut,
+  Menu,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { logSessionLogout } from "@/app/(protected)/session-actions";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/app/components/ui/sheet";
 
 const NAV_ITEMS = [
   { id: "home", label: "Home", href: "/home", icon: Home, roles: ["OWNER", "SUPER_ADMIN", "CASHIER", "ENCODER"] },
@@ -92,11 +100,23 @@ interface RailNavProps {
 
 export function RailNav({ session }: RailNavProps) {
   const pathname = usePathname();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const initials = session.user.name
     ?.split(" ")
     .map((n) => n[0])
     .join("")
     .slice(0, 2) ?? "?";
+
+  const mobileTabIds = new Set(MOBILE_TABS.map((t) => t.id));
+  const drawerItems = NAV_ITEMS.filter(
+    (item) =>
+      !mobileTabIds.has(item.id) && item.roles.includes(session.user.role),
+  );
+
+  const handleLogout = async () => {
+    await logSessionLogout("manual");
+    await signOut({ callbackUrl: "/login" });
+  };
 
   return (
     <>
@@ -123,10 +143,7 @@ export function RailNav({ session }: RailNavProps) {
 
         {/* Logout */}
         <button
-          onClick={async () => {
-            await logSessionLogout("manual");
-            await signOut({ callbackUrl: "/login" });
-          }}
+          onClick={handleLogout}
           className="flex w-12 h-[50px] flex-col items-center justify-center gap-[3px] rounded-[10px] border border-transparent text-[9.5px] font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors 2xl:text-[13.5px]"
         >
           <LogOut size={18} />
@@ -159,16 +176,87 @@ export function RailNav({ session }: RailNavProps) {
           );
         })}
         <button
-          onClick={async () => {
-            await logSessionLogout("manual");
-            await signOut({ callbackUrl: "/login" });
-          }}
-          className="flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium text-muted-foreground"
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          className={cn(
+            "flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium",
+            drawerOpen ? "text-primary" : "text-muted-foreground",
+          )}
         >
-          <LogOut size={20} />
-          <span>Logout</span>
+          <Menu size={20} />
+          <span>More</span>
         </button>
       </nav>
+
+      {/* Mobile "More" drawer */}
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetContent
+          side="left"
+          className="w-[280px] p-0 flex flex-col gap-0"
+        >
+          <SheetHeader className="border-b px-4 py-3 flex-row items-center gap-3 space-y-0">
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[12px] font-bold tracking-tight text-white"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--primary), oklch(0.35 0.18 256))",
+              }}
+            >
+              {initials}
+            </div>
+            <div className="flex min-w-0 flex-col leading-tight text-left">
+              <SheetTitle className="truncate text-[13.5px] font-semibold">
+                {session.user.name ?? "User"}
+              </SheetTitle>
+              <SheetDescription className="text-[11px] text-muted-foreground">
+                {session.user.role}
+              </SheetDescription>
+            </div>
+          </SheetHeader>
+
+          <nav className="flex-1 overflow-y-auto px-2 py-3">
+            <ul className="flex flex-col gap-0.5">
+              {drawerItems.map((item) => {
+                const Icon = item.icon;
+                const active =
+                  pathname === item.href ||
+                  (item.href !== "/home" && pathname.startsWith(item.href));
+                return (
+                  <li key={item.id}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setDrawerOpen(false)}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-md px-3 py-2 text-[13.5px] font-medium transition-colors",
+                        active
+                          ? "bg-secondary text-foreground"
+                          : "text-foreground/80 hover:bg-secondary hover:text-foreground",
+                      )}
+                    >
+                      <Icon size={16} className="text-muted-foreground" />
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          <div className="border-t px-2 py-3">
+            <button
+              type="button"
+              onClick={async () => {
+                setDrawerOpen(false);
+                await handleLogout();
+              }}
+              className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-[13.5px] font-medium text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

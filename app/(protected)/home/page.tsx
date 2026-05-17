@@ -1,3 +1,4 @@
+import { PageContainer } from "@/app/components/PageContainer";
 import { HomeHero } from "./components/HomeHero";
 import { UnpaidBiddersCard } from "./components/UnpaidBiddersCard";
 import { ContainersDueCard } from "./components/ContainersDueCard";
@@ -6,7 +7,7 @@ import { OverdueUnpaidBiddersReminder } from "./components/OverdueUnpaidBiddersR
 
 const Page = async () => {
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-[18px] 2xl:max-w-[1700px] 2xl:gap-6">
+    <PageContainer>
       <HomeHero />
       <OverdueUnpaidBiddersReminder />
 
@@ -17,7 +18,7 @@ const Page = async () => {
       </div>
 
       <HomeCalendar />
-    </div>
+    </PageContainer>
   );
 };
 

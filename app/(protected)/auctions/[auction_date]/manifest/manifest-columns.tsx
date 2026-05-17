@@ -2,18 +2,16 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Manifest } from "src/entities/models/Manifest";
-import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
-import { cn, formatDate } from "@/app/lib/utils";
+import { cn, formatDate, formatNumberToCurrency } from "@/app/lib/utils";
 import { SetStateAction } from "react";
-import { InventoryStatusBadge, StatusBadge } from "@/app/components/admin";
-
 import { createGroupSortingFn } from "@/app/lib/utils";
+import { SortableHeader } from "@/app/(protected)/auctions/components/SortableHeader";
+import { AuctionStatusPill } from "@/app/(protected)/auctions/components/AuctionStatusPill";
 
 const controlGroupSortingFn = createGroupSortingFn<Manifest, string>(
   (row) => row.is_slash_item ?? row.manifest_id,
@@ -21,16 +19,22 @@ const controlGroupSortingFn = createGroupSortingFn<Manifest, string>(
   (a, b) => a.localeCompare(b),
 );
 
-function ManifestNumberDisplay({ manifestNumber }: { manifestNumber: string | null }) {
+function ManifestNumberDisplay({
+  manifestNumber,
+}: {
+  manifestNumber: string | null;
+}) {
   if (manifestNumber === "ADD ON") {
-    return <StatusBadge variant="addon">ADD ON</StatusBadge>;
+    return <AuctionStatusPill status="ADD ON" />;
   }
-
   if (manifestNumber === "BOUGHT ITEM") {
-    return <InventoryStatusBadge status="BOUGHT_ITEM" />;
+    return <AuctionStatusPill status="BOUGHT ITEM" />;
   }
-
-  return <>{manifestNumber}</>;
+  return (
+    <span className="font-mono">
+      {manifestNumber ?? <span className="text-muted-foreground/60">—</span>}
+    </span>
+  );
 }
 
 export const columns = (
@@ -40,35 +44,25 @@ export const columns = (
 ): ColumnDef<Manifest>[] => [
   {
     accessorKey: "barcode",
-    size: 100,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Barcode
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 110,
+    header: ({ column }) => <SortableHeader column={column} label="Barcode" />,
     cell: ({ row }) => {
-      const manifest = row.original;
+      const m = row.original;
       return (
-        <div
-          className="flex justify-center hover:underline hover:cursor-pointer"
+        <span
+          className={cn(
+            "font-mono text-[12.5px] font-semibold",
+            m.error_message && "cursor-pointer hover:underline",
+          )}
           onClick={() => {
-            if (manifest.error_message !== "") {
+            if (m.error_message) {
               setOpen(true);
-              setSelected(manifest);
+              setSelected(m);
             }
           }}
         >
-          {manifest.barcode}
-        </div>
+          {m.barcode}
+        </span>
       );
     },
   },
@@ -76,237 +70,129 @@ export const columns = (
     accessorKey: "control",
     size: 100,
     sortingFn: controlGroupSortingFn,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Control
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Control" />
+    ),
     cell: ({ row }) => {
-      const manifest = row.original;
-      const is_slash_item = manifest.is_slash_item;
+      const m = row.original;
+      const is_slash_item = m.is_slash_item;
       const idx = is_slash_item ? groupIndexMap[is_slash_item] : undefined;
-
       return (
-        <div className="flex justify-center">
-          {manifest.control} {idx ? `(A${idx})` : ""}
-        </div>
+        <span className="font-mono">
+          {m.control}
+          {idx ? `(A${idx})` : ""}
+        </span>
       );
     },
   },
   {
     accessorKey: "description",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Description
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const manifest = row.original;
-      return <div className="flex justify-center">{manifest.description}</div>;
-    },
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Description" />
+    ),
+    cell: ({ row }) => (
+      <span className="text-foreground/90">{row.original.description}</span>
+    ),
   },
   {
     accessorKey: "bidder_number",
-    size: 100,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Bidder
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const manifest = row.original;
-      return (
-        <div className="flex justify-center">{manifest.bidder_number}</div>
-      );
-    },
+    size: 90,
+    header: ({ column }) => <SortableHeader column={column} label="Bidder" />,
+    cell: ({ row }) => (
+      <span className="font-mono text-[12.5px] font-semibold text-muted-foreground">
+        #{row.original.bidder_number}
+      </span>
+    ),
   },
   {
     accessorKey: "qty",
-    size: 100,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            QTY
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
-      const manifest = row.original;
-      return <div className="flex justify-center">{manifest.qty}</div>;
-    },
+    size: 70,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Qty" align="right" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-right font-mono">{row.original.qty}</div>
+    ),
   },
   {
     accessorKey: "price",
-    size: 100,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Price
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 110,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Price" align="right" />
+    ),
     cell: ({ row }) => {
-      const manifest = row.original;
+      const raw = row.original.price;
       return (
-        <div className="flex justify-center">
-          {manifest.price
-            ? parseInt(manifest.price, 10).toLocaleString()
-            : null}
+        <div className="text-right font-mono font-medium">
+          {raw ? (
+            formatNumberToCurrency(parseInt(raw, 10))
+          ) : (
+            <span className="text-muted-foreground/60">—</span>
+          )}
         </div>
       );
     },
   },
   {
     accessorKey: "manifest_number",
-    size: 80,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Manifest
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 100,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Manifest" />
+    ),
     cell: ({ row }) => {
-      const manifest = row.original;
-      if (!manifest.remarks) {
-        return (
-          <div className="flex justify-center">
-            <ManifestNumberDisplay manifestNumber={manifest.manifest_number} />
-          </div>
-        );
-      }
+      const m = row.original;
+      const node = <ManifestNumberDisplay manifestNumber={m.manifest_number} />;
+      if (!m.remarks) return node;
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex justify-center cursor-default">
-              <ManifestNumberDisplay manifestNumber={manifest.manifest_number} />
-            </div>
+            <span className="cursor-default">{node}</span>
           </TooltipTrigger>
-          <TooltipContent>Uploaded by: {manifest.remarks}</TooltipContent>
+          <TooltipContent>Uploaded by: {m.remarks}</TooltipContent>
         </Tooltip>
       );
     },
   },
   {
     accessorKey: "created_at",
-    size: 80,
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Time
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 90,
+    header: ({ column }) => <SortableHeader column={column} label="Time" />,
     cell: ({ row }) => {
-      const manifest = row.original;
-      const insertedAt = new Date(manifest.created_at);
+      const insertedAt = new Date(row.original.created_at);
       const visibleTime = formatDate(insertedAt, "hh:mm a");
-      const fullInsertedAt = formatDate(
-        insertedAt,
-        "MMMM dd, yyyy hh:mm:ss a",
-      );
-
+      const full = formatDate(insertedAt, "MMMM dd, yyyy hh:mm:ss a");
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex justify-center cursor-default">
+            <span className="cursor-default font-mono text-muted-foreground">
               {visibleTime}
-            </div>
+            </span>
           </TooltipTrigger>
-          <TooltipContent>{fullInsertedAt}</TooltipContent>
+          <TooltipContent>{full}</TooltipContent>
         </Tooltip>
       );
     },
   },
   {
     accessorKey: "error_message",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Error
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 140,
+    header: ({ column }) => <SortableHeader column={column} label="Status" />,
     cell: ({ row }) => {
-      const manifest = row.original;
+      const m = row.original;
+      if (!m.error_message) {
+        return <AuctionStatusPill status="ENCODED" />;
+      }
       return (
-        <div
-          className={cn(
-            "flex justify-center truncate",
-            manifest.error_message ? "text-status-error" : "text-status-success",
-          )}
-        >
-          <Tooltip>
-            <TooltipTrigger>
-              {manifest.error_message ? manifest.error_message : "ENCODED"}
-            </TooltipTrigger>
-            <TooltipContent>
-              {manifest.error_message ? manifest.error_message : "ENCODED"}
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="cursor-default">
+              <AuctionStatusPill status="ERROR" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[260px]">
+            {m.error_message}
+          </TooltipContent>
+        </Tooltip>
       );
     },
   },

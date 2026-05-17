@@ -1,18 +1,19 @@
 "use server";
 
-import { getRegisteredBidderByBidderNumber } from "@/app/(protected)/auctions/actions";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/app/components/ui/card";
-import { cn } from "@/app/lib/utils";
+  getAuction,
+  getRegisteredBidderByBidderNumber,
+} from "@/app/(protected)/auctions/actions";
+import { Card } from "@/app/components/ui/card";
+import { formatNumberToCurrency } from "@/app/lib/utils";
 import { BidderItemsTable } from "./components/BidderItemsTable";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { BidderRegistrationOptions } from "./components/BidderRegistrationOptions";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
+import { PageContainer } from "@/app/components/PageContainer";
+import { AuctionSecondaryHeader } from "@/app/(protected)/auctions/components/AuctionSecondaryHeader";
+import { AuctionSectionNav } from "@/app/(protected)/auctions/components/AuctionSectionNav";
+import { AuctionMiniStat } from "@/app/(protected)/auctions/components/AuctionMiniStat";
 
 export default async function Page({
   params,
@@ -20,94 +21,111 @@ export default async function Page({
   params: Promise<{ bidder_number: string; auction_date: string }>;
 }>) {
   const { bidder_number, auction_date } = await params;
+
+  const auctionRes = await getAuction(auction_date);
+  if (!auctionRes.ok) {
+    return <ErrorComponent error={auctionRes.error} />;
+  }
+  const auction = auctionRes.value;
+
   const res = await getRegisteredBidderByBidderNumber(
     bidder_number,
     auction_date,
   );
-
   if (!res.ok) {
     return <ErrorComponent error={res.error} />;
   }
-
   const bidder = res.value;
 
   const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
     bidder.auction_inventories,
   );
-
   const serviceChargeAmount =
     (totalUnpaidItemsPrice * bidder.service_charge) / 100;
   const registrationFeeAmount = bidder.already_consumed
     ? 0
     : bidder.registration_fee;
-
   const grandTotalBalance =
     totalUnpaidItemsPrice + serviceChargeAmount - registrationFeeAmount;
 
-  const BidderProfile = () => (
-    <div className="flex-col items-center md:flex-row space-y-2 border-t px-6 pt-6 flex">
-      {[
-        {
-          label: "Auction Date",
-          value: bidder.auction_date,
-        },
-        {
-          label: "Time Registered",
-          value: bidder.created_at,
-        },
-        {
-          label: "Registration Fee",
-          value: `Php ${bidder.registration_fee.toLocaleString()}`,
-        },
-        {
-          label: "Service Charge",
-          value: `${bidder.service_charge}%`,
-        },
-        {
-          label: "Total Items",
-          value: `${bidder.auction_inventories.length} Items`,
-        },
-        {
-          label: "Balance",
-          value: `₱ ${grandTotalBalance.toLocaleString()}`,
-        },
-      ].map((detail, i) => (
-        <div key={i} className={cn("flex flex-col items-center w-1/2")}>
-          <p className="text-muted-foreground">{detail.label}</p>{" "}
-          <p
-            className={cn(
-              "text-card-foreground",
-              detail.label === "Balance" ? "text-red-500" : "",
-            )}
-          >
-            {detail.value}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
+  const initials = bidder.bidder.full_name
+    .split(" ")
+    .slice(0, 2)
+    .map((s) => s[0])
+    .join("");
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="w-full">
-        <CardHeader className="flex justify-between">
-          <div>
-            <CardTitle>Bidder: {bidder.bidder.bidder_number}</CardTitle>
-            <CardDescription>{bidder.bidder.full_name}</CardDescription>
+    <PageContainer>
+      <AuctionSecondaryHeader
+        auctionDate={auction_date}
+        branchName={auction.branch.name}
+        startedAt={auction.started_at}
+        actions={<BidderRegistrationOptions bidder={bidder} />}
+      />
+
+      <AuctionSectionNav basePath={`/auctions/${auction_date}`} />
+
+      {/* Bidder profile card */}
+      <Card className="flex flex-col gap-4 p-[18px] 2xl:p-5 2xl:text-[15px]">
+        <div className="flex flex-wrap items-center gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-[15px] font-bold text-accent-foreground">
+            {initials}
+          </span>
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="font-mono text-[18px] font-semibold tracking-tight 2xl:text-[22px]">
+              #{bidder.bidder.bidder_number}
+            </span>
+            <span className="text-[14px] text-foreground/80 2xl:text-[16px]">
+              {bidder.bidder.full_name}
+            </span>
           </div>
-          <div>
-            <BidderRegistrationOptions bidder={bidder} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <BidderProfile />
-        </CardContent>
+          <span className="ml-auto text-[11px] text-muted-foreground 2xl:text-[14px]">
+            Registered {bidder.created_at}
+          </span>
+        </div>
+
+        <div className="grid gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+          <AuctionMiniStat
+            label="Auction Date"
+            value={
+              <span className="text-[15px] font-semibold tracking-tight 2xl:text-[18px]">
+                {bidder.auction_date}
+              </span>
+            }
+          />
+          <AuctionMiniStat
+            label="Registration Fee"
+            value={formatNumberToCurrency(bidder.registration_fee)}
+            sub={bidder.already_consumed ? "Consumed toward items" : "Outstanding"}
+          />
+          <AuctionMiniStat
+            label="Service Charge"
+            value={`${bidder.service_charge}%`}
+            sub={formatNumberToCurrency(serviceChargeAmount)}
+          />
+          <AuctionMiniStat
+            label="Items"
+            value={bidder.auction_inventories.length.toLocaleString()}
+          />
+          <AuctionMiniStat
+            label="Balance"
+            value={formatNumberToCurrency(grandTotalBalance)}
+            sub={
+              grandTotalBalance > 0
+                ? "Awaiting payment"
+                : grandTotalBalance < 0
+                  ? "Bidder is owed a refund"
+                  : "Settled"
+            }
+            danger={grandTotalBalance > 0}
+          />
+        </div>
       </Card>
 
       <BidderItemsTable
         auctionInventories={bidder.auction_inventories}
         registeredBidder={bidder}
       />
-    </div>
+    </PageContainer>
   );
 }

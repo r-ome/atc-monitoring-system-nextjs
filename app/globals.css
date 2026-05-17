@@ -192,7 +192,23 @@ body {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+  }
+  .font-mono,
+  [class*="font-mono"] {
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .caps-label {
+    @apply font-semibold uppercase text-muted-foreground;
+    letter-spacing: 0.06em;
   }
 }
 
