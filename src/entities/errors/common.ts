@@ -23,3 +23,9 @@ export class InputParseError extends BaseError {
     super(message, options as ErrorOptions);
   }
 }
+export class InsufficientCashError extends BaseError {
+  declare readonly cause?: string;
+  constructor(message: string, options?: { cause?: string }) {
+    super(message, options as ErrorOptions);
+  }
+}

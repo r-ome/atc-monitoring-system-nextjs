@@ -88,7 +88,7 @@ export const UpdateExpenseModal = ({
     if (res) {
       setIsLoading(false);
       if (!res.ok) {
-        toast.error("Failed to update expense. Please try again.");
+        toast.error(res.error?.message || "Failed to update expense. Please try again.");
       } else {
         toast.success("Successfully updated expense!");
         onOpenChange(false);

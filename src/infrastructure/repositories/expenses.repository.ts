@@ -4,7 +4,7 @@ import {
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
 import { IExpenseRepository } from "src/application/repositories/expenses.repository.interface";
-import { DatabaseOperationError } from "src/entities/errors/common";
+import { DatabaseOperationError, InsufficientCashError } from "src/entities/errors/common";
 import { ConsistencyIssue, PettyCashSnapshot } from "src/entities/models/Expense";
 import { formatDate } from "@/app/lib/utils";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
@@ -77,9 +77,57 @@ async function computeBalanceForDay(
   });
 }
 
+// Returns the cash-on-hand for a day, optionally excluding one expense row
+// (used when validating an update to that row).
+async function getCashOnHandForDay(
+  tx: PrismaTransactionClient,
+  branch_id: string,
+  dateStr: string,
+  excludeExpenseId?: string,
+) {
+  const startOfDay = fromZonedTime(`${dateStr} 00:00:00.000`, TZ);
+  const endOfDay = fromZonedTime(`${dateStr} 23:59:59.999`, TZ);
+
+  const prev_petty_cash = await tx.petty_cash.findFirst({
+    where: { branch_id, created_at: { lt: startOfDay } },
+    orderBy: { created_at: "desc" },
+  });
+
+  const [add_rows, expense_rows] = await Promise.all([
+    tx.expenses.findMany({
+      where: {
+        branch_id,
+        created_at: { gte: startOfDay, lte: endOfDay },
+        purpose: "ADD_PETTY_CASH",
+        ...(excludeExpenseId ? { NOT: { expense_id: excludeExpenseId } } : {}),
+      },
+    }),
+    tx.expenses.findMany({
+      where: {
+        branch_id,
+        created_at: { gte: startOfDay, lte: endOfDay },
+        purpose: { in: ["EXPENSE", "SALARY"] },
+        ...(excludeExpenseId ? { NOT: { expense_id: excludeExpenseId } } : {}),
+      },
+    }),
+  ]);
+
+  const total_add = add_rows.reduce((acc, r) => acc + r.amount.toNumber(), 0);
+  const total_expense = expense_rows.reduce(
+    (acc, r) => acc + r.amount.toNumber(),
+    0,
+  );
+
+  return (
+    (prev_petty_cash ? prev_petty_cash.amount.toNumber() : 0) +
+    total_add -
+    total_expense
+  );
+}
+
 // Recomputes the given day and all subsequent petty_cash records in order.
 // Processes asc so each day reads the freshly updated value of the day before.
-async function cascadeFromDay(
+export async function cascadeFromDay(
   tx: PrismaTransactionClient,
   dateStr: string,
   petty_cash_id: string,
@@ -229,6 +277,23 @@ export const ExpensesRepository: IExpenseRepository = {
   addExpense: async (petty_cash_id, input) => {
     try {
       return await prisma.$transaction(async (tx) => {
+        if (input.purpose === "EXPENSE" || input.purpose === "SALARY") {
+          const dateStr = formatDate(
+            fromZonedTime(input.created_at, TZ),
+            "yyyy-MM-dd",
+          );
+          const cashOnHand = await getCashOnHandForDay(
+            tx,
+            input.branch_id,
+            dateStr,
+          );
+          if (input.amount > cashOnHand) {
+            throw new InsufficientCashError(
+              `Insufficient cash on hand. Available: ₱${cashOnHand.toLocaleString()}, requested: ₱${Number(input.amount).toLocaleString()}.`,
+            );
+          }
+        }
+
         const created = await tx.expenses.create({
           include: { branch: true, employee: true },
           data: {
@@ -247,6 +312,7 @@ export const ExpensesRepository: IExpenseRepository = {
         return created;
       });
     } catch (error) {
+      if (error instanceof InsufficientCashError) throw error;
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error adding expense", {
           cause: error.message,
@@ -261,6 +327,24 @@ export const ExpensesRepository: IExpenseRepository = {
     try {
       return await prisma.$transaction(async (tx) => {
         const previous_expense = await tx.expenses.findFirst({ where: { expense_id } });
+
+        if (
+          previous_expense &&
+          (data.purpose === "EXPENSE" || data.purpose === "SALARY")
+        ) {
+          const dateStr = formatDate(previous_expense.created_at, "yyyy-MM-dd");
+          const cashOnHand = await getCashOnHandForDay(
+            tx,
+            previous_expense.branch_id,
+            dateStr,
+            expense_id,
+          );
+          if (data.amount > cashOnHand) {
+            throw new InsufficientCashError(
+              `Insufficient cash on hand. Available: ₱${cashOnHand.toLocaleString()}, requested: ₱${Number(data.amount).toLocaleString()}.`,
+            );
+          }
+        }
 
         const updated_expense = await tx.expenses.update({
           include: { branch: true, employee: true },
@@ -295,6 +379,7 @@ export const ExpensesRepository: IExpenseRepository = {
         };
       });
     } catch (error) {
+      if (error instanceof InsufficientCashError) throw error;
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error updating expense!", {
           cause: error.message,

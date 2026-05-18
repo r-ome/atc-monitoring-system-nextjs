@@ -3,6 +3,7 @@ import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import {
   DatabaseOperationError,
   InputParseError,
+  InsufficientCashError,
 } from "src/entities/errors/common";
 import {
   createExpenseSchema,
@@ -68,6 +69,11 @@ export const AddExpenseController = async (
         message: error.message,
         cause: error.cause,
       });
+    }
+
+    if (error instanceof InsufficientCashError) {
+      logger("AddExpenseController", error, "warn");
+      return err({ message: error.message });
     }
 
     logger("AddExpenseController", error);

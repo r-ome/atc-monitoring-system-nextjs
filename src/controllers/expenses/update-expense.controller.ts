@@ -5,6 +5,7 @@ import { ExpensesRepository } from "src/infrastructure/di/repositories";
 import {
   DatabaseOperationError,
   InputParseError,
+  InsufficientCashError,
 } from "src/entities/errors/common";
 import {
   updateExpenseSchema,
@@ -68,6 +69,11 @@ export const UpdateExpenseController = async (
     if (error instanceof InputParseError) {
       logger("UpdateExpenseController", error, "warn");
       return err({ message: error.message, cause: error.cause });
+    }
+
+    if (error instanceof InsufficientCashError) {
+      logger("UpdateExpenseController", error, "warn");
+      return err({ message: error.message });
     }
 
     logger("UpdateExpenseController", error);

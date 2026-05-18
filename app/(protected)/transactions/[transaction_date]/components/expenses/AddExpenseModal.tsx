@@ -78,7 +78,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     if (res) {
       setIsLoading(false);
       if (!res.ok) {
-        toast.error("error");
+        toast.error(res.error?.message || "Failed to add expense.");
       } else {
         toast.success("Successfully added expense!");
         setOpenDialog(false);
