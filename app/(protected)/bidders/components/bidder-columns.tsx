@@ -150,6 +150,7 @@ export const columns: ColumnDef<BidderRowType>[] = [
   },
   {
     accessorKey: "status",
+    filterFn: "includesIn",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

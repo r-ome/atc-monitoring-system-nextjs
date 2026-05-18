@@ -272,6 +272,13 @@ export const PaymentRepository: IPaymentRepository = {
           },
         });
 
+        if (registered_bidder.bidder.status === "INACTIVE") {
+          await tx.bidders.update({
+            where: { bidder_id: registered_bidder.bidder_id },
+            data: { status: "ACTIVE" },
+          });
+        }
+
         return {
           receipt_id: created_receipt.receipt_id,
           receipt_number: created_receipt.receipt_number,

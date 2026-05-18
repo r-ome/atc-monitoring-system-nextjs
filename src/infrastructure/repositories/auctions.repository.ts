@@ -190,7 +190,7 @@ export const AuctionRepository: IAuctionRepository = {
       });
 
       return await prisma.$transaction(async (tx) => {
-        return await tx.auctions_bidders.create({
+        const created = await tx.auctions_bidders.create({
           data: {
             auction_id: data.auction_id,
             bidder_id: data.bidder_id,
@@ -213,6 +213,15 @@ export const AuctionRepository: IAuctionRepository = {
             },
           },
         });
+
+        if (bidder?.status === "INACTIVE") {
+          await tx.bidders.update({
+            where: { bidder_id: data.bidder_id },
+            data: { status: "ACTIVE" },
+          });
+        }
+
+        return created;
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

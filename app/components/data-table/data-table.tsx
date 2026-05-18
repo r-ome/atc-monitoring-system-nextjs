@@ -37,6 +37,8 @@ export const DataTable = <TData, TValue>({
   rowSelection,
   getRowId,
   columnFilter,
+  columnFilters: columnFilterDefs,
+  initialColumnFilters = [],
   onRowClick,
   title,
   footer,
@@ -50,7 +52,8 @@ export const DataTable = <TData, TValue>({
 }: DataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] =
+    useState<ColumnFiltersState>(initialColumnFilters);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize,
@@ -113,7 +116,10 @@ export const DataTable = <TData, TValue>({
 
   const hasHeader = !!title || !!Icon || !!meta;
   const hasToolbar =
-    !!searchFilter?.globalFilterFn || !!columnFilter?.options || !!actionButtons;
+    !!searchFilter?.globalFilterFn ||
+    !!columnFilter?.options ||
+    !!(columnFilterDefs && columnFilterDefs.length) ||
+    !!actionButtons;
 
   const isEmbedded = embedded ?? true;
   const Wrapper = isEmbedded ? "div" : Card;
@@ -165,6 +171,24 @@ export const DataTable = <TData, TValue>({
               />
             </div>
           ) : null}
+          {columnFilterDefs?.map((def) => {
+            const currentFilter = columnFilters.find((f) => f.id === def.column);
+            const defaultValue = Array.isArray(currentFilter?.value)
+              ? (currentFilter.value as string[])
+              : undefined;
+            return (
+              <div key={def.column} className="w-full md:w-[240px]">
+                <FilterColumnComponent
+                  options={def.options}
+                  defaultValue={defaultValue}
+                  onChangeEvent={(value) =>
+                    table.getColumn(def.column)?.setFilterValue(value)
+                  }
+                  {...def.filterComponentProps}
+                />
+              </div>
+            );
+          })}
           {actionButtons ? (
             <div className="flex flex-wrap items-center gap-2 md:ml-auto md:flex-nowrap">
               {actionButtons}

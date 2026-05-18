@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { Users } from "lucide-react";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow, Row } from "@tanstack/react-table";
 import { columns } from "./bidder-columns";
 import { BranchBadge, StatusBadge } from "@/app/components/admin";
@@ -82,7 +83,11 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
   };
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Users}
+      title="All Bidders"
+      meta={`${bidders.length.toLocaleString()} ${bidders.length === 1 ? "entry" : "entries"}`}
+      rowLabel="bidder"
       columns={columns}
       data={bidders}
       onRowClick={(bidder) =>
@@ -94,13 +99,23 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
           placeholder: "Search By Name or Bidder Number",
         },
       }}
-      columnFilter={{
-        column: "branch_name",
-        options: branchOptions,
-        filterComponentProps: {
-          placeholder: "Filter by Branch",
+      columnFilters={[
+        {
+          column: "branch_name",
+          options: branchOptions,
+          filterComponentProps: { placeholder: "Filter by Branch" },
         },
-      }}
+        {
+          column: "status",
+          options: [
+            { value: "ACTIVE", label: "Active" },
+            { value: "INACTIVE", label: "Inactive" },
+            { value: "BANNED", label: "Banned" },
+          ],
+          filterComponentProps: { placeholder: "Filter by Status" },
+        },
+      ]}
+      initialColumnFilters={[{ id: "status", value: ["ACTIVE"] }]}
       renderMobileCard={renderMobileCard}
     />
   );

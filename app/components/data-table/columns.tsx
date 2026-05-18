@@ -3,6 +3,7 @@
 import type { ComponentType, ReactNode } from "react";
 import {
   ColumnDef,
+  ColumnFiltersState,
   FilterFnOption,
   Row,
   SortingState,
@@ -33,6 +34,12 @@ export interface DataTableProps<TData, TValue> {
     globalFilterFn?: FilterFnOption<TData>;
     filterComponentProps?: Partial<FilterColumnComponentProps>;
   };
+  columnFilters?: Array<{
+    column: string;
+    options: Record<string, string>[];
+    filterComponentProps?: Partial<FilterColumnComponentProps>;
+  }>;
+  initialColumnFilters?: ColumnFiltersState;
   onRowClick?: (row: TData) => void;
   title?: ReactNode;
   footer?: ReactNode;

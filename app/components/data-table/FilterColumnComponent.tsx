@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -18,14 +18,18 @@ export interface FilterColumnComponentProps {
   options: Record<string, string>[];
   onChangeEvent: (value: string[]) => void;
   placeholder?: string;
+  defaultValue?: string[];
 }
 
 export const FilterColumnComponent: React.FC<FilterColumnComponentProps> = ({
   options = [],
   onChangeEvent,
   placeholder,
+  defaultValue,
 }) => {
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(defaultValue ?? []);
+  const onChangeRef = useRef(onChangeEvent);
+  onChangeRef.current = onChangeEvent;
 
   const toggleItem = (value: string) => {
     setSelected((prev) =>
@@ -34,8 +38,8 @@ export const FilterColumnComponent: React.FC<FilterColumnComponentProps> = ({
   };
 
   useEffect(() => {
-    onChangeEvent(selected);
-  }, [selected, onChangeEvent]);
+    onChangeRef.current(selected);
+  }, [selected]);
 
   return (
     <Popover>
