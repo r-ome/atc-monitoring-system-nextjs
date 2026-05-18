@@ -54,14 +54,16 @@ export const columns: ColumnDef<Expense>[] = [
     cell: ({ row }) => {
       const expense = row.original;
       const amount = expense.amount.toLocaleString();
+      const isOutflow =
+        expense.purpose === "EXPENSE" || expense.purpose === "SALARY";
       return (
         <div
           className={cn(
             "flex justify-center",
-            expense.purpose === "EXPENSE" ? "text-status-error" : "text-status-success"
+            isOutflow ? "text-status-error" : "text-status-success",
           )}
         >
-          {expense.purpose === "EXPENSE" ? `(${amount})` : amount}
+          {isOutflow ? `(${amount})` : amount}
         </div>
       );
     },

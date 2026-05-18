@@ -28,7 +28,7 @@ export const ExpensesHeader: React.FC<ExpensesHeaderProps> = ({
 
   const totals = useMemo(() => {
     const totalExpenses = expenses
-      .filter((item) => item.purpose === "EXPENSE")
+      .filter((item) => item.purpose === "EXPENSE" || item.purpose === "SALARY")
       .reduce((acc, item) => acc + item.amount, 0);
 
     const totalCurrentPettyCash = expenses

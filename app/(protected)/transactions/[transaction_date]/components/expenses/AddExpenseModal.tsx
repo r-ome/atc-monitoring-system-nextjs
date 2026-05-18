@@ -41,14 +41,37 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const { transaction_date } = useParams();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [open, setOpenDialog] = useState<boolean>(false);
-  const [purpose, setPurpose] = useState<(typeof EXPENSE_PURPOSE)[number]>("EXPENSE");
+  const [purpose, setPurpose] = useState<(typeof EXPENSE_PURPOSE)[number] | "">("");
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setPurpose("EXPENSE");
+      setPurpose("");
     }
     setOpenDialog(next);
   };
+
+  const PURPOSE_OPTIONS: {
+    value: (typeof EXPENSE_PURPOSE)[number];
+    label: string;
+    description: string;
+  }[] = [
+    {
+      value: "EXPENSE",
+      label: "General Expense",
+      description: "Supplies, utilities, repairs, fuel, or any operating cost.",
+    },
+    {
+      value: "SALARY",
+      label: "Pay Extra/Casual Worker",
+      description:
+        "Auction-day incentive or one-off payout to a non-employee helper.",
+    },
+    {
+      value: "ADD_PETTY_CASH",
+      label: "Add Petty Cash",
+      description: "Top-up cash on hand for today's petty cash fund.",
+    },
+  ];
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -98,21 +121,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-2">
             <div className="flex gap-4">
-              <Label htmlFor="amount" className="w-40">
-                Amount
-              </Label>
-              <div className="w-full">
-                <InputNumber
-                  name="amount"
-                  min={0}
-                  decimalScale={2}
-                  autoComplete="off"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-4">
               <Label htmlFor="purpose" className="w-40">
                 Purpose
               </Label>
@@ -125,13 +133,22 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Purpose" />
+                  <SelectValue placeholder="Select Purpose">
+                    {purpose === ""
+                      ? null
+                      : PURPOSE_OPTIONS.find((o) => o.value === purpose)?.label}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {(["EXPENSE", "ADD_PETTY_CASH", "SALARY"] as const).map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item === "ADD_PETTY_CASH" ? "ADD PETTY CASH" : item}
+                    {PURPOSE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div className="flex flex-col items-start py-0.5">
+                          <span className="font-medium">{opt.label}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {opt.description}
+                          </span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -139,18 +156,37 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               </Select>
             </div>
 
-            <div className="flex gap-4">
-              <Label htmlFor="remarks" className="w-40">
-                Remarks
-              </Label>
-              <Textarea name="remarks" required />
-            </div>
+            {purpose !== "" && (
+              <>
+                <div className="flex gap-4">
+                  <Label htmlFor="amount" className="w-40">
+                    Amount
+                  </Label>
+                  <div className="w-full">
+                    <InputNumber
+                      name="amount"
+                      min={0}
+                      decimalScale={2}
+                      autoComplete="off"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <Label htmlFor="remarks" className="w-40">
+                    Remarks
+                  </Label>
+                  <Textarea name="remarks" required />
+                </div>
+              </>
+            )}
 
             <DialogFooter>
               <DialogClose asChild>
                 <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
               </DialogClose>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || purpose === ""}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>

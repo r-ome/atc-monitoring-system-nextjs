@@ -31,34 +31,24 @@ export type Expense = {
   updated_at: string;
 };
 
-export const createExpenseSchema = z
-  .object({
-    amount: z.coerce.number(),
-    purpose: z.enum(EXPENSE_PURPOSE),
-    remarks: z.string().min(1),
-    branch_id: z.string(),
-    employee_id: z.string().optional().nullable(),
-    created_at: z.string(),
-  })
-  .refine((data) => data.purpose !== "SALARY" || !!data.employee_id, {
-    message: "Employee is required for salary expenses.",
-    path: ["employee_id"],
-  });
+export const createExpenseSchema = z.object({
+  amount: z.coerce.number(),
+  purpose: z.enum(EXPENSE_PURPOSE),
+  remarks: z.string().min(1),
+  branch_id: z.string(),
+  employee_id: z.string().optional().nullable(),
+  created_at: z.string(),
+});
 
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
 
-export const updateExpenseSchema = z
-  .object({
-    amount: z.coerce.number(),
-    purpose: z.enum(EXPENSE_PURPOSE),
-    remarks: z.string().min(1),
-    branch_id: z.string(),
-    employee_id: z.string().optional().nullable(),
-  })
-  .refine((data) => data.purpose !== "SALARY" || !!data.employee_id, {
-    message: "Employee is required for salary expenses.",
-    path: ["employee_id"],
-  });
+export const updateExpenseSchema = z.object({
+  amount: z.coerce.number(),
+  purpose: z.enum(EXPENSE_PURPOSE),
+  remarks: z.string().min(1),
+  branch_id: z.string(),
+  employee_id: z.string().optional().nullable(),
+});
 
 export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
 

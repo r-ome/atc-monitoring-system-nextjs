@@ -51,7 +51,7 @@ export const ExpensesTable: React.FC<ExpensesTableProps> = ({
   const renderMobileCard = (row: Row<Expense>) => {
     const e = row.original;
     const amount = e.amount.toLocaleString();
-    const isExpense = e.purpose === "EXPENSE";
+    const isExpense = e.purpose === "EXPENSE" || e.purpose === "SALARY";
     return (
       <div className="flex items-start gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
