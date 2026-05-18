@@ -5,6 +5,8 @@ import {
 import prisma from "@/app/lib/prisma/prisma";
 import { NotFoundError, DatabaseOperationError } from "src/entities/errors/common";
 import { isPrismaError, isPrismaValidationError } from "@/app/lib/error-handler";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { cascadeFromDay } from "./expenses.repository";
 import {
   computeBasicPay,
   computeBasicPayFromDays,
@@ -27,6 +29,34 @@ const ENTRY_INCLUDE = {
   deductions: true,
   employee: true,
 } as const;
+
+const TZ = "Asia/Manila";
+
+type PrismaTransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
+
+function formatNumberToCurrency(n: number): string {
+  return `₱${n.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+async function getPettyCashIdForDay(
+  tx: PrismaTransactionClient,
+  branch_id: string,
+  dateStr: string,
+): Promise<string> {
+  const startOfDay = fromZonedTime(`${dateStr} 00:00:00.000`, TZ);
+  const endOfDay = fromZonedTime(`${dateStr} 23:59:59.999`, TZ);
+  const pettyCash = await tx.petty_cash.findFirst({
+    where: {
+      branch_id,
+      created_at: { gte: startOfDay, lte: endOfDay },
+    },
+    orderBy: { created_at: "desc" },
+  });
+
+  return pettyCash?.petty_cash_id ?? "CREATE";
+}
 
 function getEntry(payroll_entry_id: string): Promise<PayrollEntryFullRow> {
   return prisma.payroll_entries.findFirstOrThrow({
@@ -410,6 +440,22 @@ export const PayrollEntryRepository: IPayrollEntryRepository = {
       });
       if (!entry) throw new NotFoundError("Payroll entry not found!");
       if (entry.expense_id) throw new DatabaseOperationError("Entry is already paid.");
+      const dateStr = formatInTimeZone(expenseData.created_at, TZ, "yyyy-MM-dd");
+      const totalNetPay = entry.net_pay.toNumber();
+
+      if (totalNetPay > 0) {
+        const endOfDay = fromZonedTime(`${dateStr} 23:59:59.999`, TZ);
+        const pettyCash = await prisma.petty_cash.findFirst({
+          where: { branch_id: expenseData.branch_id, created_at: { lte: endOfDay } },
+          orderBy: { created_at: "desc" },
+        });
+        const balance = pettyCash?.amount.toNumber() ?? 0;
+        if (balance < totalNetPay) {
+          throw new DatabaseOperationError(
+            `Petty cash balance ${formatNumberToCurrency(balance)} on ${dateStr} is not enough to cover payroll payout ${formatNumberToCurrency(totalNetPay)}.`,
+          );
+        }
+      }
 
       const expense = await prisma.$transaction(async (tx) => {
         const createdExpense = await tx.expenses.create({
@@ -426,6 +472,10 @@ export const PayrollEntryRepository: IPayrollEntryRepository = {
           where: { payroll_entry_id },
           data: { expense_id: createdExpense.expense_id },
         });
+        if (totalNetPay > 0) {
+          const pettyCashId = await getPettyCashIdForDay(tx, expenseData.branch_id, dateStr);
+          await cascadeFromDay(tx, dateStr, pettyCashId, expenseData.branch_id);
+        }
         return createdExpense;
       });
 

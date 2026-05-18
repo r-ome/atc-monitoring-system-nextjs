@@ -3,12 +3,35 @@ import prisma from "@/app/lib/prisma/prisma";
 import { NotFoundError, DatabaseOperationError } from "src/entities/errors/common";
 import { isPrismaError, isPrismaValidationError } from "@/app/lib/error-handler";
 import type { CreatePayrollPeriodInput } from "src/entities/models/PayrollPeriod";
-import { fromZonedTime } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { cascadeFromDay } from "./expenses.repository";
 
 const TZ = "Asia/Manila";
 
+type PrismaTransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
+
 function formatNumberToCurrency(n: number): string {
   return `₱${n.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+async function getPettyCashIdForDay(
+  tx: PrismaTransactionClient,
+  branch_id: string,
+  dateStr: string,
+): Promise<string> {
+  const startOfDay = fromZonedTime(`${dateStr} 00:00:00.000`, TZ);
+  const endOfDay = fromZonedTime(`${dateStr} 23:59:59.999`, TZ);
+  const pettyCash = await tx.petty_cash.findFirst({
+    where: {
+      branch_id,
+      created_at: { gte: startOfDay, lte: endOfDay },
+    },
+    orderBy: { created_at: "desc" },
+  });
+
+  return pettyCash?.petty_cash_id ?? "CREATE";
 }
 
 export const PayrollPeriodRepository: IPayrollPeriodRepository = {
@@ -83,8 +106,8 @@ export const PayrollPeriodRepository: IPayrollPeriodRepository = {
       // as of the pay date can't cover the total net pay we're about to
       // emit as SALARY expenses.
       const totalNetPay = entries.reduce((s, e) => s + e.net_pay.toNumber(), 0);
+      const dateStr = formatInTimeZone(paidAt, TZ, "yyyy-MM-dd");
       if (totalNetPay > 0) {
-        const dateStr = paidAt.toISOString().slice(0, 10);
         const endOfDay = fromZonedTime(`${dateStr} 23:59:59.999`, TZ);
         const pettyCash = await prisma.petty_cash.findFirst({
           where: { branch_id: period.branch_id, created_at: { lte: endOfDay } },
@@ -114,6 +137,10 @@ export const PayrollPeriodRepository: IPayrollPeriodRepository = {
             where: { payroll_entry_id: entry.payroll_entry_id },
             data: { expense_id: expense.expense_id },
           });
+        }
+        if (totalNetPay > 0) {
+          const pettyCashId = await getPettyCashIdForDay(tx, period.branch_id, dateStr);
+          await cascadeFromDay(tx, dateStr, pettyCashId, period.branch_id);
         }
         return tx.payroll_periods.update({
           where: { payroll_period_id },
