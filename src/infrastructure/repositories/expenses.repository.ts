@@ -5,7 +5,7 @@ import {
 } from "@/app/lib/error-handler";
 import { IExpenseRepository } from "src/application/repositories/expenses.repository.interface";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { ConsistencyIssue, PettyCashSnapshot, RepairResult } from "src/entities/models/Expense";
+import { ConsistencyIssue, PettyCashSnapshot } from "src/entities/models/Expense";
 import { formatDate } from "@/app/lib/utils";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 

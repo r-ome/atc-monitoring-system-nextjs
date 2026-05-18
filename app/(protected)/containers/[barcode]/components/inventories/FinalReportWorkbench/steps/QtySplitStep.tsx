@@ -16,7 +16,6 @@ import {
 } from "@/app/components/ui/table";
 import { StepShell } from "../shared/StepShell";
 import { StepProps } from "../shared/types";
-import type { FinalReportInventoryRow, FinalReportMonitoringRow } from "src/entities/models/FinalReport";
 import { generateUnsold } from "@/app/lib/reports";
 
 const ATC_BIDDER_NUMBER = "5013";

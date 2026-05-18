@@ -7,13 +7,9 @@ import { formatNumberToCurrency } from "@/app/lib/utils";
 
 interface PayrollTabProps {
   expenses: Expense[];
-  selectedBranch: { branch_id: string } | null;
 }
 
-export const PayrollTab: React.FC<PayrollTabProps> = ({
-  expenses,
-  selectedBranch,
-}) => {
+export const PayrollTab: React.FC<PayrollTabProps> = ({ expenses }) => {
   const salaries = expenses.filter((e) => e.purpose === "SALARY");
   const total = salaries.reduce((sum, e) => sum + e.amount, 0);
 

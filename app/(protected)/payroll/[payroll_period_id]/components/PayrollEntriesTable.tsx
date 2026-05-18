@@ -14,7 +14,6 @@ interface Props {
   isAdmin: boolean;
   isDraft: boolean;
   onEdit: (entry: PayrollEntry) => void;
-  periodId: string;
 }
 
 export const PayrollEntriesTable: React.FC<Props> = ({
@@ -22,7 +21,6 @@ export const PayrollEntriesTable: React.FC<Props> = ({
   isAdmin,
   isDraft,
   onEdit,
-  periodId: _periodId,
 }) => {
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);

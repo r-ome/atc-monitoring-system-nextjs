@@ -4,7 +4,6 @@ import {
   PaymentWithDetailsRow,
   PaymentWithMethodRow,
   UpdatePaymentMethodInput,
-  ReceiptRecordRow,
   ReceiptRecordWithHistoriesRow,
   ReceiptRecordWithInventoriesRow,
   ReceiptRecordWithPaymentsRow,

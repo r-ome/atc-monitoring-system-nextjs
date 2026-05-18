@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Container, ArrowRight, AlertCircle } from "lucide-react";
+import { Container, ArrowRight } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
 import { isPast, parseISO, isWithinInterval, addDays } from "date-fns";
 import { getContainersDueDate } from "@/app/(protected)/home/actions";

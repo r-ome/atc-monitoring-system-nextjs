@@ -1137,7 +1137,7 @@ export const AuctionRepository: IAuctionRepository = {
             >;
           });
 
-          const created_auctions_inventories = await Promise.all(
+          await Promise.all(
             auction_inventories
               .filter((item) => !item.auction_inventory_id)
               .map((item) =>
@@ -1203,24 +1203,6 @@ export const AuctionRepository: IAuctionRepository = {
             );
           }
 
-          const auctions_inventories = await tx.auctions_inventories.findMany({
-            include: { histories: true },
-            where: {
-              auction_inventory_id: {
-                in: [
-                  ...created_auctions_inventories.map(
-                    (item) => item.auction_inventory_id as string,
-                  ),
-                  ...auction_inventories
-                    .map((item) => item.auction_inventory_id)
-                    .filter(
-                      (auction_inventory_id): auction_inventory_id is string =>
-                        Boolean(auction_inventory_id),
-                    ),
-                ],
-              },
-            },
-          });
           await tx.inventory_histories.createMany({
             data: auction_inventories.map((item) => ({
               auction_inventory_id: item.auction_inventory_id,

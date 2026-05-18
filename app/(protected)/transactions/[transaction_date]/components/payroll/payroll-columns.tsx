@@ -4,7 +4,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Expense } from "src/entities/models/Expense";
-import { Badge } from "@/app/components/ui/badge";
 
 export const payrollColumns: ColumnDef<Expense>[] = [
   {

@@ -11,7 +11,6 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -85,13 +84,6 @@ function formatPeso(value: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-}
-
-function getStatusVariant(status: string | null) {
-  if (status === "PAID") return "success";
-  if (status === "UNPAID") return "warning";
-  if (status === "CANCELLED" || status === "REFUNDED") return "destructive";
-  return "secondary";
 }
 
 function getDescriptionKey(description: string) {

@@ -187,7 +187,7 @@ export const PayrollEntrySheet: React.FC<Props> = ({
     ),
   ];
 
-  const { gross_pay, total_deductions, net_pay } = computeEntryTotals(
+  const { gross_pay, net_pay } = computeEntryTotals(
     allEarningsForPreview,
     deductions,
   );

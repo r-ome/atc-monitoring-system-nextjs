@@ -143,10 +143,7 @@ export default async function Page({
               />
             </TabsContent>
             <TabsContent value="payroll">
-              <PayrollTab
-                expenses={expenses}
-                selectedBranch={selected_branch}
-              />
+              <PayrollTab expenses={expenses} />
             </TabsContent>
           </Tabs>
         </CardContent>

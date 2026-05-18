@@ -21,7 +21,6 @@ import {
   UsersRound,
   HandCoins,
   Cog,
-  List,
   ChartPie,
   Banknote,
 } from "lucide-react";

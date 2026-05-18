@@ -261,35 +261,4 @@ export const columns: ColumnDef<AuctionInventory>[] = [
       );
     },
   },
-  // {
-  //   id: "actions",
-  //   enableHiding: false,
-  //   size: 50,
-  //   cell: ({ row }) => {
-  //     const registeredBidder = row.original;
-  //     return (
-  //       <DropdownMenu>
-  //         <DropdownMenuTrigger asChild className="cursor-pointer">
-  //           <Button variant="ghost" className="h-8 w-8 p-0">
-  //             <span className="sr-only">Open menu</span>
-  //             <MoreHorizontal />
-  //           </Button>
-  //         </DropdownMenuTrigger>
-  //         <DropdownMenuContent align="end">
-  //           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-  //           <DropdownMenuSeparator />
-  //           <DropdownMenuItem
-  //             onClick={() =>
-  //               redirect(
-  //                 `registered-bidders/${registeredBidder.auction_bidder_id}`
-  //               )
-  //             }
-  //           >
-  //             View Bidder
-  //           </DropdownMenuItem>
-  //         </DropdownMenuContent>
-  //       </DropdownMenu>
-  //     );
-  //   },
-  // },
 ];

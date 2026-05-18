@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { AuctionsInventory, AuctionInventoryWithDetailsRow } from "./Auction";
+import { AuctionsInventory } from "./Auction";
 import { PaymentMethod } from "./PaymentMethod";
 
 export const ATC_DEFAULT_BIDDER_NUMBER = "5013" as const;

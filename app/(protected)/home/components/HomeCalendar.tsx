@@ -13,7 +13,6 @@ import {
   isSameMonth,
   isToday,
   format,
-  isSameDay,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
