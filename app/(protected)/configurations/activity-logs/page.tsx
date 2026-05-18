@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -15,7 +17,18 @@ export default function Page() {
   const router = useRouter();
 
   return (
-    <Card className="w-full">
+    <>
+      <nav className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link
+          href="/configurations"
+          className="transition-colors hover:text-foreground"
+        >
+          Configurations
+        </Link>
+        <ChevronRight size={13} className="shrink-0" />
+        <span className="font-medium text-foreground">Activity Logs</span>
+      </nav>
+      <Card className="w-full">
       <CardHeader>
         <CardTitle>Activity Logs</CardTitle>
         <CardDescription>Choose a date to view user activity</CardDescription>
@@ -29,5 +42,6 @@ export default function Page() {
         />
       </CardContent>
     </Card>
+    </>
   );
 }

@@ -3,7 +3,7 @@
 import { forwardRef, useMemo, useState, useTransition } from "react";
 import type { HTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { BranchBadge, StatusBadge } from "@/app/components/admin";
 import { ActivityLog, ActivityAction } from "src/entities/models/ActivityLog";
@@ -12,6 +12,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/components/ui/popover";
 import { SearchComponent } from "@/app/components/data-table/SearchComponent";
 import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
 import { Button } from "@/app/components/ui/button";
@@ -180,7 +185,13 @@ const DescriptionSummary = forwardRef<
 });
 DescriptionSummary.displayName = "DescriptionSummary";
 
-function ActivityDescriptionCell({ description }: { description: string }) {
+function ActivityDescriptionCell({
+  description,
+  variant = "tooltip",
+}: {
+  description: string;
+  variant?: "tooltip" | "popover";
+}) {
   const itemActivity = parseItemTableActivityDescription(description);
   const optionsActivity = parseOptionsTableActivityDescription(description);
   const hasBidderNumbers = itemActivity?.items.some(
@@ -190,13 +201,24 @@ function ActivityDescriptionCell({ description }: { description: string }) {
     (item) => item.description,
   );
 
+  const isPopover = variant === "popover";
+  const Root = isPopover ? Popover : Tooltip;
+  const Trigger = isPopover ? PopoverTrigger : TooltipTrigger;
+  const Content = isPopover ? PopoverContent : TooltipContent;
+  const overlayClass = isPopover
+    ? "w-[min(22rem,calc(100vw-2rem))] max-h-[70vh] overflow-auto p-3 text-xs"
+    : "max-w-none p-3 text-xs";
+  const overlayProps = isPopover
+    ? { align: "start" as const, sideOffset: 6 }
+    : { side: "right" as const };
+
   if (itemActivity) {
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
+      <Root>
+        <Trigger asChild>
           <DescriptionSummary summary={itemActivity.summary} />
-        </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-none p-3 text-xs">
+        </Trigger>
+        <Content {...overlayProps} className={overlayClass}>
           {itemActivity.reason ? (
             <div className="mb-2 border-b border-primary-foreground/30 pb-2">
               <div className="font-semibold">Reason</div>
@@ -205,7 +227,8 @@ function ActivityDescriptionCell({ description }: { description: string }) {
               </div>
             </div>
           ) : null}
-          <table className="min-w-[18rem] border-collapse">
+          <div className={isPopover ? "overflow-x-auto" : undefined}>
+          <table className={isPopover ? "border-collapse" : "min-w-[18rem] border-collapse"}>
             <thead>
               <tr className="border-b border-primary-foreground/30">
                 <th className="py-1 pr-3 text-left font-semibold">Barcode</th>
@@ -246,22 +269,24 @@ function ActivityDescriptionCell({ description }: { description: string }) {
               ))}
             </tbody>
           </table>
-        </TooltipContent>
-      </Tooltip>
+          </div>
+        </Content>
+      </Root>
     );
   }
 
   if (optionsActivity) {
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
+      <Root>
+        <Trigger asChild>
           <DescriptionSummary summary={optionsActivity.summary} />
-        </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-none p-3 text-xs">
+        </Trigger>
+        <Content {...overlayProps} className={overlayClass}>
           <div className="mb-2 border-b border-primary-foreground/30 pb-2 font-semibold">
             {optionsActivity.barcode ?? "Container Report"}
           </div>
-          <table className="min-w-[22rem] border-collapse">
+          <div className={isPopover ? "overflow-x-auto" : undefined}>
+          <table className={isPopover ? "w-full border-collapse" : "min-w-[22rem] border-collapse"}>
             <thead>
               <tr className="border-b border-primary-foreground/30">
                 <th className="w-1/2 py-1 pr-3 text-left font-semibold">
@@ -288,20 +313,23 @@ function ActivityDescriptionCell({ description }: { description: string }) {
               ))}
             </tbody>
           </table>
-        </TooltipContent>
-      </Tooltip>
+          </div>
+        </Content>
+      </Root>
     );
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <Root>
+      <Trigger asChild>
         <div className="truncate">
           <span>{description}</span>
         </div>
-      </TooltipTrigger>
-      <TooltipContent>{description}</TooltipContent>
-    </Tooltip>
+      </Trigger>
+      <Content {...overlayProps} className={isPopover ? overlayClass : undefined}>
+        {description}
+      </Content>
+    </Root>
   );
 }
 
@@ -449,7 +477,40 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
           <RefreshCw className={isPending ? "animate-spin" : ""} />
         </Button>
       </div>
-      <DataTable columns={columns} data={filtered} />
+      <DataTable
+        columns={columns}
+        data={filtered}
+        renderMobileCard={renderActivityLogMobileCard}
+      />
     </div>
   );
 };
+
+function renderActivityLogMobileCard(row: Row<ActivityLog>) {
+  const log = row.original;
+  return (
+    <div className="flex flex-col gap-1.5 px-4 py-3">
+      <div className="flex items-center gap-2">
+        <StatusBadge variant={actionVariant(log.action)}>
+          {log.action}
+        </StatusBadge>
+        <span className="text-[12px] font-medium capitalize">
+          {log.entity_type.replace(/_/g, " ")}
+        </span>
+        <span className="ml-auto whitespace-nowrap font-mono text-[10.5px] text-muted-foreground">
+          {log.created_at}
+        </span>
+      </div>
+      <div className="text-[12.5px] leading-snug break-words">
+        <ActivityDescriptionCell
+          description={log.description}
+          variant="popover"
+        />
+      </div>
+      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <BranchBadge branch={log.branch_name} />
+        <span className="truncate">{log.username}</span>
+      </div>
+    </div>
+  );
+}
