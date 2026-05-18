@@ -1,36 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-// -- Payment Method Breakdown --
-export type PaymentMethodBreakdownRow = {
-  payment_method_name: string;
-  total_amount: number;
-  transaction_count: number;
-};
-
-export type PaymentMethodBreakdown = {
-  payment_method_name: string;
-  total_amount: number;
-  transaction_count: number;
-};
-
-// -- Daily Cash Flow --
-export type DailyCashFlowPaymentRow = {
-  created_at: Date;
-  purpose: string;
-  total_amount: number;
-};
-
-export type CashFlowEntry = {
-  date: string;
-  inflow_pull_out: number;
-  inflow_add_on: number;
-  outflow_refunded: number;
-  outflow_less: number;
-  outflow_expenses: number;
-  net: number;
-};
-
 export type FilterMode = "monthly" | "weekly" | "daily";
 
 export const logCashFlowReportSchema = z.object({
@@ -40,6 +10,28 @@ export const logCashFlowReportSchema = z.object({
 export type LogCashFlowReportInput = z.infer<
   typeof logCashFlowReportSchema
 >;
+
+// -- Auction KPIs (per-auction trend chart) --
+export type AuctionKpiRow = {
+  auction_id: string;
+  auction_date: Date;
+  total_sales: number;
+  items_sold: number;
+  registered_bidders: number;
+  total_registration_fee: number;
+  highest_item_sold: number;
+};
+
+export type AuctionKpiEntry = {
+  auction_id: string;
+  auction_date: string;
+  total_sales: number;
+  items_sold: number;
+  registered_bidders: number;
+  total_registration_fee: number;
+  highest_item_sold: number;
+  avg_selling_price: number;
+};
 
 // -- Sales Reports --
 export type AuctionSalesSummaryRow = {
@@ -104,6 +96,7 @@ export type SalesExpensesSummaryTotals = {
   sorting_preparation_fee: number;
   total_expenses: number;
   expenses: number;
+  salaries: number;
   atc_group_commission: number;
   royalty: number;
   net_income: number;

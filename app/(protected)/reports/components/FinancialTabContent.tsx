@@ -1,8 +1,6 @@
 import { FilterMode } from "src/entities/models/Report";
 import { GetFinancialReportController } from "src/controllers/reports/get-financial-report.controller";
 import { SalesTable } from "./SalesTable";
-import { PaymentMethodBreakdownTable } from "./PaymentMethodBreakdownTable";
-import { DailyCashFlowTable } from "./DailyCashFlowTable";
 import { ExpensesSummaryTable } from "./ExpensesSummaryTable";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -38,21 +36,10 @@ export const FinancialTabContent = async ({
 
   return (
     <div className="flex flex-col gap-4 pt-2">
-      <Card>
-        <CardHeader><CardTitle>Sales & Expenses Summary</CardTitle></CardHeader>
-        <CardContent>
-          <SalesTable
-            summary={res.value.salesExpensesSummary}
-            branchName={branchName}
-          />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader><CardTitle>Payment Method Breakdown</CardTitle></CardHeader>
-        <CardContent>
-          <PaymentMethodBreakdownTable data={res.value.paymentMethodBreakdown} />
-        </CardContent>
-      </Card>
+      <SalesTable
+        summary={res.value.salesExpensesSummary}
+        branchName={branchName}
+      />
       {userRole === "SUPER_ADMIN" ? (
         <Card>
           <CardHeader><CardTitle>Expenses Summary</CardTitle></CardHeader>
@@ -66,12 +53,6 @@ export const FinancialTabContent = async ({
           </CardContent>
         </Card>
       ) : null}
-      <Card>
-        <CardHeader><CardTitle>Cash Flow</CardTitle></CardHeader>
-        <CardContent>
-          <DailyCashFlowTable data={res.value.cashFlow} />
-        </CardContent>
-      </Card>
     </div>
   );
 };

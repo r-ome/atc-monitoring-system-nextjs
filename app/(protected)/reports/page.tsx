@@ -8,6 +8,7 @@ import { getBranches } from "../branches/actions";
 import { SalesFilter } from "./components/SalesFilter";
 import { ReportTabs } from "./components/ReportTabs";
 import { FinancialTabContent } from "./components/FinancialTabContent";
+import { AuctionReportsTabContent } from "./components/AuctionReportsTabContent";
 import { BidderTabContent } from "./components/BidderTabContent";
 import { InventoryTabContent } from "./components/InventoryTabContent";
 import { OperationalTabContent } from "./components/OperationalTabContent";
@@ -56,9 +57,9 @@ const Page = async ({
   const filterMode: FilterMode =
     filter_mode === "daily"
       ? "daily"
-      : filter_mode === "weekly"
-        ? "weekly"
-        : "monthly";
+      : filter_mode === "monthly"
+        ? "monthly"
+        : "weekly";
 
   if (!selected_branch) return <div>what</div>;
 
@@ -80,6 +81,18 @@ const Page = async ({
             dateParam={dateParam}
             mode={filterMode}
             userRole={user.role}
+          />
+        </Suspense>
+      ),
+    },
+    {
+      value: "auctions",
+      label: "Auction Reports",
+      content: (
+        <Suspense fallback={<ReportTabFallback />}>
+          <AuctionReportsTabContent
+            branchId={tabBranchId}
+            year={selected_year}
           />
         </Suspense>
       ),

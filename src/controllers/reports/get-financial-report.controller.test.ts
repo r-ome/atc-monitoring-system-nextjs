@@ -23,6 +23,7 @@ test("presentSalesExpensesSummary totals income, expenses, and net income", () =
     [],
     [],
     [],
+    [],
     "daily",
   );
 
@@ -34,6 +35,7 @@ test("presentSalesExpensesSummary totals income, expenses, and net income", () =
     sorting_preparation_fee: 40000,
     total_income: 200000,
     expenses: 5000,
+    salaries: 0,
     atc_group_commission: 40000,
     royalty: 35000,
     total_expenses: 80000,
@@ -50,6 +52,7 @@ test("presentSalesExpensesSummary totals income, expenses, and net income", () =
       sorting_preparation_fee: 40000,
       total_income: 200000,
       expenses: 5000,
+      salaries: 0,
       atc_group_commission: 40000,
       royalty: 35000,
       total_expenses: 80000,
@@ -81,6 +84,7 @@ test("presentSalesExpensesSummary exposes only the requested income and expense 
     [],
     [],
     [],
+    [],
     "daily",
   );
 
@@ -95,6 +99,7 @@ test("presentSalesExpensesSummary exposes only the requested income and expense 
     "sorting_preparation_fee",
     "total_expenses",
     "expenses",
+    "salaries",
     "atc_group_commission",
     "royalty",
     "net_income",
@@ -122,6 +127,7 @@ test("presentSalesExpensesSummary books declared losses at PAID date and resale 
         price: 150,
       },
     ],
+    [],
     [],
     "monthly",
   );
@@ -156,6 +162,7 @@ test("presentSalesExpensesSummary attributes 00/T0 organic sales by auction_date
         price: 200,
       },
     ],
+    [],
     "monthly",
   );
 
@@ -186,12 +193,16 @@ test("presentSalesExpensesSummary daily buckets merge expense-only and container
     [],
     [],
     [],
+    [],
     "daily",
   );
 
   assert.equal(result.breakdown.length, 2);
-  assert.equal(result.breakdown[0].key, "2026-05-04");
-  assert.deepEqual(result.breakdown[0].paid_containers, [
+  assert.equal(result.breakdown[0].key, "2026-05-05");
+  assert.equal(result.breakdown[0].total_income, 0);
+  assert.equal(result.breakdown[0].total_expenses, 7000);
+  assert.equal(result.breakdown[1].key, "2026-05-04");
+  assert.deepEqual(result.breakdown[1].paid_containers, [
     {
       barcode: "32-04",
       paid_at: new Date("2026-05-04T00:00:00.000Z"),
@@ -199,11 +210,8 @@ test("presentSalesExpensesSummary daily buckets merge expense-only and container
       total_service_charge: 5000,
     },
   ]);
-  assert.equal(result.breakdown[0].total_income, 35000);
-  assert.equal(result.breakdown[0].total_expenses, 28333);
-  assert.equal(result.breakdown[1].key, "2026-05-05");
-  assert.equal(result.breakdown[1].total_income, 0);
-  assert.equal(result.breakdown[1].total_expenses, 7000);
+  assert.equal(result.breakdown[1].total_income, 35000);
+  assert.equal(result.breakdown[1].total_expenses, 28333);
 });
 
 test("presentSalesExpensesSummary weekly buckets merge expense-only and container-only periods", () => {
@@ -223,6 +231,7 @@ test("presentSalesExpensesSummary weekly buckets merge expense-only and containe
         total_amount: 7000,
       },
     ],
+    [],
     [],
     [],
     [],
@@ -261,6 +270,7 @@ test("presentSalesExpensesSummary monthly buckets merge expense-only and contain
         total_amount: 7000,
       },
     ],
+    [],
     [],
     [],
     [],

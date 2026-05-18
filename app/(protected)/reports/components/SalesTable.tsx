@@ -1,9 +1,16 @@
 "use client";
 
 import { Row } from "@tanstack/react-table";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { Wallet } from "lucide-react";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
+import { Card } from "@/app/components/ui/card";
 import { buildColumns } from "./sales-columns";
 import { formatNumberToCurrency } from "@/app/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 import {
   SalesExpensesSummary,
   SalesExpensesSummaryEntry,
@@ -33,30 +40,39 @@ export const SalesTable = ({ summary, branchName }: SalesTableProps) => {
             {formatNumberToCurrency(r.net_income)}
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[13px]">
+        <div className="flex flex-col gap-0.5 text-[13px]">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Income</span>
             <span className="font-mono text-green-500">
               {formatNumberToCurrency(r.total_income)}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Expenses</span>
-            <span className="font-mono text-red-500">
-              {formatNumberToCurrency(r.total_expenses)}
-            </span>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex cursor-help justify-between">
+                <span className="text-muted-foreground underline decoration-dotted underline-offset-4">
+                  Expenses
+                </span>
+                <span className="font-mono text-red-500">
+                  {formatNumberToCurrency(r.total_expenses)}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="space-y-1 text-xs">
+              <p>Salaries: {formatNumberToCurrency(r.salaries)}</p>
+              <p>Misc Expenses: {formatNumberToCurrency(r.expenses)}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     );
   };
 
   return (
-    <DataTable
-      renderMobileCard={renderMobileCard}
-      title={
-        <div className="flex flex-wrap gap-8">
-          <div className="flex flex-col gap-2 min-w-[260px]">
+    <div className="flex flex-col gap-4">
+      <Card className="p-4">
+        <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:gap-8">
+          <div className="flex flex-col gap-2 md:min-w-[260px]">
             <div className="font-semibold border-b pb-1">Income</div>
             <div className="flex justify-between gap-8">
               <span>Sales Commission:</span>
@@ -97,11 +113,15 @@ export const SalesTable = ({ summary, branchName }: SalesTableProps) => {
               </span>
             </div>
           </div>
-          <div className="flex flex-col gap-2 min-w-[260px]">
+          <div className="flex flex-col gap-2 md:min-w-[260px]">
             <div className="font-semibold border-b pb-1">Expenses</div>
             <div className="flex justify-between gap-8">
-              <span>Expenses:</span>
+              <span>Misc Expenses:</span>
               <span className="text-red-500">{formatNumberToCurrency(summary.totals.expenses)}</span>
+            </div>
+            <div className="flex justify-between gap-8">
+              <span>Salaries:</span>
+              <span className="text-red-500">{formatNumberToCurrency(summary.totals.salaries)}</span>
             </div>
             <div className="flex justify-between gap-8">
               <span>ATC Group Commission:</span>
@@ -118,7 +138,7 @@ export const SalesTable = ({ summary, branchName }: SalesTableProps) => {
               </span>
             </div>
           </div>
-          <div className="flex flex-col gap-2 min-w-[260px]">
+          <div className="flex flex-col gap-2 md:min-w-[260px]">
             <div className="font-semibold border-b pb-1">Net Income</div>
             <div className="flex justify-between gap-8">
               <span>Gross Income:</span>
@@ -146,9 +166,17 @@ export const SalesTable = ({ summary, branchName }: SalesTableProps) => {
             </div>
           </div>
         </div>
-      }
-      columns={columns}
-      data={summary.breakdown}
-    />
+      </Card>
+
+      <AuctionDataTable
+        icon={Wallet}
+        title="Sales & Expenses Summary"
+        meta={`${summary.breakdown.length.toLocaleString()} entries`}
+        rowLabel="period"
+        columns={columns}
+        data={summary.breakdown}
+        renderMobileCard={renderMobileCard}
+      />
+    </div>
   );
 };

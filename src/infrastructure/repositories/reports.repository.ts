@@ -7,6 +7,7 @@ import {
   isPrismaValidationError,
 } from "@/app/lib/error-handler";
 import {
+  AuctionKpiRow,
   AuctionSalesSummaryRow,
   BidderReportRow,
   BoughtItemGainRow,
@@ -155,6 +156,39 @@ export const ReportsRepository: IReportsRepository = {
       );
     } catch (error) {
       handleError("Error getting total expenses", error);
+    }
+  },
+
+  getTotalSalaries: async (branch_id, date) => {
+    try {
+      const { start, end } = parseDateRange(date);
+      const rows = await prisma.$queryRaw<
+        Array<{
+          created_at: Date;
+          total_amount: Prisma.Decimal | number | string | null;
+        }>
+      >(Prisma.sql`
+        SELECT
+          e.created_at,
+          SUM(e.amount) AS total_amount
+        FROM expenses e
+        WHERE e.deleted_at IS NULL
+          AND e.branch_id = ${branch_id}
+          AND e.purpose = 'SALARY'
+          AND e.created_at >= ${start}
+          AND e.created_at < ${end}
+        GROUP BY e.created_at
+        ORDER BY e.created_at ASC
+      `);
+
+      return rows.map(
+        (row): ExpenseSummaryRow => ({
+          created_at: row.created_at,
+          total_amount: toNumber(row.total_amount),
+        }),
+      );
+    } catch (error) {
+      handleError("Error getting total salaries", error);
     }
   },
 
@@ -382,92 +416,6 @@ export const ReportsRepository: IReportsRepository = {
       );
     } catch (error) {
       handleError("Error getting owner organic sales", error);
-    }
-  },
-
-  getPaymentMethodBreakdown: async (branch_id, date) => {
-    try {
-      const { start, end } = parseDateRange(date);
-      const rows = await prisma.$queryRaw<
-        Array<{
-          payment_method_name: string | null;
-          total_amount: Prisma.Decimal | number | string | null;
-          transaction_count: bigint | number;
-        }>
-      >(Prisma.sql`
-        SELECT
-          COALESCE(pm.name, 'Unknown') AS payment_method_name,
-          SUM(p.amount_paid) AS total_amount,
-          COUNT(p.payment_id) AS transaction_count
-        FROM payments p
-        INNER JOIN receipt_records rr
-          ON rr.receipt_id = p.receipt_id
-        INNER JOIN auctions_bidders ab
-          ON ab.auction_bidder_id = rr.auction_bidder_id
-        INNER JOIN auctions a
-          ON a.auction_id = ab.auction_id
-        LEFT JOIN payment_methods pm
-          ON pm.payment_method_id = p.payment_method_id
-        WHERE p.deleted_at IS NULL
-          AND rr.deleted_at IS NULL
-          AND ab.deleted_at IS NULL
-          AND a.deleted_at IS NULL
-          AND a.branch_id = ${branch_id}
-          AND p.created_at >= ${start}
-          AND p.created_at < ${end}
-        GROUP BY pm.name
-        ORDER BY total_amount DESC
-      `);
-
-      return rows.map((row) => ({
-        payment_method_name: row.payment_method_name ?? "Unknown",
-        total_amount: toNumber(row.total_amount),
-        transaction_count: toNumber(row.transaction_count),
-      }));
-    } catch (error) {
-      handleError("Error getting payment method breakdown", error);
-    }
-  },
-
-  getDailyCashFlowPayments: async (branch_id, date) => {
-    try {
-      const { start, end } = parseDateRange(date);
-      const rows = await prisma.$queryRaw<
-        Array<{
-          created_at: Date;
-          purpose: string;
-          total_amount: Prisma.Decimal | number | string | null;
-        }>
-      >(Prisma.sql`
-        SELECT
-          rr.created_at,
-          rr.purpose,
-          SUM(p.amount_paid) AS total_amount
-        FROM receipt_records rr
-        INNER JOIN auctions_bidders ab
-          ON ab.auction_bidder_id = rr.auction_bidder_id
-        INNER JOIN auctions a
-          ON a.auction_id = ab.auction_id
-        INNER JOIN payments p
-          ON p.receipt_id = rr.receipt_id
-        WHERE rr.deleted_at IS NULL
-          AND ab.deleted_at IS NULL
-          AND a.deleted_at IS NULL
-          AND p.deleted_at IS NULL
-          AND a.branch_id = ${branch_id}
-          AND rr.created_at >= ${start}
-          AND rr.created_at < ${end}
-        GROUP BY rr.created_at, rr.purpose
-        ORDER BY rr.created_at ASC
-      `);
-
-      return rows.map((row) => ({
-        created_at: row.created_at,
-        purpose: row.purpose,
-        total_amount: toNumber(row.total_amount),
-      }));
-    } catch (error) {
-      handleError("Error getting daily cash flow payments", error);
     }
   },
 
@@ -748,6 +696,78 @@ export const ReportsRepository: IReportsRepository = {
       });
     } catch (error) {
       handleError("Error getting price comparison", error);
+    }
+  },
+
+  getAuctionKpis: async (branch_id, year) => {
+    try {
+      const yearNum = Number(year);
+      const start = new Date(yearNum, 0, 1);
+      const end = new Date(yearNum + 1, 0, 1);
+      const rows = await prisma.$queryRaw<
+        Array<{
+          auction_id: string;
+          auction_date: Date;
+          total_sales: Prisma.Decimal | number | string | null;
+          items_sold: bigint | number;
+          registered_bidders: bigint | number;
+          total_registration_fee: Prisma.Decimal | number | string | null;
+          highest_item_sold: Prisma.Decimal | number | string | null;
+        }>
+      >(Prisma.sql`
+        SELECT
+          a.auction_id,
+          a.created_at AS auction_date,
+          COALESCE(bidder_totals.registered_bidders, 0) AS registered_bidders,
+          COALESCE(bidder_totals.total_registration_fee, 0) AS total_registration_fee,
+          COALESCE(item_totals.items_sold, 0) AS items_sold,
+          COALESCE(item_totals.total_sales, 0) AS total_sales,
+          COALESCE(item_totals.highest_item_sold, 0) AS highest_item_sold
+        FROM auctions a
+        LEFT JOIN (
+          SELECT
+            ab.auction_id,
+            COUNT(DISTINCT ab.bidder_id) AS registered_bidders,
+            SUM(ab.registration_fee) AS total_registration_fee
+          FROM auctions_bidders ab
+          WHERE ab.deleted_at IS NULL
+          GROUP BY ab.auction_id
+        ) AS bidder_totals
+          ON bidder_totals.auction_id = a.auction_id
+        LEFT JOIN (
+          SELECT
+            ab.auction_id,
+            SUM(CASE WHEN ai.status = 'PAID' THEN 1 ELSE 0 END) AS items_sold,
+            SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END) AS total_sales,
+            MAX(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END) AS highest_item_sold
+          FROM auctions_inventories ai
+          INNER JOIN auctions_bidders ab
+            ON ab.auction_bidder_id = ai.auction_bidder_id
+          WHERE ai.deleted_at IS NULL
+            AND ab.deleted_at IS NULL
+          GROUP BY ab.auction_id
+        ) AS item_totals
+          ON item_totals.auction_id = a.auction_id
+        WHERE a.branch_id = ${branch_id}
+          AND a.deleted_at IS NULL
+          AND a.created_at >= ${start}
+          AND a.created_at < ${end}
+        ORDER BY a.created_at ASC
+      `);
+
+      return rows.map(
+        (row): AuctionKpiRow => ({
+          auction_id: row.auction_id,
+          auction_date: row.auction_date,
+          total_sales: toNumber(row.total_sales),
+          items_sold: toNumber(row.items_sold),
+          registered_bidders: toNumber(row.registered_bidders),
+          total_registration_fee: toNumber(row.total_registration_fee),
+          highest_item_sold: toNumber(row.highest_item_sold),
+        }),
+      );
+    } catch (error) {
+      handleError("Error getting auction KPIs", error);
     }
   },
 };

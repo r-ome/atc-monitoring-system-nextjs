@@ -1,4 +1,5 @@
 import {
+  AuctionKpiRow,
   AuctionSalesSummaryRow,
   BoughtItemGainRow,
   BoughtItemLossRow,
@@ -6,8 +7,6 @@ import {
   ExpenseSummaryRow,
   OwnerOrganicSaleRow,
   PaidContainerFinancialRow,
-  PaymentMethodBreakdownRow,
-  DailyCashFlowPaymentRow,
   BidderReportRow,
   RefundCancellationRow,
   SupplierRevenueRow,
@@ -21,6 +20,10 @@ export interface IReportsRepository {
     date: string,
   ) => Promise<AuctionSalesSummaryRow[]>;
   getTotalExpenses: (
+    branch_id: string,
+    date: string,
+  ) => Promise<ExpenseSummaryRow[]>;
+  getTotalSalaries: (
     branch_id: string,
     date: string,
   ) => Promise<ExpenseSummaryRow[]>;
@@ -44,14 +47,6 @@ export interface IReportsRepository {
     branch_id: string,
     date: string,
   ) => Promise<OwnerOrganicSaleRow[]>;
-  getPaymentMethodBreakdown: (
-    branch_id: string,
-    date: string,
-  ) => Promise<PaymentMethodBreakdownRow[]>;
-  getDailyCashFlowPayments: (
-    branch_id: string,
-    date: string,
-  ) => Promise<DailyCashFlowPaymentRow[]>;
   getBiddersWithAuctions: (
     branch_id: string,
     date: string,
@@ -71,4 +66,8 @@ export interface IReportsRepository {
     branch_id: string,
     date: string,
   ) => Promise<PriceComparisonRow[]>;
+  getAuctionKpis: (
+    branch_id: string,
+    year: string,
+  ) => Promise<AuctionKpiRow[]>;
 }

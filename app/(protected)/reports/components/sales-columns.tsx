@@ -210,7 +210,8 @@ export const buildColumns = ({
     ),
   },
   {
-    accessorKey: "expenses",
+    id: "expenses_total",
+    accessorFn: (row) => row.expenses + row.salaries,
     header: ({ column }) => (
       <div className="flex justify-center">
         <Button
@@ -224,9 +225,23 @@ export const buildColumns = ({
       </div>
     ),
     cell: ({ row }) => (
-      <div className="flex justify-center text-status-error">
-        {formatNumberToCurrency(row.original.expenses)}
-      </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex justify-center text-status-error">
+            <span className="cursor-help underline decoration-dotted underline-offset-4">
+              {formatNumberToCurrency(
+                row.original.expenses + row.original.salaries,
+              )}
+            </span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="left" className="space-y-1 text-xs">
+          <p>Salaries: {formatNumberToCurrency(row.original.salaries)}</p>
+          <p>
+            Misc Expenses: {formatNumberToCurrency(row.original.expenses)}
+          </p>
+        </TooltipContent>
+      </Tooltip>
     ),
   },
   {

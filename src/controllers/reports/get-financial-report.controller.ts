@@ -13,8 +13,6 @@ import {
   SalesExpensesSummaryEntry,
   SalesExpensesSummaryTotals,
 } from "src/entities/models/Report";
-import { presentCashFlow } from "./get-daily-cash-flow.controller";
-import { presentPaymentMethodBreakdown } from "./get-payment-method-breakdown.controller";
 import { presentTotalExpenses } from "./get-total-expenses.controller";
 import { presentTotalSales } from "./get-total-sales.controller";
 import { formatDate } from "@/app/lib/utils";
@@ -54,6 +52,7 @@ function emptyTotals(): SalesExpensesSummaryTotals {
     sorting_preparation_fee: 0,
     total_expenses: 0,
     expenses: 0,
+    salaries: 0,
     atc_group_commission: 0,
     royalty: 0,
     net_income: 0,
@@ -114,7 +113,10 @@ function finalizeTotals(totals: SalesExpensesSummaryTotals) {
     totals.owner_sales_00 +
     totals.sorting_preparation_fee;
   totals.total_expenses =
-    totals.expenses + totals.atc_group_commission + totals.royalty;
+    totals.expenses +
+    totals.salaries +
+    totals.atc_group_commission +
+    totals.royalty;
   totals.net_income = totals.total_income - totals.total_expenses;
 }
 
@@ -128,6 +130,7 @@ function addTotals(
   target.owner_sales_00 += source.owner_sales_00;
   target.sorting_preparation_fee += source.sorting_preparation_fee;
   target.expenses += source.expenses;
+  target.salaries += source.salaries;
   target.atc_group_commission += source.atc_group_commission;
   target.royalty += source.royalty;
 }
@@ -138,6 +141,7 @@ export function presentSalesExpensesSummary(
   boughtItemLosses: BoughtItemLossRow[],
   boughtItemGains: BoughtItemGainRow[],
   ownerOrganicSales: OwnerOrganicSaleRow[],
+  salaries: ExpenseSummaryRow[],
   mode: FilterMode,
 ): SalesExpensesSummary {
   const buckets = new Map<string, SalesExpensesSummaryEntry>();
@@ -194,8 +198,13 @@ export function presentSalesExpensesSummary(
     entry.expenses += expense.total_amount;
   }
 
+  for (const salary of salaries) {
+    const entry = getEntry(salary.created_at);
+    entry.salaries += salary.total_amount;
+  }
+
   const breakdown = Array.from(buckets.values())
-    .sort((a, b) => a.key.localeCompare(b.key))
+    .sort((a, b) => b.key.localeCompare(a.key))
     .map((entry) => {
       finalizeTotals(entry);
       addTotals(totals, entry);
@@ -220,8 +229,7 @@ export const GetFinancialReportController = async (
       boughtItemLossRows,
       boughtItemGainRows,
       ownerOrganicSaleRows,
-      paymentRows,
-      cashFlowRows,
+      salaryRows,
     ] = await Promise.all([
       ReportsRepository.getTotalSales(branch_id, date),
       ReportsRepository.getTotalExpenses(branch_id, date),
@@ -229,8 +237,7 @@ export const GetFinancialReportController = async (
       ReportsRepository.getBoughtItemLossEvents(branch_id, date),
       ReportsRepository.getBoughtItemGainEvents(branch_id, date),
       ReportsRepository.getOwnerOrganicSales(branch_id, date),
-      ReportsRepository.getPaymentMethodBreakdown(branch_id, date),
-      ReportsRepository.getDailyCashFlowPayments(branch_id, date),
+      ReportsRepository.getTotalSalaries(branch_id, date),
     ]);
 
     return ok({
@@ -242,10 +249,9 @@ export const GetFinancialReportController = async (
         boughtItemLossRows,
         boughtItemGainRows,
         ownerOrganicSaleRows,
+        salaryRows,
         mode,
       ),
-      paymentMethodBreakdown: presentPaymentMethodBreakdown(paymentRows),
-      cashFlow: presentCashFlow(cashFlowRows, expenseRows, mode),
     });
   } catch (error) {
     logger("GetFinancialReportController", error);
