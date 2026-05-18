@@ -1,12 +1,14 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   getAuctionItemDetails,
   searchAuctionItems,
 } from "@/app/(protected)/inventories/actions";
 import { AuctionStatusPill } from "@/app/(protected)/auctions/components/AuctionStatusPill";
+import { InventoryStatusBadge } from "@/app/components/admin";
 import { AuctionInventoryDetailsView } from "@/app/(protected)/auctions/[auction_date]/monitoring/[auction_inventory_id]/components/AuctionInventoryDetailsView";
 import {
   AuctionsInventory,
@@ -59,6 +61,7 @@ const getSearchErrorMessage = (error: unknown) => {
 };
 
 export const AuctionItemSearchOverlay = () => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AuctionInventorySearchResult[]>([]);
@@ -315,43 +318,79 @@ export const AuctionItemSearchOverlay = () => {
                     <CommandGroup
                       heading={`Matching auction items (${results.length}${hasMore ? "+" : ""})`}
                     >
-                      {results.map((item) => (
-                        <CommandItem
-                          key={item.auction_inventory_id}
-                          value={`${item.inventory.barcode}:${item.inventory.control} ${item.description}`}
-                          onSelect={() =>
-                            handleSelectAuctionInventory(
-                              item.auction_inventory_id,
-                            )
-                          }
-                          className="flex items-start justify-between gap-3"
-                        >
-                          <div className="flex min-w-0 flex-1 flex-col gap-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-mono text-sm">
-                                {item.inventory.barcode}:{item.inventory.control}
-                              </span>
-                              <AuctionStatusPill status={item.status} />
+                      {results.map((item) =>
+                        item.kind === "auction" ? (
+                          <CommandItem
+                            key={item.auction_inventory_id}
+                            value={`${item.inventory.barcode}:${item.inventory.control} ${item.description}`}
+                            onSelect={() =>
+                              handleSelectAuctionInventory(
+                                item.auction_inventory_id,
+                              )
+                            }
+                            className="flex items-start justify-between gap-3"
+                          >
+                            <div className="flex min-w-0 flex-1 flex-col gap-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-mono text-sm">
+                                  {item.inventory.barcode}:{item.inventory.control}
+                                </span>
+                                <AuctionStatusPill status={item.status} />
+                              </div>
+                              <div className="truncate text-sm">
+                                {item.description}
+                              </div>
+                              <div className="text-muted-foreground text-xs">
+                                Bidder #{item.bidder.bidder_number} •{" "}
+                                {item.bidder.full_name}
+                              </div>
                             </div>
-                            <div className="truncate text-sm">
-                              {item.description}
+                            <div className="text-muted-foreground text-right text-xs">
+                              <div>{item.auction_date}</div>
+                              <div>Manifest {item.manifest_number}</div>
                             </div>
-                            <div className="text-muted-foreground text-xs">
-                              Bidder #{item.bidder.bidder_number} •{" "}
-                              {item.bidder.full_name}
+                          </CommandItem>
+                        ) : (
+                          <CommandItem
+                            key={item.inventory_id}
+                            value={`${item.inventory.barcode}:${item.inventory.control} ${item.description}`}
+                            onSelect={() => {
+                              setOpen(false);
+                              resetState();
+                              router.push(
+                                `/containers/${item.inventory.container_barcode}/inventories/${item.inventory_id}`,
+                              );
+                            }}
+                            className="flex items-start justify-between gap-3"
+                          >
+                            <div className="flex min-w-0 flex-1 flex-col gap-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-mono text-sm">
+                                  {item.inventory.barcode}:{item.inventory.control}
+                                </span>
+                                <InventoryStatusBadge status={item.status} />
+                              </div>
+                              <div className="truncate text-sm">
+                                {item.description}
+                              </div>
+                              <div className="text-muted-foreground text-xs">
+                                Not in any auction · Container{" "}
+                                {item.inventory.container_barcode}
+                              </div>
                             </div>
-                          </div>
-                          <div className="text-muted-foreground text-right text-xs">
-                            <div>{item.auction_date}</div>
-                            <div>Manifest {item.manifest_number}</div>
-                          </div>
-                        </CommandItem>
-                      ))}
+                            <div className="text-muted-foreground text-right text-xs">
+                              <div>Created {item.created_at}</div>
+                            </div>
+                          </CommandItem>
+                        ),
+                      )}
                     </CommandGroup>
                   ) : null}
 
                   {!isSearching && query.trim() && results.length === 0 ? (
-                    <CommandEmpty>No matching auction items found.</CommandEmpty>
+                    <CommandEmpty>
+                      No matching auction or inventory items found.
+                    </CommandEmpty>
                   ) : null}
                 </CommandList>
 

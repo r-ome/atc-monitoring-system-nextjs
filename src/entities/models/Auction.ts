@@ -96,6 +96,10 @@ export type AuctionInventorySearchRow =
     };
   }>;
 
+export type InventoryOnlySearchRow = Prisma.inventoriesGetPayload<{
+  include: { container: { select: { barcode: true } } };
+}>;
+
 export const AUCTION_INVENTORY_SEARCH_MODE = [
   "barcode",
   "control",
@@ -120,7 +124,8 @@ export type AuctionInventorySearchParams = {
   limit: number;
 };
 
-export type AuctionInventorySearchResult = {
+export type AuctionInventorySearchAuctionResult = {
+  kind: "auction";
   auction_inventory_id: string;
   description: string;
   status: AuctionItemStatus;
@@ -139,6 +144,23 @@ export type AuctionInventorySearchResult = {
     full_name: string;
   };
 };
+
+export type AuctionInventorySearchInventoryResult = {
+  kind: "inventory";
+  inventory_id: string;
+  description: string;
+  status: InventoryStatus;
+  created_at: string;
+  inventory: {
+    barcode: string;
+    control: string;
+    container_barcode: string;
+  };
+};
+
+export type AuctionInventorySearchResult =
+  | AuctionInventorySearchAuctionResult
+  | AuctionInventorySearchInventoryResult;
 
 export type AuctionInventorySearchPage = {
   items: AuctionInventorySearchResult[];

@@ -16,7 +16,7 @@ import { cn } from "@/app/lib/utils";
 import { StartAuctionButton } from "../components/StartAuctionButton";
 import { requireSession } from "@/app/lib/auth";
 import { AuctionContainerSummaryTable } from "../components/AuctionContainerSummaryTable";
-import { StatCard, StatCardGroup } from "@/app/components/admin";
+import { BranchBadge, StatCard, StatCardGroup } from "@/app/components/admin";
 import { PageContainer } from "@/app/components/PageContainer";
 import {
   Users,
@@ -242,18 +242,7 @@ export default async function Page({
             <span className="caps-label text-[11px] 2xl:text-[14px]">
               {dayOfWeek}
             </span>
-            {branchName ? (
-              <span
-                className="rounded px-1.5 py-0.5 text-[10.5px] font-semibold tracking-wide text-secondary-foreground 2xl:text-[13.5px]"
-                style={{
-                  background: branchName.toUpperCase().includes("BI")
-                    ? "var(--branch-binan)"
-                    : "var(--branch-tarlac)",
-                }}
-              >
-                {branchName.toUpperCase()}
-              </span>
-            ) : null}
+            {branchName ? <BranchBadge branch={branchName} /> : null}
           </div>
           <h1 className="truncate text-[18px] font-semibold tracking-tight sm:text-[22px] 2xl:text-[28px]">
             {longDate}
@@ -327,23 +316,6 @@ export default async function Page({
             contentClassName="px-4 py-0 sm:px-6"
           />
           <StatCard
-            title="Total Sales"
-            value={
-              <>
-                <span className="sm:hidden">
-                  {formatNumberCompact(item_summary.total_item_price)}
-                </span>
-                <span className="hidden sm:inline">
-                  {formatNumberToCurrency(item_summary.total_item_price)}
-                </span>
-              </>
-            }
-            description={`+${formatNumberToCurrency(total_service_charge_amount)} service charge`}
-            icon={TrendingUp}
-            variant="success"
-            contentClassName="px-4 py-0 sm:px-6"
-          />
-          <StatCard
             title="Avg Selling Price"
             value={
               payable_item_count
@@ -360,6 +332,16 @@ export default async function Page({
             icon={Tag}
             variant="default"
             contentClassName="px-4 py-0 sm:px-6"
+            className="lg:order-5"
+          />
+          <StatCard
+            title="Total Sales"
+            value={formatNumberToCurrency(item_summary.total_item_price)}
+            description={`+${formatNumberToCurrency(total_service_charge_amount)} service charge`}
+            icon={TrendingUp}
+            variant="success"
+            contentClassName="px-4 py-0 sm:px-6"
+            className="lg:order-4"
           />
         </StatCardGroup>
 

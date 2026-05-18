@@ -103,6 +103,47 @@ export const InventoryRepository: IInventoryRepository = {
       throw error;
     }
   },
+  searchInventoryItems: async ({ input, offset, limit }) => {
+    try {
+      const isContainerBarcodeSearch =
+        input.mode === "barcode" && input.barcode?.split("-").length === 2;
+      const searchWhere =
+        input.mode === "description"
+          ? { description: { contains: input.description } }
+          : input.mode === "barcode"
+            ? isContainerBarcodeSearch
+              ? {
+                  OR: [
+                    { barcode: input.barcode },
+                    { barcode: { startsWith: `${input.barcode}-` } },
+                  ],
+                }
+              : { barcode: input.barcode }
+            : input.mode === "control"
+              ? { control: normalizeControl(input.control) }
+              : {
+                  barcode: input.barcode,
+                  control: normalizeControl(input.control),
+                };
+
+      return await prisma.inventories.findMany({
+        where: buildTenantWhere("inventories", searchWhere),
+        include: { container: { select: { barcode: true } } },
+        orderBy: [{ created_at: "desc" }],
+        skip: offset,
+        take: limit + 1,
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        logger("InventoryRepository.searchInventoryItems", error);
+        throw new DatabaseOperationError("Error searching inventory items!", {
+          cause: error.message,
+        });
+      }
+
+      throw error;
+    }
+  },
   getUnsoldInventories: async () => {
     try {
       return await prisma.inventories.findMany({

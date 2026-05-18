@@ -5,9 +5,11 @@ import {
   InputParseError,
 } from "src/entities/errors/common";
 import {
+  AuctionInventorySearchAuctionResult,
+  AuctionInventorySearchInventoryResult,
   AuctionInventorySearchPage,
-  AuctionInventorySearchResult,
   AuctionInventorySearchRow,
+  InventoryOnlySearchRow,
   parseAuctionInventorySearchInput,
 } from "src/entities/models/Auction";
 import { err, ok } from "src/entities/models/Result";
@@ -15,7 +17,8 @@ import { InventoryRepository } from "src/infrastructure/di/repositories";
 
 const presenter = (
   auctionInventory: AuctionInventorySearchRow,
-): AuctionInventorySearchResult => ({
+): AuctionInventorySearchAuctionResult => ({
+  kind: "auction",
   auction_inventory_id: auctionInventory.auction_inventory_id,
   description: auctionInventory.description,
   status: auctionInventory.status,
@@ -32,6 +35,21 @@ const presenter = (
   bidder: {
     bidder_number: auctionInventory.auction_bidder.bidder.bidder_number,
     full_name: `${auctionInventory.auction_bidder.bidder.first_name} ${auctionInventory.auction_bidder.bidder.last_name}`,
+  },
+});
+
+const inventoryPresenter = (
+  inventory: InventoryOnlySearchRow,
+): AuctionInventorySearchInventoryResult => ({
+  kind: "inventory",
+  inventory_id: inventory.inventory_id,
+  description: inventory.description,
+  status: inventory.status,
+  created_at: formatDate(inventory.created_at, "MMMM dd, yyyy"),
+  inventory: {
+    barcode: inventory.barcode,
+    control: inventory.control || "NC",
+    container_barcode: inventory.container.barcode,
   },
 });
 
@@ -58,6 +76,21 @@ export const SearchAuctionItemsController = async (
       offset,
       limit,
     });
+
+    if (auctionInventories.length === 0 && offset === 0) {
+      const inventories = await InventoryRepository.searchInventoryItems({
+        input: parsedInput,
+        offset,
+        limit,
+      });
+
+      const page: AuctionInventorySearchPage = {
+        items: inventories.slice(0, limit).map(inventoryPresenter),
+        hasMore: inventories.length > limit,
+      };
+
+      return ok(page);
+    }
 
     const page: AuctionInventorySearchPage = {
       items: auctionInventories.slice(0, limit).map(presenter),

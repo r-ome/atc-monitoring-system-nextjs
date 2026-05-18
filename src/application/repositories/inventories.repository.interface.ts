@@ -14,6 +14,7 @@ import {
   AuctionInventorySearchParams,
   AuctionInventorySearchRow,
   AuctionInventoryWithContainerDetailsRow,
+  InventoryOnlySearchRow,
 } from "src/entities/models/Auction";
 import {
   ApplyFinalReportMatchesInput,
@@ -32,6 +33,9 @@ export interface IInventoryRepository {
   searchAuctionItems: (
     params: AuctionInventorySearchParams,
   ) => Promise<AuctionInventorySearchRow[]>;
+  searchInventoryItems: (
+    params: AuctionInventorySearchParams,
+  ) => Promise<InventoryOnlySearchRow[]>;
   getUnsoldInventories: () => Promise<InventoryRow[]>;
   updateAuctionItem: (data: UpdateAuctionInventoryInput, updated_by?: string) => Promise<void>;
   resolveFinalReportMatches: (
