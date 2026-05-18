@@ -83,6 +83,7 @@ export const finalReportDraftSchema = z.object({
   warehouse_bought_items_branch_id: z.string().nullable(),
   split_selections: z.array(z.string().min(1)),
   tax_edits: z.array(taxEditEntrySchema),
+  appended_inventory_ids: z.array(z.string().min(1)).default([]),
   updated_at: z.string(),
 });
 
@@ -112,5 +113,6 @@ export const emptyFinalReportDraft = (options: FinalReportDraftOptions): FinalRe
   warehouse_bought_items_branch_id: null,
   split_selections: [],
   tax_edits: [],
+  appended_inventory_ids: [],
   updated_at: new Date().toISOString(),
 });

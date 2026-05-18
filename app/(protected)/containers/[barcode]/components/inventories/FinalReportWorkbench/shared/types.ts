@@ -12,6 +12,7 @@ export type StepKey =
   | "auto-resolved"
   | "splits"
   | "tax"
+  | "append-inventories"
   | "generate";
 
 export const STEP_ORDER: StepKey[] = [
@@ -22,6 +23,7 @@ export const STEP_ORDER: StepKey[] = [
   "auto-resolved",
   "splits",
   "tax",
+  "append-inventories",
   "generate",
 ];
 
@@ -33,6 +35,7 @@ export const STEP_LABEL: Record<StepKey, string> = {
   "auto-resolved": "Auto-resolved",
   splits: "Splits",
   tax: "Container Tax",
+  "append-inventories": "Append Inventories",
   generate: "Generate",
 };
 
@@ -120,6 +123,11 @@ export const stepHasWork = (
       );
     case "tax":
       return preview.options.deduct_thirty_k;
+    case "append-inventories":
+      return (
+        preview.appendable_unsold_items.length > 0 ||
+        draftHas((d) => d.appended_inventory_ids.length > 0)
+      );
     case "generate":
       return true;
   }

@@ -35,6 +35,7 @@ import { BoughtItemsStep } from "./steps/BoughtItemsStep";
 import { AutoResolvedStep } from "./steps/AutoResolvedStep";
 import { SplitsStep } from "./steps/SplitsStep";
 import { TaxStep } from "./steps/TaxStep";
+import { AppendInventoriesStep } from "./steps/AppendInventoriesStep";
 import { GenerateStep } from "./steps/GenerateStep";
 
 export const SELECTED_SHEETS: ContainerReportSheet[] = [
@@ -262,6 +263,9 @@ export const FinalReportWorkbench = ({
         {state.step === "auto-resolved" && <AutoResolvedStep {...stepProps} />}
         {state.step === "splits" && <SplitsStep {...stepProps} />}
         {state.step === "tax" && <TaxStep {...stepProps} />}
+        {state.step === "append-inventories" && (
+          <AppendInventoriesStep {...stepProps} />
+        )}
         {state.step === "generate" && <GenerateStep {...stepProps} />}
       </DialogContent>
     </Dialog>

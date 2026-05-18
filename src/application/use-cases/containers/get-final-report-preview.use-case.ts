@@ -742,6 +742,39 @@ export const getFinalReportPreviewUseCase = async (
     a.bidder_number.localeCompare(b.bidder_number),
   );
 
+  // Compute the next available 3-part suffix on this container, used to give
+  // appended two-part UNSOLD inventories a virtual 3-part barcode in the
+  // report output. The rename is preview-only — the underlying inventory.barcode
+  // in the DB stays two-part.
+  const maxSuffix = container.inventories.reduce((max, item) => {
+    if (!isThreePartBarcode(item.barcode)) return max;
+    const suffix = Number(item.barcode.split("-")[2]);
+    return Number.isFinite(suffix) && suffix > max ? suffix : max;
+  }, 0);
+
+  const appendableUnsoldItems = container.inventories
+    .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "UNSOLD")
+    .map(toInventoryRow);
+
+  const appendedIds = draft?.appended_inventory_ids ?? [];
+  const appendedBarcodeByInventoryId = new Map<string, string>();
+  appendedIds.forEach((id, index) => {
+    appendedBarcodeByInventoryId.set(id, `${container.barcode}-${maxSuffix + index + 1}`);
+  });
+
+  const renameForAppend = <T extends { inventory_id: string; barcode: string }>(row: T): T => {
+    const renamed = appendedBarcodeByInventoryId.get(row.inventory_id);
+    return renamed ? { ...row, barcode: renamed } : row;
+  };
+
+  const finalMonitoring = appendedBarcodeByInventoryId.size > 0
+    ? adjustedMonitoring.map(renameForAppend)
+    : adjustedMonitoring;
+  const finalInventories = container.inventories.map((item) => {
+    const row = toInventoryRow(item);
+    return appendedBarcodeByInventoryId.size > 0 ? renameForAppend(row) : row;
+  });
+
   return {
     options: input,
     sheet_details: {
@@ -759,12 +792,14 @@ export const getFinalReportPreviewUseCase = async (
     split_candidates: splitCandidates,
     counter_check_candidates: counterCheckCandidates,
     warehouse_check_items: warehouseCheckItems,
+    appendable_unsold_items: appendableUnsoldItems,
+    next_append_suffix: maxSuffix + 1,
     decisions,
     tax_deduction_persisted: taxDeductionPersisted,
     available_bidders: availableBidders,
     report: {
-      monitoring: adjustedMonitoring,
-      inventories: container.inventories.map(toInventoryRow),
+      monitoring: finalMonitoring,
+      inventories: finalInventories,
       deductions,
     },
   };

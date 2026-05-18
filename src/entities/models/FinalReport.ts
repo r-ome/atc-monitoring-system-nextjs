@@ -170,6 +170,8 @@ export type FinalReportPreview = {
   split_candidates: FinalReportCandidate[];
   counter_check_candidates: FinalReportCounterCheckCandidate[];
   warehouse_check_items: FinalReportInventoryRow[];
+  appendable_unsold_items: FinalReportInventoryRow[];
+  next_append_suffix: number;
   decisions: Record<string, FinalReportDecision>;
   tax_deduction_persisted: boolean;
   available_bidders: FinalReportAvailableBidder[];
