@@ -36,6 +36,12 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Empty, EmptyMedia, EmptyHeader, EmptyTitle, EmptyDescription } from "@/app/components/ui/empty";
 import { InboxIcon } from "lucide-react";
+import type { ReactNode } from "react";
+
+interface ExtendedDataTableProps<TData, TValue>
+  extends DataTableProps<TData, TValue> {
+  renderMobileCard?: (row: Row<TData>) => ReactNode;
+}
 
 export const DataTable = <TData, TValue>({
   columns,
@@ -51,7 +57,8 @@ export const DataTable = <TData, TValue>({
   footer,
   pageSize = 10,
   initialSorting = [],
-}: DataTableProps<TData, TValue>) => {
+  renderMobileCard,
+}: ExtendedDataTableProps<TData, TValue>) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -165,7 +172,39 @@ export const DataTable = <TData, TValue>({
         </div>
       </div>
 
-      <Table>
+      {renderMobileCard ? (
+        <div className="md:hidden">
+          {table.getRowModel().rows?.length ? (
+            <ul className="flex flex-col">
+              {table.getRowModel().rows.map((row, i) => (
+                <li
+                  key={row.id}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={cn(
+                    "transition-colors hover:bg-secondary/50",
+                    i !== table.getRowModel().rows.length - 1 && "border-b",
+                    onRowClick && "cursor-pointer",
+                  )}
+                >
+                  {renderMobileCard(row)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Empty className="py-8">
+              <EmptyMedia variant="icon">
+                <InboxIcon />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No results</EmptyTitle>
+                <EmptyDescription>No data to display.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
+        </div>
+      ) : null}
+
+      <Table className={cn(renderMobileCard && "hidden md:table")}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>

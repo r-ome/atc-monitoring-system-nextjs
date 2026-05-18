@@ -60,11 +60,10 @@ export const UploadCounterCheckModal: React.FC<UploadManifestModalProps> = ({
   };
 
   return (
-    <div>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button>Upload Counter Check</Button>
-        </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="w-full sm:w-auto">Upload Counter Check</Button>
+      </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -94,8 +93,7 @@ export const UploadCounterCheckModal: React.FC<UploadManifestModalProps> = ({
               </Button>
             </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

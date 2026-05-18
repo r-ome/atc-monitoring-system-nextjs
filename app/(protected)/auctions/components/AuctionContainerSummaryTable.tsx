@@ -38,7 +38,52 @@ export const AuctionContainerSummaryTable = ({
           No containers in this auction yet.
         </div>
       ) : (
-        <div className="flex-1 min-h-0 overflow-auto">
+        <>
+        <ul className="flex flex-col md:hidden">
+          {containerSummary.map((row, i) => (
+            <li
+              key={row.barcode}
+              className={cn(
+                "flex flex-col gap-1 px-4 py-3",
+                i !== containerSummary.length - 1 && "border-b",
+              )}
+            >
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-[12.5px] font-semibold">
+                  {row.barcode}
+                </span>
+                <span className="text-[10.5px] text-muted-foreground">
+                  {row.total_items.toLocaleString()} items
+                </span>
+                <span className="ml-auto font-mono text-[13px] font-semibold">
+                  {row.total_sale ? (
+                    formatNumberToCurrency(row.total_sale)
+                  ) : (
+                    <span className="text-muted-foreground/60">—</span>
+                  )}
+                </span>
+              </div>
+              {row.top_item ? (
+                <div className="flex items-baseline gap-2">
+                  <span className="line-clamp-1 flex-1 text-[12px] text-muted-foreground">
+                    {row.top_item.description ?? "—"}
+                    {row.top_item.bidder_number ? (
+                      <span className="font-mono">
+                        {" · #"}
+                        {row.top_item.bidder_number}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="font-mono text-[11.5px] font-semibold text-primary">
+                    {formatNumberToCurrency(row.top_item.price)}
+                  </span>
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+
+        <div className="hidden flex-1 min-h-0 overflow-auto md:block">
           <table className="w-full border-collapse text-[13px] 2xl:text-[15px]">
             <thead className="sticky top-0 z-10 bg-card">
               <tr className="caps-label text-[10.5px] 2xl:text-[13px]">
@@ -105,6 +150,7 @@ export const AuctionContainerSummaryTable = ({
             </tbody>
           </table>
         </div>
+        </>
       )}
     </Card>
   );

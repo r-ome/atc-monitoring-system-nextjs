@@ -183,8 +183,8 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
       <DialogTrigger asChild>
         <Button>Register Bidder</Button>
       </DialogTrigger>
-      <DialogContent className="min-w-[700px]">
-        <div className="min-w-[400px]">
+      <DialogContent className="sm:min-w-[700px]">
+        <div className="w-full">
           <form onSubmit={handleSubmit} className="space-y-4">
             <DialogHeader>
               <DialogTitle>Register Bidder</DialogTitle>
@@ -211,8 +211,8 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
             />
             {selectedBidder === undefined ? null : (
               <>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                  <div className="flex min-w-0 flex-col gap-2">
                     <Label>Service Charge:</Label>
                     <InputNumber
                       id="service_charge"
@@ -220,7 +220,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                       value={selectedBidder?.service_charge as number}
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex min-w-0 flex-col gap-2">
                     <Label>Registration Fee:</Label>
 
                     <InputNumber
@@ -229,7 +229,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                       value={selectedBidder?.registration_fee as number}
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex min-w-0 flex-col gap-2">
                     <Label>Payment Term:</Label>
 
                     <InputNumber
@@ -266,7 +266,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                             handleMethodChange(0, value)
                           }
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger className="w-full min-w-0 overflow-hidden [&>span]:min-w-0 [&>span]:truncate">
                             <SelectValue placeholder="Select Payment Type"></SelectValue>
                           </SelectTrigger>
                           <SelectContent>
@@ -304,7 +304,7 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
                                     handleMethodChange(index, value)
                                   }
                                 >
-                                  <SelectTrigger className="w-full">
+                                  <SelectTrigger className="w-full min-w-0 overflow-hidden [&>span]:min-w-0 [&>span]:truncate">
                                     <SelectValue placeholder="Select Payment Type"></SelectValue>
                                   </SelectTrigger>
                                   <SelectContent>
@@ -364,9 +364,15 @@ export const RegisterBidderModal: React.FC<RegisterBidderModalProps> = ({
               </>
             )}
             <DialogFooter>
-              <DialogClose className="cursor-pointer">Cancel</DialogClose>
+              <DialogClose className="cursor-pointer rounded-md border px-3 py-2 text-sm sm:border-0 sm:px-0 sm:py-0">
+                Cancel
+              </DialogClose>
 
-              <Button type="submit" disabled={isLoading || !selectedBidder}>
+              <Button
+                type="submit"
+                disabled={isLoading || !selectedBidder}
+                className="w-full sm:w-auto"
+              >
                 {isLoading && <Loader2Icon className="animate-spin" />}
                 Submit
               </Button>

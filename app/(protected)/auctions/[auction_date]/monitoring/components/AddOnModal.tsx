@@ -330,8 +330,7 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
   };
 
   return (
-    <div>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button>Add On</Button>
         </DialogTrigger>
@@ -566,6 +565,5 @@ export const AddOnModal: React.FC<AddOnModalProps> = ({
           )}
         </DialogContent>
       </Dialog>
-    </div>
   );
 };

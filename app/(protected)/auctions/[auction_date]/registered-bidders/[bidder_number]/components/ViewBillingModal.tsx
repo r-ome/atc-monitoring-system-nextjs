@@ -187,7 +187,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[1000px] max-h-[700px]">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:min-w-[1000px] sm:max-h-[700px]">
         <DialogHeader>
           <DialogTitle>Billing</DialogTitle>
           <DialogDescription>Billing</DialogDescription>

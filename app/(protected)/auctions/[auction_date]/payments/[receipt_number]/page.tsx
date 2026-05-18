@@ -72,8 +72,8 @@ export default async function Page({
               <AddStorageFeeModal receipt_id={receipt.receipt_id} />
             ) : null}
             {canViewReceipt ? (
-              <Link href={`${receipt_number}/receipt`}>
-                <Button>View Receipt</Button>
+              <Link href={`${receipt_number}/receipt`} className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto">View Receipt</Button>
               </Link>
             ) : null}
           </>
@@ -157,7 +157,61 @@ export default async function Page({
           </span>
         </div>
 
-        <div className="overflow-auto">
+        <ul className="flex flex-col md:hidden">
+          {receipt.payments.map((item, i) => (
+            <li
+              key={`m-${item.payment_id}`}
+              className={cn(
+                "flex flex-col gap-1 px-4 py-3",
+                i !== receipt.payments.length - 1 && "border-b",
+              )}
+            >
+              <div className="flex items-baseline gap-2">
+                <span className="text-[12.5px] font-semibold">
+                  {item.payment_method.name}
+                </span>
+                <span
+                  className={cn(
+                    "ml-auto font-mono text-[13px] font-semibold",
+                    isRefund && "text-destructive",
+                  )}
+                >
+                  {isRefund
+                    ? `(${formatNumberToCurrency(item.amount_paid)})`
+                    : formatNumberToCurrency(item.amount_paid)}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {item.created_at}
+                </span>
+                {isRefund && receipt.remarks ? (
+                  <span className="truncate text-[11px] text-muted-foreground">
+                    · {receipt.remarks}
+                  </span>
+                ) : null}
+                <span className="ml-auto">
+                  <UpdatePaymentMethodModal payment={item} />
+                </span>
+              </div>
+            </li>
+          ))}
+          <li className="flex items-baseline justify-between border-t px-4 py-3 bg-secondary/30">
+            <span className="caps-label text-[11px]">Total</span>
+            <span
+              className={cn(
+                "font-mono text-[14px] font-bold",
+                isRefund && "text-destructive",
+              )}
+            >
+              {isRefund
+                ? `(${formatNumberToCurrency(receipt.total_amount_paid)})`
+                : formatNumberToCurrency(receipt.total_amount_paid)}
+            </span>
+          </li>
+        </ul>
+
+        <div className="hidden overflow-auto md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -230,7 +284,50 @@ export default async function Page({
               {itemsCount.toLocaleString()} item{itemsCount === 1 ? "" : "s"}
             </span>
           </div>
-          <div className="max-h-[420px] overflow-auto">
+          <ul className="flex max-h-[420px] flex-col overflow-y-auto md:hidden">
+            {receipt.auctions_inventories?.map((item, i) => {
+              const lastIndex =
+                (receipt.auctions_inventories?.length ?? 0) - 1;
+              return (
+                <li
+                  key={`m-${item.auction_inventory_id}`}
+                  className={cn(
+                    "flex flex-col gap-1 px-4 py-3",
+                    i !== lastIndex && "border-b",
+                  )}
+                >
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-mono text-[12px] font-semibold">
+                      {item.barcode}
+                    </span>
+                    <span className="font-mono text-[10.5px] text-muted-foreground">
+                      · {item.control}
+                    </span>
+                    {item.manifest_number ? (
+                      <span className="ml-auto rounded bg-secondary px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-foreground/80">
+                        {item.manifest_number}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="line-clamp-1 text-[13px] font-medium">
+                      {item.description}
+                    </span>
+                    {item.qty ? (
+                      <span className="font-mono text-[11px] text-muted-foreground">
+                        ×{item.qty}
+                      </span>
+                    ) : null}
+                    <span className="ml-auto font-mono text-[12.5px] font-semibold">
+                      {item.price ? formatNumberToCurrency(item.price) : "—"}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="hidden max-h-[420px] overflow-auto md:block">
             <Table>
               <TableHeader className="sticky top-0 bg-card">
                 <TableRow>

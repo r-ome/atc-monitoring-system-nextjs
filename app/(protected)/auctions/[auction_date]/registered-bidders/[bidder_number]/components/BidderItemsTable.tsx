@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { safeGetItem } from "@/app/lib/local-storage";
 import { DataTable } from "@/app/components/data-table/data-table";
-import { CoreRow, RowSelectionState } from "@tanstack/react-table";
+import { CoreRow, Row, RowSelectionState } from "@tanstack/react-table";
 import {
   AuctionInventory,
   columns,
@@ -11,6 +12,9 @@ import {
 import { RegisteredBidder } from "src/entities/models/Bidder";
 import { ProfileActionButtons } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/components/ProfileActionButtons";
 import { BidderPullOutModalProvider } from "../context/BidderPullOutModalContext";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import { AuctionStatusPill } from "@/app/(protected)/auctions/components/AuctionStatusPill";
+import { formatDate, formatNumberToCurrency } from "@/app/lib/utils";
 
 interface BidderItemsTableProps {
   auctionInventories: RegisteredBidder["auction_inventories"];
@@ -62,6 +66,71 @@ export function BidderItemsTable({
       .some((field) => field!.toString().toLowerCase().includes(search));
   };
 
+  const router = useRouter();
+
+  const renderMobileCard = (row: Row<AuctionInventory>) => {
+    const it = row.original;
+    return (
+      <div className="flex items-start gap-2.5 px-4 py-3">
+        <div
+          className="pt-0.5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex items-baseline gap-1.5">
+            <span
+              className="font-mono text-[12px] font-semibold underline decoration-dotted underline-offset-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(
+                  `/auctions/${formatDate(
+                    new Date(it.auction_date),
+                    "yyyy-MM-dd",
+                  )}/monitoring/${it.auction_inventory_id}`,
+                );
+              }}
+            >
+              {it.inventory.barcode}
+            </span>
+            <span className="font-mono text-[10.5px] text-muted-foreground">
+              · {it.inventory.control}
+            </span>
+            <span className="ml-auto">
+              <AuctionStatusPill status={it.status} />
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="line-clamp-1 text-[13px] font-medium">
+              {it.description}
+            </span>
+            {it.qty ? (
+              <span className="font-mono text-[11px] text-muted-foreground">
+                ×{it.qty}
+              </span>
+            ) : null}
+            <span className="ml-auto font-mono text-[12.5px] font-semibold">
+              {formatNumberToCurrency(it.price)}
+            </span>
+          </div>
+          {it.manifest_number ? (
+            <div className="text-[11px] text-muted-foreground">
+              Manifest{" "}
+              <span className="font-mono font-semibold text-foreground/80">
+                {it.manifest_number}
+              </span>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <BidderPullOutModalProvider>
       <DataTable
@@ -85,6 +154,7 @@ export function BidderItemsTable({
             placeholder: "Search item here",
           },
         }}
+        renderMobileCard={renderMobileCard}
       />
     </BidderPullOutModalProvider>
   );

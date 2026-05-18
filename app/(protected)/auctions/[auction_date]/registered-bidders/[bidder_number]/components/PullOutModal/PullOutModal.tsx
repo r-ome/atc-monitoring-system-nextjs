@@ -259,8 +259,8 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[800px]">
-        <form ref={formRef} onSubmit={handleSubmit}>
+      <DialogContent className="max-h-[85vh] overflow-x-hidden overflow-y-auto sm:min-w-[800px]">
+        <form ref={formRef} onSubmit={handleSubmit} className="min-w-0">
           <DialogHeader>
             <DialogTitle>Pull Out</DialogTitle>
           </DialogHeader>
@@ -271,7 +271,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
                 <StepperItem
                   key={step}
                   step={step}
-                  className="relative flex-1 flex-col!"
+                  className="relative min-w-0 flex-1 flex-col!"
                 >
                   <StepperTrigger className="flex-col gap-3 rounded">
                     <StepperIndicator />
@@ -284,26 +284,26 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
                   </StepperTrigger>
 
                   {step < steps.length && (
-                    <StepperSeparator className="absolute inset-x-0 top-3 left-[calc(50%+0.75rem+0.125rem)]" />
+                    <StepperSeparator className="absolute top-3 right-[calc(-50%+0.75rem+0.125rem)] left-[calc(50%+0.75rem+0.125rem)]" />
                   )}
                 </StepperItem>
               ))}
             </Stepper>
 
             {currentStep === 1 && (
-              <div className="px-6 mt-5">
+              <div className="mt-5 px-1 sm:px-6">
                 <PullOutItemsTable />
               </div>
             )}
 
             {currentStep === 2 && (
-              <div className="px-6 mt-5">
+              <div className="mt-5 px-1 sm:px-6">
                 <PaymentBreakdownDetails />
               </div>
             )}
 
             {currentStep === 3 && (
-              <div className="px-6 mt-5">
+              <div className="mt-5 px-1 sm:px-6">
                 <ConfirmPayment />
               </div>
             )}
@@ -377,11 +377,11 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
             </AlertDialogContent>
           </AlertDialog>
 
-          <DialogFooter className="flex sm:justify-center mt-4">
+          <DialogFooter className="mt-4 flex sm:justify-center">
             <Button
               type="button"
               variant="outline"
-              className="w-40"
+              className="w-full sm:w-40"
               onClick={() => setCurrentStep((prev) => prev - 1)}
               disabled={currentStep === 1}
             >
@@ -391,7 +391,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
             {currentStep === 3 ? (
               <Button
                 type="button"
-                className="w-40"
+                className="w-full sm:w-40"
                 onClick={() => setOpenAlertDialog(true)}
                 disabled={isLoading}
               >
@@ -401,7 +401,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
               <Button
                 type="button"
                 variant="outline"
-                className="w-40"
+                className="w-full sm:w-40"
                 onClick={() => setCurrentStep((prev) => prev + 1)}
                 disabled={currentStep >= steps.length}
               >

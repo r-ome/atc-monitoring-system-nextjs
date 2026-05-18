@@ -59,10 +59,10 @@ export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
   ).length;
 
   return (
-    <div>
+    <div className="w-full sm:w-auto">
       <Dialog open={manifest.open} onOpenChange={manifest.handleOpenChange}>
         <DialogTrigger asChild>
-          <Button>Encode Manifest</Button>
+          <Button className="w-full sm:w-auto">Encode Manifest</Button>
         </DialogTrigger>
         <DialogContent
           className={

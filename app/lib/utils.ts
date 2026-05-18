@@ -38,6 +38,32 @@ export const formatNumberToCurrency = (num: string | number): string => {
   }).format(Number(num));
 };
 
+// Compact: 1,234,567 -> "1.2M", 234,231 -> "234K", 950 -> "950".
+// Keeps the peso glyph when `currency` is true (default).
+export const formatNumberCompact = (
+  num: string | number,
+  { currency = true }: { currency?: boolean } = {},
+): string => {
+  const n = Number(num);
+  if (!Number.isFinite(n)) return String(num);
+
+  const prefix = currency ? "₱" : "";
+  const sign = n < 0 ? "-" : "";
+  const abs = Math.abs(n);
+
+  const format = (value: number, suffix: string) => {
+    // One decimal when it adds information (e.g. 1.2M), drop trailing .0.
+    const rounded = Math.round(value * 10) / 10;
+    const text = rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+    return `${sign}${prefix}${text}${suffix}`;
+  };
+
+  if (abs >= 1_000_000_000) return format(abs / 1_000_000_000, "B");
+  if (abs >= 1_000_000) return format(abs / 1_000_000, "M");
+  if (abs >= 1_000) return format(abs / 1_000, "K");
+  return `${sign}${prefix}${abs.toLocaleString("en-US")}`;
+};
+
 export const isRange = (value: Date | AuctionDateRange) => {
   return (
     value &&

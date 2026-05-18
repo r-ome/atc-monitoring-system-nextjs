@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import type { RegisteredBidder } from "src/entities/models/Bidder";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { AuctionStatusBadge } from "@/app/components/admin";
+import { AuctionStatusPill } from "@/app/(protected)/auctions/components/AuctionStatusPill";
 import { cn, formatDate } from "@/app/lib/utils";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { useRouter } from "next/navigation";
@@ -97,13 +97,13 @@ export const columns: ColumnDef<AuctionInventory>[] = [
         <>
           {["UNPAID", "CANCELLED"].includes(status) ? (
             <div className="flex justify-center">
-              <AuctionStatusBadge status={auctionInventory.status} />
+              <AuctionStatusPill status={auctionInventory.status} />
             </div>
           ) : (
             <Popover>
               <PopoverTrigger asChild>
                 <div className="flex justify-center hover:cursor-pointer">
-                  <AuctionStatusBadge status={auctionInventory.status} />
+                  <AuctionStatusPill status={auctionInventory.status} />
                 </div>
               </PopoverTrigger>
               <PopoverContent className="w-full">

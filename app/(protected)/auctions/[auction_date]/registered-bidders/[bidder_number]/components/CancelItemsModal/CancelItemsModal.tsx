@@ -74,7 +74,7 @@ export const CancelItemsModal: React.FC<CancelItemsModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[700px]">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:min-w-[700px]">
         <DialogHeader>
           <DialogTitle>Cancel Items</DialogTitle>
         </DialogHeader>

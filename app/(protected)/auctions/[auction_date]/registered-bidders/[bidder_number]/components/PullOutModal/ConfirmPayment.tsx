@@ -79,8 +79,10 @@ export const ConfirmPayment: React.FC = () => {
       <Table>
         <TableFooter>
           <TableRow className="[&>td]:border-r last:border-r-0">
-            <TableCell className="text-center text-lg">GRAND TOTAL</TableCell>
-            <TableCell className="text-lg font-bold text-center">
+            <TableCell className="text-center text-sm sm:text-lg">
+              GRAND TOTAL
+            </TableCell>
+            <TableCell className="text-center text-sm font-bold sm:text-lg">
               ₱ {grandTotal.toLocaleString()}
             </TableCell>
           </TableRow>
@@ -99,7 +101,7 @@ export const ConfirmPayment: React.FC = () => {
               setPayments([{ payment_method: value, amount_paid: grandTotal }]);
             }}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full min-w-0 overflow-hidden [&>span]:min-w-0 [&>span]:truncate">
               <SelectValue placeholder="Select Payment Type"></SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -118,16 +120,19 @@ export const ConfirmPayment: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="multiple">
-          <div className="space-y-2">
+          <div className="space-y-3">
             {payments.map((item, index) => (
-              <div className="flex gap-2" key={index}>
-                <div className="flex-1">
+              <div
+                key={index}
+                className="flex flex-col gap-2 rounded-md border p-2 sm:flex-row sm:items-center sm:border-0 sm:p-0"
+              >
+                <div className="min-w-0 flex-1">
                   <Select
                     required
                     value={item.payment_method}
                     onValueChange={(value) => handleMethodChange(index, value)}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full min-w-0 overflow-hidden [&>span]:min-w-0 [&>span]:truncate">
                       <SelectValue placeholder="Select Payment Type"></SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -145,21 +150,28 @@ export const ConfirmPayment: React.FC = () => {
                   </Select>
                 </div>
 
-                <div className="flex-1">
-                  <InputNumber
-                    required
-                    onChange={(e) =>
-                      handleAmountChange(index, Number(e.target.value))
-                    }
-                  />
-                </div>
+                <div className="flex items-center gap-2 sm:flex-1">
+                  <div className="min-w-0 flex-1">
+                    <InputNumber
+                      required
+                      placeholder="Amount"
+                      onChange={(e) =>
+                        handleAmountChange(index, Number(e.target.value))
+                      }
+                    />
+                  </div>
 
-                <Button
-                  variant="destructive"
-                  onClick={() => handleRemove(index)}
-                >
-                  <CircleX />
-                </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={() => handleRemove(index)}
+                    aria-label="Remove payment method"
+                  >
+                    <CircleX />
+                  </Button>
+                </div>
               </div>
             ))}
 
@@ -167,6 +179,7 @@ export const ConfirmPayment: React.FC = () => {
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={handleAdd}
                 disabled={payments.some((item) => item.payment_method === "")}
               >

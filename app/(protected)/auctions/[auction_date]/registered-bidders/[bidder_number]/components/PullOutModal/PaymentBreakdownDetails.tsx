@@ -48,7 +48,7 @@ export const PaymentBreakdownDetails: React.FC = () => {
   ];
 
   return (
-    <div className="w-2/3 mx-auto space-y-4">
+    <div className="mx-auto w-full space-y-4 sm:w-2/3">
       <Table className="border">
         <TableBody>
           {paymentDetails.map((item) => (
@@ -56,14 +56,20 @@ export const PaymentBreakdownDetails: React.FC = () => {
               key={item.label}
               className="[&>td]:border-r last:border-r-0"
             >
-              <TableCell className="text-right text-lg">{item.label}</TableCell>
-              <TableCell className="text-right text-lg">{item.value}</TableCell>
+              <TableCell className="text-right text-sm sm:text-lg">
+                {item.label}
+              </TableCell>
+              <TableCell className="text-right text-sm sm:text-lg">
+                {item.value}
+              </TableCell>
             </TableRow>
           ))}
 
           {showStorageFeeInput ? (
             <TableRow className="[&>td]:border-r last:border-r-0">
-              <TableCell className="text-right text-lg">Storage Fee</TableCell>
+              <TableCell className="text-right text-sm sm:text-lg">
+                Storage Fee
+              </TableCell>
               <TableCell className="text-right">
                 <Input
                   type="number"
@@ -82,10 +88,10 @@ export const PaymentBreakdownDetails: React.FC = () => {
 
           {!registeredBidder?.already_consumed && (
             <TableRow className="[&>td]:border-r last:border-r-0 bg-red-400 hover:bg-red-400">
-              <TableCell className="text-right text-lg">
+              <TableCell className="text-right text-sm sm:text-lg">
                 Registration Fee
               </TableCell>
-              <TableCell className="text-lg text-right">
+              <TableCell className="text-right text-sm sm:text-lg">
                 -{registeredBidder?.registration_fee.toLocaleString()}
               </TableCell>
             </TableRow>
@@ -94,8 +100,10 @@ export const PaymentBreakdownDetails: React.FC = () => {
 
         <TableFooter>
           <TableRow className="[&>td]:border-r last:border-r-0">
-            <TableCell className="text-right text-lg">GRAND TOTAL</TableCell>
-            <TableCell className="text-lg font-bold text-right">
+            <TableCell className="text-right text-sm sm:text-lg">
+              GRAND TOTAL
+            </TableCell>
+            <TableCell className="text-right text-sm font-bold sm:text-lg">
               ₱ {grandTotal.toLocaleString()}
             </TableCell>
           </TableRow>

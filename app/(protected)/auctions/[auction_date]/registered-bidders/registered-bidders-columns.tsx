@@ -93,11 +93,35 @@ export const columns: ColumnDef<RegisteredBidderSummary>[] = [
   {
     accessorKey: "balance",
     size: 120,
+    enableColumnFilter: true,
+    filterFn: (row, _columnId, value) => {
+      if (!value || (Array.isArray(value) && value.length === 0)) return true;
+      const rb = row.original;
+      const isCancelledBin = rb.bidder.bidder_number === "5013";
+      if (isCancelledBin) return false;
+      const status = rb.balance === 0 ? "PAID" : "UNPAID";
+      // UNPAID hides bidders who only have an unconsumed registration fee
+      // (i.e. registered but bought nothing yet) — they aren't owed-money cases.
+      if (status === "UNPAID" && rb.auction_inventories_count === 0) {
+        return false;
+      }
+      return Array.isArray(value) ? value.includes(status) : status === value;
+    },
     header: ({ column }) => (
       <SortableHeader column={column} label="Balance" align="right" />
     ),
     cell: ({ row }) => {
       const v = row.original.balance;
+      const isCancelledBin = row.original.bidder.bidder_number === "5013";
+      if (v === 0 && !isCancelledBin) {
+        return (
+          <div className="text-right">
+            <span className="inline-block rounded bg-status-success/10 px-1.5 py-0.5 text-[10.5px] font-bold tracking-wider text-status-success">
+              PAID
+            </span>
+          </div>
+        );
+      }
       if (v === 0) {
         return <div className="text-right text-muted-foreground/60">—</div>;
       }

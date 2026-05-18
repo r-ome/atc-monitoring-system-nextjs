@@ -128,7 +128,7 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[700px]">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:min-w-[700px]">
         <DialogHeader>
           <DialogTitle>Refund Items</DialogTitle>
         </DialogHeader>

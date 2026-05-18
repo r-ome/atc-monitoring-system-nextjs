@@ -28,7 +28,7 @@ import {
   Package,
   Tag,
 } from "lucide-react";
-import { formatNumberToCurrency } from "@/app/lib/utils";
+import { formatNumberCompact, formatNumberToCurrency } from "@/app/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 
@@ -260,17 +260,17 @@ export default async function Page({
           </h1>
         </div>
         {session.user.role !== "MODERATOR" ? (
-          <div className="flex w-full flex-wrap items-center gap-2 [&>*]:flex-1 sm:w-auto sm:[&>*]:flex-initial">
+          <div className="grid w-full grid-cols-2 gap-2 [&>*]:w-full [&>*]:min-w-0 [&>*:nth-child(3)]:col-span-2 [&_button]:w-full sm:flex sm:w-auto sm:[&>*]:w-auto sm:[&>*:nth-child(3)]:col-span-1 sm:[&_button]:w-auto">
             {session.user.role !== "ENCODER" ? (
               <GenerateReportButton monitoring={monitoringRes.value} />
             ) : null}
-            <AddOnModal
-              auction_id={auction.auction_id}
-              registered_bidders={auction.registered_bidders}
-            />
             <RegisterBidderModal
               auction_id={auction.auction_id}
               registeredBidders={biddersSummary}
+            />
+            <AddOnModal
+              auction_id={auction.auction_id}
+              registered_bidders={auction.registered_bidders}
             />
           </div>
         ) : null}
@@ -303,7 +303,16 @@ export default async function Page({
           />
           <StatCard
             title="Registration Fee"
-            value={formatNumberToCurrency(total_registration_fee)}
+            value={
+              <>
+                <span className="sm:hidden">
+                  {formatNumberCompact(total_registration_fee)}
+                </span>
+                <span className="hidden sm:inline">
+                  {formatNumberToCurrency(total_registration_fee)}
+                </span>
+              </>
+            }
             description="Collected from registrations"
             icon={DollarSign}
             variant="primary"
@@ -319,7 +328,16 @@ export default async function Page({
           />
           <StatCard
             title="Total Sales"
-            value={formatNumberToCurrency(item_summary.total_item_price)}
+            value={
+              <>
+                <span className="sm:hidden">
+                  {formatNumberCompact(item_summary.total_item_price)}
+                </span>
+                <span className="hidden sm:inline">
+                  {formatNumberToCurrency(item_summary.total_item_price)}
+                </span>
+              </>
+            }
             description={`+${formatNumberToCurrency(total_service_charge_amount)} service charge`}
             icon={TrendingUp}
             variant="success"

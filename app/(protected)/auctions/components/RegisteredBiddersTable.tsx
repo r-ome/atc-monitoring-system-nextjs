@@ -112,6 +112,14 @@ export const RegisteredBiddersTable = ({
           placeholder: "Search by bidder # or name…",
         },
       }}
+      columnFilter={{
+        column: "balance",
+        options: [
+          { label: "PAID", value: "PAID" },
+          { label: "UNPAID", value: "UNPAID" },
+        ],
+        filterComponentProps: { placeholder: "Filter by status" },
+      }}
       renderMobileCard={renderMobileCard}
     />
   );
