@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
-import { Loader2Icon, Trash2Icon } from "lucide-react";
+import { ColumnDef, Row } from "@tanstack/react-table";
+import { Ban, Loader2Icon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { Button } from "@/app/components/ui/button";
@@ -100,23 +100,51 @@ const BidderBanHistoriesTable = ({
     },
   ];
 
+  const renderMobileCard = (row: Row<BanHistoryRow>) => {
+    const r = row.original;
+    return (
+      <div className="flex items-start gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="text-[12.5px] font-medium text-muted-foreground">
+            {r.created_at}
+          </span>
+          <span className="text-[14px] text-foreground">{r.remarks}</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete(r.bidder_ban_history_id);
+          }}
+        >
+          <Trash2Icon className="h-4 w-4 text-destructive" />
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <>
       <DataTable
-        title={
-          <div className="flex items-center justify-between mb-2">
-            <p className="font-semibold text-sm">Ban History</p>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => setOpen(true)}
-            >
-              Ban Bidder
-            </Button>
-          </div>
-        }
+        embedded={false}
+        icon={Ban}
+        title="Ban History"
+        meta={`${ban_histories.length.toLocaleString()} entries`}
+        rowLabel="entry"
         columns={columns}
         data={ban_histories}
+        renderMobileCard={renderMobileCard}
+        actionButtons={
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => setOpen(true)}
+          >
+            Ban Bidder
+          </Button>
+        }
       />
 
       <Dialog open={open} onOpenChange={setOpen}>

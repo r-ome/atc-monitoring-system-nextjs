@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Gavel } from "lucide-react";
 type AuctionsJoinedRowType = {
   auction_bidder_id: string;
   auction_id: string;
@@ -144,14 +144,49 @@ const AuctionsJoined = ({ auctionsJoined, bidderNumber }: AuctionsJoinedProps) =
 
   const grandTotal = auctionsJoined.reduce((sum, row) => sum + row.total_paid, 0);
 
+  const renderMobileCard = (row: Row<AuctionsJoinedRowType>) => {
+    const r = row.original;
+    return (
+      <div className="flex items-start gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-baseline gap-2">
+            <span className="font-mono text-[13.5px] font-semibold">
+              {r.auction_date}
+            </span>
+            <span className="text-[12px] text-muted-foreground">
+              {r.total_items} items · {r.service_charge}%
+            </span>
+          </div>
+          <span className="text-[12.5px] text-muted-foreground">
+            Reg ₱{r.registration_fee.toLocaleString()} · Paid ₱
+            {r.total_paid.toLocaleString()}
+          </span>
+        </div>
+        <span
+          className={
+            "shrink-0 font-mono text-[13.5px] font-semibold " +
+            (r.balance > 0 ? "text-destructive" : "text-status-success")
+          }
+        >
+          ₱{r.balance.toLocaleString()}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <DataTable
-      title={<p className="font-semibold text-sm mb-2">Auctions Joined</p>}
+      embedded={false}
+      icon={Gavel}
+      title="Auctions Joined"
+      meta={`${auctionsJoined.length.toLocaleString()} entries`}
+      rowLabel="auction"
       columns={columns}
       data={auctionsJoined}
       onRowClick={(row) =>
         router.push(`/auctions/${row.auction_date}/registered-bidders/${bidderNumber}`)
       }
+      renderMobileCard={renderMobileCard}
       footer={
         <div className="flex justify-end text-sm font-semibold pr-2">
           Total Paid: ₱{grandTotal.toLocaleString()}

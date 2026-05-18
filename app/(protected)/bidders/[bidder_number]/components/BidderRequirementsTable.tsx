@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
-import { Loader2Icon, PencilIcon, Trash2Icon } from "lucide-react";
+import { ColumnDef, Row } from "@tanstack/react-table";
+import { FileText, Loader2Icon, PencilIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { Button } from "@/app/components/ui/button";
@@ -154,19 +154,70 @@ const BidderRequirementsTable = ({
     },
   ];
 
+  const renderMobileCard = (row: Row<RequirementRow>) => {
+    const r = row.original;
+    return (
+      <div className="flex items-start gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="text-[14px] font-semibold">{r.name}</span>
+          {r.url ? (
+            <a
+              href={r.url}
+              target="_blank"
+              rel="noreferrer"
+              className="truncate text-[12.5px] text-primary underline"
+            >
+              {r.url}
+            </a>
+          ) : null}
+          {r.validity_date ? (
+            <span className="text-[12px] text-muted-foreground">
+              Valid until {r.validity_date}
+            </span>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit(r);
+            }}
+          >
+            <PencilIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(r.requirement_id);
+            }}
+          >
+            <Trash2Icon className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <DataTable
-        title={
-          <div className="flex items-center justify-between mb-2">
-            <p className="font-semibold text-sm">Requirements</p>
-            <Button size="sm" onClick={openCreate}>
-              Add Requirement
-            </Button>
-          </div>
-        }
+        embedded={false}
+        icon={FileText}
+        title="Requirements"
+        meta={`${requirements.length.toLocaleString()} entries`}
+        rowLabel="requirement"
         columns={columns}
         data={requirements}
+        renderMobileCard={renderMobileCard}
+        actionButtons={
+          <Button size="sm" onClick={openCreate}>
+            Add Requirement
+          </Button>
+        }
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -183,9 +234,9 @@ const BidderRequirementsTable = ({
                 : "Update the requirement details."}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex gap-4">
-              <Label htmlFor="name" className="w-32">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label htmlFor="name" className="sm:w-32 sm:shrink-0">
                 Name
               </Label>
               <Input
@@ -194,20 +245,22 @@ const BidderRequirementsTable = ({
                 required
               />
             </div>
-            <div className="flex gap-4">
-              <Label htmlFor="url" className="w-32">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label htmlFor="url" className="sm:w-32 sm:shrink-0">
                 URL
               </Label>
               <Input name="url" defaultValue={selected?.url ?? ""} />
             </div>
-            <div className="flex gap-4">
-              <Label className="w-32">Validity Date</Label>
-              <DatePicker
-                id="validity_date"
-                name="validity_date"
-                date={validityDate}
-                onChange={setValidityDate}
-              />
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label className="sm:w-32 sm:shrink-0">Validity Date</Label>
+              <div className="min-w-0 flex-1">
+                <DatePicker
+                  id="validity_date"
+                  name="validity_date"
+                  date={validityDate}
+                  onChange={setValidityDate}
+                />
+              </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>
