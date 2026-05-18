@@ -1,13 +1,12 @@
 "use server";
 
 import Link from "next/link";
-import { ChevronLeftIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { requireSession } from "@/app/lib/auth";
 import { getPayrollPeriod, getPayrollEntries } from "../actions";
 import { getEmployees } from "@/app/(protected)/employees/actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
+import { PageContainer } from "@/app/components/PageContainer";
 import { PayrollPeriodDetail } from "./components/PayrollPeriodDetail";
 
 export default async function PayrollPeriodPage({
@@ -26,30 +25,30 @@ export default async function PayrollPeriodPage({
     getEmployees(isAdmin ? undefined : user.branch.branch_id),
   ]);
 
-  if (!period_res.ok) return <ErrorComponent error={{ message: "Payroll period not found." }} />;
-  if (!entries_res.ok || !employees_res.ok) return <ErrorComponent error={{ message: "Server Error" }} />;
+  if (!period_res.ok)
+    return <ErrorComponent error={{ message: "Payroll period not found." }} />;
+  if (!entries_res.ok || !employees_res.ok)
+    return <ErrorComponent error={{ message: "Server Error" }} />;
+
+  const period = period_res.value;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-            <Link href="/payroll">
-              <ChevronLeftIcon className="h-4 w-4" />
-            </Link>
-          </Button>
-          {period_res.value.label}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <PayrollPeriodDetail
-          period={period_res.value}
-          entries={entries_res.value}
-          employees={employees_res.value}
-          isAdmin={isAdmin}
-          branchId={user.branch.branch_id}
-        />
-      </CardContent>
-    </Card>
+    <PageContainer>
+      <nav className="flex items-center gap-1.5 text-[12px] text-muted-foreground 2xl:text-[14px]">
+        <Link href="/payroll" className="hover:text-foreground">
+          Payroll
+        </Link>
+        <ChevronRight size={12} className="opacity-60" />
+        <span className="font-medium text-foreground">{period.label}</span>
+      </nav>
+
+      <PayrollPeriodDetail
+        period={period}
+        entries={entries_res.value}
+        employees={employees_res.value}
+        isAdmin={isAdmin}
+        branchId={user.branch.branch_id}
+      />
+    </PageContainer>
   );
 }

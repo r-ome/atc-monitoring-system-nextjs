@@ -8,7 +8,10 @@ import {
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
 import type { PayrollEntry } from "src/entities/models/PayrollEntry";
-import { EARNING_TYPE_LABELS } from "src/entities/models/PayrollEntry";
+import {
+  DEDUCTION_TYPE_LABELS,
+  EARNING_TYPE_LABELS,
+} from "src/entities/models/PayrollEntry";
 
 function currency(v: number) {
   if (v === 0) return "—";
@@ -78,7 +81,25 @@ export const payrollEntryColumns: ColumnDef<PayrollEntry>[] = [
       const parts = [];
       if (otH) parts.push(`${otH}h`);
       if (otM) parts.push(`${otM}m`);
-      return <span className="text-xs">{parts.join(" ")}</span>;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-xs">{parts.join(" ")}</span>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="p-0 min-w-[160px]">
+            <div className="text-xs p-3 space-y-1 text-white">
+              <div className="flex justify-between gap-6">
+                <span className="text-white/70">OT Hours</span>
+                <span className="tabular-nums font-medium">{otH ?? 0}h</span>
+              </div>
+              <div className="flex justify-between gap-6">
+                <span className="text-white/70">OT Minutes</span>
+                <span className="tabular-nums font-medium">{otM ?? 0}m</span>
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
   },
   {
@@ -132,22 +153,102 @@ export const payrollEntryColumns: ColumnDef<PayrollEntry>[] = [
   {
     id: "deductions",
     header: "Deductions",
-    cell: ({ row }) => (
-      <span className="tabular-nums text-red-600">
-        {currency(row.original.total_deductions)}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const e = row.original;
+      const cell = (
+        <span className="tabular-nums text-red-600">
+          {currency(e.total_deductions)}
+        </span>
+      );
+      if (!e.deductions.length) return cell;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{cell}</TooltipTrigger>
+          <TooltipContent side="left" className="p-0 min-w-[200px]">
+            <div className="text-xs p-3 space-y-1 text-white">
+              {e.deductions.map((deduction) => (
+                <div
+                  key={deduction.payroll_deduction_id}
+                  className="flex justify-between gap-6"
+                >
+                  <span className="text-white/70">
+                    {DEDUCTION_TYPE_LABELS[deduction.type]}
+                  </span>
+                  <span className="tabular-nums font-medium">
+                    ₱
+                    {Number(deduction.amount).toLocaleString("en-PH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              ))}
+              <div className="border-t border-white/20 pt-1 flex justify-between gap-6 font-semibold">
+                <span>Total Deductions</span>
+                <span className="tabular-nums text-red-300">
+                  ₱
+                  {Number(e.total_deductions).toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     id: "net_pay",
     header: "Net Pay",
-    cell: ({ row }) => (
-      <span
-        className={`tabular-nums font-semibold ${row.original.net_pay < 0 ? "text-red-600" : "text-green-700"}`}
-      >
-        {currency(row.original.net_pay)}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const e = row.original;
+      const cell = (
+        <span
+          className={`tabular-nums font-semibold ${e.net_pay < 0 ? "text-red-600" : "text-green-700"}`}
+        >
+          {currency(e.net_pay)}
+        </span>
+      );
+      if (!e.earnings.length && !e.deductions.length) return cell;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{cell}</TooltipTrigger>
+          <TooltipContent side="left" className="p-0 min-w-[200px]">
+            <div className="text-xs p-3 space-y-1 text-white">
+              <div className="flex justify-between gap-6">
+                <span className="text-white/70">Gross Pay</span>
+                <span className="tabular-nums font-medium text-amber-300">
+                  ₱
+                  {Number(e.gross_pay).toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              <div className="flex justify-between gap-6">
+                <span className="text-white/70">Total Deductions</span>
+                <span className="tabular-nums font-medium text-red-300">
+                  −₱
+                  {Number(e.total_deductions).toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              <div className="border-t border-white/20 pt-1 flex justify-between gap-6 font-semibold">
+                <span>Net Pay</span>
+                <span
+                  className={`tabular-nums ${e.net_pay < 0 ? "text-red-300" : "text-green-300"}`}
+                >
+                  ₱
+                  {Number(e.net_pay).toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     id: "status",

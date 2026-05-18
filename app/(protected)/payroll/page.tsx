@@ -5,7 +5,6 @@ import { getBranches } from "@/app/(protected)/branches/actions";
 import { getEmployees } from "@/app/(protected)/employees/actions";
 import { getPayrollPeriods } from "./actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-import { Card } from "@/app/components/ui/card";
 import { PageContainer } from "@/app/components/PageContainer";
 import { PageHeader } from "@/app/components/PageHeader";
 import { PayrollPageClient } from "./components/PayrollPageClient";
@@ -37,17 +36,15 @@ export default async function PayrollPage() {
         subtitle="Periods, employees, and payslip uploads"
       />
 
-      <Card>
-        <PayrollPageClient
-          periods={periods_res.value}
-          employees={employees_res.value}
-          branches={branches_res.value}
-          isAdmin={isAdmin}
-          canWrite={canWrite}
-          defaultBranchId={defaultBranchId}
-          branchId={user.branch.branch_id}
-        />
-      </Card>
+      <PayrollPageClient
+        periods={periods_res.value}
+        employees={employees_res.value}
+        branches={branches_res.value}
+        isAdmin={isAdmin}
+        canWrite={canWrite}
+        defaultBranchId={defaultBranchId}
+        branchId={user.branch.branch_id}
+      />
     </PageContainer>
   );
 }

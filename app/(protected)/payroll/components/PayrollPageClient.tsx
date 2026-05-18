@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeftIcon, Loader2Icon } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { Card, CardHeader, CardTitle, CardContent } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
+import { Loader2Icon } from "lucide-react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/app/components/ui/tabs";
+import { Card } from "@/app/components/ui/card";
 import { PayrollPeriodsTable } from "./PayrollPeriodsTable";
 import { CreatePayrollPeriodModal } from "./CreatePayrollPeriodModal";
 import { EmployeesTable } from "@/app/(protected)/employees/EmployeesTable";
@@ -35,7 +39,9 @@ export const PayrollPageClient: React.FC<Props> = ({
   defaultBranchId,
   branchId,
 }) => {
-  const [selectedPeriod, setSelectedPeriod] = useState<PayrollPeriod | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<PayrollPeriod | null>(
+    null,
+  );
   const [periodEntries, setPeriodEntries] = useState<PayrollEntry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
 
@@ -59,87 +65,66 @@ export const PayrollPageClient: React.FC<Props> = ({
   };
 
   return (
-    <Tabs defaultValue="periods">
-      <CardHeader className="pb-0">
-        <CardTitle>
-          <TabsList variant="page">
-            <TabsTrigger value="periods">Payroll Periods</TabsTrigger>
-            <TabsTrigger value="employees">Employees</TabsTrigger>
-          </TabsList>
-        </CardTitle>
-      </CardHeader>
+    <Tabs defaultValue="periods" className="flex flex-col gap-4 2xl:gap-6">
+      <TabsList variant="page">
+        <TabsTrigger value="periods">Payroll Periods</TabsTrigger>
+        <TabsTrigger value="employees">Employees</TabsTrigger>
+      </TabsList>
 
-      <CardContent className="pt-4">
-        <TabsContent value="periods">
-          {selectedPeriod ? (
-            <Card>
-              <CardHeader className="py-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleBack}>
-                    <ChevronLeftIcon className="h-4 w-4" />
-                  </Button>
-                  {selectedPeriod.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingEntries ? (
-                  <div className="flex items-center gap-2 py-8 justify-center text-muted-foreground text-sm">
-                    <Loader2Icon className="h-4 w-4 animate-spin" />
-                    Loading entries…
-                  </div>
-                ) : (
-                  <PayrollPeriodDetail
-                    period={selectedPeriod}
-                    entries={periodEntries}
-                    employees={employees}
-                    isAdmin={isAdmin}
-                    canWrite={canWrite}
-                    branchId={branchId}
-                    onRefreshEntries={handleRefreshEntries}
-                  />
-                )}
-              </CardContent>
+      <TabsContent value="periods" className="flex flex-col gap-4 2xl:gap-6">
+        {selectedPeriod ? (
+          loadingEntries ? (
+            <Card className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+              Loading entries…
             </Card>
           ) : (
-            <Card>
-              <CardHeader className="py-3">
-                <CardTitle className="flex items-center justify-between text-base">
-                  <span>Periods</span>
-                  {canWrite && (
-                    <CreatePayrollPeriodModal
-                      branches={branches}
-                      defaultBranchId={defaultBranchId}
-                      isAdmin={isAdmin}
-                    />
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PayrollPeriodsTable
-                  periods={periods}
+            <PayrollPeriodDetail
+              period={selectedPeriod}
+              entries={periodEntries}
+              employees={employees}
+              isAdmin={isAdmin}
+              canWrite={canWrite}
+              branchId={branchId}
+              onRefreshEntries={handleRefreshEntries}
+              onBack={handleBack}
+            />
+          )
+        ) : (
+          <PayrollPeriodsTable
+            periods={periods}
+            isAdmin={isAdmin}
+            onOpen={handleOpenPeriod}
+            actionButtons={
+              canWrite ? (
+                <CreatePayrollPeriodModal
+                  branches={branches}
+                  defaultBranchId={defaultBranchId}
                   isAdmin={isAdmin}
-                  onOpen={handleOpenPeriod}
                 />
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+              ) : null
+            }
+          />
+        )}
+      </TabsContent>
 
-        <TabsContent value="employees">
-          <EmployeesTable
-            employees={employees}
-            branches={branches}
-            isAdmin={canWrite}
-            actionButtons={canWrite && (
+      <TabsContent value="employees">
+        <EmployeesTable
+          chrome
+          employees={employees}
+          branches={branches}
+          isAdmin={canWrite}
+          actionButtons={
+            canWrite ? (
               <CreateEmployeeModal
                 branches={branches}
                 defaultBranchId={defaultBranchId}
                 isAdmin={isAdmin}
               />
-            )}
-          />
-        </TabsContent>
-      </CardContent>
+            ) : null
+          }
+        />
+      </TabsContent>
     </Tabs>
   );
 };

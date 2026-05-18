@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Row } from "@tanstack/react-table";
+import { Users } from "lucide-react";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { getColumns } from "./employee-columns";
 import { Employee } from "src/entities/models/Employee";
@@ -14,6 +15,7 @@ interface EmployeesTableProps {
   branches: Branch[];
   isAdmin: boolean;
   actionButtons?: React.ReactNode;
+  chrome?: boolean;
 }
 
 export const EmployeesTable: React.FC<EmployeesTableProps> = ({
@@ -21,6 +23,7 @@ export const EmployeesTable: React.FC<EmployeesTableProps> = ({
   branches,
   isAdmin,
   actionButtons,
+  chrome = false,
 }) => {
   const [selected, setSelected] = useState<Employee | null>(null);
 
@@ -62,6 +65,11 @@ export const EmployeesTable: React.FC<EmployeesTableProps> = ({
   return (
     <>
       <DataTable
+        embedded={chrome ? false : undefined}
+        icon={chrome ? Users : undefined}
+        title={chrome ? "Employees" : undefined}
+        meta={chrome ? `${employees.length.toLocaleString()} entries` : undefined}
+        rowLabel="employee"
         columns={getColumns(isAdmin)}
         data={employees}
         onRowClick={(e) => setSelected(e)}
