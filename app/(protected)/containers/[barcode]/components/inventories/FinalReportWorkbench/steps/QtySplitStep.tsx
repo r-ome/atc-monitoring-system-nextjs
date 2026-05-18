@@ -17,6 +17,7 @@ import {
 import { StepShell } from "../shared/StepShell";
 import { StepProps } from "../shared/types";
 import type { FinalReportInventoryRow, FinalReportMonitoringRow } from "src/entities/models/FinalReport";
+import { generateUnsold } from "@/app/lib/reports";
 
 const ATC_BIDDER_NUMBER = "5013";
 
@@ -44,15 +45,7 @@ export const QtySplitStep = ({
 
   if (!preview) return null;
 
-  // Left: UNSOLD items, excluding CANCELLED/REFUNDED predecessors
-  const unsoldItems = useMemo(
-    () =>
-      preview.unsold_items.filter((item) => {
-        const s = item.auctions_inventory?.status;
-        return s !== "CANCELLED" && s !== "REFUNDED";
-      }),
-    [preview.unsold_items],
-  );
+  const unsoldItems = preview.unsold_items;
 
   // Right: monitoring rows, excluding ATC's own bought items
   const soldItems = useMemo(
@@ -217,12 +210,26 @@ export const QtySplitStep = ({
       <div className="grid grid-cols-2 gap-4 min-w-0">
         {/* UNSOLD */}
         <div className="min-w-0 flex flex-col gap-2">
-          <p className="text-sm font-medium">
-            UNSOLD{" "}
-            <span className="text-muted-foreground font-normal">
-              ({unsoldItems.length})
-            </span>
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">
+              UNSOLD{" "}
+              <span className="text-muted-foreground font-normal">
+                ({unsoldItems.length})
+              </span>
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              disabled={unsoldItems.length === 0}
+              onClick={() =>
+                generateUnsold(unsoldItems, preview.sheet_details.barcode)
+              }
+            >
+              Print Unsold
+            </Button>
+          </div>
           <div className="border rounded overflow-auto max-h-[380px]">
             <Table>
               <TableHeader>
