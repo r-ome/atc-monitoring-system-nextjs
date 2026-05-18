@@ -106,7 +106,7 @@ export const ContainersTable: React.FC<ContainersTableProps> = ({
     return (
       <div className="flex flex-col gap-1.5 px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[13px] font-semibold">
+          <span className="font-mono text-[15px] font-semibold">
             {c.barcode}
           </span>
           <span className="ml-auto">
@@ -115,15 +115,15 @@ export const ContainersTable: React.FC<ContainersTableProps> = ({
             </StatusBadge>
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-[13.5px] text-muted-foreground">
           <span className="truncate">{c.supplier.name}</span>
           <span aria-hidden>·</span>
           <BranchBadge branch={c.branch.name} />
-          <span className="ml-auto font-mono text-[11px]">
+          <span className="ml-auto font-mono text-[13px]">
             {c.inventory_count} item{c.inventory_count === 1 ? "" : "s"}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
           <span>Auction {c.auction_start_date ?? "N/A"}</span>
           <span aria-hidden>·</span>
           <span>Due {c.due_date ?? "N/A"}</span>

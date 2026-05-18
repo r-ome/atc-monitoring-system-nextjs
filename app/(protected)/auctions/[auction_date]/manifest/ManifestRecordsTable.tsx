@@ -142,12 +142,12 @@ export const ManifestRecordsTable = ({
       />
 
       {encoderStats.encoders.length > 0 ? (
-        <Card className="flex flex-col gap-2.5 p-[14px] 2xl:p-4 2xl:text-[15px]">
+        <Card className="flex flex-col gap-2.5 p-[14px] 2xl:p-4 2xl:text-[17px]">
           <div className="flex items-center justify-between">
-            <span className="caps-label text-[11px] 2xl:text-[13px]">
+            <span className="caps-label text-[13px] 2xl:text-[15px]">
               Encoders Today
             </span>
-            <span className="text-[11px] text-muted-foreground 2xl:text-[13.5px]">
+            <span className="text-[13px] text-muted-foreground 2xl:text-[15.5px]">
               {encoderStats.encoders.length} encoder
               {encoderStats.encoders.length === 1 ? "" : "s"}
               {encoderStats.totalErrors > 0
@@ -176,7 +176,7 @@ export const ManifestRecordsTable = ({
                 <div
                   key={e.name}
                   className={cn(
-                    "flex items-center gap-2 rounded-full border px-2.5 py-1 text-[12.5px] transition-colors 2xl:text-[14px]",
+                    "flex items-center gap-2 rounded-full border px-2.5 py-1 text-[14.5px] transition-colors 2xl:text-[16px]",
                     hasErrors
                       ? "border-destructive/30 bg-destructive/10"
                       : "border-border bg-card",
@@ -193,7 +193,7 @@ export const ManifestRecordsTable = ({
                   >
                     <span
                       className={cn(
-                        "flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-[9.5px] font-bold",
+                        "flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-[11.5px] font-bold",
                         hasErrors
                           ? "bg-destructive text-destructive-foreground"
                           : "bg-accent text-accent-foreground",
@@ -209,7 +209,7 @@ export const ManifestRecordsTable = ({
                     >
                       {e.name}
                     </span>
-                    <span className="font-mono text-[11.5px] text-muted-foreground 2xl:text-[13.5px]">
+                    <span className="font-mono text-[13.5px] text-muted-foreground 2xl:text-[15.5px]">
                       {e.encoded.toLocaleString()} encoded
                     </span>
                   </button>
@@ -218,7 +218,7 @@ export const ManifestRecordsTable = ({
                       type="button"
                       onClick={() => toggleEncoderFilter(e.name, "errors")}
                       className={cn(
-                        "cursor-pointer rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-destructive-foreground transition-opacity",
+                        "cursor-pointer rounded-full bg-destructive px-1.5 py-0.5 text-[12px] font-bold tracking-wide text-destructive-foreground transition-opacity",
                         !isErrorsActive && "hover:opacity-90",
                       )}
                       aria-pressed={isErrorsActive}
@@ -237,10 +237,10 @@ export const ManifestRecordsTable = ({
       ) : null}
 
       {encoderFilter ? (
-        <div className="flex items-center gap-3 rounded-lg border bg-secondary px-4 py-3 text-[13px] 2xl:text-[15px]">
+        <div className="flex items-center gap-3 rounded-lg border bg-secondary px-4 py-3 text-[15px] 2xl:text-[17px]">
           <span
             className={cn(
-              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide",
+              "shrink-0 rounded-full px-2 py-0.5 text-[12px] font-bold tracking-wide",
               encoderFilter.mode === "errors"
                 ? "bg-destructive text-destructive-foreground"
                 : "bg-primary text-primary-foreground",
@@ -252,7 +252,7 @@ export const ManifestRecordsTable = ({
             <div className="font-semibold">
               Showing {encoderFilter.mode} by {encoderFilter.name}
             </div>
-            <div className="text-[12px] text-muted-foreground 2xl:text-[14px]">
+            <div className="text-[14px] text-muted-foreground 2xl:text-[16px]">
               {tableData.length.toLocaleString()} record
               {tableData.length === 1 ? "" : "s"} match.
             </div>
@@ -270,14 +270,14 @@ export const ManifestRecordsTable = ({
       ) : null}
 
       {errorsOnly && encoderStats.totalErrors > 0 ? (
-        <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] 2xl:text-[15px]">
+        <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[15px] 2xl:text-[17px]">
           <AlertCircle size={16} className="shrink-0 text-destructive" />
           <div className="flex-1">
             <div className="font-semibold text-destructive">
               {encoderStats.totalErrors.toLocaleString()} encoding error
               {encoderStats.totalErrors === 1 ? "" : "s"} need attention
             </div>
-            <div className="text-[12px] text-muted-foreground 2xl:text-[14px]">
+            <div className="text-[14px] text-muted-foreground 2xl:text-[16px]">
               Reconcile by editing each row, or contact the encoder responsible.
             </div>
           </div>
@@ -331,7 +331,7 @@ export const ManifestRecordsTable = ({
                 <div className="flex items-baseline gap-1.5">
                   <span
                     className={cn(
-                      "font-mono text-[12px] font-semibold",
+                      "font-mono text-[14px] font-semibold",
                       hasError &&
                         "cursor-pointer underline decoration-dotted underline-offset-2",
                     )}
@@ -344,46 +344,46 @@ export const ManifestRecordsTable = ({
                   >
                     {it.barcode}
                   </span>
-                  <span className="font-mono text-[10.5px] text-muted-foreground">
+                  <span className="font-mono text-[12.5px] text-muted-foreground">
                     · {it.control}
                     {idx ? `(A${idx})` : ""}
                   </span>
                   {it.manifest_number ? (
-                    <span className="ml-auto rounded bg-secondary px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-foreground/80">
+                    <span className="ml-auto rounded bg-secondary px-1.5 py-0.5 font-mono text-[12.5px] font-semibold text-foreground/80">
                       {it.manifest_number}
                     </span>
                   ) : null}
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="truncate text-[13px] font-medium">
+                  <span className="truncate text-[15px] font-medium">
                     {it.description}
                   </span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
+                  <span className="font-mono text-[13px] text-muted-foreground">
                     #{it.bidder_number}
                   </span>
-                  <span className="ml-auto font-mono text-[12.5px] font-semibold">
+                  <span className="ml-auto font-mono text-[14.5px] font-semibold">
                     {formatNumberToCurrency(price)}
                   </span>
                 </div>
                 {hasError ? (
                   <div className="mt-0.5 flex items-center gap-1.5">
                     <AlertCircle size={11} className="text-destructive" />
-                    <span className="text-[11px] font-medium text-destructive">
+                    <span className="text-[13px] font-medium text-destructive">
                       {it.error_message}
                     </span>
                     {it.remarks ? (
-                      <span className="ml-auto text-[10px] text-muted-foreground">
+                      <span className="ml-auto text-[12px] text-muted-foreground">
                         {it.remarks}
                       </span>
                     ) : null}
                   </div>
                 ) : (
                   <div className="mt-0.5 flex items-center gap-1.5">
-                    <span className="text-[10.5px] font-semibold uppercase tracking-wider text-status-success">
+                    <span className="text-[12.5px] font-semibold uppercase tracking-wider text-status-success">
                       Encoded
                     </span>
                     {it.remarks ? (
-                      <span className="ml-auto text-[10px] text-muted-foreground">
+                      <span className="ml-auto text-[12px] text-muted-foreground">
                         {it.remarks}
                       </span>
                     ) : null}
@@ -411,7 +411,7 @@ export const ManifestRecordsTable = ({
               <AlertCircle size={13} />
               Errors only
               {errorsOnly ? (
-                <span className="font-mono ml-1 text-[10.5px] font-semibold">
+                <span className="font-mono ml-1 text-[12.5px] font-semibold">
                   · {encoderStats.totalErrors}
                 </span>
               ) : null}

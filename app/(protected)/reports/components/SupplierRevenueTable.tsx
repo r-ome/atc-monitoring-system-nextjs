@@ -251,17 +251,17 @@ export const SupplierRevenueTable = ({ data }: Props) => {
     return (
       <div className="flex flex-col gap-1 px-4 py-3">
         <div className="flex items-baseline gap-1.5">
-          <span className="font-mono text-[11px] font-semibold text-muted-foreground">
+          <span className="font-mono text-[13px] font-semibold text-muted-foreground">
             ({s.supplier_code})
           </span>
-          <span className="truncate text-[13px] font-medium">{s.supplier_name}</span>
+          <span className="truncate text-[15px] font-medium">{s.supplier_name}</span>
         </div>
         {s.sales_remittance_account ? (
-          <div className="truncate text-[11px] text-muted-foreground">
+          <div className="truncate text-[13px] text-muted-foreground">
             {s.sales_remittance_account}
           </div>
         ) : null}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[13px]">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Item Sales</span>
             <span className="font-mono text-green-500 font-semibold">

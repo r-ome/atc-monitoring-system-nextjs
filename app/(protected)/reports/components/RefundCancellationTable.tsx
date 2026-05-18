@@ -209,23 +209,23 @@ export const RefundCancellationTable = ({ data }: Props) => {
       <div className="flex flex-col gap-1 px-4 py-3">
         <div className="flex items-center gap-2">
           <AuctionStatusBadge status={r.status as "CANCELLED" | "REFUNDED"} />
-          <span className="ml-auto font-mono text-[12.5px] font-bold text-red-500">
+          <span className="ml-auto font-mono text-[14.5px] font-bold text-red-500">
             {formatNumberToCurrency(r.price)}
           </span>
         </div>
-        <div className="text-[12.5px] font-medium">{r.description}</div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <div className="text-[14.5px] font-medium">{r.description}</div>
+        <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
           <span className="font-mono">#{r.bidder_number}</span>
           <span aria-hidden>·</span>
           <span className="truncate">{r.bidder_name}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
           <span>Auction {r.auction_date}</span>
           <span aria-hidden>·</span>
           <span>{r.status === "REFUNDED" ? "Refunded" : "Cancelled"} {r.status_date}</span>
         </div>
         {r.reason ? (
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-[13px] text-muted-foreground">
             <span className="font-semibold">Reason:</span> {r.reason}
           </div>
         ) : null}

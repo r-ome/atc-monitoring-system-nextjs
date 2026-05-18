@@ -48,8 +48,8 @@ export const PaymentMethodsTable = ({
         }}
       >
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[13px] font-medium">{pm.name}</span>
-          <span className="mt-0.5 text-[11px] text-muted-foreground">
+          <span className="truncate text-[15px] font-medium">{pm.name}</span>
+          <span className="mt-0.5 text-[13px] text-muted-foreground">
             Created {pm.created_at} · Updated {pm.updated_at}
           </span>
         </div>

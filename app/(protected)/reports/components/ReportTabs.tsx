@@ -22,7 +22,7 @@ export const ReportTabs = ({ tabs, defaultValue }: ReportTabsProps) => {
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="inline-flex h-auto shrink-0 flex-none items-center gap-2 whitespace-nowrap rounded-md border-transparent bg-transparent px-3.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs sm:px-3 sm:py-1.5 2xl:text-[15px]"
+            className="inline-flex h-auto shrink-0 flex-none items-center gap-2 whitespace-nowrap rounded-md border-transparent bg-transparent px-3.5 py-2 text-[15px] font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs sm:px-3 sm:py-1.5 2xl:text-[17px]"
           >
             {tab.label}
           </TabsTrigger>

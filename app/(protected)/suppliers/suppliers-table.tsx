@@ -36,18 +36,18 @@ export const SuppliersTable: React.FC<SuppliersTableProps> = ({
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
           <div className="flex items-baseline gap-1.5">
-            <span className="font-mono text-[11px] font-semibold text-muted-foreground">
+            <span className="font-mono text-[13px] font-semibold text-muted-foreground">
               {s.supplier_code}
             </span>
-            <span className="truncate text-[13px] font-medium">{s.name}</span>
+            <span className="truncate text-[15px] font-medium">{s.name}</span>
           </div>
           {s.japanese_name ? (
-            <span className="mt-0.5 truncate text-[11px] text-muted-foreground">
+            <span className="mt-0.5 truncate text-[13px] text-muted-foreground">
               {s.japanese_name}
             </span>
           ) : null}
         </div>
-        <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+        <span className="shrink-0 font-mono text-[13px] text-muted-foreground">
           {s.container_count} container{s.container_count === 1 ? "" : "s"}
         </span>
       </div>

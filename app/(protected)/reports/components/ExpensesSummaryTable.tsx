@@ -100,15 +100,15 @@ export const ExpensesSummaryTable = ({
         <div className="flex min-w-0 flex-1 flex-col gap-1 leading-tight">
           <div className="flex items-center gap-2">
             <ExpenseTypeBadge expenseType={e.purpose} />
-            <span className="ml-auto text-[11px] text-muted-foreground">
+            <span className="ml-auto text-[13px] text-muted-foreground">
               {e.created_at}
             </span>
           </div>
           {e.remarks ? (
-            <span className="text-[12px] text-foreground/80">{e.remarks}</span>
+            <span className="text-[14px] text-foreground/80">{e.remarks}</span>
           ) : null}
         </div>
-        <span className="font-mono text-[12.5px] font-bold text-red-500">
+        <span className="font-mono text-[14.5px] font-bold text-red-500">
           {formatNumberToCurrency(e.amount)}
         </span>
       </div>

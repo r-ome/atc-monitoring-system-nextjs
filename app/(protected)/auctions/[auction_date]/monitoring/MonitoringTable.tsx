@@ -70,14 +70,14 @@ export const MonitoringTable = ({
         <div className="flex items-baseline gap-1.5">
           <span
             className={cn(
-              "font-mono text-[12px] font-semibold",
+              "font-mono text-[14px] font-semibold",
               !isMasterList && "cursor-pointer underline decoration-dotted underline-offset-2",
             )}
             onClick={onBarcodeTap}
           >
             {it.inventory.barcode}
           </span>
-          <span className="font-mono text-[10.5px] text-muted-foreground">
+          <span className="font-mono text-[12.5px] text-muted-foreground">
             · {it.inventory.control}
             {idx ? `(A${idx})` : ""}
           </span>
@@ -85,17 +85,17 @@ export const MonitoringTable = ({
             <AuctionStatusPill status={it.status} />
           </span>
         </div>
-        <div className="text-[13px] font-medium">{it.description}</div>
+        <div className="text-[15px] font-medium">{it.description}</div>
         <div className="flex items-baseline gap-2">
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-[13px] text-muted-foreground">
             {bidderLabel}
           </span>
           {it.manifest_number ? (
-            <span className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-foreground/80">
+            <span className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[12.5px] font-semibold text-foreground/80">
               {it.manifest_number}
             </span>
           ) : null}
-          <span className="ml-auto font-mono text-[13px] font-semibold">
+          <span className="ml-auto font-mono text-[15px] font-semibold">
             {formatNumberToCurrency(it.price)}
           </span>
         </div>

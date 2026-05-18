@@ -26,14 +26,14 @@ export const SalesTable = ({ summary, branchName }: SalesTableProps) => {
     return (
       <div className="flex flex-col gap-1 px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-semibold">{r.period}</span>
+          <span className="text-[15px] font-semibold">{r.period}</span>
           <span
-            className={`ml-auto font-mono text-[13px] font-bold ${r.net_income >= 0 ? "text-green-500" : "text-red-500"}`}
+            className={`ml-auto font-mono text-[15px] font-bold ${r.net_income >= 0 ? "text-green-500" : "text-red-500"}`}
           >
             {formatNumberToCurrency(r.net_income)}
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[13px]">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Income</span>
             <span className="font-mono text-green-500">

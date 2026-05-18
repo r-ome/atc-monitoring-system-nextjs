@@ -119,7 +119,7 @@ export const DataTable = <TData, TValue>({
   const Wrapper = isEmbedded ? "div" : Card;
   const wrapperClass = isEmbedded
     ? "flex flex-col gap-0"
-    : "flex flex-col gap-0 overflow-hidden p-0 2xl:text-[15px]";
+    : "flex flex-col gap-0 overflow-hidden p-0 2xl:text-[17px]";
 
   return (
     <Wrapper className={wrapperClass}>
@@ -130,7 +130,7 @@ export const DataTable = <TData, TValue>({
           ) : null}
           {title ? (
             typeof title === "string" ? (
-              <span className="text-[14px] font-semibold 2xl:text-[17.5px]">
+              <span className="text-[16px] font-semibold 2xl:text-[19.5px]">
                 {title}
               </span>
             ) : (
@@ -138,7 +138,7 @@ export const DataTable = <TData, TValue>({
             )
           ) : null}
           {meta ? (
-            <span className="ml-auto text-[11px] text-muted-foreground 2xl:text-[14px]">
+            <span className="ml-auto text-[13px] text-muted-foreground 2xl:text-[16px]">
               {meta}
             </span>
           ) : null}
@@ -211,12 +211,12 @@ export const DataTable = <TData, TValue>({
           renderMobileCard && "hidden md:block",
         )}
       >
-        <table className="w-full border-collapse text-[13px] 2xl:text-[15px]">
+        <table className="w-full border-collapse text-[15px] 2xl:text-[17px]">
           <thead className="sticky top-0 z-10 bg-card">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr
                 key={headerGroup.id}
-                className="caps-label text-[10.5px] 2xl:text-[13px]"
+                className="caps-label text-[12.5px] 2xl:text-[15px]"
               >
                 {headerGroup.headers.map((header) => (
                   <th
@@ -292,12 +292,12 @@ export const DataTable = <TData, TValue>({
       </div>
 
       {footer ? (
-        <div className="border-t px-[18px] py-3 text-[12px] 2xl:px-5 2xl:text-[14px]">
+        <div className="border-t px-[18px] py-3 text-[14px] 2xl:px-5 2xl:text-[16px]">
           {footer}
         </div>
       ) : null}
 
-      <div className="flex flex-col items-center justify-between gap-2 border-t px-[18px] py-2.5 text-[12px] text-muted-foreground sm:flex-row 2xl:px-5 2xl:text-[14px]">
+      <div className="flex flex-col items-center justify-between gap-2 border-t px-[18px] py-2.5 text-[14px] text-muted-foreground sm:flex-row 2xl:px-5 2xl:text-[16px]">
         <span>
           Showing {start.toLocaleString()}
           {totalFiltered > 0 ? `–${end.toLocaleString()}` : ""} of{" "}

@@ -34,12 +34,12 @@ export const UsersTable = ({ users, onRowClick }: UsersTableProps) => {
       .join("");
     return (
       <div className="flex items-center gap-2.5 px-4 py-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-[13px] font-bold text-accent-foreground">
           {initials}
         </span>
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[13px] font-medium">{u.name}</span>
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="truncate text-[15px] font-medium">{u.name}</span>
+          <span className="font-mono text-[13px] text-muted-foreground">
             @{u.username}
           </span>
         </div>

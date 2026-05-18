@@ -86,7 +86,7 @@ export function BidderItemsTable({
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-baseline gap-1.5">
             <span
-              className="font-mono text-[12px] font-semibold underline decoration-dotted underline-offset-2"
+              className="font-mono text-[14px] font-semibold underline decoration-dotted underline-offset-2"
               onClick={(e) => {
                 e.stopPropagation();
                 router.push(
@@ -99,7 +99,7 @@ export function BidderItemsTable({
             >
               {it.inventory.barcode}
             </span>
-            <span className="font-mono text-[10.5px] text-muted-foreground">
+            <span className="font-mono text-[12.5px] text-muted-foreground">
               · {it.inventory.control}
             </span>
             <span className="ml-auto">
@@ -107,20 +107,20 @@ export function BidderItemsTable({
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="line-clamp-1 text-[13px] font-medium">
+            <span className="line-clamp-1 text-[15px] font-medium">
               {it.description}
             </span>
             {it.qty ? (
-              <span className="font-mono text-[11px] text-muted-foreground">
+              <span className="font-mono text-[13px] text-muted-foreground">
                 ×{it.qty}
               </span>
             ) : null}
-            <span className="ml-auto font-mono text-[12.5px] font-semibold">
+            <span className="ml-auto font-mono text-[14.5px] font-semibold">
               {formatNumberToCurrency(it.price)}
             </span>
           </div>
           {it.manifest_number ? (
-            <div className="text-[11px] text-muted-foreground">
+            <div className="text-[13px] text-muted-foreground">
               Manifest{" "}
               <span className="font-mono font-semibold text-foreground/80">
                 {it.manifest_number}

@@ -23,7 +23,7 @@ export function AuctionSecondaryHeader({
   const longDate = formatDate(dateObj, "MMMM d, yyyy");
 
   return (
-    <Card className="flex flex-col gap-3 p-[14px] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between 2xl:p-4 2xl:text-[15px]">
+    <Card className="flex flex-col gap-3 p-[14px] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between 2xl:p-4 2xl:text-[17px]">
       <div className="flex min-w-0 flex-wrap items-center gap-2.5 sm:gap-3.5">
         <Link
           href={`/auctions/${auctionDate}`}
@@ -34,10 +34,10 @@ export function AuctionSecondaryHeader({
         </Link>
 
         <div className="flex min-w-0 flex-col leading-tight">
-          <span className="caps-label text-[10.5px] 2xl:text-[13px]">
+          <span className="caps-label text-[12.5px] 2xl:text-[15px]">
             {dayOfWeek}
           </span>
-          <span className="truncate text-[15px] font-semibold tracking-tight sm:text-[17px] 2xl:text-[21px]">
+          <span className="truncate text-[17px] font-semibold tracking-tight sm:text-[19px] 2xl:text-[23px]">
             {longDate}
           </span>
         </div>
@@ -45,7 +45,7 @@ export function AuctionSecondaryHeader({
         <BranchBadge branch={branchName} />
 
         {startedAt ? (
-          <span className="text-[12px] text-muted-foreground 2xl:text-[14.5px]">
+          <span className="text-[14px] text-muted-foreground 2xl:text-[16.5px]">
             Started {startedAt}
           </span>
         ) : null}

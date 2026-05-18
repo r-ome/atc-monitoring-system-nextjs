@@ -68,15 +68,15 @@ export const PaymentMethodBreakdownTable = ({ data }: Props) => {
     return (
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[13px] font-medium">
+          <span className="truncate text-[15px] font-medium">
             {p.payment_method_name}
           </span>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-[13px] text-muted-foreground">
             {p.transaction_count} transaction
             {p.transaction_count === 1 ? "" : "s"}
           </span>
         </div>
-        <span className="font-mono text-[12.5px] font-bold text-green-500">
+        <span className="font-mono text-[14.5px] font-bold text-green-500">
           {formatNumberToCurrency(p.total_amount)}
         </span>
       </div>

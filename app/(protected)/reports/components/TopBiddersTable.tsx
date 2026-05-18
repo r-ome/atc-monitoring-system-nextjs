@@ -122,18 +122,18 @@ export const TopBiddersTable = ({ data }: Props) => {
     const b = row.original;
     return (
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-[13px] font-bold text-accent-foreground">
           {row.index + 1}
         </span>
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[13px] font-medium">{b.full_name}</span>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="truncate text-[15px] font-medium">{b.full_name}</span>
+          <span className="text-[13px] text-muted-foreground">
             #{b.bidder_number} · {b.items_won} item
             {b.items_won === 1 ? "" : "s"} · {b.auctions_attended} auction
             {b.auctions_attended === 1 ? "" : "s"}
           </span>
         </div>
-        <span className="font-mono text-[12.5px] font-bold text-green-500">
+        <span className="font-mono text-[14.5px] font-bold text-green-500">
           {formatNumberToCurrency(b.total_spent)}
         </span>
       </div>

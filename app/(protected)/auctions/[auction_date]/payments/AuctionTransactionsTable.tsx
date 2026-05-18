@@ -54,12 +54,12 @@ export const AuctionTransactionsTable = ({
           <div className="flex items-center gap-2.5 px-4 py-3">
             <div className="flex min-w-0 flex-1 flex-col leading-tight">
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[12.5px] font-semibold">
+                <span className="font-mono text-[14.5px] font-semibold">
                   {t.receipt_number}
                 </span>
                 <span
                   className={cn(
-                    "rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                    "rounded px-1.5 py-0.5 text-[12px] font-semibold uppercase tracking-wider",
                     isRefund
                       ? "bg-destructive/10 text-destructive"
                       : "bg-status-success/15 text-status-success",
@@ -68,14 +68,14 @@ export const AuctionTransactionsTable = ({
                   {t.purpose.replace(/_/g, " ")}
                 </span>
               </div>
-              <span className="mt-0.5 text-[11px] text-muted-foreground">
+              <span className="mt-0.5 text-[13px] text-muted-foreground">
                 <span className="font-mono">#{t.bidder.bidder_number}</span> ·{" "}
                 {t.created_at}
               </span>
             </div>
             <span
               className={cn(
-                "shrink-0 whitespace-nowrap font-mono text-[13px] font-bold",
+                "shrink-0 whitespace-nowrap font-mono text-[15px] font-bold",
                 isRefund ? "text-destructive" : "text-status-success",
               )}
             >

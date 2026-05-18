@@ -61,14 +61,14 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
     const lastActive = b.last_active.duration ?? "Never";
     return (
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="min-w-[52px] font-mono text-[13px] font-semibold">
+        <span className="min-w-[52px] font-mono text-[15px] font-semibold">
           #{b.bidder_number}
         </span>
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[13px] font-medium uppercase">
+          <span className="truncate text-[15px] font-medium uppercase">
             {b.full_name}
           </span>
-          <span className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+          <span className="mt-0.5 flex items-center gap-1.5 text-[13.5px] text-muted-foreground">
             <BranchBadge branch={b.branch.name} />
             <span aria-hidden>·</span>
             <span className="truncate">{lastActive}</span>

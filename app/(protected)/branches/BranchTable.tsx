@@ -16,7 +16,7 @@ export const BranchesTable = ({ branches }: { branches: Branch[] }) => {
     return (
       <div className="flex items-center gap-3 px-4 py-3">
         <BranchBadge branch={b.name} />
-        <span className="ml-auto text-[11px] text-muted-foreground">
+        <span className="ml-auto text-[13px] text-muted-foreground">
           Created {b.created_at}
         </span>
       </div>

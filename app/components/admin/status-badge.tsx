@@ -49,7 +49,7 @@ const statusBadgeVariants = cva(
         addon: "bg-status-info text-status-info-foreground",
       },
       size: {
-        sm: "status-badge-sm px-2 py-0.5 text-[10px]",
+        sm: "status-badge-sm px-2 py-0.5 text-[12px]",
         default: "status-badge-default px-2.5 py-0.5 text-xs",
         lg: "status-badge-lg px-3 py-1 text-sm",
       },
@@ -185,7 +185,7 @@ export function BranchBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-secondary-foreground 2xl:text-[13.5px]",
+        "inline-flex items-center rounded px-1.5 py-0.5 text-[12.5px] font-semibold uppercase tracking-wide text-secondary-foreground 2xl:text-[15.5px]",
         variant === "tarlac" && "text-white",
         variant === "neutral" && "bg-muted text-muted-foreground",
         className,

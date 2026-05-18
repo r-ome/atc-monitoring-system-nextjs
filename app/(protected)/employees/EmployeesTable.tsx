@@ -36,8 +36,8 @@ export const EmployeesTable: React.FC<EmployeesTableProps> = ({
     return (
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[13px] font-medium">{e.full_name}</span>
-          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <span className="truncate text-[15px] font-medium">{e.full_name}</span>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted-foreground">
             <span className="truncate">{e.position ?? "—"}</span>
             {basePay ? (
               <>

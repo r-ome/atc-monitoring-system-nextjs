@@ -67,23 +67,23 @@ export const CounterCheckTable = ({ counterCheck }: CounterCheckTableProps) => {
             <div className="flex items-center gap-2.5 px-4 py-3">
               <div className="flex min-w-0 flex-1 flex-col leading-tight">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-mono text-[12.5px] font-semibold">
+                  <span className="font-mono text-[14.5px] font-semibold">
                     {c.control}
                   </span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
+                  <span className="font-mono text-[13px] text-muted-foreground">
                     #{c.bidder_number}
                   </span>
                   {c.page ? (
-                    <span className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[10.5px] text-foreground/80">
+                    <span className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[12.5px] text-foreground/80">
                       p.{c.page}
                     </span>
                   ) : null}
                 </div>
-                <span className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
+                <span className="mt-0.5 truncate text-[13.5px] text-muted-foreground">
                   {c.description || "No description"}
                 </span>
               </div>
-              <span className="shrink-0 font-mono text-[13px] font-semibold">
+              <span className="shrink-0 font-mono text-[15px] font-semibold">
                 {formatNumberToCurrency(price)}
               </span>
             </div>

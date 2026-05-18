@@ -496,20 +496,20 @@ function renderActivityLogMobileCard(row: Row<ActivityLog>) {
         <StatusBadge variant={actionVariant(log.action)}>
           {log.action}
         </StatusBadge>
-        <span className="text-[12px] font-medium capitalize">
+        <span className="text-[14px] font-medium capitalize">
           {log.entity_type.replace(/_/g, " ")}
         </span>
-        <span className="ml-auto whitespace-nowrap font-mono text-[10.5px] text-muted-foreground">
+        <span className="ml-auto whitespace-nowrap font-mono text-[12.5px] text-muted-foreground">
           {log.created_at}
         </span>
       </div>
-      <div className="text-[12.5px] leading-snug break-words">
+      <div className="text-[14.5px] leading-snug break-words">
         <ActivityDescriptionCell
           description={log.description}
           variant="popover"
         />
       </div>
-      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
         <BranchBadge branch={log.branch_name} />
         <span className="truncate">{log.username}</span>
       </div>

@@ -108,14 +108,14 @@ export const RefundCancellationBidderTable = ({ data }: Props) => {
     const b = row.original;
     return (
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="font-mono text-[12px] font-semibold text-muted-foreground">
+        <span className="font-mono text-[14px] font-semibold text-muted-foreground">
           #{b.bidder_number}
         </span>
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[13px] font-medium">
+          <span className="truncate text-[15px] font-medium">
             {b.bidder_name}
           </span>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-[13px] text-muted-foreground">
             <span className="text-orange-500 font-medium">
               {b.refunded} refunded
             </span>{" "}
@@ -125,7 +125,7 @@ export const RefundCancellationBidderTable = ({ data }: Props) => {
             </span>
           </span>
         </div>
-        <span className="font-mono text-[13px] font-bold">{b.total}</span>
+        <span className="font-mono text-[15px] font-bold">{b.total}</span>
       </div>
     );
   };

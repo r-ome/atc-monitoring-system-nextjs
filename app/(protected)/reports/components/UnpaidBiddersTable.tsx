@@ -88,17 +88,17 @@ export const UnpaidBiddersTable = ({ data }: Props) => {
     const b = row.original;
     return (
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="font-mono text-[12px] font-semibold text-muted-foreground">
+        <span className="font-mono text-[14px] font-semibold text-muted-foreground">
           #{b.bidder_number}
         </span>
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[13px] font-medium">{b.full_name}</span>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="truncate text-[15px] font-medium">{b.full_name}</span>
+          <span className="text-[13px] text-muted-foreground">
             {b.auctions_with_balance} auction
             {b.auctions_with_balance === 1 ? "" : "s"} w/ balance
           </span>
         </div>
-        <span className="font-mono text-[12.5px] font-bold text-red-500">
+        <span className="font-mono text-[14.5px] font-bold text-red-500">
           {formatNumberToCurrency(b.total_balance)}
         </span>
       </div>
