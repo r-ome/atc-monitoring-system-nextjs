@@ -87,16 +87,16 @@ export const AuctionContainerSummaryTable = ({
           <table className="w-full border-collapse text-[13px] 2xl:text-[15px]">
             <thead className="sticky top-0 z-10 bg-card">
               <tr className="caps-label text-[10.5px] 2xl:text-[13px]">
-                <th className="border-b px-[18px] py-2.5 text-left font-semibold 2xl:px-5">
+                <th className="px-[18px] py-2.5 text-left font-semibold shadow-[inset_0_-1px_0_var(--border)] 2xl:px-5">
                   Barcode
                 </th>
-                <th className="border-b px-3 py-2.5 text-left font-semibold">
+                <th className="px-3 py-2.5 text-left font-semibold shadow-[inset_0_-1px_0_var(--border)]">
                   Top Item
                 </th>
-                <th className="w-[110px] border-b px-3 py-2.5 text-right font-semibold">
+                <th className="w-[110px] px-3 py-2.5 text-right font-semibold shadow-[inset_0_-1px_0_var(--border)]">
                   Total Items
                 </th>
-                <th className="w-[150px] border-b px-[18px] py-2.5 text-right font-semibold 2xl:px-5">
+                <th className="w-[150px] px-[18px] py-2.5 text-right font-semibold shadow-[inset_0_-1px_0_var(--border)] 2xl:px-5">
                   Total Sale
                 </th>
               </tr>

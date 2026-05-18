@@ -216,19 +216,18 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
     <>
       <Button onClick={() => setOpenDialog(true)}>Edit Container</Button>
 
-      <Dialog open={open}>
-        <DialogContent>
+      <Dialog open={open} onOpenChange={setOpenDialog}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Update Container</DialogTitle>
             <DialogDescription>Update Container</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-2">
-            <div className="flex gap-4">
-              <Label htmlFor="supplier" className="w-40">
-                Supplier:
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label htmlFor="supplier" className="sm:w-40 sm:shrink-0">
+                Supplier
               </Label>
-
-              <div className="w-full">
+              <div className="min-w-0 flex-1">
                 {suppliers.length ? (
                   <SelectWithSearch
                     placeholder="Search Supplier"
@@ -247,11 +246,11 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Label htmlFor="bidder_number" className="w-40">
-                Branch:
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label htmlFor="branch" className="sm:w-40 sm:shrink-0">
+                Branch
               </Label>
-              <div className="w-full">
+              <div className="min-w-0 flex-1">
                 {branches.length ? (
                   <SelectWithSearch
                     placeholder="Search Branch"
@@ -270,8 +269,8 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Label className="w-40">Barcode</Label>
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label className="sm:w-40 sm:shrink-0">Barcode</Label>
               <Input
                 name="barcode"
                 value={newContainer.barcode}
@@ -279,8 +278,8 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 error={errors}
               />
             </div>
-            <div className="flex gap-4">
-              <Label className="w-40">Bill of Lading Number</Label>
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label className="sm:w-40 sm:shrink-0">Bill of Lading Number</Label>
               <Input
                 name="bill_of_lading_number"
                 value={newContainer.bill_of_lading_number}
@@ -288,8 +287,8 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 error={errors}
               />
             </div>
-            <div className="flex gap-4">
-              <Label className="w-40">Container Number</Label>
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label className="sm:w-40 sm:shrink-0">Container Number</Label>
               <Input
                 name="container_number"
                 value={newContainer.container_number}
@@ -297,8 +296,8 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 error={errors}
               />
             </div>
-            <div className="flex gap-4">
-              <Label className="w-40">Auction Or Sell</Label>
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label className="sm:w-40 sm:shrink-0">Auction Or Sell</Label>
               <Input
                 name="auction_or_sell"
                 value={newContainer.auction_or_sell}
@@ -306,34 +305,30 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
                 error={errors}
               />
             </div>
-            <div className="flex gap-4">
-              <div className="flex gap-4">
-                <Label className="w-50">Gross Weight</Label>
-                <div className="w-full">
-                  <InputNumber
-                    className="w-full"
-                    name="gross_weight"
-                    suffix=" kgs"
-                    hasStepper={false}
-                    value={
-                      newContainer.gross_weight
-                        ? Number(newContainer.gross_weight)
-                        : 0
-                    }
-                    onValueChange={(value) => {
-                      setNewContainer((prev) => ({
-                        ...prev,
-                        gross_weight: value === undefined ? "" : String(value),
-                      }));
-                      setWeightInTons((value ?? 0) * 0.001);
-                    }}
-                    error={errors}
-                  />
-                </div>
-              </div>
-
-              <div>
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label className="sm:w-40 sm:shrink-0">Gross Weight</Label>
+              <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
                 <InputNumber
+                  className="w-full"
+                  name="gross_weight"
+                  suffix=" kgs"
+                  hasStepper={false}
+                  value={
+                    newContainer.gross_weight
+                      ? Number(newContainer.gross_weight)
+                      : 0
+                  }
+                  onValueChange={(value) => {
+                    setNewContainer((prev) => ({
+                      ...prev,
+                      gross_weight: value === undefined ? "" : String(value),
+                    }));
+                    setWeightInTons((value ?? 0) * 0.001);
+                  }}
+                  error={errors}
+                />
+                <InputNumber
+                  className="w-full"
                   value={weightInTons}
                   decimalScale={4}
                   readOnly
@@ -343,9 +338,9 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Label className="w-40">Duties and Taxes</Label>
-              <div className="w-full">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label className="sm:w-40 sm:shrink-0">Duties and Taxes</Label>
+              <div className="min-w-0 flex-1">
                 <InputNumber
                   name="duties_and_taxes"
                   value={newContainer.duties_and_taxes}
@@ -363,14 +358,16 @@ export const UpdateContainerModal: React.FC<UpdateContainerModalProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Label className="w-40">Arrival Date</Label>
-              <DatePicker
-                id="arrival_date"
-                name="arrival_date"
-                date={arrivalDate}
-                onChange={setArrivalDate}
-              />
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+              <Label className="sm:w-40 sm:shrink-0">Arrival Date</Label>
+              <div className="min-w-0 flex-1">
+                <DatePicker
+                  id="arrival_date"
+                  name="arrival_date"
+                  date={arrivalDate}
+                  onChange={setArrivalDate}
+                />
+              </div>
             </div>
 
             <DialogFooter>

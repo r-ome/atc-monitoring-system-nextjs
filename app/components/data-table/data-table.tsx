@@ -221,7 +221,7 @@ export const DataTable = <TData, TValue>({
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="border-b px-3 py-2.5 text-center align-middle font-semibold first:pl-[18px] last:pr-[18px] 2xl:first:pl-5 2xl:last:pr-5"
+                    className="px-3 py-2.5 text-center align-middle font-semibold shadow-[inset_0_-1px_0_var(--border)] first:pl-[18px] last:pr-[18px] 2xl:first:pl-5 2xl:last:pr-5"
                     style={{
                       minWidth:
                         header.column.columnDef.minSize ??

@@ -1,11 +1,10 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import type { Session } from "next-auth";
 import { ThemeToggle } from "@/app/components/admin/theme-toggle";
-import { Button } from "@/app/components/ui/button";
 
 interface AppHeaderProps {
   session: Session;
@@ -69,10 +68,6 @@ export function AppHeader({ session }: AppHeaderProps) {
             {now ? format(now, "hh:mm:ss aa") : ""}
           </span>
         </div>
-
-        <Button variant="ghost" size="icon" className="size-8">
-          <Bell size={16} />
-        </Button>
 
         <ThemeToggle />
 

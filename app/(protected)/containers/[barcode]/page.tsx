@@ -1,9 +1,14 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import { PageContainer } from "@/app/components/PageContainer";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/app/components/ui/tabs";
+import { Card } from "@/app/components/ui/card";
+import { BranchBadge, StatusBadge } from "@/app/components/admin";
 import { requireUser } from "@/app/lib/auth";
 import { ContainerProfile } from "./components/ContainerProfile";
 import { ContainerReportFiles } from "./components/ContainerReportFiles";
@@ -13,6 +18,9 @@ import { ContainerReport } from "./components/report/ContainerReport";
 import { OwnerContainerReport } from "./components/report/OwnerContainerReport";
 import { BoughtItemPnL } from "./components/report/BoughtItemPnL";
 import { HotItemsByCategory } from "./components/report/HotItemsByCategory";
+import { UpdateContainerStatusButton } from "./components/UpdateContainerStatusButton";
+import { UpdateContainerModal } from "./components/UpdateContainerModal";
+import { DeleteContainerModal } from "./components/DeleteContainerModal";
 import {
   getContainerByBarcode,
   getContainerHotItemCategories,
@@ -51,11 +59,46 @@ export default async function Page({
     container.barcode.toUpperCase().startsWith("T0");
 
   return (
-    <div className="h-full w-full p-4">
+    <PageContainer>
+      <nav className="flex items-center gap-1.5 text-[12px] text-muted-foreground 2xl:text-[14px]">
+        <Link href="/containers" className="hover:text-foreground">
+          Containers
+        </Link>
+        <ChevronRight size={12} className="opacity-60" />
+        <span className="font-medium text-foreground">{container.barcode}</span>
+      </nav>
+
+      <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4 sm:gap-6 sm:p-5 2xl:p-6">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {container.branch?.name ? (
+              <BranchBadge branch={container.branch.name} />
+            ) : null}
+            <StatusBadge
+              variant={container.status === "PAID" ? "paid" : "unpaid"}
+            >
+              {container.status}
+            </StatusBadge>
+          </div>
+          <h1 className="truncate text-[18px] font-semibold tracking-tight sm:text-[22px] 2xl:text-[28px]">
+            Container {container.barcode}
+          </h1>
+        </div>
+        <div className="grid w-full grid-cols-2 gap-2 [&>*]:w-full [&>*]:min-w-0 [&>*:nth-child(3)]:col-span-2 [&_button]:w-full sm:flex sm:w-auto sm:[&>*]:w-auto sm:[&>*:nth-child(3)]:col-span-1 sm:[&_button]:w-auto">
+          <UpdateContainerStatusButton
+            container_id={container.container_id}
+            status={container.status}
+            paid_at={container.paid_at}
+          />
+          <UpdateContainerModal container={container} />
+          <DeleteContainerModal container={container} />
+        </div>
+      </Card>
+
       <Tabs defaultValue="inventory-list">
-        <TabsList>
+        <TabsList variant="page">
           <TabsTrigger value="inventory-list">Inventories</TabsTrigger>
-          <TabsTrigger value="profile">Container Profile</TabsTrigger>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="report">Reports</TabsTrigger>
         </TabsList>
         <TabsContent value="inventory-list">
@@ -70,12 +113,12 @@ export default async function Page({
           <ContainerProfile container={container} />
         </TabsContent>
         <TabsContent value="report">
-          <div className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+          <div className="flex flex-col gap-4 2xl:gap-6">
+            <div className="grid gap-4 lg:grid-cols-2 lg:items-start 2xl:gap-6">
               {isOwnerContainer ? (
                 <OwnerContainerReport inventories={container.inventories} />
               ) : (
-                <div className="space-y-6">
+                <div className="flex flex-col gap-4 2xl:gap-6">
                   <ContainerReport inventories={container.inventories} />
                   <BoughtItemPnL
                     containerStatus={container.status}
@@ -83,9 +126,11 @@ export default async function Page({
                   />
                 </div>
               )}
-              <div className="w-full max-w-lg rounded-lg border p-6">
+              <div className="w-full rounded-lg border p-4 sm:p-6">
                 <div className="space-y-6">
-                  <GeneratedFinalReportFiles files={container.final_report_files} />
+                  <GeneratedFinalReportFiles
+                    files={container.final_report_files}
+                  />
                   <ContainerReportFiles
                     container_id={container.container_id}
                     files={container.container_report_files}
@@ -104,6 +149,6 @@ export default async function Page({
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

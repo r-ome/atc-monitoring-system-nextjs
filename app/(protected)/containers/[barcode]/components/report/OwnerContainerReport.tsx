@@ -144,7 +144,7 @@ export const OwnerContainerReport: React.FC<OwnerContainerReportProps> = ({
   };
 
   return (
-    <Card className="max-w-lg">
+    <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
         <CardTitle>Owner Sales Report</CardTitle>
         <Select

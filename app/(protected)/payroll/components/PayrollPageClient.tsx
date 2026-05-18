@@ -62,7 +62,7 @@ export const PayrollPageClient: React.FC<Props> = ({
     <Tabs defaultValue="periods">
       <CardHeader className="pb-0">
         <CardTitle>
-          <TabsList>
+          <TabsList variant="page">
             <TabsTrigger value="periods">Payroll Periods</TabsTrigger>
             <TabsTrigger value="employees">Employees</TabsTrigger>
           </TabsList>

@@ -93,7 +93,7 @@ export const BoughtItemPnL: React.FC<BoughtItemPnLProps> = ({
 
   if (containerStatus === "UNPAID") {
     return (
-      <Card className="max-w-lg">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Bought-Item Profit And Loss</CardTitle>
         </CardHeader>
@@ -109,7 +109,7 @@ export const BoughtItemPnL: React.FC<BoughtItemPnLProps> = ({
   }
 
   return (
-    <Card className="max-w-lg">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Bought-Item Profit And Loss</CardTitle>
       </CardHeader>

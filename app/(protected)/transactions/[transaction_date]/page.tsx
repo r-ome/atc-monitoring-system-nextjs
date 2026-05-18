@@ -119,16 +119,10 @@ export default async function Page({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="inward">
-            <TabsList className="w-fit max-w-full">
-              <TabsTrigger value="inward" className="flex-none">
-                Inward Transactions
-              </TabsTrigger>
-              <TabsTrigger value="expense" className="flex-none">
-                Expenses
-              </TabsTrigger>
-              <TabsTrigger value="payroll" className="flex-none">
-                Payroll
-              </TabsTrigger>
+            <TabsList variant="page">
+              <TabsTrigger value="inward">Inward Transactions</TabsTrigger>
+              <TabsTrigger value="expense">Expenses</TabsTrigger>
+              <TabsTrigger value="payroll">Payroll</TabsTrigger>
             </TabsList>
             <TabsContent value="inward">
               <InwardTransactionsTab transactions={transactions} />

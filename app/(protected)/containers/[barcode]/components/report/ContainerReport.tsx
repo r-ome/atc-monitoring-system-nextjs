@@ -100,7 +100,7 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
               : "≥ ₱800,000 sales → ₱35,000";
 
   return (
-    <Card className="max-w-lg">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Container Sales Report</CardTitle>
       </CardHeader>
