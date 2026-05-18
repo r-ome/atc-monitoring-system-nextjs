@@ -28,8 +28,8 @@ const STYLES: Record<string, string> = {
   CANCELLED: "bg-secondary text-muted-foreground",
   DISCREPANCY: "bg-status-warning/15 text-status-warning-foreground",
   PARTIAL: "bg-status-warning/15 text-status-warning-foreground",
-  "ADD ON": "bg-accent text-accent-foreground",
-  ADD_ON: "bg-accent text-accent-foreground",
+  "ADD ON": "bg-[oklch(0.55_0.15_250)] text-white",
+  ADD_ON: "bg-[oklch(0.55_0.15_250)] text-white",
   "PULL OUT": "bg-status-success/15 text-status-success",
   PULL_OUT: "bg-status-success/15 text-status-success",
   "BOUGHT ITEM": "bg-status-success/15 text-status-success",
@@ -50,8 +50,8 @@ export function AuctionStatusPill({
       className={cn(
         "inline-flex items-center gap-1 rounded font-semibold uppercase",
         size === "sm"
-          ? "px-1.5 py-0.5 text-[10px]"
-          : "px-2 py-0.5 text-[10.5px]",
+          ? "px-1.5 py-0.5 text-[12px]"
+          : "px-2 py-0.5 text-[12.5px]",
         colors,
         className,
       )}

@@ -43,20 +43,28 @@ export const ManifestRecordsTable = ({
   const [open, setOpen] = useState<boolean>(false);
   const [errorsOnly, setErrorsOnly] = useState(false);
   const [encoderFilter, setEncoderFilter] = useState<EncoderFilter>(null);
+  const [slashedOnly, setSlashedOnly] = useState(false);
 
-  // Errors-only and the encoder filter are mutually exclusive — toggling
-  // one clears the other to keep the surface honest.
+  // Errors-only, slashed-only, and the encoder filter are mutually exclusive —
+  // toggling one clears the others to keep the surface honest.
   const toggleErrorsOnly = () => {
     setEncoderFilter(null);
+    setSlashedOnly(false);
     setErrorsOnly((v) => !v);
   };
   const toggleEncoderFilter = (name: string, mode: EncoderMode) => {
     setErrorsOnly(false);
+    setSlashedOnly(false);
     setEncoderFilter((current) =>
       current && current.name === name && current.mode === mode
         ? null
         : { name, mode },
     );
+  };
+  const toggleSlashedOnly = () => {
+    setErrorsOnly(false);
+    setEncoderFilter(null);
+    setSlashedOnly((v) => !v);
   };
 
   const globalFilterFn = (
@@ -114,6 +122,9 @@ export const ManifestRecordsTable = ({
     const base = manifestRecords.filter(
       (item) => item.barcode && !item.barcode?.match(/barcode/gi),
     );
+    if (slashedOnly) {
+      return base.filter((item) => item.is_slash_item);
+    }
     if (encoderFilter) {
       return base.filter((item) => {
         const name = item.remarks?.trim() || "Unknown";
@@ -126,7 +137,12 @@ export const ManifestRecordsTable = ({
       return base.filter((item) => item.error_message?.trim());
     }
     return base;
-  }, [manifestRecords, errorsOnly, encoderFilter]);
+  }, [manifestRecords, errorsOnly, encoderFilter, slashedOnly]);
+
+  const slashedCount = useMemo(
+    () => manifestRecords.filter((m) => m.is_slash_item).length,
+    [manifestRecords]
+  );
 
   const titleSuffix = encoderFilter
     ? ` · ${encoderFilter.name} (${encoderFilter.mode})`
@@ -331,7 +347,7 @@ export const ManifestRecordsTable = ({
                 <div className="flex items-baseline gap-1.5">
                   <span
                     className={cn(
-                      "font-mono text-[14px] font-semibold",
+                      "font-mono text-[16px] font-semibold",
                       hasError &&
                         "cursor-pointer underline decoration-dotted underline-offset-2",
                     )}
@@ -358,7 +374,7 @@ export const ManifestRecordsTable = ({
                   <span className="truncate text-[15px] font-medium">
                     {it.description}
                   </span>
-                  <span className="font-mono text-[13px] text-muted-foreground">
+                  <span className="font-mono text-[15px] text-muted-foreground">
                     #{it.bidder_number}
                   </span>
                   <span className="ml-auto font-mono text-[14.5px] font-semibold">
@@ -416,6 +432,21 @@ export const ManifestRecordsTable = ({
                 </span>
               ) : null}
             </Button>
+            {slashedCount > 0 ? (
+              <Button
+                type="button"
+                variant={slashedOnly ? "default" : "outline"}
+                size="sm"
+                className="h-8 gap-1.5"
+                onClick={toggleSlashedOnly}
+                aria-pressed={slashedOnly}
+              >
+                {slashedOnly ? "Show all" : "Slashed only"}
+                <span className="font-mono ml-1 text-[12.5px] font-semibold">
+                  · {slashedCount}
+                </span>
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               size="icon"

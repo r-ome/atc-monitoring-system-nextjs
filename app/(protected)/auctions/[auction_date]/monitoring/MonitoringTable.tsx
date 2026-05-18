@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { BarChart3 } from "lucide-react";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { AuctionStatusPill } from "@/app/(protected)/auctions/components/AuctionStatusPill";
+import { Button } from "@/app/components/ui/button";
 import { CoreRow, Row } from "@tanstack/react-table";
 import { columns } from "./monitoring-columns";
 import { buildGroupIndexMap, cn, formatNumberToCurrency } from "@/app/lib/utils";
@@ -50,6 +51,16 @@ export const MonitoringTable = ({
   const groupIndexMap = useMemo(
     () => buildGroupIndexMap(monitoring, (r) => r.is_slash_item),
     [monitoring]
+  );
+
+  const [slashedOnly, setSlashedOnly] = useState(false);
+  const slashedCount = useMemo(
+    () => monitoring.filter((m) => m.is_slash_item).length,
+    [monitoring]
+  );
+  const filteredMonitoring = useMemo(
+    () => (slashedOnly ? monitoring.filter((m) => m.is_slash_item) : monitoring),
+    [monitoring, slashedOnly]
   );
 
   const pathname = usePathname();
@@ -107,11 +118,22 @@ export const MonitoringTable = ({
     <AuctionDataTable
       icon={BarChart3}
       title="Monitoring"
-      meta={`${monitoring.length.toLocaleString()} items`}
+      meta={`${filteredMonitoring.length.toLocaleString()} of ${monitoring.length.toLocaleString()} items`}
       rowLabel="item"
       pageSize={isMasterList ? 20 : 10}
       columns={columns(groupIndexMap, isMasterList, counterCheck)}
-      data={monitoring}
+      data={filteredMonitoring}
+      actionButtons={
+        slashedCount > 0 ? (
+          <Button
+            variant={slashedOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSlashedOnly((v) => !v)}
+          >
+            {slashedOnly ? "Show all" : `Slashed only (${slashedCount})`}
+          </Button>
+        ) : null
+      }
       columnFilter={{
         column: "status",
         options: [

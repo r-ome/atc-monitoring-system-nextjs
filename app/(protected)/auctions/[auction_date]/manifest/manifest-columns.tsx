@@ -51,7 +51,7 @@ export const columns = (
       return (
         <span
           className={cn(
-            "font-mono text-[12.5px] font-semibold",
+            "font-mono font-semibold",
             m.error_message && "cursor-pointer hover:underline",
           )}
           onClick={() => {
@@ -99,7 +99,7 @@ export const columns = (
     size: 90,
     header: ({ column }) => <SortableHeader column={column} label="Bidder" />,
     cell: ({ row }) => (
-      <span className="font-mono text-[12.5px] font-semibold text-muted-foreground">
+      <span className="font-mono font-semibold text-muted-foreground">
         #{row.original.bidder_number}
       </span>
     ),

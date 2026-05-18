@@ -28,11 +28,12 @@ export const columns: ColumnDef<RegisteredBidderSummary>[] = [
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-[10.5px] font-bold text-accent-foreground">
             {initials}
           </span>
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="font-mono text-[12px] font-semibold text-muted-foreground">
+          <span className="flex min-w-0 items-baseline gap-1.5">
+            <span className="font-mono font-semibold">
               #{rb.bidder.bidder_number}
             </span>
-            <span className="truncate text-[13px] font-medium">
+            <span aria-hidden className="text-muted-foreground">·</span>
+            <span className="truncate text-[13px] text-muted-foreground">
               {rb.bidder.full_name}
             </span>
           </span>
@@ -116,7 +117,7 @@ export const columns: ColumnDef<RegisteredBidderSummary>[] = [
       if (v === 0 && !isCancelledBin) {
         return (
           <div className="text-right">
-            <span className="inline-block rounded bg-status-success/10 px-1.5 py-0.5 text-[10.5px] font-bold tracking-wider text-status-success">
+            <span className="inline-block rounded bg-status-success/10 px-1.5 py-0.5 text-[12.5px] font-bold tracking-wider text-status-success">
               PAID
             </span>
           </div>

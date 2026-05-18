@@ -64,33 +64,21 @@ function RailItem({
   icon: React.ComponentType<{ size?: number; className?: string }>;
   active: boolean;
 }) {
-  const [hover, setHover] = useState(false);
-
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <Link
-        href={href}
-        className={cn(
-          "flex w-12 h-[50px] flex-col items-center justify-center gap-[3px] rounded-[10px] border transition-colors duration-[120ms] text-[9.5px] font-medium 2xl:text-[13.5px]",
-          active
-            ? "bg-card border-border text-primary shadow-xs"
-            : "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
-        )}
-      >
-        <Icon size={18} />
-        <span>{label.split(" ")[0].slice(0, 7)}</span>
-      </Link>
-
-      {hover && (
-        <div className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background shadow-md">
-          {label}
-        </div>
+    <Link
+      href={href}
+      className={cn(
+        "group/item flex h-11 w-full items-center gap-2.5 overflow-hidden rounded-[10px] border px-3 transition-colors duration-[120ms] text-[15px] font-medium",
+        active
+          ? "bg-card border-border text-primary shadow-xs"
+          : "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
       )}
-    </div>
+    >
+      <Icon size={20} className="shrink-0" />
+      <span className="whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/rail:opacity-100">
+        {label}
+      </span>
+    </Link>
   );
 }
 
@@ -124,9 +112,9 @@ export function RailNav({ session }: RailNavProps) {
   return (
     <>
       {/* Desktop icon rail */}
-      <aside className="hidden md:flex w-[74px] shrink-0 flex-col items-center border-r bg-background px-[10px] py-3 gap-1 h-screen sticky top-0">
+      <aside className="group/rail hidden md:flex w-[64px] hover:w-[200px] shrink-0 flex-col items-stretch border-r bg-background px-2 py-3 gap-1 h-screen sticky top-0 overflow-hidden transition-[width] duration-200 ease-out z-30">
         <div
-          className="mb-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11.5px] font-bold tracking-tight text-white 2xl:text-[15.5px]"
+          className="mb-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11.5px] font-bold tracking-tight text-white 2xl:text-[15.5px] self-center group-hover/rail:self-start"
           style={{ background: "linear-gradient(135deg, var(--primary), oklch(0.35 0.18 256))" }}
         >
           ATC
@@ -147,14 +135,16 @@ export function RailNav({ session }: RailNavProps) {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex w-12 h-[50px] flex-col items-center justify-center gap-[3px] rounded-[10px] border border-transparent text-[9.5px] font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors 2xl:text-[13.5px]"
+          className="flex h-11 w-full items-center gap-2.5 overflow-hidden rounded-[10px] border border-transparent px-3 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
         >
-          <LogOut size={18} />
-          <span>Logout</span>
+          <LogOut size={20} className="shrink-0" />
+          <span className="whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/rail:opacity-100">
+            Logout
+          </span>
         </button>
 
         {/* User avatar */}
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground 2xl:text-[15px]">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground 2xl:text-[15px] self-center group-hover/rail:self-start">
           {initials}
         </div>
       </aside>
