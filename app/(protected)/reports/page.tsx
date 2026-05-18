@@ -11,7 +11,6 @@ import { FinancialTabContent } from "./components/FinancialTabContent";
 import { AuctionReportsTabContent } from "./components/AuctionReportsTabContent";
 import { BidderTabContent } from "./components/BidderTabContent";
 import { InventoryTabContent } from "./components/InventoryTabContent";
-import { OperationalTabContent } from "./components/OperationalTabContent";
 import { SupplierTabContent } from "./components/SupplierTabContent";
 import { Card, CardHeader } from "@/app/components/ui/card";
 import { PageContainer } from "@/app/components/PageContainer";
@@ -115,18 +114,6 @@ const Page = async ({
       content: (
         <Suspense fallback={<ReportTabFallback />}>
           <InventoryTabContent
-            branchId={tabBranchId}
-            dateParam={dateParam}
-          />
-        </Suspense>
-      ),
-    },
-    {
-      value: "operational",
-      label: "Operational",
-      content: (
-        <Suspense fallback={<ReportTabFallback />}>
-          <OperationalTabContent
             branchId={tabBranchId}
             dateParam={dateParam}
           />

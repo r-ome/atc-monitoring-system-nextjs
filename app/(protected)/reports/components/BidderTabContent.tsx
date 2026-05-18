@@ -2,7 +2,6 @@ import { GetBidderReportsController } from "src/controllers/reports/get-bidder-r
 import { UnpaidBiddersTable } from "./UnpaidBiddersTable";
 import { BidderActivityTable } from "./BidderActivityTable";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 
 interface Props {
   branchId: string;
@@ -18,18 +17,8 @@ export const BidderTabContent = async ({ branchId, dateParam }: Props) => {
 
   return (
     <div className="flex flex-col gap-4 pt-2">
-      <Card>
-        <CardHeader><CardTitle>Unpaid Bidders</CardTitle></CardHeader>
-        <CardContent>
-          <UnpaidBiddersTable data={res.value.unpaid} />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader><CardTitle>Bidder Activity</CardTitle></CardHeader>
-        <CardContent>
-          <BidderActivityTable data={res.value.activity} />
-        </CardContent>
-      </Card>
+      <UnpaidBiddersTable data={res.value.unpaid} />
+      <BidderActivityTable data={res.value.activity} />
     </div>
   );
 };

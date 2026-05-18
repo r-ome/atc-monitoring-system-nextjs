@@ -274,17 +274,6 @@ export type ContainerStatusEntry = {
   atc_sales: number;
 };
 
-// -- Auction Comparison --
-export type AuctionComparisonEntry = {
-  auction_id: string;
-  auction_date: string;
-  total_sales: number;
-  total_registration_fee: number;
-  items_sold: number;
-  total_items: number;
-  bidder_count: number;
-};
-
 // -- Price Comparison (Bought Items) --
 export type PriceComparisonRow = Prisma.inventoriesGetPayload<{
   include: {

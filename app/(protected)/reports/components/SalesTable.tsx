@@ -1,6 +1,6 @@
 "use client";
 
-import { Row } from "@tanstack/react-table";
+import { CoreRow, Row } from "@tanstack/react-table";
 import { Wallet } from "lucide-react";
 import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { Card } from "@/app/components/ui/card";
@@ -176,6 +176,19 @@ export const SalesTable = ({ summary, branchName }: SalesTableProps) => {
         columns={columns}
         data={summary.breakdown}
         renderMobileCard={renderMobileCard}
+        searchFilter={{
+          globalFilterFn: (
+            row: CoreRow<SalesExpensesSummaryEntry>,
+            _columnId?: string,
+            filterValue?: string,
+          ) => {
+            const search = (filterValue ?? "").toLowerCase();
+            return row.original.period.toLowerCase().includes(search);
+          },
+          searchComponentProps: {
+            placeholder: "Search by period",
+          },
+        }}
       />
     </div>
   );

@@ -1,10 +1,10 @@
 "use client";
 
-import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
+import { ColumnDef, CoreRow, Row } from "@tanstack/react-table";
 import { RefundCancellationBidderEntry, RefundCancellationEntry } from "src/entities/models/Report";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Users } from "lucide-react";
 
 const columns: ColumnDef<RefundCancellationBidderEntry>[] = [
   {
@@ -131,12 +131,32 @@ export const RefundCancellationBidderTable = ({ data }: Props) => {
   };
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Users}
+      title="Top Affected Bidders"
+      meta={`${bidderRows.length.toLocaleString()} bidder${bidderRows.length === 1 ? "" : "s"}`}
+      rowLabel="bidder"
       columns={columns}
       data={bidderRows}
       initialSorting={[{ id: "total", desc: true }]}
       pageSize={10}
       renderMobileCard={renderMobileCard}
+      searchFilter={{
+        globalFilterFn: (
+          row: CoreRow<RefundCancellationBidderEntry>,
+          _columnId?: string,
+          filterValue?: string,
+        ) => {
+          const search = (filterValue ?? "").toLowerCase();
+          const { bidder_number, bidder_name } = row.original;
+          return [bidder_number, bidder_name]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(search));
+        },
+        searchComponentProps: {
+          placeholder: "Search By Name or Bidder Number",
+        },
+      }}
     />
   );
 };

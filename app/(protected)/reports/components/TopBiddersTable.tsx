@@ -1,11 +1,11 @@
 "use client";
 
-import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
+import { ColumnDef, CoreRow, Row } from "@tanstack/react-table";
 import { TopBidderEntry } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Trophy } from "lucide-react";
 
 const columns: ColumnDef<TopBidderEntry>[] = [
   {
@@ -141,15 +141,30 @@ export const TopBiddersTable = ({ data }: Props) => {
   };
 
   return (
-    <DataTable
-      title={
-        <span>
-          Top {data.length} Bidders by Total Spend
-        </span>
-      }
+    <AuctionDataTable
+      icon={Trophy}
+      title="Top Bidders"
+      meta={`Top ${data.length.toLocaleString()} by total spend`}
+      rowLabel="bidder"
       columns={columns}
       data={data}
       renderMobileCard={renderMobileCard}
+      searchFilter={{
+        globalFilterFn: (
+          row: CoreRow<TopBidderEntry>,
+          _columnId?: string,
+          filterValue?: string,
+        ) => {
+          const search = (filterValue ?? "").toLowerCase();
+          const { bidder_number, full_name } = row.original;
+          return [bidder_number, full_name]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(search));
+        },
+        searchComponentProps: {
+          placeholder: "Search By Name or Bidder Number",
+        },
+      }}
     />
   );
 };

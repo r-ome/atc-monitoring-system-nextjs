@@ -27,11 +27,14 @@ function computeSalesCommission(sales: number): number {
   return computeAtcCom(sales);
 }
 
+const EXCLUDED_SUPPLIER_CODES = new Set(["00", "T0"]);
+
 function presenter(rows: SupplierRevenueRow[]): SupplierRevenueSummaryEntry[] {
-  // Group per-container rows by supplier
+  // Group per-container rows by supplier, excluding owner-sales placeholder codes
   const map = new Map<string, SupplierRevenueRow[]>();
   for (const row of rows) {
     const key = row.supplier_code;
+    if (EXCLUDED_SUPPLIER_CODES.has(key.toUpperCase())) continue;
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(row);
   }

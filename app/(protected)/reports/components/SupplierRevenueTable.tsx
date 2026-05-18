@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
+import { ColumnDef, CoreRow, Row } from "@tanstack/react-table";
 import { SupplierRevenueSummaryEntry } from "src/entities/models/Report";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown, InfoIcon } from "lucide-react";
+import { ArrowUpDown, InfoIcon, Truck } from "lucide-react";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import {
   Tooltip,
@@ -52,17 +52,23 @@ const columns: ColumnDef<SupplierRevenueSummaryEntry>[] = [
     accessorKey: "supplier_name",
     size: 220,
     header: ({ column }) => (
-      <SortableHeader
-        label="Supplier"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      />
+      <div className="flex justify-end">
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Supplier
+          <ArrowUpDown />
+        </Button>
+      </div>
     ),
     cell: ({ row }) => {
       const { supplier_code, supplier_name, container_count } = row.original;
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="font-medium overflow-hidden cursor-default">
+            <div className="font-medium overflow-hidden cursor-default text-right">
               <p className="truncate">
                 <span className="text-muted-foreground mr-1">
                   ({supplier_code})
@@ -282,10 +288,14 @@ export const SupplierRevenueTable = ({ data }: Props) => {
   };
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Truck}
+      title="Supplier Revenue Summary"
+      meta={`${filteredData.length.toLocaleString()} supplier${filteredData.length === 1 ? "" : "s"}`}
+      rowLabel="supplier"
       renderMobileCard={renderMobileCard}
-      title={
-        <div className="grid grid-cols-[auto_auto] w-fit gap-x-6 gap-y-0.5 text-sm mb-2">
+      footer={
+        <div className="grid grid-cols-[auto_auto] w-fit gap-x-6 gap-y-0.5 text-sm">
           <LabelWithHint
             label="Item Sales"
             hint="Sum of all PAID auction item prices across the displayed suppliers."
@@ -325,6 +335,23 @@ export const SupplierRevenueTable = ({ data }: Props) => {
       }
       columns={columns}
       data={filteredData}
+      searchFilter={{
+        globalFilterFn: (
+          row: CoreRow<SupplierRevenueSummaryEntry>,
+          _columnId?: string,
+          filterValue?: string,
+        ) => {
+          const search = (filterValue ?? "").toLowerCase();
+          const { supplier_code, supplier_name, sales_remittance_account } =
+            row.original;
+          return [supplier_code, supplier_name, sales_remittance_account]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(search));
+        },
+        searchComponentProps: {
+          placeholder: "Search by supplier or account",
+        },
+      }}
       actionButtons={
         <FilterColumnComponent
           options={ACCOUNT_FILTER_OPTIONS}

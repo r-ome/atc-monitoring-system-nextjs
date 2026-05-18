@@ -1,11 +1,11 @@
 "use client";
 
-import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
+import { ColumnDef, CoreRow, Row } from "@tanstack/react-table";
 import { UnpaidBidderEntry } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, HandCoins } from "lucide-react";
 
 const columns: ColumnDef<UnpaidBidderEntry>[] = [
   {
@@ -106,23 +106,38 @@ export const UnpaidBiddersTable = ({ data }: Props) => {
   };
 
   return (
-    <DataTable
-      renderMobileCard={renderMobileCard}
-      title={
-        <div className="flex gap-6">
-          <span>
-            Unpaid Bidders: <span className="font-semibold">{data.length}</span>
-          </span>
-          <span>
-            Total Outstanding:{" "}
-            <span className="text-red-500">
-              {formatNumberToCurrency(totalBalance)}
-            </span>
-          </span>
-        </div>
+    <AuctionDataTable
+      icon={HandCoins}
+      title="Unpaid Bidders"
+      meta={
+        <span>
+          {data.length.toLocaleString()} bidder{data.length === 1 ? "" : "s"} ·{" "}
+          <span className="text-red-500 font-semibold">
+            {formatNumberToCurrency(totalBalance)}
+          </span>{" "}
+          outstanding
+        </span>
       }
+      rowLabel="bidder"
+      renderMobileCard={renderMobileCard}
       columns={columns}
       data={data}
+      searchFilter={{
+        globalFilterFn: (
+          row: CoreRow<UnpaidBidderEntry>,
+          _columnId?: string,
+          filterValue?: string,
+        ) => {
+          const search = (filterValue ?? "").toLowerCase();
+          const { bidder_number, full_name } = row.original;
+          return [bidder_number, full_name]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(search));
+        },
+        searchComponentProps: {
+          placeholder: "Search By Name or Bidder Number",
+        },
+      }}
     />
   );
 };

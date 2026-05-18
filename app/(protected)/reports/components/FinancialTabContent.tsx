@@ -3,7 +3,6 @@ import { GetFinancialReportController } from "src/controllers/reports/get-financ
 import { SalesTable } from "./SalesTable";
 import { ExpensesSummaryTable } from "./ExpensesSummaryTable";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { getExpensesSummary } from "../actions";
 
 interface Props {
@@ -41,17 +40,12 @@ export const FinancialTabContent = async ({
         branchName={branchName}
       />
       {userRole === "SUPER_ADMIN" ? (
-        <Card>
-          <CardHeader><CardTitle>Expenses Summary</CardTitle></CardHeader>
-          <CardContent>
-            <ExpensesSummaryTable
-              branchName={branchName}
-              data={expensesSummaryRes.value}
-              dateParam={dateParam}
-              mode={mode}
-            />
-          </CardContent>
-        </Card>
+        <ExpensesSummaryTable
+          branchName={branchName}
+          data={expensesSummaryRes.value}
+          dateParam={dateParam}
+          mode={mode}
+        />
       ) : null}
     </div>
   );

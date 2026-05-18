@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
+import { ColumnDef, CoreRow, Row } from "@tanstack/react-table";
 import { ContainerStatusEntry } from "src/entities/models/Report";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown, InfoIcon } from "lucide-react";
+import { ArrowUpDown, Container, InfoIcon } from "lucide-react";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import {
   Tooltip,
@@ -60,8 +60,8 @@ function LabelWithHint({ label, hint }: { label: string; hint: string }) {
 const columns: ColumnDef<ContainerStatusEntry>[] = [
   {
     accessorKey: "barcode",
-    size: 30,
-    header: () => <div>Barcode</div>,
+    minSize: 110,
+    header: () => <div className="text-right">Barcode</div>,
     cell: ({ row }) => {
       const {
         barcode, supplier_name, container_number,
@@ -74,7 +74,7 @@ const columns: ColumnDef<ContainerStatusEntry>[] = [
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="font-mono text-sm cursor-help underline decoration-dotted w-fit">
+            <div className="ml-auto font-mono text-sm cursor-help underline decoration-dotted w-fit">
               {barcode}
             </div>
           </TooltipTrigger>
@@ -396,19 +396,20 @@ export const ContainerStatusTable = ({ data }: Props) => {
   };
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Container}
+      title="Container Status Overview"
+      meta={
+        <span>
+          {total.toLocaleString()} container{total === 1 ? "" : "s"} ·{" "}
+          <span className="text-green-500 font-semibold">{paid}</span> paid ·{" "}
+          <span className="text-red-500 font-semibold">{unpaid}</span> unpaid
+        </span>
+      }
+      rowLabel="container"
       renderMobileCard={renderMobileCard}
-      title={
-        <div className="grid grid-cols-[auto_auto] w-fit gap-x-6 gap-y-0.5 text-sm mb-2">
-          <span className="text-muted-foreground">Containers</span>
-          <span className="font-semibold tabular-nums">{total}</span>
-
-          <span className="text-muted-foreground">Paid</span>
-          <span className="text-green-500 font-semibold tabular-nums">{paid}</span>
-
-          <span className="text-muted-foreground">Unpaid</span>
-          <span className="text-red-500 font-semibold tabular-nums">{unpaid}</span>
-
+      footer={
+        <div className="grid grid-cols-[auto_auto] w-fit gap-x-6 gap-y-0.5 text-sm">
           <LabelWithHint
             label="Item Sales"
             hint="Sum of all PAID auction item prices per container."
@@ -454,6 +455,22 @@ export const ContainerStatusTable = ({ data }: Props) => {
       }
       columns={columns}
       data={filteredData}
+      searchFilter={{
+        globalFilterFn: (
+          row: CoreRow<ContainerStatusEntry>,
+          _columnId?: string,
+          filterValue?: string,
+        ) => {
+          const search = (filterValue ?? "").toLowerCase();
+          const { barcode, supplier_name, container_number } = row.original;
+          return [barcode, supplier_name, container_number]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(search));
+        },
+        searchComponentProps: {
+          placeholder: "Search by barcode, supplier, or container",
+        },
+      }}
       actionButtons={
         <div className="flex flex-wrap gap-2">
           <FilterColumnComponent

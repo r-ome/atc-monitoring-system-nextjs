@@ -1,19 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { AuctionStatusBadge } from "@/app/components/admin";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { ColumnDef, CoreRow, Row } from "@tanstack/react-table";
 import { RefundCancellationEntry } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Receipt } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
-import { SearchComponent } from "@/app/components/data-table/SearchComponent";
 
 const parseDisplayDate = (value: string) => new Date(value).getTime();
 
@@ -173,35 +171,34 @@ interface Props {
 }
 
 export const RefundCancellationTable = ({ data }: Props) => {
-  const [search, setSearch] = useState("");
-
-  const filteredData = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return data;
-
-    return data.filter((row) =>
-      [
-        row.auction_date,
-        row.status_date,
-        row.bidder_number,
-        row.bidder_name,
-        row.description,
-        row.barcode,
-        row.control,
-        row.status,
-        row.reason,
-        row.updated_by,
-      ]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query)),
-    );
-  }, [data, search]);
-
-  const refunded = filteredData.filter((d) => d.status === "REFUNDED");
-  const cancelled = filteredData.filter((d) => d.status === "CANCELLED");
+  const refunded = data.filter((d) => d.status === "REFUNDED");
+  const cancelled = data.filter((d) => d.status === "CANCELLED");
   const totalRefundedValue = refunded.reduce((sum, d) => sum + d.price, 0);
   const totalCancelledValue = cancelled.reduce((sum, d) => sum + d.price, 0);
   const totalAffectedValue = totalRefundedValue + totalCancelledValue;
+
+  const globalFilterFn = (
+    row: CoreRow<RefundCancellationEntry>,
+    _columnId?: string,
+    filterValue?: string,
+  ) => {
+    const search = (filterValue ?? "").toLowerCase();
+    const r = row.original;
+    return [
+      r.auction_date,
+      r.status_date,
+      r.bidder_number,
+      r.bidder_name,
+      r.description,
+      r.barcode,
+      r.control,
+      r.status,
+      r.reason,
+      r.updated_by,
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(search));
+  };
 
   const renderMobileCard = (row: Row<RefundCancellationEntry>) => {
     const r = row.original;
@@ -234,54 +231,33 @@ export const RefundCancellationTable = ({ data }: Props) => {
   };
 
   return (
-    <DataTable
-      renderMobileCard={renderMobileCard}
-      title={
-        <div className="flex flex-col gap-3">
-          <div className="w-full md:w-2/5">
-            <SearchComponent
-              value={search}
-              onChangeEvent={setSearch}
-              placeholder="Search bidder, item, barcode, reason, or status..."
-            />
-          </div>
-          <div className="flex flex-wrap gap-6">
-            <span>
-              Refunded:{" "}
-              <span className="text-orange-500 font-semibold">
-                {refunded.length}
-              </span>
-            </span>
-            <span>
-              Cancelled:{" "}
-              <span className="text-muted-foreground font-semibold">
-                {cancelled.length}
-              </span>
-            </span>
-            <span>
-              Cancelled Value:{" "}
-              <span className="font-semibold">
-                {formatNumberToCurrency(totalCancelledValue)}
-              </span>
-            </span>
-            <span>
-              Refunded Value:{" "}
-              <span className="text-red-500 font-semibold">
-                {formatNumberToCurrency(totalRefundedValue)}
-              </span>
-            </span>
-            <span>
-              Total Affected Value:{" "}
-              <span className="font-semibold">
-                {formatNumberToCurrency(totalAffectedValue)}
-              </span>
-            </span>
-          </div>
-        </div>
+    <AuctionDataTable
+      icon={Receipt}
+      title="Refunds & Cancellations"
+      meta={
+        <span>
+          <span className="text-orange-500 font-semibold">
+            {refunded.length}
+          </span>{" "}
+          refunded ·{" "}
+          <span className="font-semibold">{cancelled.length}</span> cancelled ·{" "}
+          <span className="text-red-500 font-semibold">
+            {formatNumberToCurrency(totalAffectedValue)}
+          </span>{" "}
+          affected
+        </span>
       }
+      rowLabel="entry"
+      renderMobileCard={renderMobileCard}
       columns={columns}
-      data={filteredData}
+      data={data}
       initialSorting={[{ id: "auction_date", desc: true }]}
+      searchFilter={{
+        globalFilterFn,
+        searchComponentProps: {
+          placeholder: "Search bidder, item, barcode, reason, or status...",
+        },
+      }}
     />
   );
 };

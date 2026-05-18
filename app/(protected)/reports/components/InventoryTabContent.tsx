@@ -19,20 +19,8 @@ export const InventoryTabContent = async ({ branchId, dateParam }: Props) => {
 
   return (
     <div className="flex flex-col gap-4 pt-2">
-      <Card>
-        <CardHeader><CardTitle>Refunds & Cancellations</CardTitle></CardHeader>
-        <CardContent>
-          <RefundCancellationTable data={res.value.refundCancellation} />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader><CardTitle>Top Affected Bidders</CardTitle></CardHeader>
-        <CardContent>
-          <RefundCancellationBidderTable
-            data={res.value.refundCancellationByBidder}
-          />
-        </CardContent>
-      </Card>
+      <RefundCancellationTable data={res.value.refundCancellation} />
+      <RefundCancellationBidderTable data={res.value.refundCancellationByBidder} />
       <Card>
         <CardHeader><CardTitle>Bought Item Price Comparison</CardTitle></CardHeader>
         <CardContent>

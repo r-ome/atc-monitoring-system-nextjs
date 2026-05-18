@@ -1,9 +1,9 @@
 "use client";
 
 import { CoreRow, ColumnDef, Row } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Wallet } from "lucide-react";
 import { ExpenseTypeBadge } from "@/app/components/admin";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { Button } from "@/app/components/ui/button";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { ExpenseSummaryEntry, FilterMode } from "src/entities/models/Report";
@@ -116,21 +116,19 @@ export const ExpensesSummaryTable = ({
   };
 
   return (
-    <DataTable
-      renderMobileCard={renderMobileCard}
-      title={
-        <div className="flex gap-6">
-          <span>
-            Expenses: <span className="font-semibold">{data.length}</span>
+    <AuctionDataTable
+      icon={Wallet}
+      title="Expenses Summary"
+      meta={
+        <span>
+          {data.length.toLocaleString()} expense{data.length === 1 ? "" : "s"} ·{" "}
+          <span className="text-red-500 font-semibold">
+            {formatNumberToCurrency(totalExpenses)}
           </span>
-          <span>
-            Total Amount:{" "}
-            <span className="text-red-500">
-              {formatNumberToCurrency(totalExpenses)}
-            </span>
-          </span>
-        </div>
+        </span>
       }
+      rowLabel="expense"
+      renderMobileCard={renderMobileCard}
       actionButtons={
         <GenerateExpensesSummaryReport
           branchName={branchName}
