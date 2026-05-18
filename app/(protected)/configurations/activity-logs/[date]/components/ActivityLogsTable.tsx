@@ -370,9 +370,11 @@ const columns: ColumnDef<ActivityLog>[] = [
   },
   {
     accessorKey: "description",
-    header: "Description",
+    header: () => <div className="text-left">Description</div>,
     cell: ({ row }) => (
-      <ActivityDescriptionCell description={row.original.description} />
+      <div className="text-left">
+        <ActivityDescriptionCell description={row.original.description} />
+      </div>
     ),
   },
 ];

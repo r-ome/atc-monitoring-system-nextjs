@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { ContainerStatusEntry } from "src/entities/models/Report";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown, InfoIcon } from "lucide-react";
@@ -359,8 +359,45 @@ export const ContainerStatusTable = ({ data }: Props) => {
   const totalRoyalty = filteredData.reduce((s, d) => s + d.royalty, 0);
   const totalAtcSales = filteredData.reduce((s, d) => s + d.atc_sales, 0);
 
+  const renderMobileCard = (row: Row<ContainerStatusEntry>) => {
+    const c = row.original;
+    const isPaid = c.status === "PAID";
+    return (
+      <div className="flex flex-col gap-1 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[13px] font-semibold">{c.barcode}</span>
+          <span
+            className={`ml-auto font-semibold text-[11px] ${isPaid ? "text-green-500" : "text-red-500"}`}
+          >
+            {c.status}
+          </span>
+        </div>
+        <div className="truncate text-[11.5px] text-muted-foreground">
+          {c.supplier_name}
+        </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Item Sales</span>
+            <span className="font-mono text-green-500 font-semibold">
+              {c.total_item_sales > 0 ? formatNumberToCurrency(c.total_item_sales) : "—"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">ATC Sales</span>
+            <span
+              className={`font-mono font-semibold ${c.atc_sales >= 0 ? "text-green-500" : "text-red-500"}`}
+            >
+              {formatNumberToCurrency(c.atc_sales)}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <DataTable
+      renderMobileCard={renderMobileCard}
       title={
         <div className="grid grid-cols-[auto_auto] w-fit gap-x-6 gap-y-0.5 text-sm mb-2">
           <span className="text-muted-foreground">Containers</span>
@@ -417,7 +454,6 @@ export const ContainerStatusTable = ({ data }: Props) => {
       }
       columns={columns}
       data={filteredData}
-      initialSorting={[{ id: "due_date", desc: false }]}
       actionButtons={
         <div className="flex flex-wrap gap-2">
           <FilterColumnComponent

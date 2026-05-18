@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { SupplierRevenueSummaryEntry } from "src/entities/models/Report";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown, InfoIcon } from "lucide-react";
@@ -246,8 +246,44 @@ export const SupplierRevenueTable = ({ data }: Props) => {
   const totalRoyalty = filteredData.reduce((s, d) => s + d.royalty, 0);
   const totalAtcSales = filteredData.reduce((s, d) => s + d.atc_sales, 0);
 
+  const renderMobileCard = (row: Row<SupplierRevenueSummaryEntry>) => {
+    const s = row.original;
+    return (
+      <div className="flex flex-col gap-1 px-4 py-3">
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-mono text-[11px] font-semibold text-muted-foreground">
+            ({s.supplier_code})
+          </span>
+          <span className="truncate text-[13px] font-medium">{s.supplier_name}</span>
+        </div>
+        {s.sales_remittance_account ? (
+          <div className="truncate text-[11px] text-muted-foreground">
+            {s.sales_remittance_account}
+          </div>
+        ) : null}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Item Sales</span>
+            <span className="font-mono text-green-500 font-semibold">
+              {formatNumberToCurrency(s.total_item_sales)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">ATC Sales</span>
+            <span
+              className={`font-mono font-semibold ${s.atc_sales >= 0 ? "text-green-500" : "text-red-500"}`}
+            >
+              {formatNumberToCurrency(s.atc_sales)}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <DataTable
+      renderMobileCard={renderMobileCard}
       title={
         <div className="grid grid-cols-[auto_auto] w-fit gap-x-6 gap-y-0.5 text-sm mb-2">
           <LabelWithHint

@@ -3,9 +3,9 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/app/components/data-table/data-table";
-import { CoreRow } from "@tanstack/react-table";
+import { CoreRow, Row } from "@tanstack/react-table";
 import { columns } from "./bidder-columns";
-import { BiddersMobileList } from "./bidders-mobile-list";
+import { BranchBadge, StatusBadge } from "@/app/components/admin";
 
 export type BidderRowType = {
   bidder_id: string;
@@ -56,33 +56,52 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
       .some((field) => field!.toLowerCase().includes(search));
   };
 
+  const renderMobileCard = (row: Row<BidderRowType>) => {
+    const b = row.original;
+    const lastActive = b.last_active.duration ?? "Never";
+    return (
+      <div className="flex items-center gap-3 px-4 py-3">
+        <span className="min-w-[52px] font-mono text-[13px] font-semibold">
+          #{b.bidder_number}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col leading-tight">
+          <span className="truncate text-[13px] font-medium uppercase">
+            {b.full_name}
+          </span>
+          <span className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+            <BranchBadge branch={b.branch.name} />
+            <span aria-hidden>·</span>
+            <span className="truncate">{lastActive}</span>
+          </span>
+        </div>
+        <StatusBadge variant={b.status === "ACTIVE" ? "active" : "inactive"}>
+          {b.status}
+        </StatusBadge>
+      </div>
+    );
+  };
+
   return (
-    <>
-      <div className="hidden md:block">
-        <DataTable
-          columns={columns}
-          data={bidders}
-          onRowClick={(bidder) =>
-            router.push(`/bidders/${bidder.bidder_number}-${bidder.branch.name}`)
-          }
-          searchFilter={{
-            globalFilterFn,
-            searchComponentProps: {
-              placeholder: "Search By Name or Bidder Number",
-            },
-          }}
-          columnFilter={{
-            column: "branch_name",
-            options: branchOptions,
-            filterComponentProps: {
-              placeholder: "Filter by Branch",
-            },
-          }}
-        />
-      </div>
-      <div className="md:hidden">
-        <BiddersMobileList bidders={bidders} branchOptions={branchOptions} />
-      </div>
-    </>
+    <DataTable
+      columns={columns}
+      data={bidders}
+      onRowClick={(bidder) =>
+        router.push(`/bidders/${bidder.bidder_number}-${bidder.branch.name}`)
+      }
+      searchFilter={{
+        globalFilterFn,
+        searchComponentProps: {
+          placeholder: "Search By Name or Bidder Number",
+        },
+      }}
+      columnFilter={{
+        column: "branch_name",
+        options: branchOptions,
+        filterComponentProps: {
+          placeholder: "Filter by Branch",
+        },
+      }}
+      renderMobileCard={renderMobileCard}
+    />
   );
 };

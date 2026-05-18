@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CoreRow } from "@tanstack/react-table";
+import { useRouter, usePathname } from "next/navigation";
+import { CoreRow, Row } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
 import { columns } from "./container-columns";
+import { BranchBadge, StatusBadge } from "@/app/components/admin";
 import type { UserRole } from "src/entities/models/User";
 
 const FILTER_ALLOWED_ROLES = new Set<UserRole>(["SUPER_ADMIN", "OWNER"]);
@@ -96,10 +98,49 @@ export const ContainersTable: React.FC<ContainersTableProps> = ({
     return barcode.includes(search);
   };
 
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const renderMobileCard = (row: Row<ContainerRowType>) => {
+    const c = row.original;
+    return (
+      <div className="flex flex-col gap-1.5 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[13px] font-semibold">
+            {c.barcode}
+          </span>
+          <span className="ml-auto">
+            <StatusBadge variant={c.status === "PAID" ? "paid" : "unpaid"}>
+              {c.status}
+            </StatusBadge>
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+          <span className="truncate">{c.supplier.name}</span>
+          <span aria-hidden>·</span>
+          <BranchBadge branch={c.branch.name} />
+          <span className="ml-auto font-mono text-[11px]">
+            {c.inventory_count} item{c.inventory_count === 1 ? "" : "s"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <span>Auction {c.auction_start_date ?? "N/A"}</span>
+          <span aria-hidden>·</span>
+          <span>Due {c.due_date ?? "N/A"}</span>
+          {c.paid_at ? (
+            <span className="ml-auto">Paid {c.paid_at}</span>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <DataTable
       columns={columns}
       data={filteredContainers}
+      onRowClick={(c) => router.push(`${pathname}/${c.barcode}`)}
+      renderMobileCard={renderMobileCard}
       actionButtons={
         canUseFilters ? (
           <div className="flex flex-col gap-2 md:flex-row">

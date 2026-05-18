@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { PaymentMethodBreakdown } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
@@ -63,8 +63,29 @@ export const PaymentMethodBreakdownTable = ({ data }: Props) => {
   const total = data.reduce((sum, d) => sum + d.total_amount, 0);
   const totalTransactions = data.reduce((sum, d) => sum + d.transaction_count, 0);
 
+  const renderMobileCard = (row: Row<PaymentMethodBreakdown>) => {
+    const p = row.original;
+    return (
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-col leading-tight">
+          <span className="truncate text-[13px] font-medium">
+            {p.payment_method_name}
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            {p.transaction_count} transaction
+            {p.transaction_count === 1 ? "" : "s"}
+          </span>
+        </div>
+        <span className="font-mono text-[12.5px] font-bold text-green-500">
+          {formatNumberToCurrency(p.total_amount)}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <DataTable
+      renderMobileCard={renderMobileCard}
       title={
         <div className="flex gap-6">
           <span>

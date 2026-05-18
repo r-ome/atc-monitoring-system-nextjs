@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { RefundCancellationBidderEntry, RefundCancellationEntry } from "src/entities/models/Report";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
@@ -104,12 +104,39 @@ export const RefundCancellationBidderTable = ({ data }: Props) => {
     return a.bidder_number.localeCompare(b.bidder_number);
   });
 
+  const renderMobileCard = (row: Row<RefundCancellationBidderEntry>) => {
+    const b = row.original;
+    return (
+      <div className="flex items-center gap-3 px-4 py-3">
+        <span className="font-mono text-[12px] font-semibold text-muted-foreground">
+          #{b.bidder_number}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col leading-tight">
+          <span className="truncate text-[13px] font-medium">
+            {b.bidder_name}
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            <span className="text-orange-500 font-medium">
+              {b.refunded} refunded
+            </span>{" "}
+            ·{" "}
+            <span className="text-muted-foreground font-medium">
+              {b.cancelled} cancelled
+            </span>
+          </span>
+        </div>
+        <span className="font-mono text-[13px] font-bold">{b.total}</span>
+      </div>
+    );
+  };
+
   return (
     <DataTable
       columns={columns}
       data={bidderRows}
       initialSorting={[{ id: "total", desc: true }]}
       pageSize={10}
+      renderMobileCard={renderMobileCard}
     />
   );
 };

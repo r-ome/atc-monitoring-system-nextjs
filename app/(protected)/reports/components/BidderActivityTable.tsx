@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { BidderActivityEntry } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
@@ -132,8 +132,42 @@ export const BidderActivityTable = ({ data }: Props) => {
   const totalBidders = data.length;
   const totalSpent = data.reduce((sum, d) => sum + d.total_spent, 0);
 
+  const renderMobileCard = (row: Row<BidderActivityEntry>) => {
+    const b = row.original;
+    const statusColor =
+      b.status === "ACTIVE"
+        ? "text-green-500"
+        : b.status === "BANNED"
+          ? "text-red-500"
+          : "text-yellow-500";
+    return (
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-col leading-tight">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-mono text-[11px] font-semibold text-muted-foreground">
+              #{b.bidder_number}
+            </span>
+            <span className="truncate text-[13px] font-medium">
+              {b.full_name}
+            </span>
+          </div>
+          <span className="text-[11px] text-muted-foreground">
+            <span className={`font-semibold ${statusColor}`}>{b.status}</span> ·{" "}
+            {b.auctions_attended} auction
+            {b.auctions_attended === 1 ? "" : "s"} · {b.items_won} item
+            {b.items_won === 1 ? "" : "s"}
+          </span>
+        </div>
+        <span className="font-mono text-[12.5px] font-bold text-green-500">
+          {formatNumberToCurrency(b.total_spent)}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <DataTable
+      renderMobileCard={renderMobileCard}
       title={
         <div className="flex gap-6">
           <span>

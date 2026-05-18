@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { Card } from "@/app/components/ui/card";
+import { BranchBadge } from "@/app/components/admin";
 import { formatDate } from "@/app/lib/utils";
 
 interface AuctionSecondaryHeaderProps {
@@ -20,7 +21,6 @@ export function AuctionSecondaryHeader({
   const dateObj = new Date(auctionDate);
   const dayOfWeek = formatDate(dateObj, "EEEE");
   const longDate = formatDate(dateObj, "MMMM d, yyyy");
-  const isBinan = branchName.toUpperCase().includes("BI");
 
   return (
     <Card className="flex flex-col gap-3 p-[14px] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between 2xl:p-4 2xl:text-[15px]">
@@ -42,16 +42,7 @@ export function AuctionSecondaryHeader({
           </span>
         </div>
 
-        <span
-          className="rounded px-1.5 py-0.5 text-[10.5px] font-semibold tracking-wide text-secondary-foreground 2xl:text-[13.5px]"
-          style={{
-            background: isBinan
-              ? "var(--branch-binan)"
-              : "var(--branch-tarlac)",
-          }}
-        >
-          {branchName.toUpperCase()}
-        </span>
+        <BranchBadge branch={branchName} />
 
         {startedAt ? (
           <span className="text-[12px] text-muted-foreground 2xl:text-[14.5px]">

@@ -20,9 +20,9 @@ const statusBadgeVariants = cva(
   {
     variants: {
       variant: {
-        // Payment statuses
-        paid: "bg-status-success text-status-success-foreground",
-        unpaid: "bg-status-error text-status-error-foreground",
+        // Payment statuses (auction-style soft pill)
+        paid: "rounded bg-status-success/15 text-status-success",
+        unpaid: "rounded bg-destructive/10 text-destructive",
         pending: "bg-status-warning text-status-warning-foreground",
         cancelled: "bg-muted text-muted-foreground",
         refunded: "bg-status-info text-status-info-foreground",
@@ -169,20 +169,32 @@ export function BinanBadge({ className, ...props }: Omit<StatusBadgeProps, "vari
   return <StatusBadge variant="binan" className={className} {...props}>Binan</StatusBadge>
 }
 
-// Branch badge helper
+// Branch badge — auction-style rectangular pill with branch-tinted background.
 export function BranchBadge({
   branch,
   className,
   ...props
 }: { branch: BranchBadgeValue } & Omit<StatusBadgeProps, "variant" | "children">) {
+  const variant = getBranchBadgeVariant(branch)
+  const background =
+    variant === "binan"
+      ? "var(--branch-binan)"
+      : variant === "tarlac"
+        ? "var(--branch-tarlac)"
+        : undefined
   return (
-    <StatusBadge
-      variant={getBranchBadgeVariant(branch)}
-      className={className}
+    <span
+      className={cn(
+        "inline-flex items-center rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-secondary-foreground 2xl:text-[13.5px]",
+        variant === "tarlac" && "text-white",
+        variant === "neutral" && "bg-muted text-muted-foreground",
+        className,
+      )}
+      style={background ? { background } : undefined}
       {...props}
     >
       {formatBranchLabel(branch)}
-    </StatusBadge>
+    </span>
   )
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { CoreRow, ColumnDef } from "@tanstack/react-table";
+import { CoreRow, ColumnDef, Row } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { ExpenseTypeBadge } from "@/app/components/admin";
 import { DataTable } from "@/app/components/data-table/data-table";
@@ -93,8 +93,31 @@ export const ExpensesSummaryTable = ({
       .some((field) => field.toString().toLowerCase().includes(search));
   };
 
+  const renderMobileCard = (row: Row<ExpenseSummaryEntry>) => {
+    const e = row.original;
+    return (
+      <div className="flex items-start gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1 leading-tight">
+          <div className="flex items-center gap-2">
+            <ExpenseTypeBadge expenseType={e.purpose} />
+            <span className="ml-auto text-[11px] text-muted-foreground">
+              {e.created_at}
+            </span>
+          </div>
+          {e.remarks ? (
+            <span className="text-[12px] text-foreground/80">{e.remarks}</span>
+          ) : null}
+        </div>
+        <span className="font-mono text-[12.5px] font-bold text-red-500">
+          {formatNumberToCurrency(e.amount)}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <DataTable
+      renderMobileCard={renderMobileCard}
       title={
         <div className="flex gap-6">
           <span>

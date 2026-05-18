@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { Package } from "lucide-react";
 import { safeGetItem } from "@/app/lib/local-storage";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow, Row, RowSelectionState } from "@tanstack/react-table";
 import {
   AuctionInventory,
@@ -133,7 +134,11 @@ export function BidderItemsTable({
 
   return (
     <BidderPullOutModalProvider>
-      <DataTable
+      <AuctionDataTable
+        icon={Package}
+        title="Bidder Items"
+        meta={`${auctionInventories.length.toLocaleString()} entries`}
+        rowLabel="item"
         columns={columns}
         data={auctionInventories}
         getRowId={(row) => row.auction_inventory_id}

@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { CashFlowEntry } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
@@ -115,8 +115,57 @@ export const DailyCashFlowTable = ({ data }: Props) => {
   );
   const totalNet = totalInflow - totalOutflow;
 
+  const renderMobileCard = (row: Row<CashFlowEntry>) => {
+    const c = row.original;
+    return (
+      <div className="flex flex-col gap-1.5 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] font-semibold">{c.date}</span>
+          <span
+            className={`ml-auto font-mono text-[13px] font-bold ${c.net >= 0 ? "text-green-500" : "text-red-500"}`}
+          >
+            {formatNumberToCurrency(c.net)}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Pull Out</span>
+            <span className="font-mono text-green-500">
+              {formatNumberToCurrency(c.inflow_pull_out)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Refunded</span>
+            <span className="font-mono text-red-500">
+              {formatNumberToCurrency(c.outflow_refunded)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Add On</span>
+            <span className="font-mono text-green-500">
+              {formatNumberToCurrency(c.inflow_add_on)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Less</span>
+            <span className="font-mono text-red-500">
+              {formatNumberToCurrency(c.outflow_less)}
+            </span>
+          </div>
+          <div className="col-span-2 flex justify-between">
+            <span className="text-muted-foreground">Expenses</span>
+            <span className="font-mono text-red-500">
+              {formatNumberToCurrency(c.outflow_expenses)}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <DataTable
+      renderMobileCard={renderMobileCard}
       title={
         <div className="flex gap-6">
           <span>

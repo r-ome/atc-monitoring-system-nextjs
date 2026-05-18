@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/app/components/data-table/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { TopBidderEntry } from "src/entities/models/Report";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
@@ -118,6 +118,28 @@ interface Props {
 }
 
 export const TopBiddersTable = ({ data }: Props) => {
+  const renderMobileCard = (row: Row<TopBidderEntry>) => {
+    const b = row.original;
+    return (
+      <div className="flex items-center gap-3 px-4 py-3">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">
+          {row.index + 1}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col leading-tight">
+          <span className="truncate text-[13px] font-medium">{b.full_name}</span>
+          <span className="text-[11px] text-muted-foreground">
+            #{b.bidder_number} · {b.items_won} item
+            {b.items_won === 1 ? "" : "s"} · {b.auctions_attended} auction
+            {b.auctions_attended === 1 ? "" : "s"}
+          </span>
+        </div>
+        <span className="font-mono text-[12.5px] font-bold text-green-500">
+          {formatNumberToCurrency(b.total_spent)}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <DataTable
       title={
@@ -127,6 +149,7 @@ export const TopBiddersTable = ({ data }: Props) => {
       }
       columns={columns}
       data={data}
+      renderMobileCard={renderMobileCard}
     />
   );
 };

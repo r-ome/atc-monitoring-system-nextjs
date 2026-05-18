@@ -239,7 +239,7 @@ export const AuctionItemSearchOverlay = () => {
         onOpenChange={handleOpenChange}
         title="Search auction item"
         description="Search auction items by barcode, control, or barcode:control."
-        className="top-8 translate-y-0 sm:max-w-[560px]"
+        className="top-8 translate-y-0 sm:max-w-[820px] lg:max-w-[960px]"
       >
         <CommandInput
           value={query}

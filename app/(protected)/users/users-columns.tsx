@@ -12,10 +12,10 @@ export const columns: ColumnDef<User>[] = [
     accessorKey: "name",
     header: ({ column }) => {
       return (
-        <div className="flex justify-center">
+        <div className="flex justify-end">
           <Button
             variant="ghost"
-            className="cursor-pointer flex justify-center"
+            className="cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Name
@@ -26,7 +26,7 @@ export const columns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => {
       const user = row.original;
-      return <div className="flex justify-center">{user.name}</div>;
+      return <div className="text-right">{user.name}</div>;
     },
   },
   {
