@@ -1,17 +1,14 @@
 "use server";
 
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { subDays } from "date-fns";
 import {
   getExpensesByDate,
   getPaymentsByDate,
   getPettyCashBalance,
 } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/app/components/ui/card";
 import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 import {
   Tabs,
@@ -19,8 +16,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/app/components/ui/tabs";
-import { subDays } from "date-fns";
 import { formatDate } from "@/app/lib/utils";
+import { PageContainer } from "@/app/components/PageContainer";
 
 import { getBranches } from "../../branches/actions";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
@@ -97,51 +94,57 @@ export default async function Page({
   const current_petty_cash = current_petty_cash_res.value;
   const last_petty_cash = last_petty_cash_res.value;
 
+  const formattedDate = formatDate(
+    new Date(transaction_date),
+    "MMMM dd, yyyy",
+  );
+
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <div className="flex gap-4">
-              <TransactionHeader
-                user={user}
-                selectedBranch={selected_branch}
-                branches={branches}
-              />
-              <GenerateExpenseReport
-                transactions={transactions}
-                expenses={expenses}
-                yesterdayPettyCash={last_petty_cash}
-                paymentMethods={payment_methods}
-              />
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="inward">
-            <TabsList variant="page">
-              <TabsTrigger value="inward">Inward Transactions</TabsTrigger>
-              <TabsTrigger value="expense">Expenses</TabsTrigger>
-              <TabsTrigger value="payroll">Payroll</TabsTrigger>
-            </TabsList>
-            <TabsContent value="inward">
-              <InwardTransactionsTab transactions={transactions} />
-            </TabsContent>
-            <TabsContent value="expense">
-              <ExpensesTab
-                expenses={expenses}
-                selectedBranch={selected_branch}
-                currentPettyCash={current_petty_cash}
-                lastPettyCash={last_petty_cash}
-                user={user}
-              />
-            </TabsContent>
-            <TabsContent value="payroll">
-              <PayrollTab expenses={expenses} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </>
+    <PageContainer>
+      <nav className="flex items-center gap-1.5 text-[12px] text-muted-foreground 2xl:text-[14px]">
+        <Link href="/transactions" className="hover:text-foreground">
+          Transactions
+        </Link>
+        <ChevronRight size={12} className="opacity-60" />
+        <span className="font-medium text-foreground">{formattedDate}</span>
+      </nav>
+
+      <TransactionHeader
+        user={user}
+        selectedBranch={selected_branch}
+        branches={branches}
+        actions={
+          <GenerateExpenseReport
+            transactions={transactions}
+            expenses={expenses}
+            yesterdayPettyCash={last_petty_cash}
+            paymentMethods={payment_methods}
+          />
+        }
+      />
+
+      <Tabs defaultValue="inward" className="flex flex-col gap-4 2xl:gap-6">
+        <TabsList variant="page">
+          <TabsTrigger value="inward">Inward Transactions</TabsTrigger>
+          <TabsTrigger value="expense">Expenses</TabsTrigger>
+          <TabsTrigger value="payroll">Payroll</TabsTrigger>
+        </TabsList>
+        <TabsContent value="inward" className="flex flex-col gap-4 2xl:gap-6">
+          <InwardTransactionsTab transactions={transactions} />
+        </TabsContent>
+        <TabsContent value="expense" className="flex flex-col gap-4 2xl:gap-6">
+          <ExpensesTab
+            expenses={expenses}
+            selectedBranch={selected_branch}
+            currentPettyCash={current_petty_cash}
+            lastPettyCash={last_petty_cash}
+            user={user}
+          />
+        </TabsContent>
+        <TabsContent value="payroll" className="flex flex-col gap-4 2xl:gap-6">
+          <PayrollTab expenses={expenses} />
+        </TabsContent>
+      </Tabs>
+    </PageContainer>
   );
 }

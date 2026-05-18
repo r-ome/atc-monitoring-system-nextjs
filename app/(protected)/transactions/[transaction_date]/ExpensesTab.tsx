@@ -21,32 +21,35 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
   lastPettyCash,
   user,
 }) => {
+  const isAdmin = ["SUPER_ADMIN", "OWNER"].includes(user.role);
+  const actionButtons = selectedBranch ? (
+    <>
+      <AddExpenseModal
+        currentPettyCash={currentPettyCash}
+        selectedBranch={selectedBranch}
+      />
+      {isAdmin ? (
+        <UpdatePettyCashModal
+          pettyCash={currentPettyCash}
+          selectedBranch={selectedBranch}
+        />
+      ) : null}
+    </>
+  ) : null;
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end w-full gap-4">
-        {selectedBranch ? (
-          <>
-            <AddExpenseModal
-              currentPettyCash={currentPettyCash}
-              selectedBranch={selectedBranch}
-            />
-            {["SUPER_ADMIN", "OWNER"].includes(user.role) ? (
-              <UpdatePettyCashModal
-                pettyCash={currentPettyCash}
-                selectedBranch={selectedBranch}
-              />
-            ) : null}
-          </>
-        ) : null}
-      </div>
-
       <ExpensesHeader
         expenses={expenses}
         currentPettyCash={currentPettyCash}
         lastPettyCash={lastPettyCash}
       />
 
-      <ExpensesTable expenses={expenses} user={user} />
+      <ExpensesTable
+        expenses={expenses}
+        user={user}
+        actionButtons={actionButtons}
+      />
     </div>
   );
 };

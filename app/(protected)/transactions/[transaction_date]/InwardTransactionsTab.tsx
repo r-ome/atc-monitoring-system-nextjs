@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CoreRow } from "@tanstack/react-table";
+import { CoreRow, Row } from "@tanstack/react-table";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { Payment, REFUND_PURPOSES } from "src/entities/models/Payment";
 import { columns } from "./transactions-columns";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
 import { getEnabledPaymentMethods } from "@/app/(protected)/configurations/payment-methods/actions";
 import { StatCard, StatCardGroup } from "@/app/components/admin/stat-card";
+import { StatusBadge } from "@/app/components/admin";
+import { formatDate, formatNumberToCurrency } from "@/app/lib/utils";
 import {
   Wallet,
   Banknote,
@@ -16,6 +18,7 @@ import {
   Building2,
   CreditCard,
   CircleDollarSign,
+  Receipt,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
@@ -98,9 +101,43 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
     (tx) => !REFUND_PURPOSES.includes(tx.receipt.purpose),
   ).length;
 
+  const renderMobileCard = (row: Row<Payment>) => {
+    const p = row.original;
+    const isRefund = REFUND_PURPOSES.includes(p.receipt.purpose);
+    const amount = p.amount_paid.toLocaleString();
+    return (
+      <div className="flex items-start gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge variant={isRefund ? "error" : "success"}>
+              {p.receipt.purpose.replace(/_/g, " ")}
+            </StatusBadge>
+            <span className="text-[12.5px] text-muted-foreground">
+              #{p.receipt.receipt_number}
+            </span>
+          </div>
+          <span className="truncate text-[14px] font-semibold">
+            Bidder {p.bidder.bidder_number}
+          </span>
+          <span className="text-[12px] text-muted-foreground">
+            {p.payment_method.name} ·{" "}
+            {formatDate(new Date(p.created_at), "hh:mm a")}
+          </span>
+        </div>
+        <span
+          className={
+            "shrink-0 font-mono text-[14px] font-semibold " +
+            (isRefund ? "text-status-error" : "text-status-success")
+          }
+        >
+          {isRefund ? `(${amount})` : amount}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      {/* Total Inward — prominent full-width banner */}
       <StatCard
         title="Total Inward"
         value={`₱${totalInwardCash.toLocaleString()}`}
@@ -110,7 +147,6 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
         className="gap-0 py-0 [&_[data-slot=card-content]]:p-4 [&_p.text-2xl]:text-xl"
       />
 
-      {/* Payment method breakdown */}
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-0.5">
           Breakdown by payment method
@@ -137,8 +173,14 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
       </div>
 
       <DataTable
+        embedded={false}
+        icon={Receipt}
+        title="Inward Transactions"
+        meta={`${transactions.length.toLocaleString()} ${transactions.length === 1 ? "entry" : "entries"} · Net ${formatNumberToCurrency(totalInwardCash)}`}
+        rowLabel="transaction"
         columns={columns}
         data={transactions}
+        renderMobileCard={renderMobileCard}
         searchFilter={{
           globalFilterFn,
           searchComponentProps: {
