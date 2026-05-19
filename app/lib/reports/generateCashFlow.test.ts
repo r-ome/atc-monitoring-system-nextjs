@@ -39,10 +39,14 @@ const createPayment = (
   },
 });
 
-const createExpense = (amount: number, remarks: string): Expense => ({
+const createExpense = (
+  amount: number,
+  remarks: string,
+  purpose: Expense["purpose"] = "EXPENSE",
+): Expense => ({
   expense_id: remarks.toLowerCase().replace(/\s+/g, "-"),
   amount,
-  purpose: "EXPENSE",
+  purpose,
   remarks,
   branch: {
     branch_id: "branch-1",
@@ -73,6 +77,7 @@ test("generateCashFlow keeps dynamic income and expense rows before signatures",
     createExpense(80, "Fuel"),
     createExpense(120, "Supplies"),
     createExpense(60, "Meals"),
+    createExpense(300, "Salary payout", "SALARY"),
   ];
   const yesterdayPettyCash: PettyCash = {
     petty_cash_id: "petty-cash-1",
@@ -94,7 +99,7 @@ test("generateCashFlow keeps dynamic income and expense rows before signatures",
   });
 
   const inwardPreparedByRow = 21;
-  const outwardPreparedByRow = 19;
+  const outwardPreparedByRow = 20;
 
   assert.equal(sheet[`A${inwardPreparedByRow}`]?.v, "PREPARED BY: ");
   assert.equal(sheet[`E${outwardPreparedByRow}`]?.v, "PREPARED BY: ");
@@ -107,6 +112,8 @@ test("generateCashFlow keeps dynamic income and expense rows before signatures",
   for (let row = outwardPreparedByRow + 1; row <= outwardPreparedByRow + 4; row++) {
     assert.notEqual(sheet[`F${row}`]?.v, "Meals");
     assert.notEqual(sheet[`G${row}`]?.v, 60);
+    assert.notEqual(sheet[`F${row}`]?.v, "Salary payout");
+    assert.notEqual(sheet[`G${row}`]?.v, 300);
   }
 
   assert.equal(sheet["A17"]?.v, "PULLOUT");
@@ -118,5 +125,7 @@ test("generateCashFlow keeps dynamic income and expense rows before signatures",
   assert.equal(sheet["C4"]?.f, 'SUMIF(D17:D19,"CASH",C17:C19)-ABS(C10)');
   assert.equal(sheet["C12"]?.f, 'SUMIF(D17:D19,"CASH",C17:C19)');
   assert.equal(sheet["C14"]?.f, "SUM(C17:C20)-ABS(C10)");
-  assert.equal(sheet["H4"]?.f, "SUM(G16:G18)");
+  assert.equal(sheet["F19"]?.v, "Salary payout");
+  assert.equal(sheet["G19"]?.v, 300);
+  assert.equal(sheet["H4"]?.f, "SUM(G16:G19)");
 });

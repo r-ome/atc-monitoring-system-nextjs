@@ -68,7 +68,7 @@ const generateCashFlow = ({
   const inward = [[date, "", "", ""], ...finalRows];
 
   const outward = expenses
-    .filter((item) => item.purpose === "EXPENSE")
+    .filter((item) => item.purpose === "EXPENSE" || item.purpose === "SALARY")
     .map((item, i) => [
       i === 0 ? formatDate(new Date(item.created_at), "MMMM dd, yyyy") : "",
       item.remarks,
