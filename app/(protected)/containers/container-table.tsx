@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { CoreRow, Row } from "@tanstack/react-table";
-import { DataTable } from "@/app/components/data-table/data-table";
-import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
+import { Container } from "lucide-react";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { columns } from "./container-columns";
 import { BranchBadge, StatusBadge } from "@/app/components/admin";
 import type { UserRole } from "src/entities/models/User";
@@ -48,8 +48,6 @@ export const ContainersTable: React.FC<ContainersTableProps> = ({
   containers,
   userRole,
 }) => {
-  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const canUseFilters = FILTER_ALLOWED_ROLES.has(userRole);
 
   const branchOptions = useMemo(
@@ -57,44 +55,21 @@ export const ContainersTable: React.FC<ContainersTableProps> = ({
       Array.from(
         new Map(
           containers.map((container) => [
-            container.branch.branch_id,
-            { value: container.branch.branch_id, label: container.branch.name },
+            container.branch.name,
+            { value: container.branch.name, label: container.branch.name },
           ]),
         ).values(),
       ).sort((a, b) => a.label.localeCompare(b.label)),
     [containers],
   );
 
-  const filteredContainers = useMemo(() => {
-    if (!canUseFilters) return containers;
-
-    return containers.filter((container) => {
-      if (
-        selectedBranches.length > 0 &&
-        !selectedBranches.includes(container.branch.branch_id)
-      ) {
-        return false;
-      }
-
-      if (
-        selectedStatuses.length > 0 &&
-        !selectedStatuses.includes(container.status)
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [canUseFilters, containers, selectedBranches, selectedStatuses]);
-
   const globalFilterFn = (
     row: CoreRow<ContainerRowType>,
-    columnId?: string,
-    filterValue?: string
+    _columnId?: string,
+    filterValue?: string,
   ) => {
-    const barcode = (row.original as ContainerRowType).barcode.toLowerCase();
+    const barcode = row.original.barcode.toLowerCase();
     const search = (filterValue ?? "").toLowerCase();
-
     return barcode.includes(search);
   };
 
@@ -135,34 +110,38 @@ export const ContainersTable: React.FC<ContainersTableProps> = ({
     );
   };
 
+  const columnFilters = canUseFilters
+    ? [
+        {
+          column: "branch_name",
+          options: branchOptions,
+          filterComponentProps: { placeholder: "Filter by Branch" },
+        },
+        {
+          column: "status",
+          options: STATUS_OPTIONS,
+          filterComponentProps: { placeholder: "Filter by Status" },
+        },
+      ]
+    : undefined;
+
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Container}
+      title="All Containers"
+      meta={`${containers.length.toLocaleString()} total`}
+      rowLabel="container"
       columns={columns}
-      data={filteredContainers}
+      data={containers}
       onRowClick={(c) => router.push(`${pathname}/${c.barcode}`)}
       renderMobileCard={renderMobileCard}
-      actionButtons={
-        canUseFilters ? (
-          <div className="flex flex-col gap-2 md:flex-row">
-            <FilterColumnComponent
-              options={branchOptions}
-              onChangeEvent={setSelectedBranches}
-              placeholder="Filter by Branch"
-            />
-            <FilterColumnComponent
-              options={STATUS_OPTIONS}
-              onChangeEvent={setSelectedStatuses}
-              placeholder="Filter by Status"
-            />
-          </div>
-        ) : null
-      }
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {
           placeholder: "Search By Barcode",
         },
       }}
+      columnFilters={columnFilters}
     />
   );
 };

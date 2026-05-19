@@ -1,7 +1,8 @@
 "use client";
 
+import { UsersRound } from "lucide-react";
 import { User } from "src/entities/models/User";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow, Row } from "@tanstack/react-table";
 import { columns } from "./users-columns";
 import { Badge } from "@/app/components/ui/badge";
@@ -52,14 +53,18 @@ export const UsersTable = ({ users, onRowClick }: UsersTableProps) => {
   };
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={UsersRound}
+      title="All Users"
+      meta={`${users.length.toLocaleString()} total`}
+      rowLabel="user"
       columns={columns}
       data={users}
       onRowClick={onRowClick}
       searchFilter={{
         globalFilterFn,
         searchComponentProps: {
-          placeholder: "Search By Name or Username",
+          placeholder: "Search by name or username…",
         },
       }}
       renderMobileCard={renderMobileCard}

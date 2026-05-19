@@ -144,17 +144,40 @@ export const ContainerRepository: IContainerRepository = {
   },
   getContainersList: async () => {
     try {
-      return await prisma.containers.findMany({
-        include: {
-          branch: { select: { branch_id: true, name: true } },
-          supplier: {
-            select: { supplier_id: true, supplier_code: true, name: true },
+      const [containers, latestInventoryByContainer] = await Promise.all([
+        prisma.containers.findMany({
+          include: {
+            branch: { select: { branch_id: true, name: true } },
+            supplier: {
+              select: { supplier_id: true, supplier_code: true, name: true },
+            },
+            inventories: { select: { auction_date: true } },
+            _count: { select: { inventories: true } },
           },
-          inventories: { select: { auction_date: true } },
-          _count: { select: { inventories: true } },
-        },
-        orderBy: { due_date: { sort: "desc", nulls: "last" } },
-      });
+        }),
+        prisma.inventories.groupBy({
+          by: ["container_id"],
+          _max: { updated_at: true },
+        }),
+      ]);
+
+      const latestByContainerId = new Map(
+        latestInventoryByContainer.map((row) => [
+          row.container_id,
+          row._max.updated_at?.getTime() ?? 0,
+        ]),
+      );
+
+      // Sort by most recent inventory update; fall back to the container's own
+      // updated_at when it has no inventories yet.
+      return containers
+        .map((container) => {
+          const inventoryKey = latestByContainerId.get(container.container_id);
+          const sortKey = inventoryKey ?? container.updated_at.getTime();
+          return { container, sortKey };
+        })
+        .sort((a, b) => b.sortKey - a.sortKey)
+        .map(({ container }) => container);
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting Containers!", {

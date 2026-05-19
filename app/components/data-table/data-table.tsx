@@ -29,6 +29,12 @@ import {
 } from "@/app/components/ui/empty";
 import { cn } from "@/app/lib/utils";
 
+function pluralize(word: string) {
+  if (/[^aeiou]y$/i.test(word)) return word.slice(0, -1) + "ies";
+  if (/(s|x|z|ch|sh)$/i.test(word)) return word + "es";
+  return word + "s";
+}
+
 export const DataTable = <TData, TValue>({
   columns,
   data,
@@ -152,9 +158,9 @@ export const DataTable = <TData, TValue>({
       ) : null}
 
       {hasToolbar ? (
-        <div className="flex flex-col gap-2 border-b px-[18px] py-3 md:flex-row md:items-center 2xl:px-5">
+        <div className="flex flex-col gap-2 border-b px-[18px] py-3 md:flex-row md:flex-wrap md:items-center 2xl:px-5">
           {searchFilter?.globalFilterFn ? (
-            <div className="w-full md:max-w-[420px]">
+            <div className="w-full md:w-[320px] md:flex-none">
               <SearchComponent
                 value={globalFilter}
                 onChangeEvent={(value) => setGlobalFilter?.(value)}
@@ -163,7 +169,7 @@ export const DataTable = <TData, TValue>({
             </div>
           ) : null}
           {columnFilter?.options ? (
-            <div className="w-full md:w-[240px]">
+            <div className="w-full md:w-auto md:flex-none">
               <FilterColumnComponent
                 options={columnFilter.options}
                 onChangeEvent={onChangeFilter}
@@ -177,7 +183,7 @@ export const DataTable = <TData, TValue>({
               ? (currentFilter.value as string[])
               : undefined;
             return (
-              <div key={def.column} className="w-full md:w-[240px]">
+              <div key={def.column} className="w-full md:w-auto md:flex-none">
                 <FilterColumnComponent
                   options={def.options}
                   defaultValue={defaultValue}
@@ -325,8 +331,8 @@ export const DataTable = <TData, TValue>({
         <span>
           Showing {start.toLocaleString()}
           {totalFiltered > 0 ? `–${end.toLocaleString()}` : ""} of{" "}
-          {totalFiltered.toLocaleString()} {rowLabel}
-          {totalFiltered === 1 ? "" : "s"}
+          {totalFiltered.toLocaleString()}{" "}
+          {totalFiltered === 1 ? rowLabel : pluralize(rowLabel)}
         </span>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">

@@ -1,12 +1,13 @@
 "use client";
 
-import { forwardRef, useMemo, useState, useTransition } from "react";
+import { forwardRef, useMemo, useTransition } from "react";
 import type { HTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
-import { ColumnDef, Row } from "@tanstack/react-table";
-import { DataTable } from "@/app/components/data-table/data-table";
-import { BranchBadge, StatusBadge } from "@/app/components/admin";
-import { ActivityLog, ActivityAction } from "src/entities/models/ActivityLog";
+import { CoreRow, ColumnDef, Row } from "@tanstack/react-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
+import { SortableHeader } from "@/app/(protected)/auctions/components/SortableHeader";
+import { BranchBadge } from "@/app/components/admin";
+import { ActivityLog } from "src/entities/models/ActivityLog";
 import {
   Tooltip,
   TooltipContent,
@@ -17,16 +18,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/app/components/ui/popover";
-import { SearchComponent } from "@/app/components/data-table/SearchComponent";
-import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
 import { Button } from "@/app/components/ui/button";
-import { RefreshCw } from "lucide-react";
-
-function actionVariant(action: ActivityAction) {
-  if (action === "CREATE") return "success";
-  if (action === "UPDATE") return "info";
-  return "error";
-}
+import { Activity, RefreshCw } from "lucide-react";
 
 type ItemTableActivityDescription = {
   type:
@@ -59,7 +52,12 @@ type OptionsTableActivityDescription = {
 function getItemActivityReason(
   type: ItemTableActivityDescription["type"],
   summary: string,
+  reason?: unknown,
 ) {
+  if (typeof reason === "string" && reason.trim()) {
+    return reason.trim();
+  }
+
   if (type === "cancelled_items") {
     return (
       summary
@@ -102,7 +100,7 @@ function parseItemTableActivityDescription(
     return {
       type,
       summary,
-      reason: getItemActivityReason(type, summary),
+      reason: getItemActivityReason(type, summary, parsed.reason),
       items: parsed.items.map((item) => ({
         barcode: item.barcode?.toString() ?? "",
         control: item.control?.toString() ?? "",
@@ -336,41 +334,49 @@ function ActivityDescriptionCell({
 const columns: ColumnDef<ActivityLog>[] = [
   {
     accessorKey: "created_at",
-    header: "Time",
+    size: 120,
+    minSize: 120,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Time" align="left" />
+    ),
     cell: ({ row }) => (
-      <div className="whitespace-nowrap">{row.original.created_at}</div>
+      <div className="whitespace-nowrap text-left text-muted-foreground tabular-nums">
+        {row.original.created_at}
+      </div>
     ),
   },
   {
     accessorKey: "username",
-    header: "User",
-  },
-  {
-    accessorKey: "branch_name",
-    header: "Branch",
-    cell: ({ row }) => <BranchBadge branch={row.original.branch_name} />,
-  },
-  {
-    accessorKey: "action",
-    header: "Action",
+    size: 120,
+    minSize: 100,
+    enableColumnFilter: true,
+    filterFn: "includesIn" as never,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="User" align="left" />
+    ),
     cell: ({ row }) => (
-      <StatusBadge variant={actionVariant(row.original.action)}>
-        {row.original.action}
-      </StatusBadge>
+      <div className="truncate text-left">{row.original.username}</div>
     ),
   },
   {
-    accessorKey: "entity_type",
-    header: "Entity",
+    accessorKey: "branch_name",
+    size: 110,
+    minSize: 90,
+    enableColumnFilter: true,
+    filterFn: "includesIn" as never,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Branch" align="left" />
+    ),
     cell: ({ row }) => (
-      <span className="capitalize">
-        {row.original.entity_type.replace(/_/g, " ")}
-      </span>
+      <div className="flex justify-start">
+        <BranchBadge branch={row.original.branch_name} />
+      </div>
     ),
   },
   {
     accessorKey: "description",
-    header: () => <div className="text-left">Description</div>,
+    minSize: 480,
+    header: () => <div className="text-left text-muted-foreground">Description</div>,
     cell: ({ row }) => (
       <div className="text-left">
         <ActivityDescriptionCell description={row.original.description} />
@@ -381,15 +387,12 @@ const columns: ColumnDef<ActivityLog>[] = [
 
 interface ActivityLogsTableProps {
   logs: ActivityLog[];
+  date: string;
 }
 
-export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
+export const ActivityLogsTable = ({ logs, date }: ActivityLogsTableProps) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [search, setSearch] = useState("");
-  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [selectedEntities, setSelectedEntities] = useState<string[]>([]);
 
   const branchOptions = useMemo(
     () =>
@@ -407,68 +410,59 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
     [logs],
   );
 
-  const entityOptions = useMemo(
-    () =>
-      Array.from(new Set(logs.map((l) => l.entity_type).filter(Boolean))).map(
-        (entity) => ({
-          label: entity.replace(/_/g, " "),
-          value: entity,
-        }),
-      ),
-    [logs],
-  );
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return logs.filter((log) => {
-      if (
-        selectedBranches.length > 0 &&
-        !selectedBranches.includes(log.branch_name)
-      )
-        return false;
-      if (selectedUsers.length > 0 && !selectedUsers.includes(log.username))
-        return false;
-      if (
-        selectedEntities.length > 0 &&
-        !selectedEntities.includes(log.entity_type)
-      )
-        return false;
-      if (q) {
-        return (
-          log.username?.toLowerCase().includes(q) ||
-          log.branch_name?.toLowerCase().includes(q) ||
-          log.description?.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    });
-  }, [logs, search, selectedBranches, selectedEntities, selectedUsers]);
+  const globalFilterFn = (
+    row: CoreRow<ActivityLog>,
+    _columnId?: string,
+    filterValue?: string,
+  ) => {
+    const q = (filterValue ?? "").toLowerCase();
+    if (!q) return true;
+    const log = row.original;
+    return (
+      log.username?.toLowerCase().includes(q) ||
+      log.branch_name?.toLowerCase().includes(q) ||
+      log.description?.toLowerCase().includes(q) ||
+      log.entity_type?.toLowerCase().includes(q)
+    );
+  };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center">
-        <div className="w-full md:w-2/4">
-          <SearchComponent
-            value={search}
-            onChangeEvent={setSearch}
-            placeholder="Search user, branch, or description..."
-          />
+    <AuctionDataTable
+      icon={Activity}
+      title={
+        <div className="flex items-baseline gap-2">
+          <span className="text-[16px] font-semibold 2xl:text-[19.5px]">
+            Activity Logs
+          </span>
+          <span className="text-[13px] font-normal text-muted-foreground 2xl:text-[15px]">
+            {date}
+          </span>
         </div>
-        <FilterColumnComponent
-          options={branchOptions}
-          onChangeEvent={setSelectedBranches}
-          placeholder="Filter by branch"
-        />
-        <FilterColumnComponent
-          options={userOptions}
-          onChangeEvent={setSelectedUsers}
-          placeholder="Filter by user"
-        />
-        <FilterColumnComponent
-          options={entityOptions}
-          onChangeEvent={setSelectedEntities}
-          placeholder="Filter by entity"
-        />
+      }
+      meta={`${logs.length.toLocaleString()} entries`}
+      rowLabel="entry"
+      columns={columns}
+      data={logs}
+      initialSorting={[{ id: "created_at", desc: true }]}
+      searchFilter={{
+        globalFilterFn,
+        searchComponentProps: {
+          placeholder: "Search user, branch, or description…",
+        },
+      }}
+      columnFilters={[
+        {
+          column: "branch_name",
+          options: branchOptions,
+          filterComponentProps: { placeholder: "Filter by branch" },
+        },
+        {
+          column: "username",
+          options: userOptions,
+          filterComponentProps: { placeholder: "Filter by user" },
+        },
+      ]}
+      actionButtons={
         <Button
           variant="outline"
           size="icon"
@@ -478,28 +472,19 @@ export const ActivityLogsTable = ({ logs }: ActivityLogsTableProps) => {
         >
           <RefreshCw className={isPending ? "animate-spin" : ""} />
         </Button>
-      </div>
-      <DataTable
-        columns={columns}
-        data={filtered}
-        renderMobileCard={renderActivityLogMobileCard}
-      />
-    </div>
+      }
+      renderMobileCard={renderActivityLogMobileCard}
+    />
   );
 };
 
 function renderActivityLogMobileCard(row: Row<ActivityLog>) {
   const log = row.original;
   return (
-    <div className="flex flex-col gap-1.5 px-4 py-3">
-      <div className="flex items-center gap-2">
-        <StatusBadge variant={actionVariant(log.action)}>
-          {log.action}
-        </StatusBadge>
-        <span className="text-[14px] font-medium capitalize">
-          {log.entity_type.replace(/_/g, " ")}
-        </span>
-        <span className="ml-auto whitespace-nowrap font-mono text-[12.5px] text-muted-foreground">
+    <div className="flex flex-col gap-2 px-4 py-3">
+      <div className="flex items-start justify-between gap-2">
+        <BranchBadge branch={log.branch_name} />
+        <span className="whitespace-nowrap font-mono text-[12.5px] text-muted-foreground">
           {log.created_at}
         </span>
       </div>
@@ -509,9 +494,8 @@ function renderActivityLogMobileCard(row: Row<ActivityLog>) {
           variant="popover"
         />
       </div>
-      <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-        <BranchBadge branch={log.branch_name} />
-        <span className="truncate">{log.username}</span>
+      <div className="truncate text-[12.5px] text-muted-foreground">
+        {log.username}
       </div>
     </div>
   );

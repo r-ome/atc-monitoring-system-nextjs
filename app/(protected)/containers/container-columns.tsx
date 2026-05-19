@@ -94,7 +94,10 @@ export const columns: ColumnDef<ContainerRowType>[] = [
     },
   },
   {
+    id: "branch_name",
     accessorKey: "branch.name",
+    enableColumnFilter: true,
+    filterFn: "includesIn" as never,
     header: ({ column }) => {
       return (
         <div className="flex justify-center">
@@ -179,6 +182,8 @@ export const columns: ColumnDef<ContainerRowType>[] = [
   },
   {
     accessorKey: "status",
+    enableColumnFilter: true,
+    filterFn: "includesIn" as never,
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

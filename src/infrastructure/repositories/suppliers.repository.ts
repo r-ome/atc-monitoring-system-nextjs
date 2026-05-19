@@ -76,10 +76,32 @@ export const SupplierRepository: ISupplierRepository = {
   },
   getSuppliers: async () => {
     try {
-      return await prisma.suppliers.findMany({
-        orderBy: { name: "asc" },
-        include: { _count: { select: { containers: true } } },
+      const suppliers = await prisma.suppliers.findMany({
+        include: {
+          _count: { select: { containers: true } },
+          containers: {
+            select: { updated_at: true },
+            orderBy: { updated_at: "desc" },
+            take: 1,
+          },
+        },
       });
+
+      // Sort by most recent container update; fall back to the supplier's own
+      // updated_at when it has no containers yet.
+      return suppliers
+        .map((supplier) => {
+          const latestContainer = supplier.containers[0]?.updated_at ?? null;
+          const sortKey = (latestContainer ?? supplier.updated_at).getTime();
+          return { supplier, sortKey };
+        })
+        .sort((a, b) => b.sortKey - a.sortKey)
+        .map(({ supplier }) => {
+          // Strip the helper containers array so the return type matches
+          // SupplierWithCountRow (which only includes _count).
+          const { containers: _omit, ...rest } = supplier;
+          return rest;
+        });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error getting suppliers!", {

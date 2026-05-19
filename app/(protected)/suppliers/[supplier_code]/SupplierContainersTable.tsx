@@ -1,7 +1,8 @@
 "use client";
 
+import { Container } from "lucide-react";
 import { CoreRow } from "@tanstack/react-table";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { supplierContainerColumns } from "./supplier-containers-columns";
 
 export type SupplierContainerRow = {
@@ -38,13 +39,17 @@ export const SupplierContainersTable: React.FC<
   SupplierContainersTableProps
 > = ({ containers }) => {
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Container}
+      title="Container List"
+      meta={`${containers.length.toLocaleString()} total`}
+      rowLabel="container"
       columns={supplierContainerColumns}
       data={containers}
       getRowId={(row) => row.container_id}
       searchFilter={{
         globalFilterFn,
-        searchComponentProps: { placeholder: "Search by Barcode" },
+        searchComponentProps: { placeholder: "Search by barcode…" },
       }}
     />
   );

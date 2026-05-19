@@ -1,13 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "@/app/lib/auth";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/app/components/ui/card";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { PageContainer } from "@/app/components/PageContainer";
 import { getActivityLogs } from "../actions";
 import { ActivityLogsTable } from "./components/ActivityLogsTable";
 import { ActivityLogsBreadcrumb } from "./ActivityLogsBreadcrumb";
@@ -27,17 +21,9 @@ export default async function Page({
   }
 
   return (
-    <>
+    <PageContainer>
       <ActivityLogsBreadcrumb date={date} />
-      <Card>
-        <CardHeader>
-          <CardTitle>Activity Logs</CardTitle>
-          <CardDescription>{date}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ActivityLogsTable logs={res.value} />
-        </CardContent>
-      </Card>
-    </>
+      <ActivityLogsTable logs={res.value} date={date} />
+    </PageContainer>
   );
 }

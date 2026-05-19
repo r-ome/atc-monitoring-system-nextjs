@@ -25,6 +25,7 @@ function buildCancelledItemsLogDescription(
   return JSON.stringify({
     type: "cancelled_items",
     summary: `Cancelled ${data.auction_inventory_ids.length} item(s) from bidder #${bidder.bidder_number} (${bidder.first_name} ${bidder.last_name}): ${data.reason}`,
+    reason: data.reason,
     items: items.map((item) => ({
       barcode: item.inventory?.barcode ?? "",
       control: item.inventory?.control ?? "",

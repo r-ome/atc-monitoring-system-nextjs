@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Truck } from "lucide-react";
 import { Supplier } from "src/entities/models/Supplier";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { columns } from "./suppliers-columns";
 import { CoreRow, Row } from "@tanstack/react-table";
 
@@ -55,12 +56,16 @@ export const SuppliersTable: React.FC<SuppliersTableProps> = ({
   };
 
   return (
-    <DataTable
+    <AuctionDataTable
+      icon={Truck}
+      title="All Suppliers"
+      meta={`${suppliers.length.toLocaleString()} total`}
+      rowLabel="supplier"
       columns={columns}
       data={suppliers}
       searchFilter={{
         globalFilterFn,
-        searchComponentProps: { placeholder: "Search By Name or Code" },
+        searchComponentProps: { placeholder: "Search by name or code…" },
       }}
       onRowClick={(supplier) =>
         router.push(`suppliers/${supplier.supplier_code}`)

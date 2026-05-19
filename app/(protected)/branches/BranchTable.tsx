@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Building2 } from "lucide-react";
 import { Row } from "@tanstack/react-table";
-import { DataTable } from "@/app/components/data-table/data-table";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { columns } from "./branch-columns";
 import { Branch } from "src/entities/models/Branch";
 import { UpdateBranchModal } from "./UpdateBranchModal";
@@ -25,7 +26,11 @@ export const BranchesTable = ({ branches }: { branches: Branch[] }) => {
 
   return (
     <>
-      <DataTable
+      <AuctionDataTable
+        icon={Building2}
+        title="All Branches"
+        meta={`${branches.length.toLocaleString()} total`}
+        rowLabel="branch"
         columns={columns}
         data={branches}
         onRowClick={(branch) => setSelectedBranch(branch)}
