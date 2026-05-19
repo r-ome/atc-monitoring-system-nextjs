@@ -2,7 +2,6 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { getActivityLogsUseCase } from "src/application/use-cases/activity-logs/get-activity-logs.use-case";
 import { ActivityLog, ActivityLogRow } from "src/entities/models/ActivityLog";
 import { err, ok } from "src/entities/models/Result";
-import { formatDate } from "@/app/lib/utils";
 import { logger } from "@/app/lib/logger";
 
 function presenter(log: ActivityLogRow): ActivityLog {
@@ -14,7 +13,7 @@ function presenter(log: ActivityLogRow): ActivityLog {
     entity_type: log.entity_type,
     entity_id: log.entity_id,
     description: log.description,
-    created_at: formatDate(log.created_at, "hh:mm:ss a"),
+    created_at: log.created_at.toISOString(),
   };
 }
 

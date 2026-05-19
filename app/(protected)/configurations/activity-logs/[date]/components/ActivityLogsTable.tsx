@@ -7,6 +7,7 @@ import { CoreRow, ColumnDef, Row } from "@tanstack/react-table";
 import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { SortableHeader } from "@/app/(protected)/auctions/components/SortableHeader";
 import { BranchBadge } from "@/app/components/admin";
+import { formatDate } from "@/app/lib/utils";
 import { ActivityLog } from "src/entities/models/ActivityLog";
 import {
   Tooltip,
@@ -341,7 +342,7 @@ const columns: ColumnDef<ActivityLog>[] = [
     ),
     cell: ({ row }) => (
       <div className="whitespace-nowrap text-left text-muted-foreground tabular-nums">
-        {row.original.created_at}
+        {formatDate(new Date(row.original.created_at), "hh:mm:ss a")}
       </div>
     ),
   },
@@ -485,7 +486,7 @@ function renderActivityLogMobileCard(row: Row<ActivityLog>) {
       <div className="flex items-start justify-between gap-2">
         <BranchBadge branch={log.branch_name} />
         <span className="whitespace-nowrap font-mono text-[12.5px] text-muted-foreground">
-          {log.created_at}
+          {formatDate(new Date(log.created_at), "hh:mm:ss a")}
         </span>
       </div>
       <div className="text-[14.5px] leading-snug break-words">
