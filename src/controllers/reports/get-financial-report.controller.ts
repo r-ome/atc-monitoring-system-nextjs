@@ -179,12 +179,12 @@ export function presentSalesExpensesSummary(
   }
 
   for (const loss of boughtItemLosses) {
-    const entry = getEntry(loss.paid_at);
-    entry.bought_items_profit_loss -= loss.declared_price;
+    const entry = getEntry(loss.event_date);
+    entry.bought_items_profit_loss -= loss.amount;
   }
 
   for (const gain of boughtItemGains) {
-    const entry = getEntry(gain.auction_date);
+    const entry = getEntry(gain.event_date);
     entry.bought_items_profit_loss += gain.price;
   }
 

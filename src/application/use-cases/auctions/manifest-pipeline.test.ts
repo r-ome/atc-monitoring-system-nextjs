@@ -460,6 +460,62 @@ test("formatExistingInventories blocks sold items, allows reuse, and tightens bo
   );
 });
 
+test("formatExistingInventories treats no-control values as equivalent when reusing bought items", () => {
+  const [ncRow, paddedNcRow] = formatExistingInventories(
+    [
+      {
+        BARCODE: "32-06",
+        CONTROL: "0000",
+        DESCRIPTION: "A",
+        BIDDER: "0001",
+        PRICE: "100",
+        QTY: "1",
+        MANIFEST: "M",
+        isValid: true,
+        error: "",
+        forUpdating: false,
+        isSlashItem: "",
+      },
+      {
+        BARCODE: "32-07",
+        CONTROL: "0000",
+        DESCRIPTION: "B",
+        BIDDER: "0001",
+        PRICE: "100",
+        QTY: "1",
+        MANIFEST: "M",
+        isValid: true,
+        error: "",
+        forUpdating: false,
+        isSlashItem: "",
+      },
+    ],
+    [
+      {
+        inventory_id: "inv-nc",
+        container_id: "container-1",
+        barcode: "32-06",
+        control: "NC",
+        status: "BOUGHT_ITEM",
+        auction_date: new Date("2026-05-02T00:00:00.000Z"),
+      },
+      {
+        inventory_id: "inv-padded-nc",
+        container_id: "container-2",
+        barcode: "32-07",
+        control: "00NC",
+        status: "BOUGHT_ITEM",
+        auction_date: new Date("2026-05-02T00:00:00.000Z"),
+      },
+    ] as never,
+  );
+
+  assert.equal(ncRow.forUpdating, true);
+  assert.equal(ncRow.inventory_id, "inv-nc");
+  assert.equal(paddedNcRow.forUpdating, true);
+  assert.equal(paddedNcRow.inventory_id, "inv-padded-nc");
+});
+
 test("addContainerIdForNewInventories resolves container ids from barcode prefixes and flags unknown containers", () => {
   const [matchedRow, missingRow] = addContainerIdForNewInventories(
     [
@@ -615,4 +671,68 @@ test("removeMonitoringDuplicates enforces cross-auction duplicate protection whi
     boughtMode[2].error,
     "DOUBLE ENCODE: already encoded to #5013 on May 02, 2026",
   );
+});
+
+test("removeMonitoringDuplicates reuses bought-item auction inventory across no-control variants", () => {
+  const [ncRow, paddedNcRow] = removeMonitoringDuplicates(
+    [
+      {
+        BARCODE: "32-06",
+        CONTROL: "0000",
+        DESCRIPTION: "A",
+        BIDDER: "0001",
+        PRICE: "100",
+        QTY: "1",
+        MANIFEST: "M",
+        isValid: true,
+        error: "",
+        forUpdating: false,
+        isSlashItem: "",
+      },
+      {
+        BARCODE: "32-07",
+        CONTROL: "0000",
+        DESCRIPTION: "B",
+        BIDDER: "0001",
+        PRICE: "100",
+        QTY: "1",
+        MANIFEST: "M",
+        isValid: true,
+        error: "",
+        forUpdating: false,
+        isSlashItem: "",
+      },
+    ],
+    [
+      {
+        auction_inventory_id: "ai-nc",
+        status: "PAID",
+        auction_date: new Date("2026-05-02T00:00:00.000Z"),
+        inventory_id: "inv-nc",
+        inventory: { barcode: "32-06", control: "NC", status: "BOUGHT_ITEM" },
+        auction_bidder: {
+          auction_id: "auction-bought",
+          bidder: { bidder_number: "5013" },
+        },
+      },
+      {
+        auction_inventory_id: "ai-padded-nc",
+        status: "PAID",
+        auction_date: new Date("2026-05-02T00:00:00.000Z"),
+        inventory_id: "inv-padded-nc",
+        inventory: { barcode: "32-07", control: "00NC", status: "BOUGHT_ITEM" },
+        auction_bidder: {
+          auction_id: "auction-bought",
+          bidder: { bidder_number: "5013" },
+        },
+      },
+    ] as never,
+    false,
+    "auction-current",
+  );
+
+  assert.equal(ncRow.forUpdating, true);
+  assert.equal(ncRow.auction_inventory_id, "ai-nc");
+  assert.equal(paddedNcRow.forUpdating, true);
+  assert.equal(paddedNcRow.auction_inventory_id, "ai-padded-nc");
 });

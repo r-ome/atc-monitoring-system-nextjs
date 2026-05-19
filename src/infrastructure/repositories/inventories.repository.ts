@@ -1201,6 +1201,7 @@ export const InventoryRepository: IInventoryRepository = {
             where: { inventory_id: split.target_inventory_id },
             data: {
               status: "BOUGHT_ITEM",
+              is_bought_item: split.price,
               auction_date: sourceAuctionInventory.auction_date,
             },
           });
@@ -1330,7 +1331,11 @@ export const InventoryRepository: IInventoryRepository = {
 
         await tx.inventories.update({
           where: { inventory_id: data.inventory_id },
-          data: { status: "BOUGHT_ITEM", auction_date: auctionDate },
+          data: {
+            status: "BOUGHT_ITEM",
+            is_bought_item: data.price,
+            auction_date: auctionDate,
+          },
         });
 
         await tx.inventory_histories.create({

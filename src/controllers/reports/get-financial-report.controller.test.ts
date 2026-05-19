@@ -107,7 +107,7 @@ test("presentSalesExpensesSummary exposes only the requested income and expense 
   ]);
 });
 
-test("presentSalesExpensesSummary books declared losses at PAID date and resale gains at auction_date", () => {
+test("presentSalesExpensesSummary books bought-item cash out and cash in at event dates", () => {
   const result = presentSalesExpensesSummary(
     [],
     [],
@@ -115,15 +115,15 @@ test("presentSalesExpensesSummary books declared losses at PAID date and resale 
       {
         container_id: "container-1",
         barcode: "32-07",
-        paid_at: new Date("2026-04-16T00:00:00.000Z"),
-        declared_price: 100,
+        event_date: new Date("2026-04-16T00:00:00.000Z"),
+        amount: 100,
       },
     ],
     [
       {
         container_id: "container-1",
         barcode: "32-07",
-        auction_date: new Date("2026-07-10T00:00:00.000Z"),
+        event_date: new Date("2026-07-10T00:00:00.000Z"),
         price: 150,
       },
     ],

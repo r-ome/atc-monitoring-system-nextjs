@@ -185,7 +185,7 @@ test("getPaidContainerFinancials service charge only uses paid auction items", a
   );
 });
 
-test("getBoughtItemLossEvents returns declared prices keyed by container PAID date", async () => {
+test("getBoughtItemLossEvents returns paid bought-item cash out keyed by payment date", async () => {
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(
@@ -198,14 +198,14 @@ test("getBoughtItemLossEvents returns declared prices keyed by container PAID da
           {
             container_id: "container-1",
             barcode: "32-04",
-            paid_at: new Date("2026-04-16T00:00:00.000Z"),
-            declared_price: "100.00",
+            event_date: new Date("2026-04-16T00:00:00.000Z"),
+            amount: "100.00",
           },
           {
             container_id: "container-1",
             barcode: "32-04",
-            paid_at: new Date("2026-04-16T00:00:00.000Z"),
-            declared_price: "250",
+            event_date: new Date("2026-04-16T00:00:00.000Z"),
+            amount: "250",
           },
         ];
       }) as typeof prisma.$queryRaw,
@@ -218,28 +218,29 @@ test("getBoughtItemLossEvents returns declared prices keyed by container PAID da
   );
 
   assert.ok(capturedQuery);
-  assert.match(capturedQuery.sql, /i\.is_bought_item IS NOT NULL/);
-  assert.match(capturedQuery.sql, /c\.status AS paid_at/);
-  assert.match(capturedQuery.sql, /c\.status IS NOT NULL/);
+  assert.match(capturedQuery.sql, /COALESCE\(rr\.created_at, ai\.auction_date\) AS event_date/);
+  assert.match(capturedQuery.sql, /ai\.status = 'PAID'/);
+  assert.match(capturedQuery.sql, /ai\.manifest_number = 'BOUGHT ITEM'/);
+  assert.match(capturedQuery.sql, /LEFT JOIN receipt_records rr/);
   assert.match(capturedQuery.sql, /c\.barcode NOT LIKE '00%'/);
   assert.match(capturedQuery.sql, /UPPER\(c\.barcode\) NOT LIKE 'T0%'/);
   assert.deepEqual(rows, [
     {
       container_id: "container-1",
       barcode: "32-04",
-      paid_at: new Date("2026-04-16T00:00:00.000Z"),
-      declared_price: 100,
+      event_date: new Date("2026-04-16T00:00:00.000Z"),
+      amount: 100,
     },
     {
       container_id: "container-1",
       barcode: "32-04",
-      paid_at: new Date("2026-04-16T00:00:00.000Z"),
-      declared_price: 250,
+      event_date: new Date("2026-04-16T00:00:00.000Z"),
+      amount: 250,
     },
   ]);
 });
 
-test("getBoughtItemGainEvents returns PAID resale prices keyed by auction_date", async () => {
+test("getBoughtItemGainEvents returns paid resale cash in keyed by payment date", async () => {
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(
@@ -252,7 +253,7 @@ test("getBoughtItemGainEvents returns PAID resale prices keyed by auction_date",
           {
             container_id: "container-1",
             barcode: "32-04",
-            auction_date: new Date("2026-07-04T00:00:00.000Z"),
+            event_date: new Date("2026-07-04T00:00:00.000Z"),
             price: "500",
           },
         ];
@@ -268,15 +269,19 @@ test("getBoughtItemGainEvents returns PAID resale prices keyed by auction_date",
   assert.ok(capturedQuery);
   assert.match(capturedQuery.sql, /ai\.status = 'PAID'/);
   assert.match(capturedQuery.sql, /i\.is_bought_item IS NOT NULL/);
-  assert.match(capturedQuery.sql, /ai\.auction_date >=/);
-  assert.match(capturedQuery.sql, /ai\.auction_date </);
+  assert.match(
+    capturedQuery.sql,
+    /ai\.manifest_number IS NULL OR ai\.manifest_number <> 'BOUGHT ITEM'/,
+  );
+  assert.match(capturedQuery.sql, /COALESCE\(rr\.created_at, ai\.auction_date\) AS event_date/);
+  assert.match(capturedQuery.sql, /LEFT JOIN receipt_records rr/);
   assert.match(capturedQuery.sql, /c\.barcode NOT LIKE '00%'/);
   assert.match(capturedQuery.sql, /UPPER\(c\.barcode\) NOT LIKE 'T0%'/);
   assert.deepEqual(rows, [
     {
       container_id: "container-1",
       barcode: "32-04",
-      auction_date: new Date("2026-07-04T00:00:00.000Z"),
+      event_date: new Date("2026-07-04T00:00:00.000Z"),
       price: 500,
     },
   ]);

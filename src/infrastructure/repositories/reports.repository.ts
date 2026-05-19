@@ -293,25 +293,31 @@ export const ReportsRepository: IReportsRepository = {
         Array<{
           container_id: string;
           barcode: string;
-          paid_at: Date;
-          declared_price: Prisma.Decimal | number | string | null;
+          event_date: Date;
+          amount: Prisma.Decimal | number | string | null;
         }>
       >(Prisma.sql`
         SELECT
           c.container_id,
           c.barcode,
-          c.status AS paid_at,
-          i.is_bought_item AS declared_price
-        FROM inventories i
+          COALESCE(rr.created_at, ai.auction_date) AS event_date,
+          ai.price AS amount
+        FROM auctions_inventories ai
+        INNER JOIN inventories i
+          ON ai.inventory_id = i.inventory_id
+          AND i.deleted_at IS NULL
         INNER JOIN containers c
           ON c.container_id = i.container_id
           AND c.deleted_at IS NULL
+        LEFT JOIN receipt_records rr
+          ON rr.receipt_id = ai.receipt_id
+          AND rr.deleted_at IS NULL
         WHERE c.branch_id = ${branch_id}
-          AND i.deleted_at IS NULL
-          AND i.is_bought_item IS NOT NULL
-          AND c.status IS NOT NULL
-          AND c.status >= ${start}
-          AND c.status < ${end}
+          AND ai.deleted_at IS NULL
+          AND ai.status = 'PAID'
+          AND ai.manifest_number = 'BOUGHT ITEM'
+          AND COALESCE(rr.created_at, ai.auction_date) >= ${start}
+          AND COALESCE(rr.created_at, ai.auction_date) < ${end}
           AND c.barcode NOT LIKE '00%'
           AND UPPER(c.barcode) NOT LIKE 'T0%'
       `);
@@ -320,8 +326,8 @@ export const ReportsRepository: IReportsRepository = {
         (row): BoughtItemLossRow => ({
           container_id: row.container_id,
           barcode: row.barcode,
-          paid_at: row.paid_at,
-          declared_price: toNumber(row.declared_price),
+          event_date: row.event_date,
+          amount: toNumber(row.amount),
         }),
       );
     } catch (error) {
@@ -336,14 +342,14 @@ export const ReportsRepository: IReportsRepository = {
         Array<{
           container_id: string;
           barcode: string;
-          auction_date: Date;
+          event_date: Date;
           price: Prisma.Decimal | number | string | null;
         }>
       >(Prisma.sql`
         SELECT
           c.container_id,
           c.barcode,
-          ai.auction_date,
+          COALESCE(rr.created_at, ai.auction_date) AS event_date,
           ai.price
         FROM auctions_inventories ai
         INNER JOIN inventories i
@@ -352,12 +358,16 @@ export const ReportsRepository: IReportsRepository = {
         INNER JOIN containers c
           ON c.container_id = i.container_id
           AND c.deleted_at IS NULL
+        LEFT JOIN receipt_records rr
+          ON rr.receipt_id = ai.receipt_id
+          AND rr.deleted_at IS NULL
         WHERE c.branch_id = ${branch_id}
           AND ai.deleted_at IS NULL
           AND ai.status = 'PAID'
           AND i.is_bought_item IS NOT NULL
-          AND ai.auction_date >= ${start}
-          AND ai.auction_date < ${end}
+          AND (ai.manifest_number IS NULL OR ai.manifest_number <> 'BOUGHT ITEM')
+          AND COALESCE(rr.created_at, ai.auction_date) >= ${start}
+          AND COALESCE(rr.created_at, ai.auction_date) < ${end}
           AND c.barcode NOT LIKE '00%'
           AND UPPER(c.barcode) NOT LIKE 'T0%'
       `);
@@ -366,7 +376,7 @@ export const ReportsRepository: IReportsRepository = {
         (row): BoughtItemGainRow => ({
           container_id: row.container_id,
           barcode: row.barcode,
-          auction_date: row.auction_date,
+          event_date: row.event_date,
           price: toNumber(row.price),
         }),
       );

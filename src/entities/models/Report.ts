@@ -62,14 +62,14 @@ export type PaidContainerFinancialRow = {
 export type BoughtItemLossRow = {
   container_id: string;
   barcode: string;
-  paid_at: Date;
-  declared_price: number;
+  event_date: Date;
+  amount: number;
 };
 
 export type BoughtItemGainRow = {
   container_id: string;
   barcode: string;
-  auction_date: Date;
+  event_date: Date;
   price: number;
 };
 

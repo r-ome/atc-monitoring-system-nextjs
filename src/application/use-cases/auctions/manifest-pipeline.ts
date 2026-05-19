@@ -130,6 +130,21 @@ export const getContainerBarcode = (barcode: string) =>
     ? barcode.split("-").slice(0, -1).join("-")
     : barcode;
 
+const NO_CONTROL_MATCH_VALUES = new Set(["", "NC", "00NC", "0000"]);
+
+const getControlMatchKey = (control?: string | number | null) => {
+  const normalizedControl = normalizeControl(control).toUpperCase();
+
+  return NO_CONTROL_MATCH_VALUES.has(normalizedControl)
+    ? "NO_CONTROL"
+    : normalizedControl;
+};
+
+const getBarcodeControlMatchKey = (
+  barcode: string,
+  control?: string | number | null,
+) => `${barcode}:${getControlMatchKey(control)}`;
+
 export const validateEmptyFields = (
   data: ManifestSheetRecord[],
 ): UploadManifestInput[] => {
@@ -417,7 +432,10 @@ export const formatExistingInventories = (
 
   for (const inv of existing_inventories) {
     byBarcode.set(inv.barcode, inv);
-    byBarcodeControl.set(`${inv.barcode}:${inv.control}`, inv);
+    byBarcodeControl.set(
+      getBarcodeControlMatchKey(inv.barcode, inv.control),
+      inv,
+    );
   }
 
   return data.map((item) => {
@@ -425,7 +443,9 @@ export const formatExistingInventories = (
 
     const existing_inventory = isThreePartBarcode(item.BARCODE)
       ? byBarcode.get(item.BARCODE)
-      : byBarcodeControl.get(`${item.BARCODE}:${item.CONTROL}`);
+      : byBarcodeControl.get(
+          getBarcodeControlMatchKey(item.BARCODE, item.CONTROL),
+        );
 
     if (!existing_inventory) {
       return item;
@@ -491,7 +511,7 @@ export const removeMonitoringDuplicates = (
 ) => {
   const existingMonitoring = new Map(
     monitoring.map((item) => [
-      `${item.inventory.barcode}:${item.inventory.control}`,
+      getBarcodeControlMatchKey(item.inventory.barcode, item.inventory.control),
       item,
     ]),
   );
@@ -511,7 +531,7 @@ export const removeMonitoringDuplicates = (
   for (const item of monitoring) {
     monitoringByBarcode.set(item.inventory.barcode, item);
     monitoringByBarcodeControl.set(
-      `${item.inventory.barcode}:${item.inventory.control}`,
+      getBarcodeControlMatchKey(item.inventory.barcode, item.inventory.control),
       item,
     );
 
@@ -521,7 +541,7 @@ export const removeMonitoringDuplicates = (
     ) {
       cancelledByBarcode.set(item.inventory.barcode, item);
       cancelledByBarcodeControl.set(
-        `${item.inventory.barcode}:${item.inventory.control}`,
+        getBarcodeControlMatchKey(item.inventory.barcode, item.inventory.control),
         item,
       );
     }
@@ -530,7 +550,10 @@ export const removeMonitoringDuplicates = (
   return data.map((sheet_item) => {
     if (!sheet_item.isValid) return sheet_item;
 
-    const key = `${sheet_item.BARCODE}:${sheet_item.CONTROL}`;
+    const key = getBarcodeControlMatchKey(
+      sheet_item.BARCODE,
+      sheet_item.CONTROL,
+    );
 
     const cancelled = isThreePartBarcode(sheet_item.BARCODE)
       ? cancelledByBarcode.get(sheet_item.BARCODE)
