@@ -13,6 +13,7 @@ function presenter(bidders: AuctionBidderWithBidderInventoriesRow[]) {
     bidder_number: bidder.bidder.bidder_number,
     first_name: bidder.bidder.first_name,
     last_name: bidder.bidder.last_name,
+    branch_id: bidder.auctions.branch_id,
     auction_date: formatDate(bidder.created_at, date_format),
     auction_date_iso: bidder.created_at.toISOString(),
     auction_duration: formatDistanceToNow(new Date(bidder.created_at), {

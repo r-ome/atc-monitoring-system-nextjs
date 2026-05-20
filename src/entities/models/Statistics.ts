@@ -5,6 +5,7 @@ export type UnpaidBidders = {
   bidder_number: string;
   first_name: string;
   last_name: string;
+  branch_id: string;
   auction_date: string;
   auction_date_iso: string;
   auction_duration: string;

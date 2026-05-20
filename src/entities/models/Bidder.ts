@@ -221,7 +221,7 @@ export type BiddersWithBirthdatesAndRecentAuctionSchema = {
 };
 
 export type AuctionBidderWithBidderInventoriesRow = Prisma.auctions_biddersGetPayload<{
-  include: { auctions_inventories: true; bidder: true };
+  include: { auctions_inventories: true; bidder: true; auctions: true };
 }>;
 
 export type BidderSheetRecord = Record<

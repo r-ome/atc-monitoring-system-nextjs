@@ -26,9 +26,13 @@ export type BidderRowType = {
 
 interface BiddersTableProps {
   bidders: BidderRowType[];
+  initialColumnFilters?: { id: string; value: unknown }[];
 }
 
-export const BiddersTable = ({ bidders }: BiddersTableProps) => {
+export const BiddersTable = ({
+  bidders,
+  initialColumnFilters,
+}: BiddersTableProps) => {
   const router = useRouter();
 
   const branchOptions = useMemo(() => {
@@ -115,7 +119,9 @@ export const BiddersTable = ({ bidders }: BiddersTableProps) => {
           filterComponentProps: { placeholder: "Filter by Status" },
         },
       ]}
-      initialColumnFilters={[{ id: "status", value: ["ACTIVE"] }]}
+      initialColumnFilters={
+        initialColumnFilters ?? [{ id: "status", value: ["ACTIVE"] }]
+      }
       renderMobileCard={renderMobileCard}
     />
   );

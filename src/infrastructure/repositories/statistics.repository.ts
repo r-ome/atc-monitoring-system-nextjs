@@ -79,7 +79,7 @@ export const StatisticsRepository: IStatisticsRepository = {
     try {
       const unpaid_bidders = await prisma.auctions_bidders.findMany({
         where: { balance: { gt: 0 } },
-        include: { bidder: true, auctions_inventories: true },
+        include: { bidder: true, auctions_inventories: true, auctions: true },
         orderBy: { created_at: "asc" },
       });
 

@@ -44,6 +44,7 @@ export function UnpaidBiddersCard() {
   const router = useRouter();
   const [unpaid, setUnpaid] = useState<UnpaidBidders[]>([]);
   const [sortMode, setSortMode] = useState<"balance" | "age">("balance");
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [summary, setSummary] = useState<UnpaidBidderBalanceSummary>({
     branches: [],
     total_balance: 0,
@@ -56,6 +57,10 @@ export function UnpaidBiddersCard() {
 
   const user = sessionData?.user;
   const canViewAll = !!user && PRIVILEGED_ROLES.has(user.role as UserRole);
+  const selectedBranch = selectedBranchId
+    ? summary.branches.find((branch) => branch.branch_id === selectedBranchId)
+    : null;
+  const reportBranchName = selectedBranch?.branch_name ?? user?.branch.name;
 
   useEffect(() => {
     Promise.all([
@@ -73,7 +78,9 @@ export function UnpaidBiddersCard() {
   }, []);
 
   const sortedUnpaid = useMemo(() => {
-    const rows = [...unpaid];
+    const rows = selectedBranchId
+      ? unpaid.filter((b) => b.branch_id === selectedBranchId)
+      : [...unpaid];
 
     if (sortMode === "age") {
       return rows.sort(
@@ -84,7 +91,7 @@ export function UnpaidBiddersCard() {
     }
 
     return rows.sort((a, b) => b.balance - a.balance);
-  }, [unpaid, sortMode]);
+  }, [unpaid, sortMode, selectedBranchId]);
 
   if (error) {
     return (
@@ -141,16 +148,35 @@ export function UnpaidBiddersCard() {
               <>
                 <div className="hidden h-10 bg-border sm:block" />
                 <div className="flex flex-col gap-1">
-                  {summary.branches.map((b) => (
-                    <div key={b.branch_id} className="flex items-baseline gap-1.5">
-                      <span className="min-w-[48px] text-[11px] font-semibold tracking-wide 2xl:text-[15px]">
-                        {b.branch_name.toUpperCase()}
-                      </span>
-                      <span className="font-mono ml-auto text-[12px] font-medium 2xl:text-[16px]">
-                        {formatNumberToCurrency(b.total_balance)}
-                      </span>
-                    </div>
-                  ))}
+                  {summary.branches.map((b) => {
+                    const isSelected = selectedBranchId === b.branch_id;
+                    return (
+                      <button
+                        type="button"
+                        key={b.branch_id}
+                        onClick={() =>
+                          setSelectedBranchId((current) =>
+                            current === b.branch_id ? null : b.branch_id,
+                          )
+                        }
+                        className={`flex cursor-pointer items-baseline gap-1.5 rounded px-1.5 py-0.5 text-left transition-colors hover:bg-secondary/60 ${
+                          isSelected ? "bg-primary/10 text-primary ring-1 ring-primary/30" : ""
+                        }`}
+                        aria-pressed={isSelected}
+                      >
+                        <span className="min-w-[48px] text-[11px] font-semibold tracking-wide 2xl:text-[15px]">
+                          {b.branch_name.toUpperCase()}
+                        </span>
+                        <span
+                          className={`font-mono ml-auto text-[12px] font-medium 2xl:text-[16px] ${
+                            isSelected ? "font-semibold text-primary" : ""
+                          }`}
+                        >
+                          {formatNumberToCurrency(b.total_balance)}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -191,9 +217,9 @@ export function UnpaidBiddersCard() {
                   size="sm"
                   onClick={() =>
                     generateReport(
-                      { branch: user.branch.name, bidders: unpaid },
+                      { branch: reportBranchName ?? user.branch.name, bidders: sortedUnpaid },
                       ["unpaid_bidders"],
-                      `UNPAID ${user.branch.name} ${new Date().getFullYear()}`,
+                      `UNPAID ${reportBranchName ?? user.branch.name} ${new Date().getFullYear()}`,
                     )
                   }
                 >
