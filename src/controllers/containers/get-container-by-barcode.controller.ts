@@ -1,5 +1,5 @@
 import { getContainerByBarcodeUseCase } from "src/application/use-cases/containers/get-container-by-barcode.use-case";
-import { ContainerWithDetailsRow } from "src/entities/models/Container";
+import { ContainerWithDetailsAndAuctionHistoriesRow } from "src/entities/models/Container";
 import {
   FinalReportDocumentType,
   FinalReportFile,
@@ -8,20 +8,89 @@ import { DatabaseOperationError, NotFoundError } from "src/entities/errors/commo
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
+import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
 
 const isFinalReportDocumentType = (
-  document_type: ContainerWithDetailsRow["container_files"][number]["document_type"],
+  document_type: ContainerWithDetailsAndAuctionHistoriesRow[
+    "container_files"
+  ][number]["document_type"],
 ): document_type is FinalReportDocumentType =>
   document_type === "FINAL_REPORT_ORIGINAL" ||
   document_type === "FINAL_REPORT_MODIFIED";
 
 const isGeneratedFinalReportFile = (
-  file: ContainerWithDetailsRow["container_files"][number],
-): file is ContainerWithDetailsRow["container_files"][number] & {
+  file: ContainerWithDetailsAndAuctionHistoriesRow["container_files"][number],
+): file is ContainerWithDetailsAndAuctionHistoriesRow[
+  "container_files"
+][number] & {
   document_type: FinalReportDocumentType;
 } => isFinalReportDocumentType(file.document_type);
 
-export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
+type ContainerInventoryItem =
+  ContainerWithDetailsAndAuctionHistoriesRow["inventories"][number];
+
+function getBidderNumberFromHistory(
+  history: ContainerInventoryItem["histories"][number],
+) {
+  const receiptBidder = history.receipt?.auction_bidder?.bidder;
+  if (receiptBidder) return receiptBidder.bidder_number;
+
+  const parsed = parseInventoryHistoryRemark(history.remarks);
+  return parsed.bidder_number ?? null;
+}
+
+function getUpdatedBidderNumberFromHistoryRemark(remarks: string | null) {
+  return remarks?.match(/Updated bidder_number:\s*\S+\s+to\s+(\S+)/i)?.[1] ?? null;
+}
+
+const getAuctionInventoryHistoryInfo = (item: ContainerInventoryItem) => {
+  const auction_inventory = item.auctions_inventory;
+  if (!auction_inventory) {
+    return { reason: null, bidder_number: null };
+  }
+
+  if (
+    auction_inventory.status !== "CANCELLED" &&
+    auction_inventory.status !== "REFUNDED"
+  ) {
+    return { reason: null, bidder_number: null };
+  }
+
+  const histories = [...item.histories, ...auction_inventory.histories].sort(
+    (a, b) => b.created_at.getTime() - a.created_at.getTime(),
+  );
+  const relevantHistories = histories.filter(
+    (history) => history.auction_status === auction_inventory.status,
+  );
+  let reason: string | null = null;
+  let bidder_number: string | null = null;
+
+  for (const history of relevantHistories) {
+    bidder_number ??= getBidderNumberFromHistory(history);
+
+    if (history.receipt?.remarks) {
+      reason = history.receipt.remarks;
+      break;
+    }
+
+    const parsed = parseInventoryHistoryRemark(history.remarks);
+    reason = parsed.reason ?? history.remarks ?? null;
+    if (reason) break;
+  }
+
+  if (!bidder_number) {
+    for (const history of histories) {
+      bidder_number = getUpdatedBidderNumberFromHistoryRemark(history.remarks);
+      if (bidder_number) break;
+    }
+  }
+
+  return { reason, bidder_number };
+};
+
+export const presentContainerDetails = (
+  container: ContainerWithDetailsAndAuctionHistoriesRow,
+) => {
   const date_format = "MMM dd, yyyy";
   const status: "PAID" | "UNPAID" = container.status ? "PAID" : "UNPAID";
   const containerReportFiles = container.container_files.filter(
@@ -124,35 +193,39 @@ export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
               .map(presentFinalReportFile)[0] ?? null,
         }
       : null,
-    inventories: container.inventories.map((item) => ({
-      inventory_id: item.inventory_id,
-      container_id: item.container_id,
-      container: {
+    inventories: container.inventories.map((item) => {
+      const historyInfo = getAuctionInventoryHistoryInfo(item);
+
+      return {
+        inventory_id: item.inventory_id,
         container_id: item.container_id,
-        barcode: container.barcode,
-      },
-      barcode: item.barcode,
-      control: item.control ?? "NC",
-      description: item.description,
-      status: item.status,
-      is_bought_item: item.is_bought_item ?? 0,
-      url: item.url,
-      auction_date: item.auction_date
-        ? formatDate(item.auction_date, date_format)
-        : "---",
-      created_at: formatDate(item.created_at, date_format),
-      updated_at: formatDate(item.updated_at, date_format),
-      deleted_at: item.deleted_at
-        ? formatDate(item.deleted_at, date_format)
-        : null,
-      auctions_inventory: item.auctions_inventory
-        ? {
+        container: {
+          container_id: item.container_id,
+          barcode: container.barcode,
+        },
+        barcode: item.barcode,
+        control: item.control ?? "NC",
+        description: item.description,
+        status: item.status,
+        is_bought_item: item.is_bought_item ?? 0,
+        url: item.url,
+        auction_date: item.auction_date
+          ? formatDate(item.auction_date, date_format)
+          : "---",
+        created_at: formatDate(item.created_at, date_format),
+        updated_at: formatDate(item.updated_at, date_format),
+        deleted_at: item.deleted_at
+          ? formatDate(item.deleted_at, date_format)
+          : null,
+        auctions_inventory: item.auctions_inventory
+          ? {
             auction_inventory_id: item.auctions_inventory?.auction_inventory_id,
             auction_bidder_id: item.auctions_inventory?.auction_bidder_id,
             inventory_id: item.auctions_inventory?.inventory_id,
             receipt_id: item.auctions_inventory?.receipt_id,
             description: item.auctions_inventory?.description,
             status: item.auctions_inventory?.status,
+            reason: historyInfo.reason,
             price: item.auctions_inventory?.price,
             qty: item.auctions_inventory?.qty,
             manifest_number: item.auctions_inventory?.manifest_number,
@@ -173,6 +246,7 @@ export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
               bidder_id:
                 item.auctions_inventory?.auction_bidder.bidder.bidder_id,
               bidder_number:
+                historyInfo.bidder_number ??
                 item.auctions_inventory?.auction_bidder.bidder.bidder_number,
               full_name: `${item.auctions_inventory?.auction_bidder.bidder.first_name} ${item.auctions_inventory?.auction_bidder.bidder.last_name}`,
               service_charge:
@@ -184,8 +258,9 @@ export const presentContainerDetails = (container: ContainerWithDetailsRow) => {
               balance: item.auctions_inventory?.auction_bidder.balance,
             },
           }
-        : null,
-    })),
+          : null,
+      };
+    }),
   };
 };
 

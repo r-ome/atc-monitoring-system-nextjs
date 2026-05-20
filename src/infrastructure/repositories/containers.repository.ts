@@ -64,8 +64,30 @@ export const ContainerRepository: IContainerRepository = {
           },
           inventories: {
             include: {
+              histories: {
+                include: {
+                  receipt: {
+                    include: {
+                      auction_bidder: { include: { bidder: true } },
+                    },
+                  },
+                },
+                orderBy: { created_at: "desc" },
+              },
               auctions_inventory: {
-                include: { auction_bidder: { include: { bidder: true } } },
+                include: {
+                  histories: {
+                    include: {
+                      receipt: {
+                        include: {
+                          auction_bidder: { include: { bidder: true } },
+                        },
+                      },
+                    },
+                    orderBy: { created_at: "desc" },
+                  },
+                  auction_bidder: { include: { bidder: true } },
+                },
               },
             },
           },

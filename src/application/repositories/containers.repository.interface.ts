@@ -4,6 +4,7 @@ import {
   ContainerFinalReportRow,
   ContainerListRow,
   ContainerWithAllRow,
+  ContainerWithDetailsAndAuctionHistoriesRow,
   ContainerWithDetailsRow,
   ContainerWithInventoriesRow,
   ContainerWithSupplierAndBranchRow,
@@ -20,7 +21,7 @@ import { FinalReportDraft } from "src/entities/models/FinalReportDraft";
 export interface IContainerRepository {
   getContainerByBarcode: (
     barcode: string,
-  ) => Promise<ContainerWithDetailsRow | null>;
+  ) => Promise<ContainerWithDetailsAndAuctionHistoriesRow | null>;
   getContainerFinalReportData: (
     barcode: string,
   ) => Promise<ContainerFinalReportRow | null>;

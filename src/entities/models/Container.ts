@@ -50,6 +50,42 @@ export type ContainerWithDetailsRow = Prisma.containersGetPayload<{
   };
 }>;
 
+export type ContainerWithDetailsAndAuctionHistoriesRow =
+  Prisma.containersGetPayload<{
+    include: {
+      branch: true;
+      container_files: true;
+      inventories: {
+        include: {
+          histories: {
+            include: {
+              receipt: {
+                include: {
+                  auction_bidder: { include: { bidder: true } };
+                };
+              };
+            };
+          };
+          auctions_inventory: {
+            include: {
+              histories: {
+                include: {
+                  receipt: {
+                    include: {
+                      auction_bidder: { include: { bidder: true } };
+                    };
+                  };
+                };
+              };
+              auction_bidder: { include: { bidder: true } };
+            };
+          };
+        };
+      };
+      supplier: true;
+    };
+  }>;
+
 export type ContainerFinalReportRow = Prisma.containersGetPayload<{
   include: {
     branch: true;

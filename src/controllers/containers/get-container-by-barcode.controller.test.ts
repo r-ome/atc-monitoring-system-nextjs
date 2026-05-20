@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { Prisma } from "@prisma/client";
 import { presentContainerDetails } from "./get-container-by-barcode.controller";
-import { ContainerWithDetailsRow } from "src/entities/models/Container";
+import { ContainerWithDetailsAndAuctionHistoriesRow } from "src/entities/models/Container";
 
 test("presentContainerDetails includes derived paid date and status", () => {
   const result = presentContainerDetails({
@@ -104,7 +104,7 @@ test("presentContainerDetails includes derived paid date and status", () => {
       },
     ],
     inventories: [],
-  } as unknown as ContainerWithDetailsRow);
+  } as unknown as ContainerWithDetailsAndAuctionHistoriesRow);
 
   assert.equal(result.status, "PAID");
   assert.equal(result.paid_at, "May 02, 2026");

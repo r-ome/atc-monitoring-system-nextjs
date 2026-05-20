@@ -2,6 +2,7 @@ import generateMonitoringReport from "./generateMonitoringReport";
 import generateFinalComputation from "./generateFinalComputation";
 import generateUnsoldReport from "./generateUnsoldReport";
 import generateInventoryList from "./generateInventoryList";
+import generateInventoryReport from "./generateInventoryReport";
 import generateUnsold from "./generateUnsold";
 import generateEmptyInventoryList from "./generateEmptyInventoryList";
 import generateBoughtItemsReport from "./generateBoughtItemsReport";
@@ -20,6 +21,7 @@ export {
   generateMonitoringReport,
   generateUnsoldReport,
   generateInventoryList,
+  generateInventoryReport,
   generateUnsold,
   generateEmptyInventoryList,
   generateBoughtItemsReport,

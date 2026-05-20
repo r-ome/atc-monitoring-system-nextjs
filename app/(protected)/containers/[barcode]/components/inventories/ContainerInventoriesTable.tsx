@@ -31,7 +31,7 @@ export type InventoryRowType = Omit<
   auctions_inventory: Omit<
     AuctionsInventory,
     "inventory" | "receipt" | "histories"
-  > | null;
+  > & { reason: string | null } | null;
 };
 
 interface ContainerInventoriesProps {
@@ -126,8 +126,8 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
               <DropdownMenuItem onClick={() => setOpenCreate(true)}>
                 Create Inventory
               </DropdownMenuItem>
-              <DropdownMenuItem disabled>
-                Generate Report
+              <DropdownMenuItem onClick={() => setOpenGenerate(true)}>
+                Generate Inventory Report
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setOpenFinalReport(true)}>
                 Generate Final Report
@@ -156,8 +156,6 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
           <GenerateContainerReportModal
             inventories={inventories}
             container={container}
-            userBranchId={userBranchId}
-            tarlacBranchId={tarlacBranchId}
             open={openGenerate}
             onOpenChange={setOpenGenerate}
           />
