@@ -200,7 +200,7 @@ export const ReportsRepository: IReportsRepository = {
           expense_id: string;
           created_at: Date;
           amount: Prisma.Decimal | number | string | null;
-          purpose: "ADD_PETTY_CASH" | "EXPENSE";
+          purpose: "ADD_PETTY_CASH" | "EXPENSE" | "SALARY";
           remarks: string;
         }>
       >(Prisma.sql`
@@ -213,7 +213,7 @@ export const ReportsRepository: IReportsRepository = {
         FROM expenses e
         WHERE e.deleted_at IS NULL
           AND e.branch_id = ${branch_id}
-          AND e.purpose = 'EXPENSE'
+          AND e.purpose IN ('EXPENSE', 'SALARY')
           AND e.created_at >= ${start}
           AND e.created_at < ${end}
         ORDER BY e.created_at DESC

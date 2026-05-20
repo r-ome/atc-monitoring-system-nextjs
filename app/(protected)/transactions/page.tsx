@@ -1,39 +1,47 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { HandCoins } from "lucide-react";
-import { Card } from "@/app/components/ui/card";
-import { formatDate } from "@/app/lib/utils";
-import { FullScreenCalendar } from "@/app/components/fullscreen-calendar/fullscreen-calendar";
-import { ConsistencyCheckerDialog } from "./[transaction_date]/ConsistencyCheckerDialog";
-import { PageContainer } from "@/app/components/PageContainer";
-import { PageHeader } from "@/app/components/PageHeader";
+"use server";
 
-export default function Page() {
-  const router = useRouter();
+import { redirect } from "next/navigation";
+import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { requireUser } from "@/app/lib/auth";
+import { getBranches } from "../branches/actions";
+import { TransactionsCalendarClient } from "./TransactionsCalendarClient";
+
+export default async function Page({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<Record<string, string | undefined>>;
+}>) {
+  const { branch_id } = await searchParams;
+  const user = await requireUser();
+  const branchesRes = await getBranches();
+
+  if (!branchesRes.ok) {
+    return <ErrorComponent error={branchesRes.error} />;
+  }
+
+  const branches = branchesRes.value;
+  const canSelectBranch = ["SUPER_ADMIN", "OWNER"].includes(user.role);
+  const fallbackBranch = canSelectBranch
+    ? (branches.find((branch) => branch.name === "BIÑAN") ?? null)
+    : (branches.find((branch) => branch.branch_id === user.branch.branch_id) ??
+      null);
+
+  const branchId = canSelectBranch
+    ? String(branch_id ?? fallbackBranch?.branch_id)
+    : String(fallbackBranch?.branch_id);
+
+  if (!branchId) redirect("/");
+
+  const selectedBranch =
+    branches.find((branch) => branch.branch_id === branchId) ?? fallbackBranch;
+
+  if (!selectedBranch) redirect("/");
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Transactions"
-        subtitle="Choose a date to review transactions"
-        actions={<ConsistencyCheckerDialog />}
-      />
-
-      <Card className="flex flex-col p-3.5 2xl:p-5 2xl:text-[15px]">
-        <div className="mb-3 flex items-center gap-2">
-          <HandCoins size={14} className="text-muted-foreground" />
-          <span className="text-[13.5px] font-semibold 2xl:text-[17.5px]">
-            Transaction Calendar
-          </span>
-        </div>
-
-        <FullScreenCalendar
-          onDayClick={(date) => {
-            const formattedStringDate = formatDate(date, "yyyy-MM-dd");
-            router.push(`/transactions/${formattedStringDate}`);
-          }}
-        />
-      </Card>
-    </PageContainer>
+    <TransactionsCalendarClient
+      user={{ role: user.role }}
+      branches={branches}
+      selectedBranch={selectedBranch}
+    />
   );
 }

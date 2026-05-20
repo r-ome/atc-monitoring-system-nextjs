@@ -13,6 +13,7 @@ interface FullScreenCalendarHeaderProps {
   nextMonth: () => void;
   goToToday: () => void;
   previousMonth: () => void;
+  actions?: React.ReactNode;
 }
 
 export function FullScreenCalendarHeader({
@@ -21,6 +22,7 @@ export function FullScreenCalendarHeader({
   previousMonth,
   startOfMonth,
   endOfMonth,
+  actions,
 }: FullScreenCalendarHeaderProps) {
   const today = startOfToday();
 
@@ -49,6 +51,7 @@ export function FullScreenCalendarHeader({
       </div>
 
       <div className="flex flex-col items-center gap-4 md:flex-row md:gap-6">
+        {actions}
         <div className="inline-flex w-full -space-x-px rounded-lg shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
           <Button
             onClick={previousMonth}

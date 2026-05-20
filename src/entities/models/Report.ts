@@ -117,7 +117,7 @@ export type ExpenseSummaryDetailRow = {
   expense_id: string;
   created_at: Date;
   amount: number;
-  purpose: "ADD_PETTY_CASH" | "EXPENSE";
+  purpose: "ADD_PETTY_CASH" | "EXPENSE" | "SALARY";
   remarks: string;
 };
 
@@ -126,7 +126,7 @@ export type ExpenseSummaryEntry = {
   created_at: string;
   created_at_value: string;
   amount: number;
-  purpose: "ADD_PETTY_CASH" | "EXPENSE";
+  purpose: "ADD_PETTY_CASH" | "EXPENSE" | "SALARY";
   remarks: string;
 };
 

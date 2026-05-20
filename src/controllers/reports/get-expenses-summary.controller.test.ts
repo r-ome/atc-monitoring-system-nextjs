@@ -25,6 +25,13 @@ test("presentExpensesSummary formats detailed expense rows for report display", 
       purpose: "EXPENSE",
       remarks: "Forklift repair",
     },
+    {
+      expense_id: "salary-1",
+      created_at: new Date("2026-04-04T01:00:00Z"),
+      amount: 2500,
+      purpose: "SALARY",
+      remarks: "Payroll",
+    },
   ]);
 
   assert.deepEqual(result, [
@@ -35,6 +42,14 @@ test("presentExpensesSummary formats detailed expense rows for report display", 
       amount: 1250.5,
       purpose: "EXPENSE",
       remarks: "Forklift repair",
+    },
+    {
+      expense_id: "salary-1",
+      created_at: "Apr 04, 2026 09:00 AM",
+      created_at_value: "2026-04-04T01:00:00.000Z",
+      amount: 2500,
+      purpose: "SALARY",
+      remarks: "Payroll",
     },
   ]);
 });

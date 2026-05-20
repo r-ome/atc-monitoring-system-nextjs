@@ -20,8 +20,10 @@ import { formatDate } from "@/app/lib/utils";
 
 export function FullScreenCalendar({
   onDayClick,
+  renderHeaderActions,
 }: {
   onDayClick: (a: Date) => void;
+  renderHeaderActions?: (month: Date) => React.ReactNode;
 }) {
   const today = startOfToday();
   const [selectedDay, setSelectedDay] = React.useState(today);
@@ -57,6 +59,7 @@ export function FullScreenCalendar({
         nextMonth={nextMonth}
         previousMonth={previousMonth}
         goToToday={goToToday}
+        actions={renderHeaderActions?.(firstDayCurrentMonth)}
       />
       <div className="lg:flex lg:flex-auto lg:flex-col 2xl:h-[800px]">
         <FullScreenCalendarWeekDays />
