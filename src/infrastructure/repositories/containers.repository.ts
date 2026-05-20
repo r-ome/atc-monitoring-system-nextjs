@@ -16,6 +16,7 @@ import {
   finalReportDraftSchema,
 } from "src/entities/models/FinalReportDraft";
 import { buildInventoryFileUpdatedHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
+import { getInventorySalesAllocationForContainer } from "src/entities/models/InventorySalesAllocation";
 
 export const ContainerRepository: IContainerRepository = {
   getContainerById: async (container_id: string) => {
@@ -267,9 +268,32 @@ export const ContainerRepository: IContainerRepository = {
   uploadInventoryFile: async (input) => {
     try {
       return await prisma.$transaction(async (tx) => {
+        const createContainerIds = Array.from(
+          new Set(input.creates.map((item) => item.container_id)),
+        );
+        const createContainers = createContainerIds.length
+          ? await tx.containers.findMany({
+              where: { container_id: { in: createContainerIds } },
+              select: { container_id: true, barcode: true, status: true },
+            })
+          : [];
+        const createContainerById = new Map(
+          createContainers.map((container) => [container.container_id, container]),
+        );
         const created = input.creates.length
           ? await tx.inventories.createMany({
-              data: input.creates,
+              data: input.creates.map((item) => {
+                const container = createContainerById.get(item.container_id);
+                return {
+                  ...item,
+                  ...(container
+                    ? getInventorySalesAllocationForContainer(
+                        container,
+                        "ENCODED_AFTER_CONTAINER_PAID",
+                      )
+                    : {}),
+                };
+              }),
               skipDuplicates: true,
             })
           : { count: 0 };

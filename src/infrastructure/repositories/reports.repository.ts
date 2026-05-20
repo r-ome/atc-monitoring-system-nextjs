@@ -249,8 +249,8 @@ export const ReportsRepository: IReportsRepository = {
           c.container_id,
           c.barcode,
           c.status AS paid_at,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS total_item_sales,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' AND i.sales_allocation <> 'ATC' THEN ai.price ELSE 0 END), 0) AS total_item_sales,
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' AND i.sales_allocation <> 'ATC' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge
         FROM containers c
         LEFT JOIN inventories i
           ON i.container_id = c.container_id
@@ -413,7 +413,15 @@ export const ReportsRepository: IReportsRepository = {
           AND ai.status = 'PAID'
           AND ai.auction_date >= ${start}
           AND ai.auction_date < ${end}
-          AND (c.barcode LIKE '00%' OR UPPER(c.barcode) LIKE 'T0%')
+          AND (
+            c.barcode LIKE '00%'
+            OR UPPER(c.barcode) LIKE 'T0%'
+            OR (
+              i.sales_allocation = 'ATC'
+              AND i.is_bought_item IS NULL
+              AND (ai.manifest_number IS NULL OR ai.manifest_number <> 'BOUGHT ITEM')
+            )
+          )
       `);
 
       return rows.map(
@@ -578,6 +586,7 @@ export const ReportsRepository: IReportsRepository = {
         LEFT JOIN auctions_inventories ai
           ON ai.inventory_id = i.inventory_id
           AND ai.status = 'PAID'
+          AND i.sales_allocation <> 'ATC'
           AND ai.deleted_at IS NULL
           AND ai.auction_date >= ${start}
           AND ai.auction_date < ${end}
@@ -633,9 +642,9 @@ export const ReportsRepository: IReportsRepository = {
           c.due_date,
           c.duties_and_taxes,
           COUNT(i.inventory_id) AS total_items,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN 1 ELSE 0 END), 0) AS paid_items,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS total_item_sales,
-          COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' AND i.sales_allocation <> 'ATC' THEN 1 ELSE 0 END), 0) AS paid_items,
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' AND i.sales_allocation <> 'ATC' THEN ai.price ELSE 0 END), 0) AS total_item_sales,
+          COALESCE(SUM(CASE WHEN ai.status = 'PAID' AND i.sales_allocation <> 'ATC' THEN ai.price * ab.service_charge / 100.0 ELSE 0 END), 0) AS total_service_charge
         FROM containers c
         INNER JOIN suppliers s
           ON s.supplier_id = c.supplier_id

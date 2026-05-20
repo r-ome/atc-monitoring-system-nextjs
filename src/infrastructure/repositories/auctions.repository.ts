@@ -35,6 +35,11 @@ import {
   getAuctionInventoriesPayableBase,
   getAuctionInventoryPayableTotal,
 } from "src/entities/models/AuctionPayableAmount";
+import {
+  buildSalesAllocationChangedHistoryRemark,
+  DEFAULT_INVENTORY_SALES_ALLOCATION,
+  getInventorySalesAllocationForContainer,
+} from "src/entities/models/InventorySalesAllocation";
 
 export const AuctionRepository: IAuctionRepository = {
   startAuction: async (auction_date) => {
@@ -380,19 +385,53 @@ export const AuctionRepository: IAuctionRepository = {
             },
           );
 
+        const targetContainerIds = Array.from(
+          new Set(
+            [...new_inventories, ...for_updating]
+              .map((item) => item.container_id)
+              .filter((container_id): container_id is string =>
+                Boolean(container_id),
+              ),
+          ),
+        );
+        const targetContainers = targetContainerIds.length
+          ? await tx.containers.findMany({
+              where: { container_id: { in: targetContainerIds } },
+              select: { container_id: true, barcode: true, status: true },
+            })
+          : [];
+        const targetContainerById = new Map(
+          targetContainers.map((container) => [container.container_id, container]),
+        );
+        const getEncodedAllocation = (container_id: string | null | undefined) => {
+          const container = container_id
+            ? targetContainerById.get(container_id)
+            : null;
+          return container
+            ? getInventorySalesAllocationForContainer(
+                container,
+                "ENCODED_AFTER_CONTAINER_PAID",
+              )
+            : DEFAULT_INVENTORY_SALES_ALLOCATION;
+        };
+
         // create new inventories (items that has no record in container inventories)
         await tx.inventories.createMany({
-          data: new_inventories.map((item) => ({
-            container_id: item.container_id!,
-            barcode: item.BARCODE,
-            control: normalizeControl(item.CONTROL),
-            description: item.DESCRIPTION,
-            status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
-            is_bought_item: is_bought_items
-              ? parseInt(item.PRICE, 10)
-              : undefined,
-            auction_date: auction.created_at,
-          })),
+          data: new_inventories.map((item) => {
+            const allocation = getEncodedAllocation(item.container_id);
+            return {
+              container_id: item.container_id!,
+              barcode: item.BARCODE,
+              control: normalizeControl(item.CONTROL),
+              description: item.DESCRIPTION,
+              status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
+              is_bought_item: is_bought_items
+                ? parseInt(item.PRICE, 10)
+                : undefined,
+              auction_date: auction.created_at,
+              ...allocation,
+            };
+          }),
         });
 
         const newly_created_inventories = await tx.inventories.findMany({
@@ -452,7 +491,16 @@ export const AuctionRepository: IAuctionRepository = {
           for_updating,
           auction.created_at,
           is_bought_items,
-        );
+        ).map((inventory) => {
+          const item = for_updating.find(
+            (candidate) => candidate.inventory_id === inventory.inventory_id,
+          );
+          const allocation = getEncodedAllocation(item?.container_id);
+          return {
+            ...inventory,
+            data: { ...inventory.data, ...allocation },
+          };
+        });
 
         if (reusedInventoryUpdates.length) {
           await Promise.all(
@@ -575,10 +623,32 @@ export const AuctionRepository: IAuctionRepository = {
               : buildEncodedHistoryRemark(uploaded_by),
           }));
 
+        const allocation_histories: Prisma.inventory_historiesCreateManyInput[] =
+          auctions_inventories
+            .filter((item) => item.inventory.sales_allocation === "ATC")
+            .map((item) => ({
+              auction_inventory_id: item.auction_inventory_id,
+              inventory_id: item.inventory_id,
+              auction_status: is_bought_items ? "PAID" : "UNPAID",
+              inventory_status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
+              remarks: buildSalesAllocationChangedHistoryRemark({
+                previous_allocation: "CONTAINER",
+                new_allocation: "ATC",
+                reason: item.inventory.sales_allocation_reason,
+                updated_by: uploaded_by,
+              }),
+            }));
+
         // add "encoded" in history
         if (encoded_histories.length) {
           await tx.inventory_histories.createMany({
             data: encoded_histories,
+          });
+        }
+
+        if (allocation_histories.length) {
+          await tx.inventory_histories.createMany({
+            data: allocation_histories,
           });
         }
 
@@ -1099,17 +1169,57 @@ export const AuctionRepository: IAuctionRepository = {
             rows_for_new_auction_inventory.filter(
               (item) => !item.inventory_id && item.container_id,
             );
+          const updateManifestContainerIds = Array.from(
+            new Set(
+              valid_rows_in_sheet
+                .map((item) => item.container_id)
+                .filter((container_id): container_id is string =>
+                  Boolean(container_id),
+                ),
+            ),
+          );
+          const updateManifestContainers = updateManifestContainerIds.length
+            ? await tx.containers.findMany({
+                where: { container_id: { in: updateManifestContainerIds } },
+                select: { container_id: true, barcode: true, status: true },
+              })
+            : [];
+          const updateManifestContainerById = new Map(
+            updateManifestContainers.map((container) => [
+              container.container_id,
+              container,
+            ]),
+          );
+          const getUpdateManifestAllocation = (
+            container_id: string | null | undefined,
+          ) => {
+            const container = container_id
+              ? updateManifestContainerById.get(container_id)
+              : null;
+            return container
+              ? getInventorySalesAllocationForContainer(
+                  container,
+                  "ENCODED_AFTER_CONTAINER_PAID",
+                )
+              : DEFAULT_INVENTORY_SALES_ALLOCATION;
+          };
 
           if (for_creating_inventories.length) {
             await tx.inventories.createMany({
-              data: for_creating_inventories.map((item) => ({
-                container_id: item.container_id!,
-                control: normalizeControl(item.control),
-                barcode: item.barcode,
-                description: item.description,
-                status: "SOLD",
-                auction_date: auction.created_at,
-              })),
+              data: for_creating_inventories.map((item) => {
+                const allocation = getUpdateManifestAllocation(
+                  item.container_id,
+                );
+                return {
+                  container_id: item.container_id!,
+                  control: normalizeControl(item.control),
+                  barcode: item.barcode,
+                  description: item.description,
+                  status: "SOLD",
+                  auction_date: auction.created_at,
+                  ...allocation,
+                };
+              }),
             });
           }
 
@@ -1167,21 +1277,20 @@ export const AuctionRepository: IAuctionRepository = {
           );
 
           if (rows_for_existing_auction_inventory.length) {
-            await tx.inventories.updateMany({
-              data: {
-                status: "SOLD",
-                auction_date: auction.created_at,
-              },
-              where: {
-                inventory_id: {
-                  in: rows_for_existing_auction_inventory
-                    .map((item) => item.inventory_id)
-                    .filter((inventory_id): inventory_id is string =>
-                      Boolean(inventory_id),
-                    ),
-                },
-              },
-            });
+            await Promise.all(
+              rows_for_existing_auction_inventory
+                .filter((item) => item.inventory_id)
+                .map((item) =>
+                  tx.inventories.update({
+                    where: { inventory_id: item.inventory_id! },
+                    data: {
+                      status: "SOLD",
+                      auction_date: auction.created_at,
+                      ...getUpdateManifestAllocation(item.container_id),
+                    },
+                  }),
+                ),
+            );
 
             await Promise.all(
               auction_inventories

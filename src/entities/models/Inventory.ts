@@ -1,6 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { AuctionItemStatus, AuctionsInventory } from "./Auction";
+import {
+  InventorySalesAllocation,
+  InventorySalesAllocationReason,
+} from "./InventorySalesAllocation";
 
 export const INVENTORY_STATUS = [
   "SOLD",
@@ -62,6 +66,9 @@ export type Inventory = {
   control: string;
   description: string;
   status: InventoryStatus;
+  sales_allocation: InventorySalesAllocation;
+  sales_allocation_reason: InventorySalesAllocationReason;
+  sales_allocation_note?: string | null;
   is_bought_item: number;
   url?: string | null;
   auction_date?: string;

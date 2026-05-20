@@ -177,11 +177,11 @@ test("getPaidContainerFinancials service charge only uses paid auction items", a
   assert.ok(capturedQuery);
   assert.match(
     capturedQuery.sql,
-    /SUM\(CASE WHEN ai\.status = 'PAID' THEN ai\.price \* ab\.service_charge \/ 100\.0 ELSE 0 END\)/,
+    /SUM\(CASE WHEN ai\.status = 'PAID' AND i\.sales_allocation <> 'ATC' THEN ai\.price \* ab\.service_charge \/ 100\.0 ELSE 0 END\)/,
   );
   assert.match(
     capturedQuery.sql,
-    /SUM\(CASE WHEN ai\.status = 'PAID' THEN ai\.price ELSE 0 END\)/,
+    /SUM\(CASE WHEN ai\.status = 'PAID' AND i\.sales_allocation <> 'ATC' THEN ai\.price ELSE 0 END\)/,
   );
 });
 
@@ -319,7 +319,7 @@ test("getOwnerOrganicSales returns 00/T0 PAID resales keyed by auction_date", as
   assert.match(capturedQuery.sql, /ai\.auction_date </);
   assert.match(
     capturedQuery.sql,
-    /c\.barcode LIKE '00%' OR UPPER\(c\.barcode\) LIKE 'T0%'/,
+    /c\.barcode LIKE '00%'\s+OR UPPER\(c\.barcode\) LIKE 'T0%'\s+OR \(\s+i\.sales_allocation = 'ATC'/,
   );
   assert.deepEqual(rows, [
     {

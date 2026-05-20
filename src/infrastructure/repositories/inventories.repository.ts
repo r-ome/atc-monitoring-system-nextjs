@@ -21,6 +21,11 @@ import {
   buildItemDirectBoughtHistoryRemark,
   buildItemUpdatedHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
+import {
+  buildSalesAllocationChangedHistoryRemark,
+  getInventorySalesAllocationForContainer,
+  InventorySalesAllocationDecision,
+} from "src/entities/models/InventorySalesAllocation";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
 
@@ -229,6 +234,37 @@ export const InventoryRepository: IInventoryRepository = {
         const is_item_reassigned =
           auction_inventory.auction_bidder_id !==
           selected_bidder.auction_bidder_id;
+        const is_container_changed =
+          data.container_id !== auction_inventory.inventory.container_id;
+        const target_container = await tx.containers.findFirst({
+          where: { container_id: data.container_id! },
+          select: { container_id: true, barcode: true, status: true },
+        });
+
+        if (!target_container) {
+          throw new NotFoundError("Selected container does not exist!");
+        }
+
+        const allocationDecision: InventorySalesAllocationDecision =
+          auction_inventory.inventory.sales_allocation_reason === "MANUAL_OVERRIDE"
+            ? {
+                sales_allocation: auction_inventory.inventory.sales_allocation,
+                sales_allocation_reason:
+                  auction_inventory.inventory.sales_allocation_reason,
+                sales_allocation_note:
+                  auction_inventory.inventory.sales_allocation_note,
+              }
+            : getInventorySalesAllocationForContainer(
+                target_container,
+                is_container_changed
+                  ? "TRANSFERRED_TO_PAID_CONTAINER"
+                  : "ENCODED_AFTER_CONTAINER_PAID",
+              );
+        const allocationChanged =
+          allocationDecision.sales_allocation !==
+            auction_inventory.inventory.sales_allocation ||
+          allocationDecision.sales_allocation_reason !==
+            auction_inventory.inventory.sales_allocation_reason;
 
         let auction_inventory_status = auction_inventory.status;
         if (
@@ -371,6 +407,7 @@ export const InventoryRepository: IInventoryRepository = {
                 barcode: data.barcode,
                 control: normalizeControl(data.control),
                 status: "SOLD",
+                ...allocationDecision,
               },
             },
             histories: {
@@ -386,6 +423,24 @@ export const InventoryRepository: IInventoryRepository = {
             },
           },
         });
+
+        if (allocationChanged) {
+          await tx.inventory_histories.create({
+            data: {
+              auction_inventory_id: data.auction_inventory_id,
+              inventory_id: data.inventory_id,
+              auction_status: "DISCREPANCY",
+              inventory_status: "SOLD",
+              remarks: buildSalesAllocationChangedHistoryRemark({
+                previous_allocation:
+                  auction_inventory.inventory.sales_allocation,
+                new_allocation: allocationDecision.sales_allocation,
+                reason: allocationDecision.sales_allocation_reason,
+                updated_by,
+              }),
+            },
+          });
+        }
 
         const affectedBidderIds = new Set([
           auction_inventory.auction_bidder_id,
@@ -474,7 +529,7 @@ export const InventoryRepository: IInventoryRepository = {
 
           const targetInventory = await tx.inventories.findFirst({
             where: { inventory_id: match.target_inventory_id },
-            include: { auctions_inventory: true },
+            include: { auctions_inventory: true, container: true },
           });
 
           if (!targetInventory) {
@@ -509,6 +564,10 @@ export const InventoryRepository: IInventoryRepository = {
             data: {
               status: "SOLD",
               auction_date: auctionInventory.auction_date,
+              ...getInventorySalesAllocationForContainer(
+                targetInventory.container,
+                "ENCODED_AFTER_CONTAINER_PAID",
+              ),
             },
           });
 
@@ -593,7 +652,7 @@ export const InventoryRepository: IInventoryRepository = {
 
           const targetInventory = await tx.inventories.findFirst({
             where: { inventory_id: match.inventory_id },
-            include: { auctions_inventory: true },
+            include: { auctions_inventory: true, container: true },
           });
           if (!targetInventory) {
             throw new NotFoundError("Target inventory not found.");
@@ -624,7 +683,14 @@ export const InventoryRepository: IInventoryRepository = {
 
           await tx.inventories.update({
             where: { inventory_id: match.inventory_id },
-            data: { status: "SOLD", auction_date: auctionDate },
+            data: {
+              status: "SOLD",
+              auction_date: auctionDate,
+              ...getInventorySalesAllocationForContainer(
+                targetInventory.container,
+                "ENCODED_AFTER_CONTAINER_PAID",
+              ),
+            },
           });
 
           await tx.inventory_histories.create({
@@ -699,7 +765,7 @@ export const InventoryRepository: IInventoryRepository = {
 
           const targetInventory = await tx.inventories.findFirst({
             where: { inventory_id: item.inventory_id },
-            include: { auctions_inventory: true },
+            include: { auctions_inventory: true, container: true },
           });
           if (!targetInventory) {
             throw new NotFoundError("Target inventory not found.");
@@ -730,7 +796,14 @@ export const InventoryRepository: IInventoryRepository = {
 
           await tx.inventories.update({
             where: { inventory_id: item.inventory_id },
-            data: { status: "SOLD", auction_date: auctionDate },
+            data: {
+              status: "SOLD",
+              auction_date: auctionDate,
+              ...getInventorySalesAllocationForContainer(
+                targetInventory.container,
+                "ENCODED_AFTER_CONTAINER_PAID",
+              ),
+            },
           });
 
           await tx.inventory_histories.create({
@@ -951,6 +1024,17 @@ export const InventoryRepository: IInventoryRepository = {
   },
   createInventory: async (input) => {
     try {
+      const container = await prisma.containers.findFirst({
+        where: { container_id: input.container_id },
+        select: { barcode: true, status: true },
+      });
+      if (!container) {
+        throw new NotFoundError("Container not found!");
+      }
+      const allocation = getInventorySalesAllocationForContainer(
+        container,
+        "ENCODED_AFTER_CONTAINER_PAID",
+      );
       return await prisma.inventories.create({
         data: {
           container_id: input.container_id,
@@ -958,6 +1042,7 @@ export const InventoryRepository: IInventoryRepository = {
           control: normalizeControl(input.control),
           description: input.description,
           status: "UNSOLD",
+          ...allocation,
         },
       });
     } catch (error) {
@@ -1174,7 +1259,7 @@ export const InventoryRepository: IInventoryRepository = {
         for (const split of data.splits) {
           const targetInventory = await tx.inventories.findFirst({
             where: { inventory_id: split.target_inventory_id },
-            include: { auctions_inventory: true },
+            include: { auctions_inventory: true, container: true },
           });
           if (!targetInventory) {
             throw new NotFoundError(`Target inventory ${split.target_inventory_id} not found.`);
@@ -1206,6 +1291,10 @@ export const InventoryRepository: IInventoryRepository = {
               status: "BOUGHT_ITEM",
               is_bought_item: split.price,
               auction_date: sourceAuctionInventory.auction_date,
+              ...getInventorySalesAllocationForContainer(
+                targetInventory.container,
+                "ENCODED_AFTER_CONTAINER_PAID",
+              ),
             },
           });
 
@@ -1307,7 +1396,7 @@ export const InventoryRepository: IInventoryRepository = {
 
         const targetInventory = await tx.inventories.findFirst({
           where: { inventory_id: data.inventory_id },
-          include: { auctions_inventory: true },
+          include: { auctions_inventory: true, container: true },
         });
         if (!targetInventory) throw new NotFoundError("Inventory not found.");
         if (targetInventory.status !== "UNSOLD") {
@@ -1340,6 +1429,10 @@ export const InventoryRepository: IInventoryRepository = {
             status: "BOUGHT_ITEM",
             is_bought_item: data.price,
             auction_date: auctionDate,
+            ...getInventorySalesAllocationForContainer(
+              targetInventory.container,
+              "ENCODED_AFTER_CONTAINER_PAID",
+            ),
           },
         });
 

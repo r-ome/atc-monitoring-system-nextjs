@@ -1,4 +1,5 @@
 type InventoryLike = {
+  sales_allocation?: string | null;
   auctions_inventory: {
     status: string;
     price: number;
@@ -15,6 +16,8 @@ export type ContainerReportData = {
   sortingFee: number;
   atcSales: number;
   totalProfit: number;
+  atcAllocatedItemSales: number;
+  atcAllocatedItemCount: number;
 };
 
 function computeRoyalty(sales: number): number {
@@ -35,20 +38,29 @@ function computeContainerSalesCommission(sales: number): number {
 export function computeContainerReport(
   inventories: InventoryLike[]
 ): ContainerReportData {
-  const paidAuctionItems = inventories.flatMap((inv) => {
+  const paidInventoryItems = inventories.flatMap((inv) => {
     if (inv.auctions_inventory?.status === "PAID") {
-      return [inv.auctions_inventory];
+      return [{ inventory: inv, auction_inventory: inv.auctions_inventory }];
     }
     return [];
   });
+  const containerPaidItems = paidInventoryItems
+    .filter((item) => item.inventory.sales_allocation !== "ATC")
+    .map((item) => item.auction_inventory);
+  const atcAllocatedPaidItems = paidInventoryItems
+    .filter((item) => item.inventory.sales_allocation === "ATC")
+    .map((item) => item.auction_inventory);
 
-  const totalItemSales = paidAuctionItems.reduce((sum, item) => {
+  const totalItemSales = containerPaidItems.reduce((sum, item) => {
     return sum + (item.price ?? 0);
   }, 0);
 
-  const totalServiceCharge = paidAuctionItems.reduce((sum, item) => {
+  const totalServiceCharge = containerPaidItems.reduce((sum, item) => {
     const serviceChargeRate = item.bidder?.service_charge ?? 0;
     return sum + ((item.price ?? 0) * serviceChargeRate) / 100;
+  }, 0);
+  const atcAllocatedItemSales = atcAllocatedPaidItems.reduce((sum, item) => {
+    return sum + (item.price ?? 0);
   }, 0);
 
   const containerSalesCommission = computeContainerSalesCommission(totalItemSales);
@@ -68,5 +80,7 @@ export function computeContainerReport(
     sortingFee,
     atcSales,
     totalProfit,
+    atcAllocatedItemSales,
+    atcAllocatedItemCount: atcAllocatedPaidItems.length,
   };
 }

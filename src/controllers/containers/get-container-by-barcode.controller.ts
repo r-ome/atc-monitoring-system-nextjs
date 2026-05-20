@@ -207,6 +207,9 @@ export const presentContainerDetails = (
         control: item.control ?? "NC",
         description: item.description,
         status: item.status,
+        sales_allocation: item.sales_allocation,
+        sales_allocation_reason: item.sales_allocation_reason,
+        sales_allocation_note: item.sales_allocation_note,
         is_bought_item: item.is_bought_item ?? 0,
         url: item.url,
         auction_date: item.auction_date

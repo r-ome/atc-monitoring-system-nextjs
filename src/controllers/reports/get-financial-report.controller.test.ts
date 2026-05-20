@@ -173,6 +173,31 @@ test("presentSalesExpensesSummary attributes 00/T0 organic sales by auction_date
   assert.equal(june.total_income, 550);
 });
 
+test("presentSalesExpensesSummary includes ATC allocated paid items in owner_sales_00", () => {
+  const result = presentSalesExpensesSummary(
+    [],
+    [],
+    [],
+    [],
+    [
+      {
+        container_id: "container-atc-1",
+        barcode: "32-04-008",
+        auction_date: new Date("2026-06-18T00:00:00.000Z"),
+        price: 1250,
+      },
+    ],
+    [],
+    "monthly",
+  );
+
+  const june = result.breakdown.find((row) => row.period === "JUN");
+  assert.ok(june);
+  assert.equal(june.owner_sales_00, 1250);
+  assert.equal(result.totals.owner_sales_00, 1250);
+  assert.equal(june.total_income, 1250);
+});
+
 test("presentSalesExpensesSummary daily buckets merge expense-only and container-only periods", () => {
   const result = presentSalesExpensesSummary(
     [

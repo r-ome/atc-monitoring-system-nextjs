@@ -126,6 +126,16 @@ test("updateAuctionItem recalculates affected bidder balances after reassigning 
         return { where, data };
       },
     },
+    containers: {
+      findFirst: async () => ({
+        container_id: "container-1",
+        barcode: "32-04",
+        status: null,
+      }),
+    },
+    inventory_histories: {
+      create: async () => undefined,
+    },
     auctions_inventories: {
       findFirst: async () => ({
         auction_inventory_id: "ai-1",
@@ -141,6 +151,9 @@ test("updateAuctionItem recalculates affected bidder balances after reassigning 
           barcode: "32-04-001",
           control: "0001",
           container_id: "container-1",
+          sales_allocation: "CONTAINER",
+          sales_allocation_reason: "NORMAL",
+          sales_allocation_note: null,
         },
         auction_bidder: {
           bidder: { bidder_number: "0001" },

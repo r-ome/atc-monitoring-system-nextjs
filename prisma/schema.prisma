@@ -191,24 +191,28 @@ model container_files {
 }
 
 model inventories {
-  inventory_id   String             @id @default(uuid())
-  container_id   String
-  barcode        String
-  control        String?
-  description    String
-  status         inventories_status @default(UNSOLD)
-  is_bought_item Int?
-  url            String?
-  auction_date   DateTime?
-  created_at     DateTime           @default(now()) @db.Timestamp(0)
-  updated_at     DateTime           @default(now()) @updatedAt @db.DateTime(0)
-  deleted_at     DateTime?          @db.DateTime(0)
-  container      containers         @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_inventories_container_id")
+  inventory_id            String                             @id @default(uuid())
+  container_id            String
+  barcode                 String
+  control                 String?
+  description             String
+  status                  inventories_status                 @default(UNSOLD)
+  is_bought_item          Int?
+  url                     String?
+  auction_date            DateTime?
+  sales_allocation        inventory_sales_allocation         @default(CONTAINER)
+  sales_allocation_reason inventory_sales_allocation_reason  @default(NORMAL)
+  sales_allocation_note   String?                            @db.Text
+  created_at              DateTime                           @default(now()) @db.Timestamp(0)
+  updated_at              DateTime                           @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at              DateTime?                          @db.DateTime(0)
+  container               containers                         @relation(fields: [container_id], references: [container_id], onDelete: Cascade, map: "fk_inventories_container_id")
 
   auctions_inventory auctions_inventories? @relation("InventoryToAuctionInventories")
   histories          inventory_histories[]
 
   @@index([container_id], map: "fk_inventories_container_id")
+  @@index([sales_allocation], map: "inventories_sales_allocation_idx")
 }
 
 model container_item_categories {
@@ -596,6 +600,20 @@ enum inventories_status {
   UNSOLD
   BOUGHT_ITEM
   VOID
+}
+
+enum inventory_sales_allocation {
+  CONTAINER
+  ATC
+}
+
+enum inventory_sales_allocation_reason {
+  NORMAL
+  ATC_CONTAINER
+  ENCODED_AFTER_CONTAINER_PAID
+  TRANSFERRED_TO_PAID_CONTAINER
+  PAID_DATE_RECALCULATION
+  MANUAL_OVERRIDE
 }
 
 enum auction_inventory_status {

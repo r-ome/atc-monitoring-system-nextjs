@@ -17,6 +17,7 @@ import { computeContainerReport } from "./computeContainerReport";
 
 interface ContainerReportProps {
   inventories: {
+    sales_allocation?: string | null;
     auctions_inventory: {
       status: string;
       price: number;
@@ -77,6 +78,8 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
     royalty,
     atcSales,
     totalProfit,
+    atcAllocatedItemSales,
+    atcAllocatedItemCount,
   } = computeContainerReport(inventories);
 
   const salesLabel =
@@ -161,6 +164,14 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
           hint="ATC Sales + Service Charge"
           value={totalProfit}
           className={totalProfit >= 0 ? "text-green-600" : "text-red-600"}
+        />
+        <ReportRow
+          label={`ATC Allocated Item Sales${
+            atcAllocatedItemCount > 0 ? ` (${atcAllocatedItemCount})` : ""
+          }`}
+          hint="These paid item sales are allocated to ATC and are not included in this container's Total Profit."
+          value={atcAllocatedItemSales}
+          className="text-blue-600"
         />
       </CardContent>
     </Card>

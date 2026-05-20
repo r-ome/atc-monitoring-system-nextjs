@@ -8,6 +8,15 @@ export type ReusedInventoryUpdate = {
     status: "BOUGHT_ITEM" | "SOLD";
     auction_date: Date;
     is_bought_item?: number;
+    sales_allocation?: "CONTAINER" | "ATC";
+    sales_allocation_reason?:
+      | "NORMAL"
+      | "ATC_CONTAINER"
+      | "ENCODED_AFTER_CONTAINER_PAID"
+      | "TRANSFERRED_TO_PAID_CONTAINER"
+      | "PAID_DATE_RECALCULATION"
+      | "MANUAL_OVERRIDE";
+    sales_allocation_note?: string | null;
   };
 };
 
