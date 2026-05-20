@@ -9,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/app/components/ui/dialog";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { generateReport } from "@/app/lib/reports";
@@ -31,6 +30,8 @@ interface GenerateContainerReportModalProps {
   };
   userBranchId: string;
   tarlacBranchId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 const CANCELLED_AUCTION_STATUS: AuctionItemStatus = "CANCELLED";
@@ -44,8 +45,9 @@ export const GenerateContainerReportModal = ({
   container,
   userBranchId,
   tarlacBranchId,
+  open,
+  onOpenChange,
 }: GenerateContainerReportModalProps) => {
-  const [open, setOpen] = useState<boolean>(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [excludeBidder740, setExcludeBidder740] = useState<boolean>(true);
   const [excludeRefundedBidder5013, setExcludeRefundedBidder5013] =
@@ -259,10 +261,7 @@ export const GenerateContainerReportModal = ({
   })();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Generate Report</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[425px]">
         <form onSubmit={handleSubmit} className="space-y-4">
           <DialogHeader>

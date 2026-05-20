@@ -3,13 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@/app/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/app/components/ui/dialog";
 import { type ContainerReportSheet } from "src/entities/models/Container";
 import {
@@ -56,6 +54,8 @@ interface FinalReportWorkbenchProps {
   };
   userBranchId: string;
   tarlacBranchId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export const FinalReportWorkbench = ({
@@ -63,9 +63,10 @@ export const FinalReportWorkbench = ({
   container,
   userBranchId,
   tarlacBranchId,
+  open,
+  onOpenChange,
 }: FinalReportWorkbenchProps) => {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
 
   const allAuctionDates = useMemo(
     () =>
@@ -176,7 +177,7 @@ export const FinalReportWorkbench = ({
   }, [allAuctionDates, open, container.container_id, normalizeDraftDates]);
 
   const handleOpenChange = (value: boolean) => {
-    setOpen(value);
+    onOpenChange(value);
     if (!value) {
       reset();
       setState({
@@ -248,9 +249,6 @@ export const FinalReportWorkbench = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Generate Final Report</Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Final Report</DialogTitle>

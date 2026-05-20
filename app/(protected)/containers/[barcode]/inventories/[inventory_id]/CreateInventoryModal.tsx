@@ -24,14 +24,17 @@ interface CreateInventoryModalProps {
     container_id: string;
     barcode: string;
   };
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
   container,
+  open,
+  onOpenChange,
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [open, setOpenDialog] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]>>();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -53,7 +56,7 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
       if (res.ok) {
         toast.success("Successfully updated inventory!");
         router.refresh();
-        setOpenDialog(false);
+        onOpenChange(false);
       } else {
         const description =
           typeof res.error?.cause === "string" ? res.error?.cause : null;
@@ -66,9 +69,7 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
   };
 
   return (
-    <>
-      <Button onClick={() => setOpenDialog(true)}>Create Inventory</Button>
-      <Dialog open={open}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Inventory</DialogTitle>
@@ -122,7 +123,7 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
 
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline" onClick={() => setOpenDialog(false)}>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
               </DialogClose>
@@ -134,6 +135,5 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
           </form>
         </DialogContent>
       </Dialog>
-    </>
   );
 };

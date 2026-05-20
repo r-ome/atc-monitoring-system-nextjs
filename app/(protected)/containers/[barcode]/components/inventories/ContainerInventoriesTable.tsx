@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { UploadInventoryModal } from "./UploadInventoryModal";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { columns } from "./inventory-columns";
@@ -10,15 +11,17 @@ import { AuctionsInventory } from "src/entities/models/Auction";
 import { GenerateContainerReportModal } from "./GenerateContainerReportModal";
 import { FinalReportWorkbench } from "./FinalReportWorkbench";
 import { CreateInventoryModal } from "../../inventories/[inventory_id]/CreateInventoryModal";
-import { AppendInventoriesModal } from "./AppendInventoriesModal";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/components/ui/popover";
-import { Boxes, ChevronDown, RefreshCwIcon } from "lucide-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
+import { Boxes, RefreshCwIcon } from "lucide-react";
 import { InventoryStatusBadge } from "@/app/components/admin";
 
 export type InventoryRowType = Omit<
@@ -48,6 +51,11 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const [isRefreshing, startRefresh] = useTransition();
+  const [openUpload, setOpenUpload] = useState(false);
+  const [openCreate, setOpenCreate] = useState(false);
+  const [openGenerate, setOpenGenerate] = useState(false);
+  const [openFinalReport, setOpenFinalReport] = useState(false);
 
   const globalFilterFn = (
     row: CoreRow<InventoryRowType>,
@@ -105,37 +113,62 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
       }}
       actionButtons={
         <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button>
-                Actions
-                <ChevronDown className="ml-1 size-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              className="flex w-56 flex-col gap-1.5 p-1.5 [&_button]:w-full [&_button]:justify-start"
-            >
-              <UploadInventoryModal />
-              <CreateInventoryModal container={container} />
-              <GenerateContainerReportModal
-                inventories={inventories}
-                container={container}
-                userBranchId={userBranchId}
-                tarlacBranchId={tarlacBranchId}
-              />
-              <FinalReportWorkbench
-                inventories={inventories}
-                container={container}
-                userBranchId={userBranchId}
-                tarlacBranchId={tarlacBranchId}
-              />
-              <AppendInventoriesModal inventories={inventories} />
-            </PopoverContent>
-          </Popover>
-          <Button variant="outline" size="icon" onClick={() => router.refresh()}>
-            <RefreshCwIcon />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>Options</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setOpenUpload(true)}>
+                Upload Inventory File
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOpenCreate(true)}>
+                Create Inventory
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOpenGenerate(true)}>
+                Generate Report
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOpenFinalReport(true)}>
+                Generate Final Report
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="icon"
+            disabled={isRefreshing}
+            onClick={() => startRefresh(() => router.refresh())}
+            title="Refresh"
+          >
+            <RefreshCwIcon className={isRefreshing ? "animate-spin" : ""} />
           </Button>
+
+          <UploadInventoryModal
+            open={openUpload}
+            onOpenChange={setOpenUpload}
+          />
+          <CreateInventoryModal
+            container={container}
+            open={openCreate}
+            onOpenChange={setOpenCreate}
+          />
+          <GenerateContainerReportModal
+            inventories={inventories}
+            container={container}
+            userBranchId={userBranchId}
+            tarlacBranchId={tarlacBranchId}
+            open={openGenerate}
+            onOpenChange={setOpenGenerate}
+          />
+          <FinalReportWorkbench
+            inventories={inventories}
+            container={container}
+            userBranchId={userBranchId}
+            tarlacBranchId={tarlacBranchId}
+            open={openFinalReport}
+            onOpenChange={setOpenFinalReport}
+          />
         </div>
       }
       renderMobileCard={renderMobileCard}

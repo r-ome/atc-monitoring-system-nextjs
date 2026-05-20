@@ -12,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
 import { uploadInventoryFile } from "@/app/(protected)/containers/actions";
@@ -22,10 +21,17 @@ import {
   AlertTitle,
 } from "@/app/components/ui/alert";
 
-export const UploadInventoryModal = () => {
+interface UploadInventoryModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const UploadInventoryModal: React.FC<UploadInventoryModalProps> = ({
+  open,
+  onOpenChange,
+}) => {
   const { barcode }: { barcode: string } = useParams();
   const router = useRouter();
-  const [open, setOpen] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string[]>>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -41,7 +47,7 @@ export const UploadInventoryModal = () => {
       setIsLoading(false);
       if (res.ok) {
         toast.success(res.value.message);
-        setOpen(false);
+        onOpenChange(false);
         router.refresh();
       }
 
@@ -57,10 +63,7 @@ export const UploadInventoryModal = () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Upload Inventory File</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[425px]">
         <form onSubmit={handleSubmit} className="space-y-4">
           <DialogHeader>
