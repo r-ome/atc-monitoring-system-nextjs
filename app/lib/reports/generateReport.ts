@@ -102,7 +102,7 @@ const generateReport = (
   if (reports.includes("encode")) {
     xlsx.utils.book_append_sheet(
       workbook,
-      generateInventoryList(data.inventories),
+      generateInventoryList(data.inventories, sheetTabName),
       "ENCODE",
     );
   }
