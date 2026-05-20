@@ -49,6 +49,19 @@ function presenter(inventory: InventoryWithDetailsRow) {
       created_at: inventory.auctions_inventory?.created_at
         ? formatDate(inventory.auctions_inventory?.created_at, date_format)
         : "",
+      bidder: inventory.auctions_inventory?.auction_bidder?.bidder
+        ? {
+            bidder_number:
+              inventory.auctions_inventory.auction_bidder.bidder.bidder_number,
+            full_name: [
+              inventory.auctions_inventory.auction_bidder.bidder.first_name,
+              inventory.auctions_inventory.auction_bidder.bidder.middle_name,
+              inventory.auctions_inventory.auction_bidder.bidder.last_name,
+            ]
+              .filter(Boolean)
+              .join(" "),
+          }
+        : null,
     },
   };
 }

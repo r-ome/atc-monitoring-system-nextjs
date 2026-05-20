@@ -41,7 +41,12 @@ export type InventoryForManifestRow = Prisma.inventoriesGetPayload<{
 export type InventoryWithDetailsRow = Prisma.inventoriesGetPayload<{
   include: {
     histories: { include: { receipt: true } };
-    auctions_inventory: true;
+    auctions_inventory: {
+      include: {
+        receipt: true;
+        auction_bidder: { include: { bidder: true } };
+      };
+    };
     container: true;
   };
 }>;

@@ -1,26 +1,9 @@
 import { getInventory } from "@/app/(protected)/inventories/actions";
-import {
-  AuctionStatusBadge,
-  InventoryStatusBadge,
-} from "@/app/components/admin";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/app/components/ui/card";
-
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/app/components/ui/table";
-import { UpdateInventoryModal } from "./UpdateInventoryModal";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
+import { UpdateInventoryModal } from "./UpdateInventoryModal";
 import { DeleteInventoryModal } from "./DeleteInventoryModal";
+import { InventoryProfileView } from "./InventoryProfileView";
+import { InventoryBreadcrumb } from "./InventoryBreadcrumb";
 
 export default async function Page({
   params,
@@ -33,51 +16,20 @@ export default async function Page({
 
   const inventory = res.value;
   return (
-    <div className="flex flex-col space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <div className="flex justify-between">
-              {inventory.barcode}
-              <div className="flex gap-4">
-                <UpdateInventoryModal inventory={inventory} />
-                <DeleteInventoryModal inventory={inventory} />
-              </div>
-            </div>
-          </CardTitle>
-          <CardDescription>
-            <div>Control: {inventory.control}</div>
-            <div>Description: {inventory.description}</div>
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date & Time</TableHead>
-            <TableHead>Auction Status</TableHead>
-            <TableHead>Inventory Status</TableHead>
-            <TableHead>Receipt</TableHead>
-            <TableHead>Remarks</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {inventory.histories.map((item) => (
-            <TableRow key={item.inventory_history_id}>
-              <TableCell>{item.created_at}</TableCell>
-              <TableCell>
-                <AuctionStatusBadge status={item.auction_status} />
-              </TableCell>
-              <TableCell>
-                <InventoryStatusBadge status={item.inventory_status} />
-              </TableCell>
-              <TableCell>{item.receipt_number}</TableCell>
-              <TableCell>{item.remarks}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+    <div className="flex flex-col gap-4">
+      <InventoryBreadcrumb
+        containerBarcode={inventory.container.barcode}
+        inventoryBarcode={inventory.barcode}
+      />
+      <InventoryProfileView
+        inventory={inventory}
+        actions={
+          <>
+            <UpdateInventoryModal inventory={inventory} />
+            <DeleteInventoryModal inventory={inventory} />
+          </>
+        }
+      />
     </div>
   );
 }

@@ -22,17 +22,19 @@ export const AuctionInventoryWrapper: React.FC<
   return (
     <AuctionItemProvider>
       <div className="flex flex-col gap-4">
-        <AuctionInventoryDetailsView
-          auctionInventory={auctionInventory}
-          actions={
-            <AuctionItemActionButtons
-              auctionInventory={auctionInventory}
-              auctionBidderId={auctionInventory.auction_bidder_id}
-              setOpenCancelDialog={setOpenCancelDialog}
-              setOpenUpdateDialog={setOpenUpdateDialog}
-            />
-          }
-        />
+        <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+          <AuctionInventoryDetailsView
+            auctionInventory={auctionInventory}
+            actions={
+              <AuctionItemActionButtons
+                auctionInventory={auctionInventory}
+                auctionBidderId={auctionInventory.auction_bidder_id}
+                setOpenCancelDialog={setOpenCancelDialog}
+                setOpenUpdateDialog={setOpenUpdateDialog}
+              />
+            }
+          />
+        </div>
         <CancelItemModal
           open={openCancelDialog}
           onOpenChange={setOpenCancelDialog}

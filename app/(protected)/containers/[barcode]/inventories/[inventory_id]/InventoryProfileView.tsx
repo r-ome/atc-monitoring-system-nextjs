@@ -1,23 +1,48 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { AlertTriangleIcon, ChevronLeftIcon, XIcon } from "lucide-react";
-import { AuctionsInventory } from "src/entities/models/Auction";
-
 import {
   AuctionStatusBadge,
   InventoryStatusBadge,
 } from "@/app/components/admin";
 import { cn } from "@/app/lib/utils";
 
-interface AuctionInventoryDetailsViewProps {
-  auctionInventory: AuctionsInventory;
-  actions?: ReactNode;
-  onBack?: () => void;
-  onClose?: () => void;
-}
-
 type Tab = "details" | "activity";
+
+type HistoryItem = {
+  inventory_history_id: string;
+  auction_status: React.ComponentProps<typeof AuctionStatusBadge>["status"];
+  inventory_status: React.ComponentProps<typeof InventoryStatusBadge>["status"];
+  receipt_number?: string | null;
+  remarks?: string | null;
+  created_at: string;
+};
+
+type AuctionsInventorySummary = {
+  auction_inventory_id?: string;
+  price?: number;
+  status?: React.ComponentProps<typeof AuctionStatusBadge>["status"];
+  manifest_number?: string;
+  qty?: string;
+  created_at?: string;
+  bidder?: { bidder_number: string; full_name: string } | null;
+};
+
+interface InventoryProfileViewProps {
+  inventory: {
+    inventory_id: string;
+    barcode: string;
+    control: string;
+    description: string;
+    status: React.ComponentProps<typeof InventoryStatusBadge>["status"];
+    is_bought_item: number;
+    created_at: string;
+    container: { barcode: string };
+    histories: HistoryItem[];
+    auctions_inventories: AuctionsInventorySummary;
+  };
+  actions?: ReactNode;
+}
 
 const formatPeso = (value: number) =>
   `₱${value.toLocaleString("en-PH", {
@@ -25,104 +50,93 @@ const formatPeso = (value: number) =>
     maximumFractionDigits: 2,
   })}`;
 
-const deriveContainerBarcode = (barcode: string) => {
-  const segments = barcode.split("-");
-  return segments.length >= 2 ? segments.slice(0, 2).join("-") : barcode;
-};
-
-export const AuctionInventoryDetailsView: React.FC<
-  AuctionInventoryDetailsViewProps
-> = ({ auctionInventory, actions, onBack, onClose }) => {
+export const InventoryProfileView: React.FC<InventoryProfileViewProps> = ({
+  inventory,
+  actions,
+}) => {
   const [tab, setTab] = useState<Tab>("details");
 
   const {
-    inventory,
-    bidder,
+    barcode,
+    control,
     description,
-    price,
-    qty,
-    manifest_number,
-    auction_date,
     status,
+    is_bought_item,
+    created_at,
+    container,
     histories,
-  } = auctionInventory;
+    auctions_inventories,
+  } = inventory;
 
-  const containerBarcode = deriveContainerBarcode(inventory.barcode);
-  const isBoughtItem = inventory.is_bought_item === 1;
-  const balance = bidder.balance ?? 0;
+  const isBoughtItem = is_bought_item === 1;
+  const auctionPrice = auctions_inventories?.price;
+  const auctionDate = auctions_inventories?.created_at;
+  const auctionStatus = auctions_inventories?.status;
+  const manifestNumber = auctions_inventories?.manifest_number;
+  const quantity = auctions_inventories?.qty;
+  const auctionBidder = auctions_inventories?.bidder ?? null;
 
   return (
-    <div className="flex flex-col">
+    <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
       {/* Header */}
-      <div className="border-b">
-        {onBack || onClose ? (
-          <div className="flex items-center justify-between gap-3 px-4 pt-3">
-            {onBack ? (
-              <button
-                type="button"
-                onClick={onBack}
-                className="inline-flex h-8 items-center gap-1 rounded-md px-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                <ChevronLeftIcon className="size-[15px]" />
-                Back to results
-              </button>
-            ) : (
-              <span />
-            )}
-            {onClose ? (
-              <IconBtn onClick={onClose} label="Close">
-                <XIcon className="size-[15px]" />
-              </IconBtn>
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b px-6 py-5">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex flex-wrap items-center gap-2">
+            <span className="rounded bg-secondary px-1.5 py-0.5 text-[14.5px] font-semibold tracking-wider text-secondary-foreground uppercase">
+              Inventory Item
+            </span>
+            <InventoryStatusBadge status={status} size="sm" />
+            {auctionStatus ? (
+              <AuctionStatusBadge status={auctionStatus} size="sm" />
+            ) : null}
+            {isBoughtItem ? (
+              <span className="text-[15.5px] tracking-wider text-muted-foreground uppercase">
+                Bought item
+              </span>
             ) : null}
           </div>
-        ) : null}
-        <div className="flex items-start gap-3 px-6 pt-3 pb-5">
-          <div className="min-w-0 flex-1">
-            <div className="mb-1.5 flex flex-wrap items-center gap-2">
-              <span className="rounded bg-secondary px-1.5 py-0.5 text-[14.5px] font-semibold tracking-wider text-secondary-foreground uppercase">
-                Inventory Item
-              </span>
-              <AuctionStatusBadge status={status} size="sm" />
-              <InventoryStatusBadge status={inventory.status} size="sm" />
-              {isBoughtItem ? (
-                <span className="text-[15.5px] tracking-wider text-muted-foreground uppercase">
-                  Bought item
-                </span>
-              ) : null}
-            </div>
-            <div className="flex flex-wrap items-baseline gap-3">
-              <h2 className="font-mono text-[26px] font-semibold tracking-tight">
-                {inventory.barcode}
-              </h2>
-              <span className="text-lg text-muted-foreground">
-                {description}
-              </span>
-            </div>
-            <div className="mt-1 font-mono text-sm text-muted-foreground">
-              Control {inventory.control} · Manifest {manifest_number}
-            </div>
+          <div className="flex flex-wrap items-baseline gap-3">
+            <h2 className="font-mono text-[26px] font-semibold tracking-tight">
+              {barcode}
+            </h2>
+            <span className="text-lg text-muted-foreground">
+              {description}
+            </span>
           </div>
-          {actions ? (
-            <div className="flex shrink-0 gap-2">{actions}</div>
-          ) : null}
+          <div className="mt-1 font-mono text-sm text-muted-foreground">
+            Control {control}
+            {manifestNumber ? <> · Manifest {manifestNumber}</> : null}
+          </div>
         </div>
+        {actions ? <div className="flex shrink-0 gap-2">{actions}</div> : null}
       </div>
 
       {/* Big stats row */}
-      <div className="grid grid-cols-1 border-b md:grid-cols-3">
+      <div className="grid grid-cols-1 border-b md:grid-cols-4">
         <StatCell
           label="Selling price"
-          value={formatPeso(price)}
+          value={auctionPrice != null ? formatPeso(auctionPrice) : "—"}
+          sub={auctionPrice == null ? "Not yet sold" : undefined}
           accent
           className="border-b md:border-b-0 md:border-r"
         />
         <StatCell
           label="Bidder"
-          value={`#${bidder.bidder_number}`}
-          sub={bidder.full_name}
+          value={auctionBidder ? `#${auctionBidder.bidder_number}` : "—"}
+          sub={auctionBidder ? auctionBidder.full_name : "No bidder yet"}
           className="border-b md:border-b-0 md:border-r"
         />
-        <StatCell label="Auction date" value={auction_date} />
+        <StatCell
+          label="Container"
+          value={container.barcode}
+          mono
+          className="border-b md:border-b-0 md:border-r"
+        />
+        <StatCell
+          label="Auction date"
+          value={auctionDate || "—"}
+          sub={!auctionDate ? "Not in auction yet" : undefined}
+        />
       </div>
 
       {/* Tabs */}
@@ -146,75 +160,39 @@ export const AuctionInventoryDetailsView: React.FC<
       <div className="px-6 py-5">
         {tab === "details" ? (
           <div className="grid grid-cols-1 gap-x-7 gap-y-4 md:grid-cols-2">
-            <Field label="Barcode" value={inventory.barcode} mono />
-            <Field label="Control number" value={inventory.control} mono />
-            <Field label="Container" value={containerBarcode} mono />
+            <Field label="Barcode" value={barcode} mono />
+            <Field label="Control number" value={control} mono />
+            <Field label="Container" value={container.barcode} mono />
             <Field label="Description" value={description} />
-            <Field label="Manifest" value={manifest_number} mono />
-            <Field label="Quantity" value={qty} mono />
-            <Field
-              label="Bidder"
-              value={`#${bidder.bidder_number}`}
-              sub={bidder.full_name}
-              mono
-            />
+            {manifestNumber ? (
+              <Field label="Manifest" value={manifestNumber} mono />
+            ) : null}
+            {quantity ? (
+              <Field label="Quantity" value={quantity} mono />
+            ) : null}
+            <Field label="Encoded" value={created_at} />
           </div>
         ) : null}
 
-        {tab === "activity" ? (
-          <Timeline histories={histories} />
-        ) : null}
+        {tab === "activity" ? <Timeline histories={histories} /> : null}
       </div>
-
-      {/* Action bar */}
-      {balance > 0 ? (
-        <div className="flex items-center gap-2 border-t bg-secondary/50 px-4 py-3 text-sm text-muted-foreground">
-          <AlertTriangleIcon className="size-3.5 text-destructive" />
-          Bidder #{bidder.bidder_number} has{" "}
-          <b className="font-mono text-destructive">{formatPeso(balance)}</b>{" "}
-          in outstanding balance
-        </div>
-      ) : null}
     </div>
   );
 };
-
-const IconBtn = ({
-  children,
-  onClick,
-  label,
-  disabled,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  label: string;
-  disabled?: boolean;
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={disabled}
-    aria-label={label}
-    title={label}
-    className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
-  >
-    {children}
-  </button>
-);
 
 const StatCell = ({
   label,
   value,
   sub,
   accent,
-  bold,
+  mono = true,
   className,
 }: {
   label: string;
   value: string;
   sub?: string;
   accent?: boolean;
-  bold?: boolean;
+  mono?: boolean;
   className?: string;
 }) => (
   <div className={cn("flex flex-col gap-1 px-6 py-4", className)}>
@@ -223,8 +201,8 @@ const StatCell = ({
     </div>
     <div
       className={cn(
-        "font-mono font-semibold tracking-tight",
-        bold || accent ? "text-[22px]" : "text-[19px]",
+        "text-[22px] font-semibold tracking-tight",
+        mono && "font-mono",
         accent ? "text-status-success" : "text-foreground",
       )}
     >
@@ -288,11 +266,7 @@ const Field = ({
   </div>
 );
 
-const Timeline = ({
-  histories,
-}: {
-  histories: AuctionsInventory["histories"];
-}) => {
+const Timeline = ({ histories }: { histories: HistoryItem[] }) => {
   if (histories.length === 0) {
     return (
       <div className="py-6 text-center text-base text-muted-foreground">

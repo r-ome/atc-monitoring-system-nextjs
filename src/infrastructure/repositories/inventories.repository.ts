@@ -774,7 +774,10 @@ export const InventoryRepository: IInventoryRepository = {
           },
           container: true,
           auctions_inventory: {
-            include: { receipt: true, auction_bidder: true },
+            include: {
+              receipt: true,
+              auction_bidder: { include: { bidder: true } },
+            },
           },
         },
       });
