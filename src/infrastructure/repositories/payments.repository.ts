@@ -262,6 +262,16 @@ export const PaymentRepository: IPaymentRepository = {
           },
         });
 
+        await tx.inventories.updateMany({
+          where: {
+            inventory_id: {
+              in: auction_inventories.map((item) => item.inventory_id),
+            },
+            status: "UNSOLD",
+          },
+          data: { status: "SOLD" },
+        });
+
         await tx.auctions_bidders.update({
           where: { auction_bidder_id: data.auction_bidder_id },
           data: {
