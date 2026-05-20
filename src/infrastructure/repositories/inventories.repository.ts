@@ -1317,7 +1317,9 @@ export const InventoryRepository: IInventoryRepository = {
           throw new NotFoundError("Inventory already has an auction record.");
         }
 
-        const auctionDate = new Date();
+        const auctionDate = data.auction_date
+          ? new Date(data.auction_date)
+          : new Date();
 
         const created = await tx.auctions_inventories.create({
           data: {

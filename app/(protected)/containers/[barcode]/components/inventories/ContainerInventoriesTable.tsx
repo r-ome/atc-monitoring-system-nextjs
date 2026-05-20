@@ -126,7 +126,7 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
               <DropdownMenuItem onClick={() => setOpenCreate(true)}>
                 Create Inventory
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setOpenGenerate(true)}>
+              <DropdownMenuItem disabled>
                 Generate Report
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setOpenFinalReport(true)}>

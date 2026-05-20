@@ -288,6 +288,7 @@ export type ApplyFinalReportVoidInput = z.infer<typeof applyFinalReportVoidSchem
 export const applyFinalReportDirectBoughtSchema = z.object({
   inventory_id: z.string().min(1),
   auction_id: z.string().min(1),
+  auction_date: z.string().min(1).optional(),
   price: z.coerce.number().positive(),
   qty: z.string().min(1),
 });

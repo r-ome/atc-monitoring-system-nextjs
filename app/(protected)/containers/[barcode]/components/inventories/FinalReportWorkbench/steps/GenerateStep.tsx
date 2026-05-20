@@ -79,6 +79,7 @@ export const GenerateStep = ({
   sheets,
   refresh,
   routerRefresh,
+  saveDraft,
 }: StepProps) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [originalOpen, setOriginalOpen] = useState(false);
@@ -90,16 +91,33 @@ export const GenerateStep = ({
     const d = state.draft;
     const voids = d.bought_items.filter((i) => i.action === "VOID").length;
     const boughts = d.bought_items.filter((i) => i.action === "BOUGHT").length;
+    const appended = d.appended_inventory_ids.length;
     return {
       voids,
       boughts,
-      matches: d.matches.length,
       qty_splits: d.qty_splits.reduce((acc, s) => acc + s.splits.length, 0),
       merges: d.merged_inventories.length,
       tax_edits: d.tax_edits.length,
-      split_selections: d.split_selections.length,
+      appended,
     };
   })();
+
+  const unresolvedItems = preview.unsold_items;
+  const unresolvedCancelledOrRefundedItems = unresolvedItems.filter(
+    (item) =>
+      item.auctions_inventory?.status === "CANCELLED" ||
+      item.auctions_inventory?.status === "REFUNDED",
+  );
+  const appendableIds = new Set(
+    preview.appendable_unsold_items.map((item) => item.inventory_id),
+  );
+  const stagedAppendCount = state.draft.appended_inventory_ids.filter((id) =>
+    appendableIds.has(id),
+  ).length;
+  const appendBlocked =
+    preview.appendable_unsold_items.length > 0 &&
+    stagedAppendCount < preview.appendable_unsold_items.length;
+  const finalizeBlocked = unresolvedItems.length > 0 || appendBlocked;
 
   // Monitoring sheet's tab name (inside the workbook).
   const buildSheetName = () => {
@@ -140,6 +158,13 @@ export const GenerateStep = ({
 
     return { blob, reassignedCount };
   };
+  const downloadWorkbookBlob = (blob: Blob, filename: string) => {
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
 
   // Generates the Excel workbook from the (draft-applied) preview, without
   // committing anything to the DB. Refreshes the preview first so any decisions
@@ -149,6 +174,7 @@ export const GenerateStep = ({
     setPreviewOpen(false);
     setLoading("Generating workbook...");
     try {
+      await saveDraft(state.draft);
       const fresh = await refresh();
       const previewForGen = fresh ?? preview;
 
@@ -171,7 +197,7 @@ export const GenerateStep = ({
   };
 
   // Generates the workbook from a fresh preview that BYPASSES the draft —
-  // i.e. raw DB state, no staged matches/bought-items/tax edits/splits. Does
+  // i.e. raw DB state, no staged bought-items/tax edits/splits. Does
   // not update the wizard's state.preview, so the user's working draft view
   // is untouched.
   const handleGenerateOriginal = async () => {
@@ -195,7 +221,7 @@ export const GenerateStep = ({
       }
       const rawPreview = res.value;
 
-      // Original report ignores the wizard's split selections too.
+      // Original report ignores report-only draft decisions too.
       const { reassignedCount } = buildWorkbookBlob(
         rawPreview,
         [],
@@ -243,6 +269,17 @@ export const GenerateStep = ({
         false,
       );
 
+      await saveDraft(state.draft);
+      const fresh = await refresh();
+      const previewForGen = fresh ?? preview;
+
+      const modifiedWorkbook = buildWorkbookBlob(
+        previewForGen,
+        state.splitSelections,
+        "modified",
+        false,
+      );
+
       const finRes = await finalizeFinalReport(container.container_id);
       if (!finRes.ok) {
         toast.error(finRes.error.message, {
@@ -271,16 +308,6 @@ export const GenerateStep = ({
         });
         return;
       }
-
-      const fresh = await refresh();
-      const previewForGen = fresh ?? preview;
-
-      const modifiedWorkbook = buildWorkbookBlob(
-        previewForGen,
-        state.splitSelections,
-        "modified",
-        true,
-      );
 
       const formData = new FormData();
       formData.append(
@@ -317,6 +344,7 @@ export const GenerateStep = ({
           `Reassigned ${reassignedCount} bidder 5013 item(s) to random bidders on the same auction.`,
         );
       }
+      downloadWorkbookBlob(modifiedWorkbook.blob, buildFilename("modified"));
       toast.success("Workbook generated, uploaded, and draft committed.");
       routerRefresh();
     } finally {
@@ -333,16 +361,16 @@ export const GenerateStep = ({
         <span className="font-medium">{draftSummary.boughts}</span> bought item(s)
       </li>
       <li>
-        <span className="font-medium">{draftSummary.matches}</span> auto-resolved match(es)
-      </li>
-      <li>
         <span className="font-medium">{draftSummary.qty_splits}</span> qty split target(s)
+        {withDbHint ? (
+          <span className="text-muted-foreground"> — workbook only, not written to DB</span>
+        ) : null}
       </li>
       <li>
         <span className="font-medium">{draftSummary.merges}</span> staged merge(s)
       </li>
       <li>
-        <span className="font-medium">{draftSummary.split_selections}</span> split selection(s)
+        <span className="font-medium">{draftSummary.appended}</span> appended row(s)
         {withDbHint ? (
           <span className="text-muted-foreground"> — workbook only, not written to DB</span>
         ) : null}
@@ -364,7 +392,7 @@ export const GenerateStep = ({
       onJumpTo={goTo}
       jumpDisabled={jumpDisabled}
       loading={loading}
-      description="Final review. All auction dates for this container are included. Generate Report builds a preview Excel workbook from your staged draft without committing anything. Finalize & Generate commits the draft to the database (matches, voids, bought items, etc.) and then builds the workbook. In both cases, monitoring rows with bidder 5013 are reassigned to a random non-5013 bidder from the same auction."
+      description="Final review. All auction dates for this container are included. Generate Report builds a preview Excel workbook from your staged draft without committing anything. Finalize & Generate commits only merges, voids, and bought items to the database. In both cases, monitoring rows with bidder 5013 are reassigned to a random non-5013 bidder from the same auction."
       rightSlot={
         <div className="flex gap-2">
           <DropdownMenu>
@@ -385,7 +413,7 @@ export const GenerateStep = ({
           <Button
             type="button"
             onClick={() => setFinalizeOpen(true)}
-            disabled={Boolean(loading)}
+            disabled={Boolean(loading) || finalizeBlocked}
           >
             Finalize & Generate
           </Button>
@@ -411,10 +439,6 @@ export const GenerateStep = ({
             <span className="font-medium">{draftSummary.boughts}</span>
           </div>
           <div>
-            <span className="text-muted-foreground">Matches: </span>
-            <span className="font-medium">{draftSummary.matches}</span>
-          </div>
-          <div>
             <span className="text-muted-foreground">Qty splits: </span>
             <span className="font-medium">{draftSummary.qty_splits}</span>
           </div>
@@ -422,8 +446,37 @@ export const GenerateStep = ({
             <span className="text-muted-foreground">Merges: </span>
             <span className="font-medium">{draftSummary.merges}</span>
           </div>
+          <div>
+            <span className="text-muted-foreground">Appended rows: </span>
+            <span className="font-medium">{draftSummary.appended}</span>
+          </div>
         </div>
       </div>
+
+      {finalizeBlocked ? (
+        <div className="mt-4 rounded border border-destructive/40 bg-destructive/5 p-3 text-sm">
+          <p className="font-medium text-destructive">Finalize is blocked</p>
+          {unresolvedItems.length > 0 ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Resolve {unresolvedItems.length} UNSOLD item(s) before finalizing.
+              Merge, split, mark as bought, or void them. CANCELLED/REFUNDED items
+              must be voided if they should not be included, or corrected from the
+              inventory/auction item profile first if the physical item exists.
+            </p>
+          ) : null}
+          {unresolvedCancelledOrRefundedItems.length > 0 ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {unresolvedCancelledOrRefundedItems.length} unresolved item(s) are
+              CANCELLED/REFUNDED.
+            </p>
+          ) : null}
+          {appendBlocked ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Stage all SOLD two-part rows in Append Inventories before finalizing.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Generate Report (preview) prompt */}
       <AlertDialog open={previewOpen} onOpenChange={setPreviewOpen}>
@@ -466,7 +519,7 @@ export const GenerateStep = ({
                   This generates the{" "}
                   <span className="font-medium">original</span> version of the
                   report — none of your staged wizard changes are applied (no
-                  bought items, matches, qty splits, split selections, or tax
+                  merges, voids, bought items, qty splits, appended rows, or tax
                   edits). Use this to compare against the configured version.
                 </p>
                 <p className="text-muted-foreground">
@@ -511,14 +564,6 @@ export const GenerateStep = ({
                       created against the ATC bidder of the selected auction
                     </li>
                   )}
-                  {draftSummary.matches > 0 && (
-                    <li>
-                      <span className="font-medium">{draftSummary.matches}</span>{" "}
-                      auto-resolved match(es) — UNSOLD 3-part inventories will be
-                      merged into their matching 2-part auction rows; the 2-part
-                      inventories will be soft-deleted
-                    </li>
-                  )}
                   {draftSummary.merges > 0 && (
                     <li>
                       <span className="font-medium">{draftSummary.merges}</span>{" "}
@@ -527,19 +572,9 @@ export const GenerateStep = ({
                       inventories will be soft-deleted
                     </li>
                   )}
-                  {draftSummary.qty_splits > 0 && (
-                    <li>
-                      <span className="font-medium">{draftSummary.qty_splits}</span>{" "}
-                      qty split(s) — source auction rows will have their qty/price
-                      reduced; new auction-inventory rows will be created for
-                      each split target
-                    </li>
-                  )}
                   {draftSummary.voids === 0 &&
                     draftSummary.boughts === 0 &&
-                    draftSummary.matches === 0 &&
-                    draftSummary.merges === 0 &&
-                    draftSummary.qty_splits === 0 && (
+                    draftSummary.merges === 0 && (
                       <li className="text-muted-foreground italic">
                         No DB-mutating decisions in the draft.
                       </li>
@@ -552,8 +587,12 @@ export const GenerateStep = ({
                 </p>
                 <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
                   <li>
-                    Split selections ({draftSummary.split_selections}) — applied
-                    to the workbook's monitoring rows only
+                    Qty splits ({draftSummary.qty_splits}) — applied to the
+                    workbook's monitoring rows only
+                  </li>
+                  <li>
+                    Appended rows ({draftSummary.appended}) — virtual three-part
+                    rows in the workbook's inventory list only
                   </li>
                   <li>
                     Tax deduction edits ({draftSummary.tax_edits}) — applied to

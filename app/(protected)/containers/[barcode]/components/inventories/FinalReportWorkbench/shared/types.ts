@@ -9,8 +9,6 @@ export type StepKey =
   | "unsold-overview"
   | "qty-split"
   | "bought-items"
-  | "auto-resolved"
-  | "splits"
   | "tax"
   | "append-inventories"
   | "generate";
@@ -20,8 +18,6 @@ export const STEP_ORDER: StepKey[] = [
   "unsold-overview",
   "qty-split",
   "bought-items",
-  "auto-resolved",
-  "splits",
   "tax",
   "append-inventories",
   "generate",
@@ -32,8 +28,6 @@ export const STEP_LABEL: Record<StepKey, string> = {
   "unsold-overview": "UNSOLD Items",
   "qty-split": "Qty Split",
   "bought-items": "Bought Items",
-  "auto-resolved": "Auto-resolved",
-  splits: "Splits",
   tax: "Container Tax",
   "append-inventories": "Append Inventories",
   generate: "Generate",
@@ -112,17 +106,8 @@ export const stepHasWork = (
         preview.unsold_items.length > 0 ||
         draftHas((d) => d.bought_items.length > 0)
       );
-    case "auto-resolved":
-      return (
-        preview.auto_resolved.length > 0 || draftHas((d) => d.matches.length > 0)
-      );
-    case "splits":
-      return (
-        preview.split_candidates.length > 0 ||
-        draftHas((d) => d.split_selections.length > 0)
-      );
     case "tax":
-      return preview.options.deduct_thirty_k;
+      return preview.options.deduct_thirty_k && preview.unsold_items.length === 0;
     case "append-inventories":
       return (
         preview.appendable_unsold_items.length > 0 ||

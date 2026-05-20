@@ -1,8 +1,7 @@
-import { formatDate } from "@/app/lib/utils";
+import { formatDate, formatNumberPadding } from "@/app/lib/utils";
 import { NotFoundError } from "src/entities/errors/common";
 import {
   FinalReportCandidate,
-  FinalReportCounterCheckCandidate,
   FinalReportDecision,
   FinalReportDeductionItem,
   FinalReportInventoryRow,
@@ -12,7 +11,7 @@ import {
 } from "src/entities/models/FinalReport";
 import { FinalReportDraft } from "src/entities/models/FinalReportDraft";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
-import { ContainerRepository, AuctionRepository } from "src/infrastructure/di/repositories";
+import { ContainerRepository } from "src/infrastructure/di/repositories";
 
 const sameOptions = (
   a: { selected_dates: string[]; exclude_bidder_740: boolean; exclude_refunded_bidder_5013: boolean },
@@ -101,12 +100,9 @@ const applyDraftToPreviewState = ({
   for (const merge of draft.merged_inventories) {
     resolved.add(merge.new_inventory_id);
   }
-  for (const m of draft.matches) resolved.add(m.source_inventory_id);
-  for (const ccm of draft.counter_check_matches) resolved.add(ccm.inventory_id);
   for (const split of draft.qty_splits) {
     for (const s of split.splits) resolved.add(s.target_inventory_id);
   }
-  for (const addOn of draft.warehouse_add_ons) resolved.add(addOn.inventory_id);
 
   const unsoldItems = rawUnsoldItems.filter((item) => !resolved.has(item.inventory_id));
 
@@ -130,26 +126,6 @@ const applyDraftToPreviewState = ({
         controlChoice: merge.control_choice,
       }),
       status: "SOLD",
-    };
-  });
-
-  // Apply matches: update each matched monitoring row to point at the 3-part inventory
-  const matchByAuctionInventoryId = new Map(
-    draft.matches.map((m) => [m.auction_inventory_id, m]),
-  );
-  monitoring = monitoring.map((row) => {
-    const match = matchByAuctionInventoryId.get(row.auction_inventory_id);
-    if (!match) return row;
-    const source = inventoryMap.get(match.source_inventory_id);
-    if (!source) return row;
-    return {
-      ...row,
-      inventory_id: source.inventory_id,
-      barcode: source.barcode,
-      control: source.control ?? "NC",
-      description: match.description,
-      qty: match.qty,
-      price: match.price,
     };
   });
 
@@ -211,77 +187,6 @@ const applyDraftToPreviewState = ({
       auction_date: item.auction_date,
       was_bought_item: true,
       bought_item_price: item.price,
-    });
-  }
-
-  // Append synthetic monitoring rows for counter-check matches
-  for (const ccm of draft.counter_check_matches) {
-    const inv = inventoryMap.get(ccm.inventory_id);
-    if (!inv) continue;
-    synthetic.push({
-      auction_inventory_id: `draft-cc:${ccm.inventory_id}:${ccm.counter_check_id}`,
-      auction_bidder_id: ccm.auction_bidder_id,
-      inventory_id: inv.inventory_id,
-      auction_id: ccm.auction_id,
-      barcode: inv.barcode,
-      control: inv.control ?? "NC",
-      description: ccm.description,
-      bidder_number: ccm.bidder_number,
-      qty: ccm.qty,
-      price: ccm.price,
-      status: "SOLD",
-      auction_status: "UNPAID",
-      manifest_number: ccm.manifest_number,
-      auction_date: ccm.auction_date,
-      was_bought_item: false,
-      bought_item_price: null,
-    });
-  }
-
-  // Append synthetic monitoring rows for warehouse add-ons
-  for (const addOn of draft.warehouse_add_ons) {
-    const inv = inventoryMap.get(addOn.inventory_id);
-    if (!inv) continue;
-    synthetic.push({
-      auction_inventory_id: `draft-addon:${addOn.inventory_id}`,
-      auction_bidder_id: addOn.auction_bidder_id,
-      inventory_id: inv.inventory_id,
-      auction_id: addOn.auction_id,
-      barcode: inv.barcode,
-      control: inv.control ?? "NC",
-      description: addOn.description,
-      bidder_number: addOn.bidder_number,
-      qty: addOn.qty,
-      price: addOn.price,
-      status: "SOLD",
-      auction_status: "UNPAID",
-      manifest_number: addOn.manifest_number,
-      auction_date: addOn.auction_date,
-      was_bought_item: false,
-      bought_item_price: null,
-    });
-  }
-
-  // Append synthetic monitoring rows for brand-new warehouse bought items
-  for (let i = 0; i < draft.warehouse_bought_items.length; i++) {
-    const wbi = draft.warehouse_bought_items[i];
-    synthetic.push({
-      auction_inventory_id: `draft-wbi:${i}`,
-      auction_bidder_id: "",
-      inventory_id: "",
-      auction_id: "",
-      barcode: wbi.barcode,
-      control: wbi.control,
-      description: wbi.description,
-      bidder_number: ATC_DEFAULT_BIDDER_NUMBER,
-      qty: "1",
-      price: wbi.price,
-      status: "BOUGHT_ITEM",
-      auction_status: "UNPAID",
-      manifest_number: "BOUGHT ITEM",
-      auction_date: "",
-      was_bought_item: true,
-      bought_item_price: wbi.price,
     });
   }
 
@@ -365,7 +270,15 @@ export const getFinalReportPreviewUseCase = async (
   const selectedDatedAuctionInventories = container.inventories
     .filter((item) => item.auctions_inventory && item.auction_date)
     .filter((item) => input.selected_dates.includes(formatDate(item.auction_date!, DATE_FORMAT)))
-    .filter((item) => item.auctions_inventory?.status !== "CANCELLED");
+    .filter((item) => item.auctions_inventory?.status !== "CANCELLED")
+    .filter(
+      (item) =>
+        !(
+          item.status === "VOID" &&
+          (item.auctions_inventory?.status === "CANCELLED" ||
+            item.auctions_inventory?.status === "REFUNDED")
+        ),
+    );
 
   const excludedBidder740DeductionItems: FinalReportDeductionItem[] =
     input.exclude_bidder_740
@@ -441,16 +354,6 @@ export const getFinalReportPreviewUseCase = async (
         return reduction > 0 ? { ...row, price: Math.max(0, row.price - reduction) } : row;
       });
 
-  const auctionIds = [...new Set(monitoringRowsAfterSplits.map((item) => item.auction_id))];
-  const counterChecksByAuction = new Map(
-    await Promise.all(
-      auctionIds.map(async (auctionId) => [
-        auctionId,
-        await AuctionRepository.getCounterCheckRecords(auctionId),
-      ] as const),
-    ),
-  );
-
   const isRefundedBidder5013 = (item: (typeof container.inventories)[number]) =>
     item.auctions_inventory?.status === "REFUNDED" &&
     item.auctions_inventory.auction_bidder.bidder.bidder_number ===
@@ -466,7 +369,6 @@ export const getFinalReportPreviewUseCase = async (
     .filter(
       (item) =>
         isThreePartBarcode(item.barcode) &&
-        !isRefundedBidder5013(item) &&
         (item.status === "UNSOLD" || isRefundedReviewItem(item)),
     )
     .map(toInventoryRow);
@@ -494,14 +396,7 @@ export const getFinalReportPreviewUseCase = async (
       const exactDescription = isSameDescription(unsoldItem.description, monitoringItem.description);
       const similarDescription = isSimilarDescription(unsoldItem.description, monitoringItem.description);
       const qty = toNumber(monitoringItem.qty);
-      const counterChecks = (counterChecksByAuction.get(monitoringItem.auction_id) ?? []).filter(
-        (item) =>
-          item.control === unsoldItem.control &&
-          (isSimilarDescription(item.description ?? "", unsoldItem.description) ||
-            item.bidder_number === monitoringItem.bidder_number),
-      );
-
-      if (!sameContainer && !exactControl && !similarDescription && !counterChecks.length) {
+      if (!sameContainer && !exactControl && !similarDescription) {
         continue;
       }
 
@@ -523,9 +418,6 @@ export const getFinalReportPreviewUseCase = async (
         confidence = "SPLIT";
         score = 70;
         reason = "Monitoring row has quantity greater than 1 and similar description";
-      } else if (counterChecks.length) {
-        score = 75;
-        reason = "Counter-check has matching control evidence";
       }
 
       if (isLinkedUnsold) {
@@ -546,15 +438,7 @@ export const getFinalReportPreviewUseCase = async (
         score,
         unsold_item: unsoldItem,
         monitoring_item: monitoringItem,
-        counter_check_matches: counterChecks.map((item) => ({
-          counter_check_id: item.counter_check_id,
-          auction_id: monitoringItem.auction_id,
-          control: item.control,
-          bidder_number: item.bidder_number,
-          price: item.price,
-          page: item.page,
-          description: item.description,
-        })),
+        counter_check_matches: [],
       });
     }
   }
@@ -579,60 +463,12 @@ export const getFinalReportPreviewUseCase = async (
   const splitCandidates = candidates
     .filter((item) => item.confidence === "SPLIT" && !autoResolvedInventoryIds.has(item.unsold_item.inventory_id))
     .sort((a, b) => b.score - a.score);
-  // Review-confidence candidates are no longer surfaced as a separate step;
-  // those unsold items fall through to counter-check or warehouse, where the
-  // user decides what to do with them.
   const matchedByTwoPartIds = new Set([
     ...autoResolvedInventoryIds,
     ...splitCandidates.map((item) => item.unsold_item.inventory_id),
   ]);
 
-  const counterCheckCandidates: FinalReportCounterCheckCandidate[] = [];
-  for (const unsoldItem of unsoldItems) {
-    if (matchedByTwoPartIds.has(unsoldItem.inventory_id)) continue;
-
-    const matches: FinalReportCounterCheckCandidate["matches"] = [];
-    for (const [auctionId, records] of counterChecksByAuction.entries()) {
-      for (const record of records) {
-        if (!record.control || record.control !== unsoldItem.control) continue;
-        if (
-          !isSimilarDescription(
-            record.description ?? "",
-            unsoldItem.description,
-          )
-        ) {
-          continue;
-        }
-        matches.push({
-          counter_check_id: record.counter_check_id,
-          auction_id: auctionId,
-          control: record.control,
-          bidder_number: record.bidder_number,
-          price: record.price,
-          page: record.page,
-          description: record.description,
-        });
-      }
-    }
-
-    if (!matches.length) continue;
-
-    counterCheckCandidates.push({
-      candidate_id: `cc:${unsoldItem.inventory_id}`,
-      reason: "Counter-check evidence (no matching 2-part monitoring row)",
-      score: 70,
-      unsold_item: unsoldItem,
-      matches,
-    });
-  }
-
-  const counterCheckInventoryIds = new Set(
-    counterCheckCandidates.map((item) => item.unsold_item.inventory_id),
-  );
-  const candidateInventoryIds = new Set([
-    ...matchedByTwoPartIds,
-    ...counterCheckInventoryIds,
-  ]);
+  const candidateInventoryIds = new Set([...matchedByTwoPartIds]);
   const warehouseCheckItems = unsoldItems.filter((item) => !candidateInventoryIds.has(item.inventory_id));
 
   const persistedTaxDeduction = await ContainerRepository.getContainerTaxDeduction(
@@ -667,7 +503,15 @@ export const getFinalReportPreviewUseCase = async (
       const key = `${item.control}|${item.bidder_number}|${item.description}`;
       const reduction = reductionByKey.get(key);
       if (!reduction) return item;
-      return { ...item, price: Math.max(0, item.price - reduction) };
+      const nextPrice = Math.max(0, item.price - reduction);
+      return {
+        ...item,
+        price: nextPrice,
+        bought_item_price:
+          item.was_bought_item && item.bought_item_price != null
+            ? Math.max(0, item.bought_item_price - reduction)
+            : item.bought_item_price,
+      };
     });
   } else {
     // Deductions come exclusively from the user's draft.tax_edits. The server
@@ -691,7 +535,15 @@ export const getFinalReportPreviewUseCase = async (
           original_price: grossPrice,
           deducted_amount: edit.deducted_amount,
         });
-        return { ...item, price: Math.max(0, item.price - edit.deducted_amount) };
+        const nextPrice = Math.max(0, item.price - edit.deducted_amount);
+        return {
+          ...item,
+          price: nextPrice,
+          bought_item_price:
+            item.was_bought_item && item.bought_item_price != null
+              ? Math.max(0, item.bought_item_price - edit.deducted_amount)
+              : item.bought_item_price,
+        };
       });
     }
   }
@@ -707,8 +559,6 @@ export const getFinalReportPreviewUseCase = async (
       splitCandidates.some((c) => c.unsold_item.inventory_id === inventory.inventory_id)
     ) {
       decisions[inventory.inventory_id] = "SPLIT_PENDING";
-    } else if (counterCheckInventoryIds.has(inventory.inventory_id)) {
-      decisions[inventory.inventory_id] = "COUNTER_CHECK_PENDING";
     } else {
       decisions[inventory.inventory_id] = "WAREHOUSE_PENDING";
     }
@@ -743,9 +593,9 @@ export const getFinalReportPreviewUseCase = async (
   );
 
   // Compute the next available 3-part suffix on this container, used to give
-  // appended two-part UNSOLD inventories a virtual 3-part barcode in the
-  // report output. The rename is preview-only — the underlying inventory.barcode
-  // in the DB stays two-part.
+  // appended two-part SOLD inventories a virtual 3-part barcode in both the
+  // monitoring sheet and the inventory list of the report output. The rename
+  // is preview-only — the underlying inventory.barcode in the DB stays two-part.
   const maxSuffix = container.inventories.reduce((max, item) => {
     if (!isThreePartBarcode(item.barcode)) return max;
     const suffix = Number(item.barcode.split("-")[2]);
@@ -753,13 +603,21 @@ export const getFinalReportPreviewUseCase = async (
   }, 0);
 
   const appendableUnsoldItems = container.inventories
-    .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "UNSOLD")
+    .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "SOLD")
     .map(toInventoryRow);
 
-  const appendedIds = draft?.appended_inventory_ids ?? [];
+  const appendableInventoryById = new Map(
+    appendableUnsoldItems.map((item) => [item.inventory_id, item]),
+  );
+  const appendedIds = (draft?.appended_inventory_ids ?? []).filter((id) =>
+    appendableInventoryById.has(id),
+  );
   const appendedBarcodeByInventoryId = new Map<string, string>();
   appendedIds.forEach((id, index) => {
-    appendedBarcodeByInventoryId.set(id, `${container.barcode}-${maxSuffix + index + 1}`);
+    appendedBarcodeByInventoryId.set(
+      id,
+      `${container.barcode}-${formatNumberPadding(maxSuffix + index + 1, 3)}`,
+    );
   });
 
   const renameForAppend = <T extends { inventory_id: string; barcode: string }>(row: T): T => {
@@ -770,10 +628,22 @@ export const getFinalReportPreviewUseCase = async (
   const finalMonitoring = appendedBarcodeByInventoryId.size > 0
     ? adjustedMonitoring.map(renameForAppend)
     : adjustedMonitoring;
-  const finalInventories = container.inventories.map((item) => {
-    const row = toInventoryRow(item);
-    return appendedBarcodeByInventoryId.size > 0 ? renameForAppend(row) : row;
+  const finalInventoryRows = container.inventories
+    .filter(
+      (item) =>
+        !(
+          item.status === "VOID" &&
+          (item.auctions_inventory?.status === "CANCELLED" ||
+            item.auctions_inventory?.status === "REFUNDED")
+        ),
+    )
+    .map(toInventoryRow);
+  const appendedInventoryRows = appendedIds.flatMap((id) => {
+    const row = appendableInventoryById.get(id);
+    const barcode = appendedBarcodeByInventoryId.get(id);
+    return row && barcode ? [{ ...row, barcode }] : [];
   });
+  const finalInventories = [...finalInventoryRows, ...appendedInventoryRows];
 
   return {
     options: input,
@@ -790,7 +660,7 @@ export const getFinalReportPreviewUseCase = async (
     unsold_items: unsoldItems,
     auto_resolved: autoResolved,
     split_candidates: splitCandidates,
-    counter_check_candidates: counterCheckCandidates,
+    counter_check_candidates: [],
     warehouse_check_items: warehouseCheckItems,
     appendable_unsold_items: appendableUnsoldItems,
     next_append_suffix: maxSuffix + 1,

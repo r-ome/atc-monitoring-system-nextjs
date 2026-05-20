@@ -15,15 +15,6 @@ import {
 } from "@/app/components/ui/table";
 import { ArrowUpDown, ArrowUp, ArrowDown, Info } from "lucide-react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/app/components/ui/alert-dialog";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -114,7 +105,6 @@ export const TaxStep = ({
     setSortCol(null);
     setSortDir("asc");
     setEdits({});
-    setBoughtItemNoticeShown(false);
   }, [previewKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredDescs = useMemo(() => {
@@ -155,35 +145,15 @@ export const TaxStep = ({
     [bidder740Rows],
   );
 
-  // Monitoring rows for confirmed descriptions, excluding 0740 (handled
-  // separately) AND bought items (their deductions don't reduce the monitoring
-  // sheet price, so showing them here would be misleading).
+  // Monitoring rows for confirmed descriptions, excluding 0740 (handled separately).
   const confirmedRows = useMemo(() => {
     if (!preview || confirmedDescs === null) return [];
     return preview.report.monitoring.filter(
       (row) =>
         confirmedDescs.has(row.description) &&
-        row.bidder_number !== "0740" &&
-        !row.was_bought_item,
+        row.bidder_number !== "0740",
     );
   }, [preview, confirmedDescs]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Count bought items that match the user's filter selection — shown in the
-  // banner + dialog so the user understands why their bought items aren't here.
-  const excludedBoughtItemsCount = useMemo(() => {
-    if (!preview || confirmedDescs === null) return 0;
-    return preview.report.monitoring.filter(
-      (row) =>
-        confirmedDescs.has(row.description) &&
-        row.bidder_number !== "0740" &&
-        row.was_bought_item,
-    ).length;
-  }, [preview, confirmedDescs]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // One-shot dialog: opens the first time the user transitions to phase 2 in
-  // this session if there are bought items in their selection.
-  const [boughtItemNoticeOpen, setBoughtItemNoticeOpen] = useState(false);
-  const [boughtItemNoticeShown, setBoughtItemNoticeShown] = useState(false);
 
   const tableRows = useMemo(
     () =>
@@ -391,19 +361,6 @@ export const TaxStep = ({
                 const newConfirmed = new Set(selectedDescs);
                 setConfirmedDescs(newConfirmed);
                 setPhase("table");
-                // Open the one-shot dialog if the selection includes any bought
-                // items and we haven't shown it yet in this session.
-                if (!preview || boughtItemNoticeShown) return;
-                const hasBoughtItems = preview.report.monitoring.some(
-                  (row) =>
-                    newConfirmed.has(row.description) &&
-                    row.bidder_number !== "0740" &&
-                    row.was_bought_item,
-                );
-                if (hasBoughtItems) {
-                  setBoughtItemNoticeOpen(true);
-                  setBoughtItemNoticeShown(true);
-                }
               }}
             >
               Confirm
@@ -433,15 +390,6 @@ export const TaxStep = ({
                 {visibleRows.length}{visibleRows.length !== tableRows.length ? ` of ${tableRows.length}` : ""} item{tableRows.length !== 1 ? "s" : ""}
               </span>
             </div>
-            {excludedBoughtItemsCount > 0 ? (
-              <div className="flex items-center gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-                <Info className="h-3.5 w-3.5 shrink-0" />
-                <span>
-                  <span className="font-medium">{excludedBoughtItemsCount}</span>{" "}
-                  bought item{excludedBoughtItemsCount === 1 ? "" : "s"} hidden — not eligible for tax deduction.
-                </span>
-              </div>
-            ) : null}
             <div className="border rounded max-h-[400px] overflow-auto">
               <Table>
                 <TableHeader className="sticky top-0 z-10 bg-background">
@@ -586,36 +534,6 @@ export const TaxStep = ({
         </div>
       )}
 
-      <AlertDialog
-        open={boughtItemNoticeOpen}
-        onOpenChange={setBoughtItemNoticeOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Bought items aren't shown here</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2 text-sm">
-                <p>
-                  <span className="font-medium">{excludedBoughtItemsCount}</span>{" "}
-                  bought item{excludedBoughtItemsCount === 1 ? "" : "s"} in your
-                  selection {excludedBoughtItemsCount === 1 ? "was" : "were"}{" "}
-                  hidden from the deductions table.
-                </p>
-                <p>
-                  Bought items aren't eligible for container tax deductions —
-                  their price on the monitoring sheet comes from{" "}
-                  <span className="font-mono text-xs">bought_item_price</span>,
-                  which the deduction logic doesn't reduce. Editing a deduction
-                  for them wouldn't have any effect on the generated workbook.
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction>Got it</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </StepShell>
   );
 };

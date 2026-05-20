@@ -25,7 +25,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
-import { type FinalReportInventoryRow } from "src/entities/models/FinalReport";
 import { StepShell } from "../shared/StepShell";
 import { StepProps } from "../shared/types";
 
@@ -197,11 +196,6 @@ export const UnsoldOverviewStep = ({
     selectedUnsold.control !== "0000" &&
     selectedUnsold.control !== "00NC";
 
-  const isMergeEligible = (item: FinalReportInventoryRow) => {
-    const status = item.auctions_inventory?.status;
-    return status !== "CANCELLED" && status !== "REFUNDED";
-  };
-
   const handleMergeClick = () => {
     if (!canMerge) return;
     if (needsControlPrompt) {
@@ -352,24 +346,20 @@ export const UnsoldOverviewStep = ({
                       const reason = item.auctions_inventory?.reason ?? null;
                       const isBad =
                         auctionStatus === "CANCELLED" || auctionStatus === "REFUNDED";
-                      const eligible = isMergeEligible(item);
                       const selected = item.inventory_id === selectedUnsoldId;
 
                       return (
                         <TableRow
                           key={item.inventory_id}
                           onClick={() => {
-                            if (!eligible) return;
                             setSelectedUnsoldId(
                               selected ? null : item.inventory_id,
                             );
                           }}
                           className={
-                            !eligible
-                              ? "opacity-50"
-                              : selected
-                                ? "bg-primary/10 cursor-pointer"
-                                : "cursor-pointer hover:bg-muted/50"
+                            selected
+                              ? "bg-primary/10 cursor-pointer"
+                              : "cursor-pointer hover:bg-muted/50"
                           }
                         >
                           <TableCell className="font-mono text-xs whitespace-nowrap">
@@ -565,7 +555,7 @@ export const UnsoldOverviewStep = ({
           </div>
         ) : (
           <p className="mt-3 text-xs text-muted-foreground">
-            Click a row on each side to select items to stage for merging. CANCELLED and REFUNDED items cannot be merged.
+            Click a row on each side to select items to stage for merging.
           </p>
         )}
       </StepShell>

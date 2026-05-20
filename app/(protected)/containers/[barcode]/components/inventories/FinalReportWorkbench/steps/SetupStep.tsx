@@ -33,10 +33,16 @@ export const SetupStep = ({
     }
   };
 
-  const pendingDecisionCount = preview
-    ? Object.values(preview.decisions).filter((value) => value !== "MATCHED_2PART").length
-    : 0;
-  const canFastForward = preview !== null && pendingDecisionCount === 0;
+  const appendableIds = new Set(
+    preview?.appendable_unsold_items.map((item) => item.inventory_id) ?? [],
+  );
+  const stagedAppendCount = state.draft.appended_inventory_ids.filter((id) =>
+    appendableIds.has(id),
+  ).length;
+  const canFastForward =
+    preview !== null &&
+    preview.unsold_items.length === 0 &&
+    stagedAppendCount === preview.appendable_unsold_items.length;
 
   return (
     <StepShell
@@ -80,16 +86,18 @@ export const SetupStep = ({
         <div className="space-y-2">
           <p className="text-sm font-medium">Preview</p>
           <p className="text-sm text-muted-foreground">
-            REFUNDED rows from Bidder 5013 are removed automatically.
+            Resolve every UNSOLD item before finalizing. CANCELLED/REFUNDED rows
+            must be corrected from the item profile or voided.
           </p>
 
           {preview ? (
-            <div className="border rounded p-3 mt-3 text-xs space-y-1">
-              <p className="font-medium">Preview snapshot</p>
-              <p>Auto-resolved: {preview.auto_resolved.length}</p>
-              <p>Split candidates: {preview.split_candidates.length}</p>
-              <p>Tax persisted: {preview.tax_deduction_persisted ? "yes" : "no"}</p>
-            </div>
+              <div className="border rounded p-3 mt-3 text-xs space-y-1">
+                <p className="font-medium">Preview snapshot</p>
+                <p>UNSOLD items: {preview.unsold_items.length}</p>
+                <p>Qty split candidates: {preview.split_candidates.length}</p>
+                <p>SOLD two-part rows: {preview.appendable_unsold_items.length}</p>
+                <p>Tax persisted: {preview.tax_deduction_persisted ? "yes" : "no"}</p>
+              </div>
           ) : null}
         </div>
       </div>

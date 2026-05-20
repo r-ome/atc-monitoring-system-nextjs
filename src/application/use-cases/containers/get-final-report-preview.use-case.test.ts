@@ -216,6 +216,72 @@ test("getFinalReportPreviewUseCase applies staged manual merges virtually", asyn
   }
 });
 
+test("getFinalReportPreviewUseCase applies staged appended inventories to monitoring and inventory list", async () => {
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => buildContainer(),
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      appended_inventory_ids: ["monitoring-source-1"],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    const monitoringRow = preview.report.monitoring.find(
+      (row) => row.inventory_id === "monitoring-source-1",
+    );
+    assert.equal(monitoringRow?.barcode, "32-04-002");
+    assert.equal(
+      preview.report.inventories.some(
+        (row) =>
+          row.inventory_id === "monitoring-source-1" && row.barcode === "32-04",
+      ),
+      true,
+    );
+    assert.equal(
+      preview.report.inventories.some(
+        (row) =>
+          row.inventory_id === "monitoring-source-1" &&
+          row.barcode === "32-04-002",
+      ),
+      true,
+    );
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
 test("getFinalReportPreviewUseCase moves excluded bidder 740 rows to deductions", async () => {
   const restoreContainer = patchMethod(
     ContainerRepository,
@@ -466,7 +532,7 @@ const buildCounterCheckOnlyContainer = () =>
     ],
   }) as never;
 
-test("getFinalReportPreviewUseCase produces counter-check candidates when no two-part match exists", async () => {
+test("getFinalReportPreviewUseCase leaves counter-check-only rows for manual resolution", async () => {
   const restoreContainer = patchMethod(
     ContainerRepository,
     "getContainerFinalReportData",
@@ -507,14 +573,12 @@ test("getFinalReportPreviewUseCase produces counter-check candidates when no two
       deduct_thirty_k: false,
     });
 
-    assert.equal(preview.counter_check_candidates.length, 1);
+    assert.equal(preview.counter_check_candidates.length, 0);
     assert.equal(
-      preview.counter_check_candidates[0].unsold_item.inventory_id,
+      preview.warehouse_check_items[0].inventory_id,
       "unsold-cc-1",
     );
-    assert.equal(preview.counter_check_candidates[0].matches.length, 1);
-    assert.deepEqual(preview.warehouse_check_items, []);
-    assert.equal(preview.decisions["unsold-cc-1"], "COUNTER_CHECK_PENDING");
+    assert.equal(preview.decisions["unsold-cc-1"], "WAREHOUSE_PENDING");
   } finally {
     restoreTax();
     restoreCounterCheck();

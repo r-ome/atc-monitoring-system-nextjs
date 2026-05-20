@@ -45,16 +45,13 @@ export const BoughtItemsStep = ({
 
   if (!preview) return null;
 
-  // Eligible UNSOLD items — exclude CANCELLED, REFUNDED, and already-VOID
-  const unsoldItems: FinalReportInventoryRow[] = preview.unsold_items.filter(
-    (item) => {
-      const s = item.auctions_inventory?.status;
-      return s !== "CANCELLED" && s !== "REFUNDED";
-    },
-  );
+  const unsoldItems: FinalReportInventoryRow[] = preview.unsold_items;
 
   const selectedItem =
     unsoldItems.find((item) => item.inventory_id === selectedId) ?? null;
+  const selectedAuctionStatus = selectedItem?.auctions_inventory?.status ?? null;
+  const selectedIsCancelledOrRefunded =
+    selectedAuctionStatus === "CANCELLED" || selectedAuctionStatus === "REFUNDED";
 
   // Unique auctions from available_bidders
   const availableAuctions = preview.available_bidders.reduce<
@@ -111,6 +108,7 @@ export const BoughtItemsStep = ({
   const priceNum = Number(price);
   const canConfirmBought =
     selectedItem !== null &&
+    !selectedIsCancelledOrRefunded &&
     Number.isFinite(priceNum) &&
     priceNum > 0 &&
     qty.trim().length > 0 &&
@@ -186,13 +184,14 @@ export const BoughtItemsStep = ({
                   <TableHead className="whitespace-nowrap">Barcode</TableHead>
                   <TableHead>Ctrl</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {unsoldItems.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={3}
+                      colSpan={4}
                       className="text-sm text-muted-foreground"
                     >
                       No UNSOLD items remaining.
@@ -221,6 +220,22 @@ export const BoughtItemsStep = ({
                         >
                           {item.description}
                         </TableCell>
+                        <TableCell className="text-xs">
+                          {item.auctions_inventory?.status ? (
+                            <span
+                              className={
+                                item.auctions_inventory.status === "CANCELLED" ||
+                                item.auctions_inventory.status === "REFUNDED"
+                                  ? "font-medium text-destructive"
+                                  : "text-muted-foreground"
+                              }
+                            >
+                              {item.auctions_inventory.status}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
                       </TableRow>
                     );
                   })
@@ -241,6 +256,13 @@ export const BoughtItemsStep = ({
                   Ctrl: {selectedItem.control}
                 </p>
                 <p className="text-xs mt-0.5">{selectedItem.description}</p>
+                {selectedIsCancelledOrRefunded ? (
+                  <p className="text-xs mt-1 text-destructive">
+                    This item is {selectedAuctionStatus}. If the physical item exists
+                    and should be included, update the inventory or auction item profile
+                    first. Otherwise, void it to exclude it from the report.
+                  </p>
+                ) : null}
               </div>
 
               {/* VOID action */}
@@ -263,68 +285,69 @@ export const BoughtItemsStep = ({
                 </div>
               </div>
 
-              {/* Bought Item action */}
-              <div className="rounded-lg border p-3 flex flex-col gap-3">
-                <p className="text-sm font-medium">Mark as Bought Item</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1.5">
-                    <Label className="text-xs">Price</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      className="h-8 text-sm"
-                      placeholder="0"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                    />
+              {!selectedIsCancelledOrRefunded ? (
+                <div className="rounded-lg border p-3 flex flex-col gap-3">
+                  <p className="text-sm font-medium">Mark as Bought Item</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="text-xs">Price</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        className="h-8 text-sm"
+                        placeholder="0"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="text-xs">Qty</Label>
+                      <Input
+                        className="h-8 text-sm"
+                        placeholder="1"
+                        value={qty}
+                        onChange={(e) => setQty(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-xs">Qty</Label>
-                    <Input
-                      className="h-8 text-sm"
-                      placeholder="1"
-                      value={qty}
-                      onChange={(e) => setQty(e.target.value)}
-                    />
+                    <Label className="text-xs">Auction</Label>
+                    <Select
+                      value={auctionId}
+                      onValueChange={setAuctionId}
+                    >
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder="Select auction..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableAuctions.map((a) => (
+                          <SelectItem key={a.auction_id} value={a.auction_id}>
+                            {a.auction_date}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={clearSelection}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleConfirmBought}
+                      disabled={!canConfirmBought}
+                    >
+                      Confirm
+                    </Button>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label className="text-xs">Auction</Label>
-                  <Select
-                    value={auctionId}
-                    onValueChange={setAuctionId}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue placeholder="Select auction..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableAuctions.map((a) => (
-                        <SelectItem key={a.auction_id} value={a.auction_id}>
-                          {a.auction_date}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={clearSelection}
-                  >
-                    Clear
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleConfirmBought}
-                    disabled={!canConfirmBought}
-                  >
-                    Confirm
-                  </Button>
-                </div>
-              </div>
+              ) : null}
             </>
           ) : (
             <p className="text-sm text-muted-foreground mt-6">
