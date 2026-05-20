@@ -4,8 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { User } from "src/entities/models/User";
-import { Badge } from "@/app/components/ui/badge";
-import { BranchBadge } from "@/app/components/admin";
+import { BranchBadge, StatusBadge, getUserRoleVariant } from "@/app/components/admin";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -71,7 +70,7 @@ export const columns: ColumnDef<User>[] = [
       const user = row.original;
       return (
         <div className="flex justify-center">
-          <Badge>{user.role}</Badge>
+          <StatusBadge variant={getUserRoleVariant(user.role)}>{user.role}</StatusBadge>
         </div>
       );
     },

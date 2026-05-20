@@ -26,6 +26,7 @@ export {
   getAuctionStatusVariant,
   getExpenseTypeVariant,
   getBranchBadgeVariant,
+  getUserRoleVariant,
   formatInventoryStatusLabel,
   formatAuctionStatusLabel,
   formatExpenseTypeLabel,

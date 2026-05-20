@@ -3,9 +3,8 @@ import { ChevronRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getBidderByBidderNumber } from "@/app/(protected)/bidders/actions";
 import { Card } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
 import { PageContainer } from "@/app/components/PageContainer";
-import { BranchBadge } from "@/app/components/admin";
+import { BranchBadge, StatusBadge } from "@/app/components/admin";
 import {
   Tooltip,
   TooltipContent,
@@ -85,15 +84,15 @@ export default async function Page({
             {bidder.branch?.name ? (
               <BranchBadge branch={bidder.branch.name} />
             ) : null}
-            <Badge
+            <StatusBadge
               variant={
                 ["INACTIVE", "BANNED"].includes(bidder.status)
-                  ? "destructive"
-                  : "success"
+                  ? "inactive"
+                  : "active"
               }
             >
               {bidder.status}
-            </Badge>
+            </StatusBadge>
           </div>
           <h1 className="truncate text-[18px] font-semibold tracking-tight sm:text-[22px] 2xl:text-[28px]">
             Bidder #{bidder.bidder_number}

@@ -16,13 +16,13 @@ import {
 } from "./status-badge.helpers"
 
 const statusBadgeVariants = cva(
-  "inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide transition-colors",
+  "inline-flex items-center rounded font-semibold uppercase tracking-wide transition-colors",
   {
     variants: {
       variant: {
-        // Payment statuses (auction-style soft pill)
-        paid: "rounded bg-status-success/15 text-status-success",
-        unpaid: "rounded bg-destructive/10 text-destructive",
+        // Payment statuses
+        paid: "bg-status-success text-status-success-foreground",
+        unpaid: "bg-status-error text-status-error-foreground",
         pending: "bg-status-warning text-status-warning-foreground",
         cancelled: "bg-muted text-muted-foreground",
         refunded: "bg-status-info text-status-info-foreground",
@@ -36,6 +36,7 @@ const statusBadgeVariants = cva(
         binan: "bg-branch-binan text-black",
 
         // Generic
+        primary: "bg-primary text-primary-foreground",
         success: "bg-status-success text-status-success-foreground",
         warning: "bg-status-warning text-status-warning-foreground",
         error: "bg-status-error text-status-error-foreground",
@@ -49,9 +50,9 @@ const statusBadgeVariants = cva(
         addon: "bg-status-info text-status-info-foreground",
       },
       size: {
-        sm: "status-badge-sm px-2 py-0.5 text-[12px]",
-        default: "status-badge-default px-2.5 py-0.5 text-xs",
-        lg: "status-badge-lg px-3 py-1 text-sm",
+        sm: "px-1 py-0 text-[11px] 2xl:text-[13.5px]",
+        default: "px-1.5 py-0.5 text-[12.5px] 2xl:text-[15.5px]",
+        lg: "px-2 py-0.5 text-sm 2xl:text-base",
       },
     },
     defaultVariants: {

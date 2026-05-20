@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Container, ArrowRight } from "lucide-react";
 import { Card } from "@/app/components/ui/card";
+import { StatusBadge } from "@/app/components/admin";
 import { isPast, parseISO, isWithinInterval, addDays } from "date-fns";
 import { getContainersDueDate } from "@/app/(protected)/home/actions";
 import type { ContainerDueDate } from "src/entities/models/Container";
@@ -32,10 +33,10 @@ function getDueLabel(container: ContainerDueDate): string {
   return `In ${days}d`;
 }
 
-const STATUS_STYLES: Record<DueStatus, string> = {
-  overdue: "bg-destructive/10 text-destructive",
-  soon: "bg-status-warning/10 text-status-warning",
-  ok: "bg-status-success/10 text-status-success",
+const STATUS_VARIANT: Record<DueStatus, "error" | "warning" | "success"> = {
+  overdue: "error",
+  soon: "warning",
+  ok: "success",
 };
 
 export function ContainersDueCard() {
@@ -64,9 +65,7 @@ export function ContainersDueCard() {
         <Container size={14} className="text-muted-foreground" />
         <span className="text-[13.5px] font-semibold 2xl:text-[17.5px]">Containers Due</span>
         {overdueCount > 0 && (
-          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive 2xl:text-[15px]">
-            {overdueCount} overdue
-          </span>
+          <StatusBadge variant="error">{overdueCount} overdue</StatusBadge>
         )}
         <span className="ml-auto text-[11px] text-muted-foreground 2xl:text-[15px]">
           {containers.length} this month
@@ -89,11 +88,9 @@ export function ContainersDueCard() {
               <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-muted-foreground 2xl:text-[16px]">
                 {c.container_number || c.bill_of_lading_number || "—"}
               </span>
-              <span
-                className={`rounded px-1.5 py-0.5 text-[11px] font-semibold 2xl:text-[15px] ${STATUS_STYLES[status]}`}
-              >
+              <StatusBadge variant={STATUS_VARIANT[status]}>
                 {getDueLabel(c)}
-              </span>
+              </StatusBadge>
             </div>
           );
         })}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import {
   Dialog,
@@ -12,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/app/components/ui/dialog";
-import { BranchBadge } from "@/app/components/admin";
+import { BranchBadge, StatusBadge, getUserRoleVariant } from "@/app/components/admin";
 import { User } from "src/entities/models/User";
 import { UpdateUserModal } from "./[username]/UpdateUserModal";
 import { UpdateUserPasswordModal } from "./[username]/UpdateUserPasswordModal";
@@ -53,7 +52,7 @@ export const UserProfileModal = ({
                 <div className="space-y-1">
                   <DialogTitle className="flex flex-wrap items-center gap-2">
                     <span>{currentUser.name}</span>
-                    <Badge>{currentUser.role}</Badge>
+                    <StatusBadge variant={getUserRoleVariant(currentUser.role)}>{currentUser.role}</StatusBadge>
                     <BranchBadge branch={currentUser.branch.name} />
                   </DialogTitle>
                   <DialogDescription>

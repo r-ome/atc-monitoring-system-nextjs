@@ -5,8 +5,7 @@ import { User } from "src/entities/models/User";
 import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { CoreRow, Row } from "@tanstack/react-table";
 import { columns } from "./users-columns";
-import { Badge } from "@/app/components/ui/badge";
-import { BranchBadge } from "@/app/components/admin";
+import { BranchBadge, StatusBadge, getUserRoleVariant } from "@/app/components/admin";
 
 interface UsersTableProps {
   users: User[];
@@ -45,7 +44,7 @@ export const UsersTable = ({ users, onRowClick }: UsersTableProps) => {
           </span>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
-          <Badge>{u.role}</Badge>
+          <StatusBadge variant={getUserRoleVariant(u.role)}>{u.role}</StatusBadge>
           {u.branch?.name ? <BranchBadge branch={u.branch.name} /> : null}
         </div>
       </div>

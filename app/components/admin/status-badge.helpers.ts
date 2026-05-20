@@ -2,6 +2,7 @@ import { type VariantProps } from "class-variance-authority"
 import { type AuctionItemStatus } from "src/entities/models/Auction"
 import { type ExpensePurpose } from "src/entities/models/Expense"
 import { type InventoryStatus } from "src/entities/models/Inventory"
+import { type UserRole } from "src/entities/models/User"
 import { type statusBadgeVariants } from "./status-badge"
 
 type StatusBadgeVariant = NonNullable<VariantProps<typeof statusBadgeVariants>["variant"]>
@@ -58,6 +59,11 @@ export const formatAuctionStatusLabel = (status: AuctionItemStatus) =>
 
 export const getExpenseTypeVariant = (expenseType: ExpensePurpose) =>
   EXPENSE_TYPE_VARIANTS[expenseType]
+
+const PRIVILEGED_ROLES: ReadonlySet<UserRole> = new Set(["SUPER_ADMIN", "ADMIN", "OWNER"])
+
+export const getUserRoleVariant = (role: UserRole): StatusBadgeVariant =>
+  PRIVILEGED_ROLES.has(role) ? "primary" : "neutral"
 
 export const formatExpenseTypeLabel = (expenseType: ExpensePurpose) =>
   formatStatusLabel(expenseType)

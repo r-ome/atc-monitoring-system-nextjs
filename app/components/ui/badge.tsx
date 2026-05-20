@@ -11,16 +11,28 @@ const badgeVariants = cva(
       variant: {
         default:
           "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        warning:
-          "border-transparent bg-amber-500 text-white [a&]:hover:bg-amber/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-amber/40 dark:bg-amber/60",
-        success:
-          "border-transparent bg-green-500 text-white [a&]:hover:bg-green-500/90 focus-visible:ring-green-500/20 dark:focus-visible:ring-destructive/40 dark:bg-green-500/60",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
         destructive:
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        success:
+          "border-transparent bg-status-success text-status-success-foreground [a&]:hover:bg-status-success/90",
+        warning:
+          "border-transparent bg-status-warning text-status-warning-foreground [a&]:hover:bg-status-warning/90",
+        info:
+          "border-transparent bg-status-info text-status-info-foreground [a&]:hover:bg-status-info/90",
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        "success-soft":
+          "border-transparent bg-status-success/15 text-status-success [a&]:hover:bg-status-success/25",
+        "warning-soft":
+          "border-transparent bg-status-warning/20 text-status-warning [a&]:hover:bg-status-warning/30",
+        "info-soft":
+          "border-transparent bg-status-info/15 text-status-info [a&]:hover:bg-status-info/25",
+        "destructive-soft":
+          "border-transparent bg-destructive/10 text-destructive [a&]:hover:bg-destructive/20",
+        "secondary-soft":
+          "border-transparent bg-muted text-muted-foreground [a&]:hover:bg-muted/80",
       },
     },
     defaultVariants: {
