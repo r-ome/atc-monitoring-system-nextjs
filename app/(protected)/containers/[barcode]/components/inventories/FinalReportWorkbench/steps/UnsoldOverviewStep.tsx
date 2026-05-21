@@ -378,26 +378,32 @@ export const UnsoldOverviewStep = ({
                           <TableCell>
                             {auctionStatus ? (
                               <div className="flex items-center gap-1 text-xs min-w-0">
-                                <span
-                                  className={
-                                    isBad
-                                      ? "font-medium text-destructive shrink-0"
-                                      : "text-muted-foreground shrink-0"
-                                  }
-                                >
-                                  {auctionStatus}
-                                </span>
                                 {isBad && reason ? (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <span className="truncate cursor-help text-destructive max-w-[80px]">
-                                        — {reason}
+                                      <span className="font-medium text-destructive shrink-0 cursor-help">
+                                        {auctionStatus}
                                       </span>
                                     </TooltipTrigger>
                                     <TooltipContent side="top" className="max-w-xs">
                                       {reason}
                                     </TooltipContent>
                                   </Tooltip>
+                                ) : (
+                                  <span
+                                    className={
+                                      isBad
+                                        ? "font-medium text-destructive shrink-0"
+                                        : "text-muted-foreground shrink-0"
+                                    }
+                                  >
+                                    {auctionStatus}
+                                  </span>
+                                )}
+                                {isBad && reason ? (
+                                  <span className="truncate text-destructive max-w-[80px]">
+                                    — {reason}
+                                  </span>
                                 ) : null}
                               </div>
                             ) : (

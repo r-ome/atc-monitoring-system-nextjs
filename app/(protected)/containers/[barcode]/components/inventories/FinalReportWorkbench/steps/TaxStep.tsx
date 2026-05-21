@@ -23,7 +23,7 @@ import {
 import { StepShell } from "../shared/StepShell";
 import { StepProps } from "../shared/types";
 
-type SortCol = "control" | "description" | "price" | "deducted";
+type SortCol = "control" | "description" | "price" | "newPrice";
 type SortDir = "asc" | "desc";
 
 export const TaxStep = ({
@@ -48,7 +48,7 @@ export const TaxStep = ({
   const [tableSearch, setTableSearch] = useState("");
   const [sortCol, setSortCol] = useState<SortCol | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
-  // Local input state, keyed by auction_inventory_id (one per monitoring row).
+  // Local New Price input state, keyed by auction_inventory_id (one per monitoring row).
   const [edits, setEdits] = useState<Record<string, string>>({});
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -160,37 +160,37 @@ export const TaxStep = ({
       confirmedRows.map((row) => {
         const key = `${row.control}|${row.bidder_number}|${row.description}`;
         const defaultDeduction = deductionMap.get(key) ?? 0;
-        // Persisted edit from the draft takes precedence over the server's default;
-        // local in-progress edit (`edits`) takes precedence over both.
+        // Persisted edit from the draft takes precedence over the server's default.
+        // Local in-progress edits are stored as New Price and converted back to
+        // deducted_amount below for draft/report compatibility.
         const persistedEdit = draftEditsByBarcodeControl.get(
           `${row.barcode}|${row.control}`,
         );
+        const savedDeduction = persistedEdit ?? defaultDeduction;
         const edited = edits[row.auction_inventory_id];
-        const rawDeduction =
-          edited !== undefined
-            ? Number.isFinite(Number(edited)) ? Number(edited) : 0
-            : persistedEdit !== undefined
-              ? persistedEdit
-              : defaultDeduction;
         // The monitoring sheet uses bought_item_price for bought items, row.price
-        // for everything else. For non-bought items, the server's preview has
-        // already subtracted any previously-saved deduction from row.price, so we
-        // reconstruct the ORIGINAL pre-deduction price by adding the saved
-        // deduction back. For bought items, bought_item_price is not modified by
-        // the server's deduction logic, so it's already gross.
+        // for everything else. The server preview has already subtracted any
+        // saved tax deduction, so reconstruct the original pre-deduction price
+        // by adding the saved deduction back before displaying/editing.
         const sheet_price =
           row.was_bought_item && row.bought_item_price != null
             ? row.bought_item_price
             : row.price;
-        const gross_price =
-          row.was_bought_item && row.bought_item_price != null
-            ? sheet_price
-            : sheet_price + (persistedEdit ?? 0);
-        // Floor the new price at 100, so the maximum deduction is gross_price - 100.
-        // (If the item already costs less than 100, the deduction is forced to 0.)
-        const maxDeduction = Math.max(0, gross_price - 100);
-        const deducted_amount = Math.min(Math.max(rawDeduction, 0), maxDeduction);
-        return { ...row, deducted_amount, original_price: gross_price };
+        const gross_price = sheet_price + savedDeduction;
+        const minNewPrice = Math.min(100, gross_price);
+        const maxNewPrice = gross_price;
+        const savedNewPrice = gross_price - savedDeduction;
+        const rawNewPrice =
+          edited !== undefined
+            ? edited.trim() === ""
+              ? maxNewPrice
+              : Number.isFinite(Number(edited))
+                ? Number(edited)
+                : maxNewPrice
+            : savedNewPrice;
+        const new_price = Math.min(Math.max(rawNewPrice, minNewPrice), maxNewPrice);
+        const deducted_amount = Math.max(0, gross_price - new_price);
+        return { ...row, deducted_amount, original_price: gross_price, new_price };
       }),
     [confirmedRows, deductionMap, edits, draftEditsByBarcodeControl],
   );
@@ -215,7 +215,7 @@ export const TaxStep = ({
         if (sortCol === "control") { av = a.control; bv = b.control; }
         else if (sortCol === "description") { av = a.description; bv = b.description; }
         else if (sortCol === "price") { av = a.original_price; bv = b.original_price; }
-        else { av = a.deducted_amount; bv = b.deducted_amount; }
+        else { av = a.new_price; bv = b.new_price; }
 
         if (typeof av === "number" && typeof bv === "number") {
           return sortDir === "asc" ? av - bv : bv - av;
@@ -231,12 +231,10 @@ export const TaxStep = ({
 
   const itemsTotal = tableRows.reduce((acc, row) => acc + row.deducted_amount, 0);
   const grandTotal = bidder740Total + itemsTotal;
-  // row.original_price is the gross (pre-deduction) price; deducted_amount is
-  // the staged deduction. Net Total = gross - deducted, which matches what the
-  // monitoring sheet's price column will show when the user's deductions are
-  // committed (since the server applies the same subtraction to row.price).
+  // row.original_price is the gross (pre-deduction) price. New Price is what
+  // the monitoring sheet's price column will show after deductions are applied.
   const itemsPriceTotal = tableRows.reduce((acc, row) => acc + row.original_price, 0);
-  const netTotal = itemsPriceTotal - itemsTotal;
+  const netTotal = tableRows.reduce((acc, row) => acc + row.new_price, 0);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>, index: number) => {
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp" && event.key !== "Enter") return;
@@ -293,15 +291,12 @@ export const TaxStep = ({
       onJumpTo={goTo}
       jumpDisabled={jumpDisabled}
       onNext={async () => {
-        // Preserve previously-saved tax_edits if the user never engaged with the
-        // table in this session (still in phase 1 / never clicked Confirm), or
-        // if the result would be empty but the draft already had saved entries
-        // (accidental clear). Either way, just navigate without overriding.
+        // Preserve previously-saved tax_edits if the user never engaged with
+        // the table in this session. Once confirmed, the table reflects the
+        // intended state, including intentionally clearing all deductions.
         const newEdits = taxEditsForDraft();
         const userEngaged = confirmedDescs !== null;
-        const wouldClearExisting =
-          newEdits.length === 0 && state.draft.tax_edits.length > 0;
-        if (userEngaged && !wouldClearExisting) {
+        if (userEngaged) {
           await saveDraft({ ...state.draft, tax_edits: newEdits });
         }
         goNext();
@@ -311,7 +306,7 @@ export const TaxStep = ({
       description={
         showFilter
           ? "Select which item descriptions should have their price deducted, then confirm."
-          : "Deduction amounts assumed per monitoring row for the generated report."
+          : "New prices assumed per monitoring row for the generated report."
       }
     >
       {showFilter ? (
@@ -403,10 +398,10 @@ export const TaxStep = ({
                     <TableHead className="cursor-pointer select-none" onClick={() => cycleSort("price")}>
                       Price <SortIcon col="price" />
                     </TableHead>
-                    <TableHead className="cursor-pointer select-none" onClick={() => cycleSort("deducted")}>
-                      Deducted <SortIcon col="deducted" />
+                    <TableHead className="cursor-pointer select-none whitespace-nowrap" onClick={() => cycleSort("newPrice")}>
+                      New Price <SortIcon col="newPrice" />
                     </TableHead>
-                    <TableHead className="whitespace-nowrap">New Price</TableHead>
+                    <TableHead className="whitespace-nowrap">Deducted</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -430,24 +425,26 @@ export const TaxStep = ({
                           <input
                             ref={(el) => { inputRefs.current[index] = el; }}
                             type="number"
-                            min={0}
-                            max={Math.max(0, row.original_price - 100)}
+                            min={Math.min(100, row.original_price)}
+                            max={row.original_price}
                             className="w-20 h-6 px-2 text-xs border rounded-md focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none bg-transparent"
                             value={
                               edits[row.auction_inventory_id] !== undefined
                                 ? edits[row.auction_inventory_id]
-                                : String(row.deducted_amount)
+                                : String(row.new_price)
                             }
                             onChange={(e) => {
                               const raw = e.target.value;
-                              // Clamp so the new price (original_price - deducted) is at least 100.
-                              const maxDeduction = Math.max(0, row.original_price - 100);
+                              // Clamp so the new price stays between 100 and
+                              // the original price. If the original is below
+                              // 100, keep it unchanged.
+                              const minNewPrice = Math.min(100, row.original_price);
                               const num = Number(raw);
                               const clamped =
                                 raw === ""
                                   ? raw
                                   : Number.isFinite(num)
-                                    ? String(Math.min(Math.max(num, 0), maxDeduction))
+                                    ? String(Math.min(Math.max(num, minNewPrice), row.original_price))
                                     : raw;
                               setEdits((prev) => ({
                                 ...prev,
@@ -458,7 +455,7 @@ export const TaxStep = ({
                           />
                         </TableCell>
                         <TableCell className="py-1 text-xs">
-                          {(row.original_price - row.deducted_amount).toLocaleString()}
+                          {row.deducted_amount.toLocaleString()}
                         </TableCell>
                       </TableRow>
                     ))
