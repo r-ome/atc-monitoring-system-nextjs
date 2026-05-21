@@ -121,6 +121,42 @@ export type ContainerTaxDeductionRecord = {
   items: FinalReportDeductionItem[];
 };
 
+// Snapshot of non-tax modifications staged via the Final Report builder and
+// committed during finalize. Persisted alongside `tax_deduction` so the
+// Breakdown panel can show what was changed even after the draft is cleared.
+export type FinalReportBoughtItemChange = {
+  inventory_id: string;
+  barcode: string;
+  control: string;
+  description: string;
+  bidder_number: string;
+  auction_date: string;
+  price: number;
+  qty: string;
+};
+
+export type FinalReportVoidedItemChange = {
+  inventory_id: string;
+  barcode: string;
+  control: string;
+  description: string;
+};
+
+export type FinalReportMergeChange = {
+  // The UNSOLD three-part inventory that was merged INTO a SOLD two-part row.
+  unsold: { inventory_id: string; barcode: string; control: string; description: string };
+  // The SOLD two-part row whose auction record was relinked to the UNSOLD.
+  sold: { inventory_id: string; barcode: string; control: string; description: string };
+};
+
+export type ContainerFinalReportChangesRecord = {
+  applied_at: string;
+  applied_by: string | null;
+  bought_items: FinalReportBoughtItemChange[];
+  voided_items: FinalReportVoidedItemChange[];
+  merges: FinalReportMergeChange[];
+};
+
 export const applyContainerTaxDeductionSchema = z.object({
   container_id: z.string().min(1),
   options: z.object({

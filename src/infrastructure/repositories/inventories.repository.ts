@@ -1103,7 +1103,18 @@ export const InventoryRepository: IInventoryRepository = {
         ]);
 
         if (!old_inventory || !new_inventory || !old_auction_inventory) {
-          throw new NotFoundError("Inventory / Auction inventory not found!");
+          const missing: string[] = [];
+          if (!old_inventory)
+            missing.push(`old_inventory (${data.old_inventory_id})`);
+          if (!new_inventory)
+            missing.push(`new_inventory (${data.new_inventory_id})`);
+          if (!old_auction_inventory)
+            missing.push(
+              `auctions_inventory for old_inventory (${data.old_inventory_id})`,
+            );
+          throw new NotFoundError(
+            `Merge failed — missing: ${missing.join(", ")}. (Likely the merge was already applied in a prior finalize attempt and the auction record was relinked.)`,
+          );
         }
 
         await tx.inventory_histories.updateMany({
@@ -1356,9 +1367,14 @@ export const InventoryRepository: IInventoryRepository = {
         const inventory = await tx.inventories.findFirst({
           where: buildTenantWhere("inventories", { inventory_id: data.inventory_id }),
         });
-        if (!inventory) throw new NotFoundError("Inventory not found.");
+        if (!inventory)
+          throw new NotFoundError(
+            `Inventory ${data.inventory_id} not found.`,
+          );
         if (inventory.status !== "UNSOLD") {
-          throw new NotFoundError("Inventory is no longer UNSOLD.");
+          throw new NotFoundError(
+            `Inventory ${data.inventory_id} (barcode ${inventory.barcode}, control ${inventory.control ?? "NC"}) is no longer UNSOLD (current status: ${inventory.status}).`,
+          );
         }
 
         await tx.inventories.update({
@@ -1398,12 +1414,19 @@ export const InventoryRepository: IInventoryRepository = {
           where: { inventory_id: data.inventory_id },
           include: { auctions_inventory: true, container: true },
         });
-        if (!targetInventory) throw new NotFoundError("Inventory not found.");
+        if (!targetInventory)
+          throw new NotFoundError(
+            `Inventory ${data.inventory_id} not found.`,
+          );
         if (targetInventory.status !== "UNSOLD") {
-          throw new NotFoundError("Inventory is no longer UNSOLD.");
+          throw new NotFoundError(
+            `Inventory ${data.inventory_id} (barcode ${targetInventory.barcode}, control ${targetInventory.control ?? "NC"}) is no longer UNSOLD (current status: ${targetInventory.status}).`,
+          );
         }
         if (targetInventory.auctions_inventory) {
-          throw new NotFoundError("Inventory already has an auction record.");
+          throw new NotFoundError(
+            `Inventory ${data.inventory_id} (barcode ${targetInventory.barcode}, control ${targetInventory.control ?? "NC"}) already has an auction record.`,
+          );
         }
 
         const auctionDate = data.auction_date

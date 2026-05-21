@@ -15,6 +15,7 @@ import { ContainerReportFiles } from "./components/ContainerReportFiles";
 import { GeneratedFinalReportFiles } from "./components/GeneratedFinalReportFiles";
 import { ContainerInventoriesTable } from "./components/inventories/ContainerInventoriesTable";
 import { ContainerReport } from "./components/report/ContainerReport";
+import { FinalReportBreakdown } from "./components/report/FinalReportBreakdown";
 import { OwnerContainerReport } from "./components/report/OwnerContainerReport";
 import { BoughtItemPnL } from "./components/report/BoughtItemPnL";
 import { HotItemsByCategory } from "./components/report/HotItemsByCategory";
@@ -114,18 +115,34 @@ export default async function Page({
         </TabsContent>
         <TabsContent value="report">
           <div className="flex flex-col gap-4 2xl:gap-6">
-            <div className="grid gap-4 lg:grid-cols-2 lg:items-start 2xl:gap-6">
-              {isOwnerContainer ? (
+            {isOwnerContainer ? (
+              <div className="grid gap-4 lg:grid-cols-2 lg:items-start 2xl:gap-6">
                 <OwnerContainerReport inventories={container.inventories} />
-              ) : (
-                <div className="flex flex-col gap-4 2xl:gap-6">
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-4 lg:grid-cols-2 lg:items-start 2xl:gap-6">
                   <ContainerReport inventories={container.inventories} />
-                  <BoughtItemPnL
-                    containerStatus={container.status}
+                  <FinalReportBreakdown
                     inventories={container.inventories}
+                    taxDeductionTotal={
+                      container.final_report_tax_deduction_total
+                    }
+                    taxDeductionSource={
+                      container.final_report_tax_deduction_source
+                    }
+                    taxDeductionItems={
+                      container.final_report_tax_deduction_items
+                    }
+                    modifications={container.final_report_modifications}
                   />
                 </div>
-              )}
+                <BoughtItemPnL
+                  containerStatus={container.status}
+                  inventories={container.inventories}
+                />
+              </>
+            )}
               <div className="w-full rounded-lg border p-4 sm:p-6">
                 <div className="space-y-6">
                   <GeneratedFinalReportFiles
@@ -137,7 +154,6 @@ export default async function Page({
                   />
                 </div>
               </div>
-            </div>
             {hotItemsRes.ok ? (
               <HotItemsByCategory
                 containerId={container.container_id}

@@ -40,13 +40,16 @@ export const getContainerReportsBucket = () => {
   const bucket = process.env.AWS_S3_CONTAINER_REPORTS_BUCKET;
 
   if (!bucket) {
+    if (process.env.SKIP_CONTAINER_REPORT_UPLOAD === "true") {
+      return "skip-container-report-upload";
+    }
     throw new Error("AWS_S3_CONTAINER_REPORTS_BUCKET is not configured.");
   }
 
   return bucket;
 };
 
-export const S3ContainerReportStorage: ContainerReportStorageGateway = {
+const RealS3ContainerReportStorage: ContainerReportStorageGateway = {
   upload: async ({ bucket, key, body, content_type }) => {
     await getClient().send(
       new PutObjectCommand({
@@ -80,4 +83,31 @@ export const S3ContainerReportStorage: ContainerReportStorageGateway = {
       }),
     );
   },
+};
+
+// Local-dev escape hatch: when SKIP_CONTAINER_REPORT_UPLOAD=true, no-op the S3
+// calls so the rest of the upload flow (DB inserts, activity log) can be tested
+// without valid AWS credentials. Download URLs return a non-functional sentinel.
+const NoopContainerReportStorage: ContainerReportStorageGateway = {
+  upload: async () => {},
+  getSignedDownloadUrl: async () => "about:blank#skip-container-report-upload",
+  delete: async () => {},
+};
+
+const shouldSkipUpload = () =>
+  process.env.SKIP_CONTAINER_REPORT_UPLOAD === "true";
+
+export const S3ContainerReportStorage: ContainerReportStorageGateway = {
+  upload: (input) =>
+    shouldSkipUpload()
+      ? NoopContainerReportStorage.upload(input)
+      : RealS3ContainerReportStorage.upload(input),
+  getSignedDownloadUrl: (input) =>
+    shouldSkipUpload()
+      ? NoopContainerReportStorage.getSignedDownloadUrl(input)
+      : RealS3ContainerReportStorage.getSignedDownloadUrl(input),
+  delete: (input) =>
+    shouldSkipUpload()
+      ? NoopContainerReportStorage.delete(input)
+      : RealS3ContainerReportStorage.delete(input),
 };

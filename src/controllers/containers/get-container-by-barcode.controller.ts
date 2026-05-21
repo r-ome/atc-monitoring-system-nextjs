@@ -1,5 +1,11 @@
 import { getContainerByBarcodeUseCase } from "src/application/use-cases/containers/get-container-by-barcode.use-case";
-import { ContainerWithDetailsAndAuctionHistoriesRow } from "src/entities/models/Container";
+import {
+  ContainerWithDetailsAndAuctionHistoriesRow,
+  FinalReportBoughtItemModification,
+  FinalReportMergeModification,
+  FinalReportTaxDeductionItem,
+  FinalReportVoidedItemModification,
+} from "src/entities/models/Container";
 import {
   FinalReportDocumentType,
   FinalReportFile,
@@ -9,6 +15,7 @@ import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
 import { logger } from "@/app/lib/logger";
 import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
+import { finalReportDraftSchema } from "src/entities/models/FinalReportDraft";
 
 const isFinalReportDocumentType = (
   document_type: ContainerWithDetailsAndAuctionHistoriesRow[
@@ -88,11 +95,257 @@ const getAuctionInventoryHistoryInfo = (item: ContainerInventoryItem) => {
   return { reason, bidder_number };
 };
 
+function getFinalReportTaxDeductionSummary(
+  container: ContainerWithDetailsAndAuctionHistoriesRow,
+): {
+  total: number;
+  source: "draft" | "persisted" | null;
+  items: FinalReportTaxDeductionItem[];
+} {
+  const draft = finalReportDraftSchema.safeParse(container.final_report_draft);
+  if (draft.success && draft.data.tax_edits.length > 0) {
+    // Build lookup of inventories by `${barcode}|${control}` for enrichment.
+    const lookup = new Map<
+      string,
+      {
+        description: string;
+        price: number;
+        bidder_number: string | null;
+      }
+    >();
+    for (const inv of container.inventories) {
+      const control = inv.control ?? "NC";
+      const key = `${inv.barcode}|${control}`;
+      const ai = inv.auctions_inventory;
+      lookup.set(key, {
+        description: inv.description ?? "",
+        price: Number(ai?.price ?? 0),
+        bidder_number: ai?.auction_bidder?.bidder?.bidder_number ?? null,
+      });
+    }
+
+    const items: FinalReportTaxDeductionItem[] = draft.data.tax_edits
+      .filter((e) => e.deducted_amount > 0)
+      .map((e) => {
+        const info = lookup.get(`${e.barcode}|${e.control}`);
+        // Raw DB price is the gross/pre-deduction price — deductions are only
+        // applied in the preview/workbook output, never written back.
+        const original_price = info?.price ?? 0;
+        const new_price = Math.max(0, original_price - e.deducted_amount);
+        return {
+          control: e.control || "NC",
+          description: info?.description ?? "",
+          bidder_number: info?.bidder_number ?? null,
+          original_price,
+          deducted_amount: e.deducted_amount,
+          new_price,
+        };
+      });
+
+    return {
+      total: items.reduce((sum, item) => sum + item.deducted_amount, 0),
+      source: "draft" as const,
+      items,
+    };
+  }
+
+  const taxDeduction = container.tax_deduction;
+  if (taxDeduction && typeof taxDeduction === "object" && "items" in taxDeduction) {
+    const rawItems = (taxDeduction as { items?: unknown }).items;
+    if (!Array.isArray(rawItems)) {
+      return { total: 0, source: null, items: [] };
+    }
+
+    const items: FinalReportTaxDeductionItem[] = [];
+    for (const raw of rawItems) {
+      if (!raw || typeof raw !== "object") continue;
+      const r = raw as Record<string, unknown>;
+      const deducted_amount = Number(r.deducted_amount ?? 0);
+      if (!Number.isFinite(deducted_amount) || deducted_amount <= 0) continue;
+      const original_price = Number(r.original_price ?? 0);
+      items.push({
+        control: typeof r.control === "string" ? r.control : "",
+        description: typeof r.description === "string" ? r.description : "",
+        bidder_number:
+          typeof r.bidder_number === "string" ? r.bidder_number : null,
+        original_price: Number.isFinite(original_price) ? original_price : 0,
+        deducted_amount,
+        new_price: Math.max(
+          0,
+          (Number.isFinite(original_price) ? original_price : 0) -
+            deducted_amount,
+        ),
+      });
+    }
+
+    return {
+      total: items.reduce((sum, item) => sum + item.deducted_amount, 0),
+      source: "persisted" as const,
+      items,
+    };
+  }
+
+  return { total: 0, source: null, items: [] };
+}
+
+function getFinalReportModifications(
+  container: ContainerWithDetailsAndAuctionHistoriesRow,
+): {
+  source: "draft" | "persisted" | null;
+  bought_items: FinalReportBoughtItemModification[];
+  voided_items: FinalReportVoidedItemModification[];
+  merges: FinalReportMergeModification[];
+} {
+  const empty = {
+    source: null as "draft" | "persisted" | null,
+    bought_items: [] as FinalReportBoughtItemModification[],
+    voided_items: [] as FinalReportVoidedItemModification[],
+    merges: [] as FinalReportMergeModification[],
+  };
+
+  const byInventoryId = new Map<
+    string,
+    { barcode: string; control: string; description: string }
+  >();
+  for (const inv of container.inventories) {
+    byInventoryId.set(inv.inventory_id, {
+      barcode: inv.barcode,
+      control: inv.control ?? "NC",
+      description: inv.description ?? "",
+    });
+  }
+
+  // Prefer the in-progress draft when one exists so the panel reflects what the
+  // user is staging right now. Falls back to the persisted snapshot from the
+  // last finalize.
+  const draft = finalReportDraftSchema.safeParse(container.final_report_draft);
+  if (
+    draft.success &&
+    (draft.data.bought_items.length > 0 ||
+      draft.data.merged_inventories.length > 0)
+  ) {
+    const bought_items: FinalReportBoughtItemModification[] = [];
+    const voided_items: FinalReportVoidedItemModification[] = [];
+    for (const item of draft.data.bought_items) {
+      const inv = byInventoryId.get(item.inventory_id);
+      if (item.action === "VOID") {
+        voided_items.push({
+          barcode: inv?.barcode ?? "",
+          control: inv?.control ?? "NC",
+          description: inv?.description ?? "",
+        });
+      } else {
+        bought_items.push({
+          barcode: inv?.barcode ?? "",
+          control: inv?.control ?? "NC",
+          description: inv?.description ?? "",
+          bidder_number: item.bidder_number,
+          auction_date: item.auction_date,
+          price: item.price,
+          qty: item.qty,
+        });
+      }
+    }
+    const merges: FinalReportMergeModification[] =
+      draft.data.merged_inventories.map((m) => {
+        const sold = byInventoryId.get(m.old_inventory_id);
+        const unsold = byInventoryId.get(m.new_inventory_id);
+        return {
+          sold: {
+            barcode: sold?.barcode ?? "",
+            control: sold?.control ?? "NC",
+            description: sold?.description ?? "",
+          },
+          unsold: {
+            barcode: unsold?.barcode ?? "",
+            control: unsold?.control ?? "NC",
+            description: unsold?.description ?? "",
+          },
+        };
+      });
+    return { source: "draft", bought_items, voided_items, merges };
+  }
+
+  const changes = container.final_report_changes;
+  if (changes && typeof changes === "object") {
+    const c = changes as Record<string, unknown>;
+    const readArr = (key: string) =>
+      Array.isArray(c[key]) ? (c[key] as unknown[]) : [];
+
+    const bought_items: FinalReportBoughtItemModification[] = readArr(
+      "bought_items",
+    ).flatMap((raw) => {
+      if (!raw || typeof raw !== "object") return [];
+      const r = raw as Record<string, unknown>;
+      return [
+        {
+          barcode: String(r.barcode ?? ""),
+          control: String(r.control ?? "NC"),
+          description: String(r.description ?? ""),
+          bidder_number: String(r.bidder_number ?? ""),
+          auction_date: String(r.auction_date ?? ""),
+          price: Number(r.price ?? 0),
+          qty: String(r.qty ?? ""),
+        },
+      ];
+    });
+
+    const voided_items: FinalReportVoidedItemModification[] = readArr(
+      "voided_items",
+    ).flatMap((raw) => {
+      if (!raw || typeof raw !== "object") return [];
+      const r = raw as Record<string, unknown>;
+      return [
+        {
+          barcode: String(r.barcode ?? ""),
+          control: String(r.control ?? "NC"),
+          description: String(r.description ?? ""),
+        },
+      ];
+    });
+
+    const merges: FinalReportMergeModification[] = readArr("merges").flatMap(
+      (raw) => {
+        if (!raw || typeof raw !== "object") return [];
+        const r = raw as Record<string, unknown>;
+        const sold = (r.sold ?? {}) as Record<string, unknown>;
+        const unsold = (r.unsold ?? {}) as Record<string, unknown>;
+        return [
+          {
+            sold: {
+              barcode: String(sold.barcode ?? ""),
+              control: String(sold.control ?? "NC"),
+              description: String(sold.description ?? ""),
+            },
+            unsold: {
+              barcode: String(unsold.barcode ?? ""),
+              control: String(unsold.control ?? "NC"),
+              description: String(unsold.description ?? ""),
+            },
+          },
+        ];
+      },
+    );
+
+    if (
+      bought_items.length > 0 ||
+      voided_items.length > 0 ||
+      merges.length > 0
+    ) {
+      return { source: "persisted", bought_items, voided_items, merges };
+    }
+  }
+
+  return empty;
+}
+
 export const presentContainerDetails = (
   container: ContainerWithDetailsAndAuctionHistoriesRow,
 ) => {
   const date_format = "MMM dd, yyyy";
   const status: "PAID" | "UNPAID" = container.status ? "PAID" : "UNPAID";
+  const taxDeductionSummary = getFinalReportTaxDeductionSummary(container);
+  const finalReportModifications = getFinalReportModifications(container);
   const containerReportFiles = container.container_files.filter(
     (file) => file.document_type === "CONTAINER_REPORT",
   );
@@ -193,6 +446,10 @@ export const presentContainerDetails = (
               .map(presentFinalReportFile)[0] ?? null,
         }
       : null,
+    final_report_tax_deduction_total: taxDeductionSummary.total,
+    final_report_tax_deduction_source: taxDeductionSummary.source,
+    final_report_tax_deduction_items: taxDeductionSummary.items,
+    final_report_modifications: finalReportModifications,
     inventories: container.inventories.map((item) => {
       const historyInfo = getAuctionInventoryHistoryInfo(item);
 

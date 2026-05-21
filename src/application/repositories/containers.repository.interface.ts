@@ -15,7 +15,10 @@ import {
   UploadInventoryFileWriteInput,
   UploadInventoryFileWriteResult,
 } from "src/entities/models/Inventory";
-import { ContainerTaxDeductionRecord } from "src/entities/models/FinalReport";
+import {
+  ContainerFinalReportChangesRecord,
+  ContainerTaxDeductionRecord,
+} from "src/entities/models/FinalReport";
 import { FinalReportDraft } from "src/entities/models/FinalReportDraft";
 
 export interface IContainerRepository {
@@ -59,4 +62,12 @@ export interface IContainerRepository {
     draft: FinalReportDraft,
   ) => Promise<void>;
   clearFinalReportDraft: (container_id: string) => Promise<void>;
+  getContainerFinalReportChanges: (
+    container_id: string,
+  ) => Promise<ContainerFinalReportChangesRecord | null>;
+  setContainerFinalReportChanges: (
+    container_id: string,
+    record: ContainerFinalReportChangesRecord,
+  ) => Promise<void>;
+  clearContainerFinalReportChanges: (container_id: string) => Promise<void>;
 }

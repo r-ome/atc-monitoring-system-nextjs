@@ -36,6 +36,9 @@ test("updateManifest persists the normalized row barcode on the manifest record"
     inventories: {
       createMany: async () => ({ count: 0 }),
       findMany: async () => [],
+      update: async () => ({
+        inventory_id: "inventory-1",
+      }),
       updateMany: async () => ({ count: 1 }),
     },
     auctions_inventories: {
@@ -106,6 +109,146 @@ test("updateManifest persists the normalized row barcode on the manifest record"
   assert.equal(manifestUpdateData?.barcode, "108-03-059");
 });
 
+test("updateManifest backfills inventory auction date when linking an existing inventory to a new auction item", async () => {
+  const auctionDate = new Date("2026-02-14T00:00:00.000Z");
+  const inventoryUpdates: Array<{
+    where: { inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const auctionInventoryCreates: Array<Record<string, unknown>> = [];
+
+  const tx = {
+    manifest_records: {
+      update: async ({ data }: { data: Record<string, unknown> }) => ({
+        manifest_id: "manifest-1",
+        auction_id: "auction-1",
+        ...data,
+      }),
+    },
+    auctions: {
+      findFirst: async () => ({
+        auction_id: "auction-1",
+        created_at: auctionDate,
+      }),
+    },
+    containers: {
+      findMany: async () => [
+        {
+          container_id: "container-1",
+          barcode: "25-29",
+          status: null,
+        },
+      ],
+    },
+    inventories: {
+      createMany: async () => ({ count: 0 }),
+      findMany: async () => [],
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        inventoryUpdates.push({ where, data });
+        return { inventory_id: where.inventory_id, ...data };
+      },
+    },
+    auctions_inventories: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        auctionInventoryCreates.push(data);
+        return {
+          auction_inventory_id: "auction-inventory-1",
+          ...data,
+        };
+      },
+      update: async () => {
+        throw new Error("Should create a new auction inventory");
+      },
+    },
+    inventory_histories: {
+      createMany: async () => ({ count: 1 }),
+    },
+    auctions_bidders: {
+      update: async () => ({ auction_bidder_id: "ab-1" }),
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await AuctionRepository.updateManifest(
+    "manifest-1",
+    [
+      {
+        manifest_id: "manifest-1",
+        barcode: "25-29-052",
+        control: "2096",
+        description: "LUGGAGE",
+        bidder_number: "0008",
+        price: "1300",
+        qty: "1",
+        manifest_number: "K2",
+        auction_bidder_id: "ab-1",
+        service_charge: 0,
+        inventory_id: "inventory-1",
+        container_id: "container-1",
+        isValid: true,
+        forUpdating: true,
+        error: "",
+        isSlashItem: null,
+      },
+    ],
+    {
+      manifest_id: "manifest-1",
+      barcode: "25-29-052",
+      control: "2096",
+      description: "LUGGAGE",
+      bidder_number: "0008",
+      price: "1300",
+      qty: "1",
+      manifest_number: "K2",
+      error: "",
+    },
+  );
+
+  assert.deepEqual(auctionInventoryCreates, [
+    {
+      auction_bidder_id: "ab-1",
+      inventory_id: "inventory-1",
+      description: "LUGGAGE",
+      status: "UNPAID",
+      price: 1300,
+      qty: "1",
+      manifest_number: "K2",
+      auction_date: auctionDate,
+      is_slash_item: null,
+    },
+  ]);
+  assert.deepEqual(inventoryUpdates, [
+    {
+      where: { inventory_id: "inventory-1" },
+      data: {
+        status: "SOLD",
+        auction_date: auctionDate,
+        sales_allocation: "CONTAINER",
+        sales_allocation_reason: "NORMAL",
+        sales_allocation_note: null,
+      },
+    },
+  ]);
+});
+
 test("uploadManifest does not increment bidder balance for bought items", async () => {
   const bidderBalanceWrites: Array<{
     where: { auction_bidder_id: string };
@@ -122,6 +265,9 @@ test("uploadManifest does not increment bidder balance for bought items", async 
     },
     manifest_records: {
       createMany: async () => ({ count: 1 }),
+    },
+    containers: {
+      findMany: async () => [],
     },
     inventories: {
       createMany: async () => ({ count: 1 }),
@@ -254,6 +400,15 @@ test("uploadManifest re-encodes bought items as sold inventory and updates the e
     },
     manifest_records: {
       createMany: async () => ({ count: 1 }),
+    },
+    containers: {
+      findMany: async () => [
+        {
+          container_id: "container-1",
+          barcode: "25-35",
+          status: null,
+        },
+      ],
     },
     inventories: {
       createMany: async () => ({ count: 0 }),

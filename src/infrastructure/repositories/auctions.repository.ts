@@ -1276,22 +1276,22 @@ export const AuctionRepository: IAuctionRepository = {
               ),
           );
 
-          if (rows_for_existing_auction_inventory.length) {
-            await Promise.all(
-              rows_for_existing_auction_inventory
-                .filter((item) => item.inventory_id)
-                .map((item) =>
-                  tx.inventories.update({
-                    where: { inventory_id: item.inventory_id! },
-                    data: {
-                      status: "SOLD",
-                      auction_date: auction.created_at,
-                      ...getUpdateManifestAllocation(item.container_id),
-                    },
-                  }),
-                ),
-            );
+          await Promise.all(
+            auction_inventories
+              .filter((item) => item.inventory_id)
+              .map((item) =>
+                tx.inventories.update({
+                  where: { inventory_id: item.inventory_id },
+                  data: {
+                    status: "SOLD",
+                    auction_date: auction.created_at,
+                    ...getUpdateManifestAllocation(item.container_id),
+                  },
+                }),
+              ),
+          );
 
+          if (rows_for_existing_auction_inventory.length) {
             await Promise.all(
               auction_inventories
                 .filter(

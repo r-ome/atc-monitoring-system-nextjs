@@ -133,6 +133,47 @@ export type Container = {
   inventories: Inventory[];
   container_report_files: ContainerReportFile[];
   final_report_files: FinalReportFilePair | null;
+  final_report_tax_deduction_total: number;
+  final_report_tax_deduction_source: "draft" | "persisted" | null;
+  final_report_tax_deduction_items: FinalReportTaxDeductionItem[];
+  final_report_modifications: FinalReportModifications;
+};
+
+export type FinalReportTaxDeductionItem = {
+  control: string;
+  description: string;
+  bidder_number: string | null;
+  original_price: number;
+  deducted_amount: number;
+  new_price: number;
+};
+
+export type FinalReportBoughtItemModification = {
+  barcode: string;
+  control: string;
+  description: string;
+  bidder_number: string;
+  auction_date: string;
+  price: number;
+  qty: string;
+};
+
+export type FinalReportVoidedItemModification = {
+  barcode: string;
+  control: string;
+  description: string;
+};
+
+export type FinalReportMergeModification = {
+  unsold: { barcode: string; control: string; description: string };
+  sold: { barcode: string; control: string; description: string };
+};
+
+export type FinalReportModifications = {
+  source: "draft" | "persisted" | null;
+  bought_items: FinalReportBoughtItemModification[];
+  voided_items: FinalReportVoidedItemModification[];
+  merges: FinalReportMergeModification[];
 };
 
 export const CONTAINER_REPORT_SHEETS = [

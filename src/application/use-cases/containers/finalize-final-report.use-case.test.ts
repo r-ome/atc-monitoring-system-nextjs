@@ -68,6 +68,25 @@ test("finalizeFinalReportUseCase applies staged manual merges during finalize", 
       clearedContainerId = container_id;
     },
   );
+  // Stub the post-merge enrichment fetch and the changes-snapshot writes the
+  // use case now performs alongside the merge. Returning `null` from
+  // getContainerById short-circuits the snapshot block so the test only
+  // exercises the merge path it was designed to verify.
+  const restoreGetById = patchMethod(
+    ContainerRepository,
+    "getContainerById",
+    async () => null,
+  );
+  const restoreSetChanges = patchMethod(
+    ContainerRepository,
+    "setContainerFinalReportChanges",
+    async () => {},
+  );
+  const restoreClearChanges = patchMethod(
+    ContainerRepository,
+    "clearContainerFinalReportChanges",
+    async () => {},
+  );
 
   try {
     const result = await finalizeFinalReportUseCase({
@@ -84,6 +103,9 @@ test("finalizeFinalReportUseCase applies staged manual merges during finalize", 
       "32-04",
     );
   } finally {
+    restoreClearChanges();
+    restoreSetChanges();
+    restoreGetById();
     restoreClear();
     restoreMerge();
     restoreDraft();

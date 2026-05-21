@@ -10,7 +10,10 @@ import {
   DatabaseOperationError,
   NotFoundError,
 } from "src/entities/errors/common";
-import { ContainerTaxDeductionRecord } from "src/entities/models/FinalReport";
+import {
+  ContainerFinalReportChangesRecord,
+  ContainerTaxDeductionRecord,
+} from "src/entities/models/FinalReport";
 import {
   FinalReportDraft,
   finalReportDraftSchema,
@@ -572,6 +575,56 @@ export const ContainerRepository: IContainerRepository = {
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error clearing final report draft!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  getContainerFinalReportChanges: async (container_id) => {
+    try {
+      const container = await prisma.containers.findFirst({
+        where: { container_id },
+        select: { final_report_changes: true },
+      });
+      const value = container?.final_report_changes;
+      if (!value || typeof value !== "object") return null;
+      return value as unknown as ContainerFinalReportChangesRecord;
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error reading final report changes!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  setContainerFinalReportChanges: async (container_id, record) => {
+    try {
+      await prisma.containers.update({
+        where: { container_id },
+        data: {
+          final_report_changes: record as unknown as Prisma.InputJsonValue,
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error saving final report changes!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  clearContainerFinalReportChanges: async (container_id) => {
+    try {
+      await prisma.containers.update({
+        where: { container_id },
+        data: { final_report_changes: Prisma.JsonNull },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error clearing final report changes!", {
           cause: error.message,
         });
       }
