@@ -518,7 +518,7 @@ export const GenerateStep = ({
                 <p>
                   This generates the{" "}
                   <span className="font-medium">original</span> version of the
-                  report — none of your staged wizard changes are applied (no
+                  report — none of your staged builder changes are applied (no
                   merges, voids, bought items, qty splits, appended rows, or tax
                   edits). Use this to compare against the configured version.
                 </p>

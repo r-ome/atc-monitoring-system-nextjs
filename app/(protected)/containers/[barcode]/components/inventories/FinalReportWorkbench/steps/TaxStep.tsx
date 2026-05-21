@@ -434,21 +434,22 @@ export const TaxStep = ({
                                 : String(row.new_price)
                             }
                             onChange={(e) => {
-                              const raw = e.target.value;
-                              // Clamp so the new price stays between 100 and
-                              // the original price. If the original is below
-                              // 100, keep it unchanged.
-                              const minNewPrice = Math.min(100, row.original_price);
-                              const num = Number(raw);
-                              const clamped =
-                                raw === ""
-                                  ? raw
-                                  : Number.isFinite(num)
-                                    ? String(Math.min(Math.max(num, minNewPrice), row.original_price))
-                                    : raw;
                               setEdits((prev) => ({
                                 ...prev,
-                                [row.auction_inventory_id]: clamped,
+                                [row.auction_inventory_id]: e.target.value,
+                              }));
+                            }}
+                            onBlur={(e) => {
+                              const raw = e.target.value;
+                              const minNewPrice = Math.min(100, row.original_price);
+                              const num = Number(raw);
+                              const normalized =
+                                raw.trim() === "" || !Number.isFinite(num)
+                                  ? row.original_price
+                                  : Math.min(Math.max(num, minNewPrice), row.original_price);
+                              setEdits((prev) => ({
+                                ...prev,
+                                [row.auction_inventory_id]: String(normalized),
                               }));
                             }}
                             onKeyDown={(e) => handleKeyDown(e, index)}
