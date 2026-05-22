@@ -6,7 +6,11 @@ import {
   CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES,
 } from "src/entities/models/Auction";
 import { AuctionBidderForManifestRow } from "src/entities/models/Bidder";
-import { formatNumberPadding, normalizeControl } from "@/app/lib/utils";
+import {
+  formatNumberPadding,
+  normalizeControl,
+  normalizeDescriptionDots,
+} from "@/app/lib/utils";
 import { formatInTimeZone } from "date-fns-tz";
 import { v4 as uuidv4 } from "uuid";
 
@@ -225,12 +229,18 @@ const TYPO_SUGGESTIONS: Record<string, string> = {
 };
 
 const normalizeManifestDescription = (description: string) =>
-  (description
-    .trim()
-    .replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "")
-    .replace(/\s+/g, " ")
-    .replace(/\bASIS\b/gi, "AS IS")
-    .replace(/\bINBOX\b/gi, "IN BOX") || "NO DESCRIPTION");
+  (normalizeDescriptionDots(
+    description
+      .trim()
+      .replace(/\\/g, "")
+      .replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "")
+      .replace(/\s+/g, " ")
+      .replace(/\(\s+/g, "(")
+      .replace(/\s+\)/g, ")")
+      .replace(/\bAS\s*-\s*IS\b/gi, "AS IS")
+      .replace(/\bASIS\b/gi, "AS IS")
+      .replace(/\bINBOX\b/gi, "IN BOX"),
+  ) || "NO DESCRIPTION");
 
 const buildDescriptionWarning = (
   originalDescription: string,

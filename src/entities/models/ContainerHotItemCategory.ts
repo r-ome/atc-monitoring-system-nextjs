@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { normalizeDescriptionDots } from "@/app/lib/utils";
+
 export type ContainerItemCategoryRow =
   Prisma.container_item_categoriesGetPayload<object>;
 
@@ -58,7 +60,9 @@ export type ContainerHotItemReport = {
 };
 
 export function normalizeHotItemDescription(description: string): string {
-  return description.trim().replace(/\s+/g, " ").toUpperCase();
+  return normalizeDescriptionDots(
+    description.trim().replace(/\s+/g, " "),
+  ).toUpperCase();
 }
 
 const hotItemDescriptionSchema = z

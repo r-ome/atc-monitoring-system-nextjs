@@ -171,6 +171,37 @@ test("normalizeManifestDescriptions falls back when symbols leave an empty descr
   );
 });
 
+test("normalizeManifestDescriptions collapses whitespace inside parens, normalizes AS-IS, and strips stray backslashes", () => {
+  const rows = normalizeManifestDescriptions(
+    (
+      [
+        ["D CAB ( AS IS) DI", "D CAB (AS IS) DI"],
+        ["F BED ( AS-IS) DI", "F BED (AS IS) DI"],
+        ["TOYS AS-IS", "TOYS AS IS"],
+        ["PW DI\\", "PW DI"],
+        ["\\KW", "KW"],
+      ] as const
+    ).map(([DESCRIPTION]) => ({
+      BARCODE: "32-04",
+      CONTROL: "0012",
+      DESCRIPTION,
+      BIDDER: "0007",
+      PRICE: "500",
+      QTY: "1",
+      MANIFEST: "M-1",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    })),
+  );
+
+  assert.deepEqual(
+    rows.map((row) => row.DESCRIPTION),
+    ["D CAB (AS IS) DI", "F BED (AS IS) DI", "TOYS AS IS", "PW DI", "KW"],
+  );
+});
+
 test("divideIntoHundreds keeps total intact while rounding to the nearest hundred", () => {
   assert.deepEqual(divideIntoHundreds(1000, 3), [300, 300, 400]);
   assert.deepEqual(divideIntoHundreds(250, 2), [100, 150]);

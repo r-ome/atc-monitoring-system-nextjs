@@ -30,6 +30,16 @@ export const normalizeControl = (
   return formatNumberPadding(value.replace(/\./g, ""), 4);
 };
 
+export const normalizeDescriptionDots = (value: string): string => {
+  let next = value;
+  let prev: string;
+  do {
+    prev = next;
+    next = next.replace(/\b([A-Za-z])\.\s+([A-Za-z])(?=\.|\b)/g, "$1.$2");
+  } while (next !== prev);
+  return next.replace(/\b([A-Za-z])\.\s*([A-Za-z]{2,})\b/g, "$1. $2");
+};
+
 export const formatNumberToCurrency = (num: string | number): string => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
