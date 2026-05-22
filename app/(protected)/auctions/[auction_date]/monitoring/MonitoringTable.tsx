@@ -23,16 +23,27 @@ export const MonitoringTable = ({
   isMasterList = false,
   counterCheck = [],
 }: MonitoringTableProps) => {
+  const groupIndexMap = useMemo(
+    () => buildGroupIndexMap(monitoring, (r) => r.is_slash_item),
+    [monitoring]
+  );
+
   const globalFilterFn = (
     row: CoreRow<AuctionsInventory>,
     _columnId?: string,
     filterValue?: string
   ) => {
     const search = (filterValue ?? "").toLowerCase();
-    const { description, qty, price, manifest_number, inventory, status } =
+    const { description, qty, price, manifest_number, inventory, status, is_slash_item } =
       row.original;
     const { barcode, control } = inventory;
     const { bidder_number } = row.original.bidder;
+    const slashGroupIndex = is_slash_item
+      ? groupIndexMap[is_slash_item]
+      : undefined;
+    const slashGroupLabel = slashGroupIndex
+      ? `A${slashGroupIndex}`
+      : undefined;
 
     return [
       barcode,
@@ -43,15 +54,13 @@ export const MonitoringTable = ({
       price.toString(),
       manifest_number,
       status,
+      slashGroupLabel,
+      slashGroupLabel ? `(${slashGroupLabel})` : undefined,
+      control && slashGroupLabel ? `${control}(${slashGroupLabel})` : undefined,
     ]
       .filter(Boolean)
       .some((field) => field!.toLowerCase().includes(search));
   };
-
-  const groupIndexMap = useMemo(
-    () => buildGroupIndexMap(monitoring, (r) => r.is_slash_item),
-    [monitoring]
-  );
 
   const [slashedOnly, setSlashedOnly] = useState(false);
   const slashedCount = useMemo(

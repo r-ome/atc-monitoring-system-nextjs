@@ -26,7 +26,7 @@ const toSheetRecord = (row: UploadManifestInput): ManifestSheetRecord => ({
 const sortInvalidFirst = (data: UploadManifestInput[]) =>
   [...data].sort((a, b) => Number(a.isValid) - Number(b.isValid));
 
-export const useUploadManifest = (auction_id: string) => {
+export const useUploadManifest = (auction_id: string, auction_date: string) => {
   const router = useRouter();
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -143,7 +143,11 @@ export const useUploadManifest = (auction_id: string) => {
   const performUpload = async () => {
     setLoadingMessage("Uploading manifest...");
     try {
-      const res = await confirmUploadManifest(auction_id, previewData);
+      const res = await confirmUploadManifest(
+        auction_id,
+        auction_date,
+        previewData,
+      );
 
       if (res.ok) {
         toast.success("Successfully uploaded manifest!", {

@@ -323,7 +323,8 @@ export const formatSlashedBarcodes = (
       new_barcodes.length,
     );
     const new_quantities = divideQuantites(item.QTY, new_barcodes.length);
-    const slashGroupUuid = new_barcodes.length > 1 ? uuidv4() : null;
+    const slashGroupUuid =
+      new_barcodes.length > 1 ? uuidv4() : item.isSlashItem || null;
 
     const new_rows = new_barcodes.map((new_barcode, i) => {
       const is_inventory = !new_barcode.includes("-");

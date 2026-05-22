@@ -16,6 +16,20 @@ import {
 
 export type AuctionInventory = RegisteredBidder["auction_inventories"][number];
 
+export function ManifestNumberDisplay({
+  manifestNumber,
+}: {
+  manifestNumber?: string | null;
+}) {
+  if (!manifestNumber) return null;
+
+  if (manifestNumber === "ADD ON" || manifestNumber === "BOUGHT ITEM") {
+    return <AuctionStatusPill status={manifestNumber} size="sm" />;
+  }
+
+  return <span>{manifestNumber}</span>;
+}
+
 function AuctionInventoryBarcodeCell({ item }: { item: AuctionInventory }) {
   const router = useRouter();
 
@@ -256,7 +270,9 @@ export const columns: ColumnDef<AuctionInventory>[] = [
       const auctionInventory = row.original;
       return (
         <div className="flex justify-center">
-          {auctionInventory.manifest_number}
+          <ManifestNumberDisplay
+            manifestNumber={auctionInventory.manifest_number}
+          />
         </div>
       );
     },

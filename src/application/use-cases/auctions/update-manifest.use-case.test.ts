@@ -203,3 +203,59 @@ test("updateManifestUseCase marks sold items in the same auction as DOUBLE ENCOD
   );
   assert.equal(delegatedRows[0]?.isValid, false);
 });
+
+test("updateManifestUseCase preserves slash group when correcting a single slash child row", async () => {
+  let delegatedRows: Array<Record<string, unknown>> = [];
+
+  restorers.push(
+    patchMethod(
+      AuctionRepository,
+      "getRegisteredBiddersForManifest",
+      async () =>
+        [
+          {
+            auction_bidder_id: "ab-1",
+            service_charge: 0,
+            bidder: { bidder_number: "0007", status: "ACTIVE" },
+          },
+        ] as never,
+    ),
+    patchMethod(
+      InventoryRepository,
+      "getAllInventoriesForManifest",
+      async () => [] as never,
+    ),
+    patchMethod(
+      ContainerRepository,
+      "getContainerBarcodes",
+      async () =>
+        [
+          {
+            container_id: "container-1",
+            barcode: "32-04",
+          },
+        ] as never,
+    ),
+    patchMethod(AuctionRepository, "getMonitoring", async () => [] as never),
+    patchMethod(AuctionRepository, "updateManifest", async (_manifestId, rows) => {
+      delegatedRows = rows as never;
+      return { manifest_id: "manifest-1" } as never;
+    }),
+  );
+
+  await updateManifestUseCase("auction-1", "manifest-1", {
+    manifest_id: "manifest-1",
+    barcode: "32-04-123",
+    control: "100",
+    description: "ITEM",
+    bidder_number: "7",
+    price: "100",
+    qty: "1",
+    manifest_number: "M-1",
+    isSlashItem: "slash-group-1",
+    error: "",
+  });
+
+  assert.equal(delegatedRows[0]?.isSlashItem, "slash-group-1");
+  assert.equal(delegatedRows[0]?.isValid, true);
+});

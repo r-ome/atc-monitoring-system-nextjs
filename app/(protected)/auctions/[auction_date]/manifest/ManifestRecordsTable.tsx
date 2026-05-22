@@ -67,6 +67,11 @@ export const ManifestRecordsTable = ({
     setSlashedOnly((v) => !v);
   };
 
+  const groupIndexMap = useMemo(
+    () => buildGroupIndexMap(manifestRecords, (r) => r.is_slash_item),
+    [manifestRecords]
+  );
+
   const globalFilterFn = (
     row: CoreRow<Manifest>,
     _columnId?: string,
@@ -80,7 +85,14 @@ export const ManifestRecordsTable = ({
       description,
       price,
       manifest_number,
+      is_slash_item,
     } = row.original;
+    const slashGroupIndex = is_slash_item
+      ? groupIndexMap[is_slash_item]
+      : undefined;
+    const slashGroupLabel = slashGroupIndex
+      ? `A${slashGroupIndex}`
+      : undefined;
 
     return [
       bidder_number,
@@ -89,15 +101,13 @@ export const ManifestRecordsTable = ({
       description,
       manifest_number,
       price,
+      slashGroupLabel,
+      slashGroupLabel ? `(${slashGroupLabel})` : undefined,
+      control && slashGroupLabel ? `${control}(${slashGroupLabel})` : undefined,
     ]
       .filter(Boolean)
       .some((field) => field!.toLowerCase().includes(search));
   };
-
-  const groupIndexMap = useMemo(
-    () => buildGroupIndexMap(manifestRecords, (r) => r.is_slash_item),
-    [manifestRecords]
-  );
 
   const encoderStats = useMemo(() => {
     const byEncoder = new Map<string, { encoded: number; errors: number }>();

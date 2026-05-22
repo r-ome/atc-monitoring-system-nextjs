@@ -154,7 +154,8 @@ const formatSlashedBarcodes = (
   );
   const new_quantities = divideQuantites(data.qty, new_barcodes.length);
 
-  const slashGroupUuid = new_barcodes.length > 1 ? uuidv4() : null;
+  const slashGroupUuid =
+    new_barcodes.length > 1 ? uuidv4() : data.isSlashItem || null;
 
   const new_rows = new_barcodes.map((new_barcode, i) => {
     const is_inventory = !new_barcode.includes("-");

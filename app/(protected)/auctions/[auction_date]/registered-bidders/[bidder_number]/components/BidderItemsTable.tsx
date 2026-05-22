@@ -8,6 +8,7 @@ import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionD
 import { CoreRow, Row, RowSelectionState } from "@tanstack/react-table";
 import {
   AuctionInventory,
+  ManifestNumberDisplay,
   columns,
 } from "@/app/(protected)/auctions/[auction_date]/registered-bidders/[bidder_number]/components/auction-inventories-columns";
 import { RegisteredBidder } from "src/entities/models/Bidder";
@@ -123,7 +124,7 @@ export function BidderItemsTable({
             <div className="text-[13px] text-muted-foreground">
               Manifest{" "}
               <span className="font-mono font-semibold text-foreground/80">
-                {it.manifest_number}
+                <ManifestNumberDisplay manifestNumber={it.manifest_number} />
               </span>
             </div>
           ) : null}

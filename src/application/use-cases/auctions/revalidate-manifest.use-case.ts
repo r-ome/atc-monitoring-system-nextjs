@@ -3,16 +3,42 @@ import {
   ContainerRepository,
   InventoryRepository,
 } from "src/infrastructure/di/repositories";
-import { UploadManifestInput } from "src/entities/models/Manifest";
+import {
+  ManifestSheetRecord,
+  UploadManifestInput,
+} from "src/entities/models/Manifest";
 import {
   addContainerIdForNewInventories,
+  formatSlashedBarcodes,
   formatControlDescriptionQty,
   formatExistingInventories,
   normalizeManifestDescriptions,
   removeManifestDuplicates,
   removeMonitoringDuplicates,
+  validateEmptyFields,
   validateBidders,
 } from "./manifest-pipeline";
+
+const toManifestSheetRecord = (
+  item: UploadManifestInput,
+): ManifestSheetRecord => ({
+  BARCODE: item.BARCODE,
+  CONTROL: item.CONTROL,
+  DESCRIPTION: item.DESCRIPTION,
+  BIDDER: item.BIDDER,
+  PRICE: item.PRICE,
+  QTY: item.QTY,
+  MANIFEST: item.MANIFEST ?? "",
+});
+
+const preservePreviewMetadata = (
+  data: UploadManifestInput[],
+  previousData: UploadManifestInput[],
+) =>
+  data.map((item, index) => ({
+    ...item,
+    isSlashItem: previousData[index]?.isSlashItem ?? item.isSlashItem,
+  }));
 
 export const revalidateManifestUseCase = async (
   auction_id: string,
@@ -26,12 +52,22 @@ export const revalidateManifestUseCase = async (
       ContainerRepository.getContainerBarcodes(),
     ]);
 
-  const withFormattedQty = formatControlDescriptionQty(data);
+  const cleanRows = data.map(toManifestSheetRecord);
+  const withEmptyFieldsValidated = preservePreviewMetadata(
+    validateEmptyFields(cleanRows),
+    data,
+  );
+  const withFormattedQty = formatControlDescriptionQty(
+    withEmptyFieldsValidated,
+  );
   const withNormalizedDescriptions = normalizeManifestDescriptions(
     withFormattedQty,
   );
-  const withoutManifestDuplicates = removeManifestDuplicates(
+  const withFormattedBarcodes = formatSlashedBarcodes(
     withNormalizedDescriptions,
+  );
+  const withoutManifestDuplicates = removeManifestDuplicates(
+    withFormattedBarcodes,
   );
   const withValidatedBidders = validateBidders(
     withoutManifestDuplicates,
@@ -40,6 +76,8 @@ export const revalidateManifestUseCase = async (
   const withExistingInventories = formatExistingInventories(
     withValidatedBidders,
     existing_inventories,
+    false,
+    auction_id,
   );
   const withContainerIds = addContainerIdForNewInventories(
     withExistingInventories,
@@ -48,6 +86,8 @@ export const revalidateManifestUseCase = async (
   const withoutMonitoringDuplicates = removeMonitoringDuplicates(
     withContainerIds,
     monitoring,
+    false,
+    auction_id,
   );
 
   return withoutMonitoringDuplicates;

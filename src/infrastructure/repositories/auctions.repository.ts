@@ -1158,6 +1158,7 @@ export const AuctionRepository: IAuctionRepository = {
               bidder_number: original.bidder_number,
               qty: original.qty,
               manifest_number: original.manifest_number?.toString(),
+              is_slash_item: data[0]?.isSlashItem || original.isSlashItem || null,
               error_message: data[0].error,
             },
           });

@@ -249,6 +249,117 @@ test("updateManifest backfills inventory auction date when linking an existing i
   ]);
 });
 
+test("updateManifest persists the slash group when correcting a failed slash child row", async () => {
+  const auctionDate = new Date("2026-02-14T00:00:00.000Z");
+  let manifestUpdateData: Record<string, unknown> | undefined;
+  const auctionInventoryCreates: Array<Record<string, unknown>> = [];
+
+  const tx = {
+    manifest_records: {
+      update: async ({ data }: { data: Record<string, unknown> }) => {
+        manifestUpdateData = data;
+        return {
+          manifest_id: "manifest-1",
+          auction_id: "auction-1",
+          ...data,
+        };
+      },
+    },
+    auctions: {
+      findFirst: async () => ({
+        auction_id: "auction-1",
+        created_at: auctionDate,
+      }),
+    },
+    containers: {
+      findMany: async () => [
+        {
+          container_id: "container-1",
+          barcode: "32-04",
+          status: null,
+        },
+      ],
+    },
+    inventories: {
+      createMany: async () => ({ count: 0 }),
+      findMany: async () => [],
+      update: async () => ({
+        inventory_id: "inventory-1",
+      }),
+    },
+    auctions_inventories: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        auctionInventoryCreates.push(data);
+        return {
+          auction_inventory_id: "auction-inventory-1",
+          ...data,
+        };
+      },
+      update: async () => {
+        throw new Error("Should create a new auction inventory");
+      },
+    },
+    inventory_histories: {
+      createMany: async () => ({ count: 1 }),
+    },
+    auctions_bidders: {
+      update: async () => ({ auction_bidder_id: "ab-1" }),
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await AuctionRepository.updateManifest(
+    "manifest-1",
+    [
+      {
+        manifest_id: "manifest-1",
+        barcode: "32-04-123",
+        control: "0100",
+        description: "ITEM",
+        bidder_number: "0007",
+        price: "100",
+        qty: "1",
+        manifest_number: "M-1",
+        auction_bidder_id: "ab-1",
+        service_charge: 0,
+        inventory_id: "inventory-1",
+        container_id: "container-1",
+        isValid: true,
+        forUpdating: false,
+        error: "",
+        isSlashItem: "slash-group-1",
+      },
+    ],
+    {
+      manifest_id: "manifest-1",
+      barcode: "32-04-123",
+      control: "100",
+      description: "ITEM",
+      bidder_number: "7",
+      price: "100",
+      qty: "1",
+      manifest_number: "M-1",
+      isSlashItem: "slash-group-1",
+      error: "Container 32-04 does not exist",
+    },
+  );
+
+  assert.equal(manifestUpdateData?.is_slash_item, "slash-group-1");
+  assert.equal(auctionInventoryCreates[0]?.is_slash_item, "slash-group-1");
+});
+
 test("uploadManifest does not increment bidder balance for bought items", async () => {
   const bidderBalanceWrites: Array<{
     where: { auction_bidder_id: string };

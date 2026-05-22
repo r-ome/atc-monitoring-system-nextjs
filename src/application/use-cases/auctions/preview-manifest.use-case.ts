@@ -36,10 +36,17 @@ export const previewManifestUseCase = async (
   const withExistingInventories = formatExistingInventories(
     withValidatedBidders,
     existing_inventories,
+    false,
+    auction_id,
   );
 
   const withContainerIds = addContainerIdForNewInventories(withExistingInventories, containers);
-  const withoutMonitoringDuplicates = removeMonitoringDuplicates(withContainerIds, monitoring);
+  const withoutMonitoringDuplicates = removeMonitoringDuplicates(
+    withContainerIds,
+    monitoring,
+    false,
+    auction_id,
+  );
 
   return withoutMonitoringDuplicates;
 };

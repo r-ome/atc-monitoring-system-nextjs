@@ -1,6 +1,7 @@
 "use server";
 
 import { requireUser } from "@/app/lib/auth";
+import { revalidatePath } from "next/cache";
 import {
   authorizeAction,
   runWithUserContext,
@@ -36,6 +37,15 @@ import {
   type UploadManifestInput,
 } from "src/entities/models/Manifest";
 import { type PullOutPaymentInput } from "src/entities/models/Payment";
+
+const revalidateAuctionManifestUploadPaths = (auctionDate: string) => {
+  [
+    `/auctions/${auctionDate}`,
+    `/auctions/${auctionDate}/monitoring`,
+    `/auctions/${auctionDate}/manifest`,
+    `/auctions/${auctionDate}/registered-bidders`,
+  ].forEach((path) => revalidatePath(path));
+};
 
 export const startAuction = async (auctionDate: string) => {
   const user = await requireUser();
@@ -140,6 +150,7 @@ export const revalidateManifest = async (
 
 export const confirmUploadManifest = async (
   auctionId: string,
+  auctionDate: string,
   data: UploadManifestInput[],
 ) => {
   const user = await requireUser();
@@ -150,7 +161,13 @@ export const confirmUploadManifest = async (
       username: user.username ?? "",
       branch_name: user.branch.name ?? "",
     },
-    async () => ConfirmUploadManifestController(auctionId, data),
+    async () => {
+      const result = await ConfirmUploadManifestController(auctionId, data);
+      if (result.ok) {
+        revalidateAuctionManifestUploadPaths(auctionDate);
+      }
+      return result;
+    },
   );
 };
 

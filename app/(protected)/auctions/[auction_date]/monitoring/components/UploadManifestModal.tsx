@@ -35,9 +35,9 @@ interface UploadManifestModalProps {
 export const UploadManifestModal: React.FC<UploadManifestModalProps> = ({
   auction_id,
 }) => {
-  const { auction_date } = useParams();
-  const auctionDate = new Date(auction_date as string);
-  const manifest = useUploadManifest(auction_id);
+  const { auction_date } = useParams<{ auction_date: string }>();
+  const auctionDate = new Date(auction_date);
+  const manifest = useUploadManifest(auction_id, auction_date);
 
   const handleConfirmUpload = async () => {
     if (isPast(auctionDate)) {
