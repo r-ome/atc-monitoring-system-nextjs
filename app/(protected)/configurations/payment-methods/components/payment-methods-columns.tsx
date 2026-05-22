@@ -2,41 +2,19 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
-import { Button } from "@/app/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { SetStateAction } from "react";
 import { StatusBadge } from "@/app/components/admin";
+import { SortableHeader } from "@/app/(protected)/auctions/components/SortableHeader";
 
-export const columns = (
-  setOpen: React.Dispatch<SetStateAction<boolean>>,
-  setSelected: React.Dispatch<SetStateAction<PaymentMethod>>
-): ColumnDef<PaymentMethod>[] => [
+export const columns: ColumnDef<PaymentMethod>[] = [
   {
     accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Payment Method
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Payment Method" align="left" />
+    ),
     cell: ({ row }) => {
       const payment_method = row.original;
       return (
-        <div
-          className="flex justify-center hover:underline hover:cursor-pointer"
-          onClick={() => {
-            setOpen(true);
-            setSelected(payment_method);
-          }}
-        >
+        <div className="flex justify-start text-left font-medium">
           {payment_method.name}
         </div>
       );
@@ -44,21 +22,11 @@ export const columns = (
   },
   {
     accessorKey: "state",
+    size: 120,
     filterFn: "includesIn",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            State
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    header: ({ column }) => (
+      <SortableHeader column={column} label="State" />
+    ),
     cell: ({ row }) => {
       const payment_method = row.original;
       return (
@@ -76,47 +44,31 @@ export const columns = (
   },
   {
     accessorKey: "created_at",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Date Created
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 140,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Created" />
+    ),
     cell: ({ row }) => {
       const payment_method = row.original;
       return (
-        <div className="flex justify-center">{payment_method.created_at}</div>
+        <div className="text-center text-muted-foreground">
+          {payment_method.created_at}
+        </div>
       );
     },
   },
   {
     accessorKey: "updated_at",
-    header: ({ column }) => {
-      return (
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Date Updated
-            <ArrowUpDown />
-          </Button>
-        </div>
-      );
-    },
+    size: 140,
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Updated" />
+    ),
     cell: ({ row }) => {
       const payment_method = row.original;
       return (
-        <div className="flex justify-center">{payment_method.updated_at}</div>
+        <div className="text-center text-muted-foreground">
+          {payment_method.updated_at}
+        </div>
       );
     },
   },

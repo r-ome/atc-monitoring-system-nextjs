@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { PaymentMethod } from "src/entities/models/PaymentMethod";
-import { DataTable } from "@/app/components/data-table/data-table";
 import { CoreRow, Row } from "@tanstack/react-table";
 import { columns } from "./payment-methods-columns";
 import { UpdatePaymentMethodModal } from "./UpdatePaymentMethodModal";
 import { StatusBadge } from "@/app/components/admin";
+import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
+import { CreditCard } from "lucide-react";
 
 const EMPTY_PAYMENT_METHOD: PaymentMethod = {
   payment_method_id: "",
@@ -40,13 +41,7 @@ export const PaymentMethodsTable = ({
   const renderMobileCard = (row: Row<PaymentMethod>) => {
     const pm = row.original;
     return (
-      <div
-        className="flex items-center gap-3 px-4 py-3"
-        onClick={() => {
-          setOpen(true);
-          setSelected(pm);
-        }}
-      >
+      <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
           <span className="truncate text-[15px] font-medium">{pm.name}</span>
           <span className="mt-0.5 text-[13px] text-muted-foreground">
@@ -67,9 +62,18 @@ export const PaymentMethodsTable = ({
         setOpen={setOpen}
         selected={selected}
       />
-      <DataTable
-        columns={columns(setOpen, setSelected)}
+      <AuctionDataTable
+        icon={CreditCard}
+        title="Payment Methods"
+        meta={`${payment_methods.length.toLocaleString()} entries`}
+        rowLabel="payment method"
+        columns={columns}
         data={payment_methods}
+        initialSorting={[{ id: "name", desc: false }]}
+        onRowClick={(paymentMethod) => {
+          setOpen(true);
+          setSelected(paymentMethod);
+        }}
         renderMobileCard={renderMobileCard}
         searchFilter={{
           globalFilterFn,
