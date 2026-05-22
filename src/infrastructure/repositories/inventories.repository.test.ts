@@ -207,3 +207,153 @@ test("updateAuctionItem recalculates affected bidder balances after reassigning 
     ],
   );
 });
+
+test("applyDirectBoughtItem records direct bought items as paid bought inventory", async () => {
+  const auctionDate = new Date("2026-05-22T00:00:00.000Z");
+  const auctionInventoryCreates: Array<{ data: Record<string, unknown> }> = [];
+  const inventoryUpdates: Array<{
+    where: { inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const historyCreates: Array<{ data: Record<string, unknown> }> = [];
+  const bidderBalanceWrites: Array<{
+    where: { auction_bidder_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+
+  const tx = {
+    auctions_bidders: {
+      findFirst: async ({
+        where,
+      }: {
+        where: {
+          auction_bidder_id?: string;
+          auction_id?: string;
+          bidder?: { bidder_number?: string };
+        };
+      }) => {
+        if (
+          where.auction_id === "auction-1" &&
+          where.bidder?.bidder_number === "5013"
+        ) {
+          return {
+            auction_bidder_id: "atc-bidder",
+            service_charge: 10,
+            registration_fee: 0,
+            already_consumed: 1,
+          };
+        }
+
+        if (where.auction_bidder_id === "atc-bidder") {
+          return {
+            auction_bidder_id: "atc-bidder",
+            service_charge: 10,
+            registration_fee: 0,
+            already_consumed: 1,
+            auctions_inventories: [
+              {
+                status: "PAID",
+                price: 700,
+                histories: [],
+              },
+            ],
+          };
+        }
+
+        return null;
+      },
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { auction_bidder_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        bidderBalanceWrites.push({ where, data });
+        return { where, data };
+      },
+    },
+    inventories: {
+      findFirst: async () => ({
+        inventory_id: "inventory-1",
+        barcode: "25-35-050",
+        control: "2400",
+        description: "T. BAG",
+        status: "UNSOLD",
+        auctions_inventory: null,
+        container: {
+          container_id: "container-1",
+          barcode: "25-35",
+          status: null,
+        },
+      }),
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        inventoryUpdates.push({ where, data });
+        return { where, data };
+      },
+    },
+    auctions_inventories: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        auctionInventoryCreates.push({ data });
+        return {
+          auction_inventory_id: "auction-inventory-1",
+          ...data,
+        };
+      },
+    },
+    inventory_histories: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        historyCreates.push({ data });
+        return { data };
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await InventoryRepository.applyDirectBoughtItem({
+    inventory_id: "inventory-1",
+    auction_id: "auction-1",
+    auction_date: auctionDate.toISOString(),
+    price: 700,
+    qty: "2",
+  });
+
+  assert.equal(auctionInventoryCreates[0].data.status, "PAID");
+  assert.equal(historyCreates[0].data.auction_status, "PAID");
+  assert.equal(historyCreates[0].data.inventory_status, "BOUGHT_ITEM");
+  assert.deepEqual(inventoryUpdates[0], {
+    where: { inventory_id: "inventory-1" },
+    data: {
+      status: "BOUGHT_ITEM",
+      is_bought_item: 700,
+      auction_date: auctionDate,
+      sales_allocation: "CONTAINER",
+      sales_allocation_reason: "NORMAL",
+      sales_allocation_note: null,
+    },
+  });
+  assert.deepEqual(bidderBalanceWrites, [
+    {
+      where: { auction_bidder_id: "atc-bidder" },
+      data: { balance: 0 },
+    },
+  ]);
+});

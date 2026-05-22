@@ -919,7 +919,7 @@ export const InventoryRepository: IInventoryRepository = {
     }
   },
   getAllInventoriesForManifest: async (
-    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD"],
+    status = ["SOLD", "BOUGHT_ITEM", "UNSOLD", "VOID"],
   ) => {
     try {
       return await prisma.inventories.findMany({
@@ -1438,7 +1438,7 @@ export const InventoryRepository: IInventoryRepository = {
             auction_bidder_id: atcBidder.auction_bidder_id,
             inventory_id: data.inventory_id,
             description: targetInventory.description,
-            status: "UNPAID",
+            status: "PAID",
             price: data.price,
             qty: data.qty,
             manifest_number: "BOUGHT ITEM",
@@ -1463,7 +1463,7 @@ export const InventoryRepository: IInventoryRepository = {
           data: {
             auction_inventory_id: created.auction_inventory_id,
             inventory_id: data.inventory_id,
-            auction_status: "UNPAID",
+            auction_status: "PAID",
             inventory_status: "BOUGHT_ITEM",
             remarks: buildItemDirectBoughtHistoryRemark({ price: data.price, qty: data.qty }),
           },

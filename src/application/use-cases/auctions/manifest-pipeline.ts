@@ -472,6 +472,7 @@ export const formatExistingInventories = (
       forUpdating: true,
       inventory_id: existing_inventory.inventory_id,
       container_id: existing_inventory.container_id,
+      status: existing_inventory.status,
     };
   });
 };
@@ -517,7 +518,7 @@ export const removeMonitoringDuplicates = (
   );
 
   /**
-   * If item already exists but has CANCELLED, REFUNDED, or BOUGHT_ITEM status,
+   * If item already exists but has CANCELLED, REFUNDED, BOUGHT_ITEM, or VOID status,
    * update the auction_inventory instead of creating a new one.
    * In bought items mode, only CANCELLED/REFUNDED auction statuses qualify —
    * BOUGHT_ITEM inventory status is excluded.
@@ -535,9 +536,16 @@ export const removeMonitoringDuplicates = (
       item,
     );
 
+    const isVoidReencode =
+      item.inventory.status === "VOID" &&
+      ["UNPAID", ...CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES].includes(
+        item.status,
+      );
+
     if (
       CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(item.status) ||
-      (!is_bought_items && ["BOUGHT_ITEM"].includes(item.inventory.status))
+      (!is_bought_items &&
+        (["BOUGHT_ITEM"].includes(item.inventory.status) || isVoidReencode))
     ) {
       cancelledByBarcode.set(item.inventory.barcode, item);
       cancelledByBarcodeControl.set(

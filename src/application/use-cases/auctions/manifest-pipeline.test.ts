@@ -736,3 +736,71 @@ test("removeMonitoringDuplicates reuses bought-item auction inventory across no-
   assert.equal(paddedNcRow.forUpdating, true);
   assert.equal(paddedNcRow.auction_inventory_id, "ai-padded-nc");
 });
+
+test("removeMonitoringDuplicates allows void re-encode cases except paid auction items", () => {
+  const rows = [
+    {
+      BARCODE: "32-08-001",
+      CONTROL: "0001",
+      DESCRIPTION: "A",
+      BIDDER: "0001",
+      PRICE: "100",
+      QTY: "1",
+      MANIFEST: "M",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    },
+    {
+      BARCODE: "32-08-002",
+      CONTROL: "0001",
+      DESCRIPTION: "B",
+      BIDDER: "0001",
+      PRICE: "100",
+      QTY: "1",
+      MANIFEST: "M",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    },
+  ];
+
+  const monitoring = [
+    {
+      auction_inventory_id: "ai-void-unpaid",
+      status: "UNPAID",
+      auction_date: new Date("2026-05-02T00:00:00.000Z"),
+      inventory_id: "inv-void-unpaid",
+      inventory: { barcode: "32-08-001", control: "0001", status: "VOID" },
+      auction_bidder: {
+        auction_id: "auction-previous",
+        bidder: { bidder_number: "0001" },
+      },
+    },
+    {
+      auction_inventory_id: "ai-void-paid",
+      status: "PAID",
+      auction_date: new Date("2026-05-02T00:00:00.000Z"),
+      inventory_id: "inv-void-paid",
+      inventory: { barcode: "32-08-002", control: "0001", status: "VOID" },
+      auction_bidder: {
+        auction_id: "auction-previous",
+        bidder: { bidder_number: "0001" },
+      },
+    },
+  ];
+
+  const [voidUnpaidRow, voidPaidRow] = removeMonitoringDuplicates(
+    rows,
+    monitoring as never,
+    false,
+    "auction-current",
+  );
+
+  assert.equal(voidUnpaidRow.forUpdating, true);
+  assert.equal(voidUnpaidRow.auction_inventory_id, "ai-void-unpaid");
+  assert.equal(voidPaidRow.isValid, false);
+  assert.equal(voidPaidRow.error, "Already encoded to #0001 on May 02, 2026");
+});

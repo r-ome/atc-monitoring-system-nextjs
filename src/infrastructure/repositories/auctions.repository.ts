@@ -465,12 +465,19 @@ export const AuctionRepository: IAuctionRepository = {
           : for_updating
               .map((item) => {
                 const match = existing_auction_inventories_for_update.find((auction_inventory) => {
+                  const isVoidReencode =
+                    auction_inventory.inventory.status === "VOID" &&
+                    ["UNPAID", ...CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES].includes(
+                      auction_inventory.status,
+                    );
+
                   return (
                     auction_inventory.inventory_id === item.inventory_id &&
                     (CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(
                       auction_inventory.status,
                     ) ||
-                      ["BOUGHT_ITEM"].includes(auction_inventory.inventory.status))
+                      ["BOUGHT_ITEM"].includes(auction_inventory.inventory.status) ||
+                      isVoidReencode)
                   );
                 });
 
@@ -480,7 +487,7 @@ export const AuctionRepository: IAuctionRepository = {
                   ...item,
                   auction_inventory_id: match.auction_inventory_id,
                   previous_status:
-                    match.inventory.status === "BOUGHT_ITEM"
+                    ["BOUGHT_ITEM", "VOID"].includes(match.inventory.status)
                       ? match.inventory.status
                       : match.status,
                 };
@@ -607,6 +614,11 @@ export const AuctionRepository: IAuctionRepository = {
         const reencoded_auction_inventory_ids = new Set(
           items_to_reencode.map((item) => item.auction_inventory_id),
         );
+        const void_inventory_ids = new Set(
+          items_for_insert
+            .filter((item) => item.status === "VOID")
+            .map((item) => item.inventory_id),
+        );
 
         const encoded_histories: Prisma.inventory_historiesCreateManyInput[] = auctions_inventories
           .filter(
@@ -618,9 +630,11 @@ export const AuctionRepository: IAuctionRepository = {
             inventory_id: item.inventory_id,
             auction_status: is_bought_items ? "PAID" : "UNPAID",
             inventory_status: is_bought_items ? "BOUGHT_ITEM" : "SOLD",
-            remarks: is_bought_items
-              ? buildBoughtItemEncodedHistoryRemark(uploaded_by)
-              : buildEncodedHistoryRemark(uploaded_by),
+            remarks: void_inventory_ids.has(item.inventory_id)
+              ? buildEncodedAgainHistoryRemark("VOID")
+              : is_bought_items
+                ? buildBoughtItemEncodedHistoryRemark(uploaded_by)
+                : buildEncodedHistoryRemark(uploaded_by),
           }));
 
         const allocation_histories: Prisma.inventory_historiesCreateManyInput[] =

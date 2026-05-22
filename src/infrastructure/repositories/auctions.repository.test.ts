@@ -534,6 +534,9 @@ test("uploadManifest re-encodes bought items as sold inventory and updates the e
         control: "2400",
         status: "SOLD",
         auction_date: auctionDate,
+        sales_allocation: "CONTAINER",
+        sales_allocation_reason: "NORMAL",
+        sales_allocation_note: null,
       },
     },
   ]);
@@ -568,5 +571,316 @@ test("uploadManifest re-encodes bought items as sold inventory and updates the e
       where: { auction_bidder_id: "bidder-0860" },
       data: { balance: { increment: 770 } },
     },
+  ]);
+});
+
+test("uploadManifest re-encodes void inventory without an auction item as a new unpaid sale", async () => {
+  const auctionDate = new Date("2026-05-22T00:00:00.000Z");
+  const inventoryUpdates: Array<{
+    where: { inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const auctionInventoryCreates: Array<{ data: Record<string, unknown> }> = [];
+  const historyWrites: Array<unknown[]> = [];
+
+  let auctionInventoryFindManyCalls = 0;
+
+  const tx = {
+    auctions: {
+      findFirst: async () => ({
+        auction_id: "auction-2026-05-22",
+        created_at: auctionDate,
+      }),
+    },
+    manifest_records: {
+      createMany: async () => ({ count: 1 }),
+    },
+    containers: {
+      findMany: async () => [
+        {
+          container_id: "container-1",
+          barcode: "25-35",
+          status: null,
+        },
+      ],
+    },
+    inventories: {
+      createMany: async () => ({ count: 0 }),
+      findMany: async () => [],
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        inventoryUpdates.push({ where, data });
+        return { inventory_id: where.inventory_id, ...data };
+      },
+    },
+    auctions_inventories: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        auctionInventoryCreates.push({ data });
+        return {
+          auction_inventory_id: "auction-inventory-void",
+          inventory_id: data.inventory_id,
+        };
+      },
+      findMany: async () => {
+        auctionInventoryFindManyCalls += 1;
+
+        if (auctionInventoryFindManyCalls === 1) return [];
+
+        return [
+          {
+            auction_inventory_id: "auction-inventory-void",
+            inventory_id: "inventory-void",
+            inventory: {
+              sales_allocation: "CONTAINER",
+            },
+          },
+        ];
+      },
+    },
+    inventory_histories: {
+      createMany: async ({ data }: { data: unknown[] }) => {
+        historyWrites.push(data);
+        return { count: data.length };
+      },
+    },
+    auctions_bidders: {
+      update: async () => ({ auction_bidder_id: "bidder-0860" }),
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await AuctionRepository.uploadManifest(
+    "auction-2026-05-22",
+    [
+      {
+        BARCODE: "25-35-050",
+        CONTROL: "2400",
+        DESCRIPTION: "T. BAG",
+        BIDDER: "0860",
+        PRICE: "700",
+        QTY: "2",
+        MANIFEST: "J33",
+        isValid: true,
+        forUpdating: true,
+        status: "VOID",
+        isSlashItem: null,
+        error: "",
+        auction_bidder_id: "bidder-0860",
+        inventory_id: "inventory-void",
+        service_charge: 10,
+        container_id: "container-1",
+      },
+    ],
+    false,
+    "JUDY",
+  );
+
+  assert.equal(auctionInventoryCreates[0].data.status, "UNPAID");
+  assert.deepEqual(inventoryUpdates[0], {
+    where: { inventory_id: "inventory-void" },
+    data: {
+      control: "2400",
+      status: "SOLD",
+      auction_date: auctionDate,
+      sales_allocation: "CONTAINER",
+      sales_allocation_reason: "NORMAL",
+      sales_allocation_note: null,
+    },
+  });
+  assert.deepEqual(historyWrites, [
+    [
+      {
+        auction_inventory_id: "auction-inventory-void",
+        inventory_id: "inventory-void",
+        auction_status: "UNPAID",
+        inventory_status: "SOLD",
+        remarks: "Item encoded again | Previous status: VOID",
+      },
+    ],
+  ]);
+});
+
+test("uploadManifest re-encodes void inventory with an auction item as unpaid sold inventory", async () => {
+  const auctionDate = new Date("2026-05-22T00:00:00.000Z");
+  const inventoryUpdates: Array<{
+    where: { inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const auctionInventoryUpdates: Array<{
+    where: { auction_inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const historyWrites: Array<unknown[]> = [];
+
+  let auctionInventoryFindManyCalls = 0;
+
+  const tx = {
+    auctions: {
+      findFirst: async () => ({
+        auction_id: "auction-2026-05-22",
+        created_at: auctionDate,
+      }),
+    },
+    manifest_records: {
+      createMany: async () => ({ count: 1 }),
+    },
+    containers: {
+      findMany: async () => [
+        {
+          container_id: "container-1",
+          barcode: "25-35",
+          status: null,
+        },
+      ],
+    },
+    inventories: {
+      createMany: async () => ({ count: 0 }),
+      findMany: async () => [],
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        inventoryUpdates.push({ where, data });
+        return { inventory_id: where.inventory_id, ...data };
+      },
+    },
+    auctions_inventories: {
+      create: async () => {
+        throw new Error("Should reuse the existing auction inventory");
+      },
+      findMany: async () => {
+        auctionInventoryFindManyCalls += 1;
+
+        if (auctionInventoryFindManyCalls === 1) {
+          return [
+            {
+              auction_inventory_id: "auction-inventory-void",
+              inventory_id: "inventory-void",
+              status: "UNPAID",
+              inventory: {
+                status: "VOID",
+              },
+              histories: [],
+            },
+          ];
+        }
+
+        return [
+          {
+            auction_inventory_id: "auction-inventory-void",
+            inventory_id: "inventory-void",
+            status: "UNPAID",
+            inventory: {
+              status: "SOLD",
+              sales_allocation: "CONTAINER",
+            },
+            histories: [],
+          },
+        ];
+      },
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { auction_inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        auctionInventoryUpdates.push({ where, data });
+        return { auction_inventory_id: where.auction_inventory_id, ...data };
+      },
+    },
+    inventory_histories: {
+      createMany: async ({ data }: { data: unknown[] }) => {
+        historyWrites.push(data);
+        return { count: data.length };
+      },
+    },
+    auctions_bidders: {
+      update: async () => ({ auction_bidder_id: "bidder-0860" }),
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await AuctionRepository.uploadManifest(
+    "auction-2026-05-22",
+    [
+      {
+        BARCODE: "25-35-050",
+        CONTROL: "2400",
+        DESCRIPTION: "T. BAG",
+        BIDDER: "0860",
+        PRICE: "700",
+        QTY: "2",
+        MANIFEST: "J33",
+        isValid: true,
+        forUpdating: true,
+        status: "VOID",
+        isSlashItem: null,
+        error: "",
+        auction_bidder_id: "bidder-0860",
+        auction_inventory_id: "auction-inventory-void",
+        inventory_id: "inventory-void",
+        service_charge: 10,
+        container_id: "container-1",
+      },
+    ],
+    false,
+    "JUDY",
+  );
+
+  assert.deepEqual(inventoryUpdates[0], {
+    where: { inventory_id: "inventory-void" },
+    data: {
+      control: "2400",
+      status: "SOLD",
+      auction_date: auctionDate,
+      sales_allocation: "CONTAINER",
+      sales_allocation_reason: "NORMAL",
+      sales_allocation_note: null,
+    },
+  });
+  assert.equal(auctionInventoryUpdates[0].data.status, "UNPAID");
+  assert.deepEqual(historyWrites, [
+    [
+      {
+        auction_inventory_id: "auction-inventory-void",
+        inventory_id: "inventory-void",
+        auction_status: "UNPAID",
+        inventory_status: "SOLD",
+        remarks: "Item encoded again | Previous status: VOID",
+      },
+    ],
   ]);
 });
