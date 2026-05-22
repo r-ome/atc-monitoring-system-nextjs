@@ -225,11 +225,12 @@ const TYPO_SUGGESTIONS: Record<string, string> = {
 };
 
 const normalizeManifestDescription = (description: string) =>
-  description
+  (description
     .trim()
+    .replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "")
     .replace(/\s+/g, " ")
     .replace(/\bASIS\b/gi, "AS IS")
-    .replace(/\bINBOX\b/gi, "IN BOX");
+    .replace(/\bINBOX\b/gi, "IN BOX") || "NO DESCRIPTION");
 
 const buildDescriptionWarning = (
   originalDescription: string,

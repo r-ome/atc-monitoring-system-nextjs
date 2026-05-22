@@ -123,6 +123,54 @@ test("normalizeManifestDescriptions keeps valid rows insertable while warning on
   );
 });
 
+test("normalizeManifestDescriptions strips leading and trailing symbols", () => {
+  const [row] = normalizeManifestDescriptions([
+    {
+      BARCODE: "32-04",
+      CONTROL: "0012",
+      DESCRIPTION: "  ,KW!!  ",
+      BIDDER: "0007",
+      PRICE: "500",
+      QTY: "1",
+      MANIFEST: "M-1",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    },
+  ]);
+
+  assert.equal(row.DESCRIPTION, "KW");
+  assert.equal(
+    row.warning,
+    'Normalized description from "  ,KW!!  " to "KW".',
+  );
+});
+
+test("normalizeManifestDescriptions falls back when symbols leave an empty description", () => {
+  const [row] = normalizeManifestDescriptions([
+    {
+      BARCODE: "32-04",
+      CONTROL: "0012",
+      DESCRIPTION: " ,,, ",
+      BIDDER: "0007",
+      PRICE: "500",
+      QTY: "1",
+      MANIFEST: "M-1",
+      isValid: true,
+      error: "",
+      forUpdating: false,
+      isSlashItem: "",
+    },
+  ]);
+
+  assert.equal(row.DESCRIPTION, "NO DESCRIPTION");
+  assert.equal(
+    row.warning,
+    'Normalized description from " ,,, " to "NO DESCRIPTION".',
+  );
+});
+
 test("divideIntoHundreds keeps total intact while rounding to the nearest hundred", () => {
   assert.deepEqual(divideIntoHundreds(1000, 3), [300, 300, 400]);
   assert.deepEqual(divideIntoHundreds(250, 2), [100, 150]);
