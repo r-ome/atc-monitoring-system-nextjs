@@ -28,7 +28,7 @@ export const PaymentRepository: IPaymentRepository = {
     try {
       return await prisma.payments.findFirst({
         where: { payment_id },
-        include: { payment_method: true },
+        include: { payment_method: true, receipt: true },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

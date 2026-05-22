@@ -2,7 +2,7 @@ import {
   PullOutPaymentInput,
   RefundAuctionInventoriesInput,
   PaymentWithDetailsRow,
-  PaymentWithMethodRow,
+  PaymentWithMethodAndReceiptRow,
   UpdatePaymentMethodInput,
   ReceiptRecordWithHistoriesRow,
   ReceiptRecordWithInventoriesRow,
@@ -13,7 +13,9 @@ import {
 } from "src/entities/models/Payment";
 
 export interface IPaymentRepository {
-  getPaymentById: (payment_id: string) => Promise<PaymentWithMethodRow | null>;
+  getPaymentById: (
+    payment_id: string
+  ) => Promise<PaymentWithMethodAndReceiptRow | null>;
   getPaymentsByDate: (
     date: Date,
     branch_id: string | undefined

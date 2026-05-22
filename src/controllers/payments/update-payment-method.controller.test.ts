@@ -18,7 +18,7 @@ afterEach(() => {
   }
 });
 
-test("UpdatePaymentMethodController logs generic payment method wording", async () => {
+test("UpdatePaymentMethodController logs payment method update with receipt number", async () => {
   const updates: Array<{ payment_id: string; payment_method: string }> = [];
   const activityLogs: Array<{ description: string; entity_type: string }> = [];
 
@@ -44,6 +44,7 @@ test("UpdatePaymentMethodController logs generic payment method wording", async 
         return {
           payment_id: "payment-1",
           payment_method: { name: methodName },
+          receipt: { receipt_number: "OR-1001" },
           remarks: updates.length
             ? "Updated payment type from Cash to GCash"
             : "Original remarks",
@@ -79,7 +80,7 @@ test("UpdatePaymentMethodController logs generic payment method wording", async 
   assert.equal(activityLogs[0].entity_type, "payment");
   assert.match(
     activityLogs[0].description,
-    /^Updated payment method GCash \| Payment Method: Cash/,
+    /^Updated payment method for receipt #OR-1001 to GCash \| Payment Method: Cash/,
   );
   assert.doesNotMatch(activityLogs[0].description, /Remarks:/);
   assert.doesNotMatch(activityLogs[0].description, /gcash/);

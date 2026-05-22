@@ -41,9 +41,14 @@ export const UpdatePaymentMethodController = async (
         : "";
     const paymentMethodName =
       updated?.payment_method?.name ?? previous?.payment_method?.name ?? "N/A";
-    const description = diffDescription
-      ? `Updated payment method ${paymentMethodName} | ${diffDescription}`
+    const receiptNumber =
+      updated?.receipt?.receipt_number ?? previous?.receipt?.receipt_number;
+    const baseDescription = receiptNumber
+      ? `Updated payment method for receipt #${receiptNumber} to ${paymentMethodName}`
       : `Updated payment method ${paymentMethodName}`;
+    const description = diffDescription
+      ? `${baseDescription} | ${diffDescription}`
+      : baseDescription;
     await logActivity("UPDATE", "payment", payment_id, description);
     return ok(undefined);
   } catch (error) {
