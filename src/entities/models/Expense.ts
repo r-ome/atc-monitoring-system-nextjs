@@ -52,6 +52,14 @@ export const updateExpenseSchema = z.object({
 
 export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
 
+export type PreviousExpenseSnapshot = {
+  amount: number;
+  remarks: string | null;
+  purpose: ExpensePurpose | null;
+  employee_id: string | null;
+  employee_name: string | null;
+};
+
 export type PettyCash = {
   petty_cash_id: string;
   amount: number;

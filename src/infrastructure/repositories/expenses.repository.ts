@@ -326,7 +326,10 @@ export const ExpensesRepository: IExpenseRepository = {
   updateExpense: async (expense_id, data) => {
     try {
       return await prisma.$transaction(async (tx) => {
-        const previous_expense = await tx.expenses.findFirst({ where: { expense_id } });
+        const previous_expense = await tx.expenses.findFirst({
+          where: { expense_id },
+          include: { employee: true },
+        });
 
         if (
           previous_expense &&
@@ -375,7 +378,15 @@ export const ExpensesRepository: IExpenseRepository = {
 
         return {
           updated: updated_expense,
-          previous: { amount: previous_expense?.amount.toNumber() ?? 0, remarks: previous_expense?.remarks ?? null },
+          previous: {
+            amount: previous_expense?.amount.toNumber() ?? 0,
+            remarks: previous_expense?.remarks ?? null,
+            purpose: previous_expense?.purpose ?? null,
+            employee_id: previous_expense?.employee_id ?? null,
+            employee_name: previous_expense?.employee
+              ? `${previous_expense.employee.first_name} ${previous_expense.employee.last_name}`
+              : null,
+          },
         };
       });
     } catch (error) {

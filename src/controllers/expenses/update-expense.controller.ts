@@ -62,8 +62,27 @@ export const UpdateExpenseController = async (
 
     const { updated, previous } = await ExpensesRepository.updateExpense(expense_id, data);
     logger("UpdateExpenseController", { data, ...user_context }, "info");
-    const expenseDate = formatDate(updated.created_at, "MMMM dd, yyyy");
-    await logActivity("UPDATE", "expense", expense_id, `Updated expense (${expenseDate}) — Amount: ₱${previous.amount} → ₱${data.amount} | Remarks: ${previous.remarks} → ${data.remarks}`);
+    const nextEmployeeId = data.employee_id ?? null;
+    const hasChanges =
+      previous.amount !== data.amount ||
+      previous.purpose !== data.purpose ||
+      previous.remarks !== data.remarks ||
+      previous.employee_id !== nextEmployeeId;
+    if (hasChanges) {
+      const expenseDate = formatDate(updated.created_at, "MMMM dd, yyyy");
+      const parts = [
+        `Type: ${previous.purpose} → ${data.purpose}`,
+        `Amount: ₱${previous.amount} → ₱${data.amount}`,
+        `Remarks: ${previous.remarks} → ${data.remarks}`,
+      ];
+      if (previous.employee_id !== nextEmployeeId) {
+        const nextEmployeeName = updated.employee
+          ? `${updated.employee.first_name} ${updated.employee.last_name}`
+          : null;
+        parts.push(`Employee: ${previous.employee_name ?? "—"} → ${nextEmployeeName ?? "—"}`);
+      }
+      await logActivity("UPDATE", "expense", expense_id, `Updated expense (${expenseDate}) — ${parts.join(" | ")}`);
+    }
     return ok(presenter(updated));
   } catch (error) {
     if (error instanceof InputParseError) {

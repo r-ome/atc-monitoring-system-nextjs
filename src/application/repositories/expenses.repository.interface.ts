@@ -7,6 +7,7 @@ import {
   PettyCash,
   ConsistencyIssue,
   PettyCashSnapshot,
+  PreviousExpenseSnapshot,
   RepairResult,
 } from "src/entities/models/Expense";
 
@@ -26,7 +27,7 @@ export interface IExpenseRepository {
   updateExpense: (
     expense_id: string,
     data: UpdateExpenseInput,
-  ) => Promise<{ updated: ExpenseWithBranchRow; previous: { amount: number; remarks: string | null } }>;
+  ) => Promise<{ updated: ExpenseWithBranchRow; previous: PreviousExpenseSnapshot }>;
   updatePettyCash: (
     petty_cash_id: string,
     data: CreatePettyCashInput,
