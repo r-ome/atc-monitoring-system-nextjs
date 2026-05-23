@@ -17,6 +17,7 @@ import {
   buildPulloutPaidHistoryRemark,
   buildPulloutUndoneHistoryRemark,
   buildRefundedHistoryRemark,
+  inferCancelRefundTag,
 } from "src/entities/models/InventoryHistoryRemark";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
@@ -306,6 +307,7 @@ export const PaymentRepository: IPaymentRepository = {
     }
   },
   refundAuctionInventories: async (data, updated_by) => {
+    const refund_tag = data.tag ?? inferCancelRefundTag(data.reason);
     try {
       /**
        * amount_paid in payments should be positive
@@ -451,6 +453,7 @@ export const PaymentRepository: IPaymentRepository = {
                     inventory_id: item.inventory_id,
                     auction_status: auction_status,
                     inventory_status: inventory_status,
+                    tag: is_full_refund ? refund_tag : null,
                     remarks,
                   },
                 },

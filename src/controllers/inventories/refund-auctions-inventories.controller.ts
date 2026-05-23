@@ -56,6 +56,7 @@ export const RefundAuctionsInventoriesController = async (
     const formattedInput = {
       auction_bidder_id: input.auction_bidder_id,
       reason: input.reason,
+      tag: input.tag,
       auction_inventories: auction_inventories.map((item) => ({
         auction_inventory_id: item.auction_inventory_id,
         inventory_id: item.inventory_id,

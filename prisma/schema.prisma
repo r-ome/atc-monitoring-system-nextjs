@@ -253,6 +253,7 @@ model inventory_histories {
   auction_status       auction_inventory_status
   inventory_status     inventories_status
   remarks              String?                  @db.Text
+  tag                  cancel_refund_tag?
   created_at           DateTime                 @default(now()) @db.Timestamp(0)
   updated_at           DateTime                 @default(now()) @updatedAt @db.DateTime(0)
   deleted_at           DateTime?                @db.DateTime(0)
@@ -263,6 +264,7 @@ model inventory_histories {
   @@index([auction_inventory_id], map: "fk_inventory_histories_auctions_inventories")
   @@index([inventory_id], map: "fk_inventory_histories_inventory")
   @@index([receipt_id], map: "fk_inventory_histories_receipt_records")
+  @@index([tag], map: "idx_inventory_histories_tag")
 }
 
 model manifest_records {
@@ -624,6 +626,20 @@ enum auction_inventory_status {
   CANCELLED
   REFUNDED
   DISCREPANCY
+}
+
+enum cancel_refund_tag {
+  MISSING
+  DAMAGED
+  NOT_DECLARED_DAMAGED
+  WRONG_BIDDER
+  REBID
+  DOUBLE_ENCODE
+  WRONG_ENCODE
+  NOT_CLAIMED
+  INVOICE_ERROR
+  VOIDED
+  OTHER
 }
 
 enum containers_auction_or_sell {

@@ -1,6 +1,6 @@
 "use client";
 
-import { SetStateAction, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2Icon } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
@@ -22,6 +22,7 @@ import {
   getRegisteredBidderByBidderNumber,
   cancelItems,
 } from "@/app/(protected)/auctions/actions";
+import { CancelRefundTagSelect } from "@/app/components/shared/CancelRefundTagSelect";
 
 interface CancelItemsModalProps {
   open: boolean;
@@ -35,7 +36,16 @@ export const CancelItemsModal: React.FC<CancelItemsModalProps> = ({
   const { auction_date }: { auction_date: string } = useParams();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [reason, setReason] = useState<string>("");
   const { selectedItems, registeredBidder } = useBidderPullOutModalContext();
+
+  useEffect(() => {
+    if (!open) setReason("");
+  }, [open]);
+
+  useEffect(() => {
+    setReason("");
+  }, [selectedItems]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -91,7 +101,10 @@ export const CancelItemsModal: React.FC<CancelItemsModalProps> = ({
               name="reason"
               placeholder="Please add reason here"
               required
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
             />
+            <CancelRefundTagSelect reason={reason} />
           </div>
         </form>
 

@@ -2,6 +2,7 @@ import { GetInventoryReportsController } from "src/controllers/reports/get-inven
 import { RefundCancellationTable } from "./RefundCancellationTable";
 import { RefundCancellationBidderTable } from "./RefundCancellationBidderTable";
 import { PriceComparisonChart } from "./PriceComparisonChart";
+import { CancelRefundTagsChart } from "./CancelRefundTagsChart";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 
@@ -19,6 +20,12 @@ export const InventoryTabContent = async ({ branchId, dateParam }: Props) => {
 
   return (
     <div className="flex flex-col gap-4 pt-2">
+      <Card>
+        <CardHeader><CardTitle>Cancellation & Refund Reasons</CardTitle></CardHeader>
+        <CardContent>
+          <CancelRefundTagsChart data={res.value.refundCancellation} />
+        </CardContent>
+      </Card>
       <RefundCancellationTable data={res.value.refundCancellation} />
       <RefundCancellationBidderTable data={res.value.refundCancellationByBidder} />
       <Card>

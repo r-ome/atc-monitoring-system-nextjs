@@ -6,7 +6,11 @@ import { RefundCancellationRow, RefundCancellationEntry } from "src/entities/mod
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES } from "src/entities/models/Auction";
 import { formatDate } from "@/app/lib/utils";
-import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
+import {
+  CancelRefundTag,
+  inferCancelRefundTag,
+  parseInventoryHistoryRemark,
+} from "src/entities/models/InventoryHistoryRemark";
 
 function getRelevantHistories(row: RefundCancellationRow) {
   return row.histories.filter((history) =>
@@ -89,6 +93,14 @@ function resolveReason(row: RefundCancellationRow): string {
   return "";
 }
 
+function resolveTag(row: RefundCancellationRow, reason: string): CancelRefundTag | null {
+  const primary = getPrimaryRelevantHistory(row);
+  if (primary?.tag) return primary.tag as CancelRefundTag;
+  // Fallback for legacy rows pre-backfill, or pre-feature data.
+  if (reason.trim()) return inferCancelRefundTag(reason);
+  return null;
+}
+
 function resolveUpdatedBy(row: RefundCancellationRow): string | null {
   for (const history of getRelevantHistories(row)) {
     const updated_by = resolveUpdatedByFromHistoryRemark(history.remarks);
@@ -101,6 +113,7 @@ function resolveUpdatedBy(row: RefundCancellationRow): string | null {
 function presenter(rows: RefundCancellationRow[]): RefundCancellationEntry[] {
   return rows.map((row) => {
     const { bidder_number, bidder_name } = resolveOriginalBidder(row);
+    const reason = resolveReason(row);
     return {
       auction_inventory_id: row.auction_inventory_id,
       auction_date: formatDate(row.auction_bidder.auctions.created_at, "MMM dd, yyyy"),
@@ -115,7 +128,8 @@ function presenter(rows: RefundCancellationRow[]): RefundCancellationEntry[] {
       control: row.inventory.control,
       price: row.price,
       status: row.status,
-      reason: resolveReason(row),
+      reason,
+      tag: resolveTag(row, reason),
       updated_by: resolveUpdatedBy(row),
     };
   });

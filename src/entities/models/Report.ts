@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { CancelRefundTag } from "./InventoryHistoryRemark";
 
 export type FilterMode = "monthly" | "weekly" | "daily";
 
@@ -199,6 +200,7 @@ export type RefundCancellationEntry = {
   price: number;
   status: string;
   reason: string;
+  tag: CancelRefundTag | null;
   updated_by: string | null;
 };
 

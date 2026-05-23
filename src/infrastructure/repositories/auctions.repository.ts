@@ -14,6 +14,7 @@ import {
   buildEncodedHistoryRemark,
   buildManifestReencodedHistoryRemark,
   buildRefundedHistoryRemark,
+  inferCancelRefundTag,
 } from "src/entities/models/InventoryHistoryRemark";
 import {
   isPrismaError,
@@ -907,6 +908,7 @@ export const AuctionRepository: IAuctionRepository = {
     }
   },
   cancelItems: async (data, updated_by) => {
+    const cancel_tag = data.tag ?? inferCancelRefundTag(data.reason);
     try {
       return await prisma.$transaction(async (tx) => {
         const bidder = await tx.auctions_bidders.findFirst({
@@ -982,6 +984,7 @@ export const AuctionRepository: IAuctionRepository = {
                     inventory_id: paid_item.inventory_id,
                     auction_status: "CANCELLED",
                     inventory_status: "UNSOLD",
+                    tag: cancel_tag,
                     remarks: buildRefundedHistoryRemark(
                       {
                         bidder_number: bidder.bidder.bidder_number,
@@ -1027,6 +1030,7 @@ export const AuctionRepository: IAuctionRepository = {
                   inventory_id: auction_inventory.inventory_id,
                   auction_status: "CANCELLED",
                   inventory_status: "UNSOLD",
+                  tag: cancel_tag,
                   remarks: buildCancelledHistoryRemark(
                     {
                       bidder_number: bidder.bidder.bidder_number,

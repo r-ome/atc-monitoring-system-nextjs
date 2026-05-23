@@ -19,6 +19,7 @@ import { GetManifestRecordsController } from "src/controllers/auctions/get-manif
 import { GetRegisteredBidderController } from "src/controllers/auctions/get-registered-bidder.controller";
 import { HandleBidderPullOutController } from "src/controllers/payments/handle-bidder-pullout.controller";
 import { CancelItemsController } from "src/controllers/auctions/cancel-items.controller";
+import { CancelItemsInput } from "src/entities/models/Inventory";
 import { UploadCounterCheckController } from "src/controllers/auctions/upload-counter-check.controller";
 import { GetCounterCheckController } from "src/controllers/auctions/get-counter-check.controller";
 import { UpdateCounterCheckController } from "src/controllers/auctions/update-counter-check.controller";
@@ -258,6 +259,7 @@ export const cancelItems = async (formData: FormData) => {
     auction_inventory_ids,
     inventory_ids,
     reason: (data.reason as string).toUpperCase(),
+    tag: (data.tag as CancelItemsInput["tag"]) || undefined,
   };
 
   return await RequestContext.run(

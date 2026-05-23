@@ -5,6 +5,7 @@ import {
   InventorySalesAllocation,
   InventorySalesAllocationReason,
 } from "./InventorySalesAllocation";
+import { CANCEL_REFUND_TAG_VALUES } from "./InventoryHistoryRemark";
 
 export const INVENTORY_STATUS = [
   "SOLD",
@@ -144,6 +145,7 @@ export const cancelItemsSchema = z.object({
   auction_inventory_ids: z.array(z.string()),
   inventory_ids: z.array(z.string()),
   reason: z.string(),
+  tag: z.enum(CANCEL_REFUND_TAG_VALUES).optional(),
 });
 export type CancelItemsInput = z.infer<typeof cancelItemsSchema>;
 

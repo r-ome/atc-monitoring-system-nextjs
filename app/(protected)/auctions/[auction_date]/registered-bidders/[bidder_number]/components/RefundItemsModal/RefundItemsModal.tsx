@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { getRegisteredBidderByBidderNumber } from "@/app/(protected)/auctions/actions";
 import { refundAuctionsInventories } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 import { getItemPriceWithServiceChargeAmount } from "@/app/lib/utils";
+import { CancelRefundTagSelect } from "@/app/components/shared/CancelRefundTagSelect";
 
 interface RefundItemsModalProps {
   open: boolean;
@@ -47,6 +48,7 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
   const [totalRefundAmount, setTotalRefundAmount] = useState<number>(0);
   const { selectedItems, registeredBidder } = useBidderPullOutModalContext();
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
+  const [reason, setReason] = useState<string>("");
   const [newSelectedItems, setNewSelectedItems] = useState<{
     [auction_inventory_id: string]: number;
   }>(
@@ -65,7 +67,12 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
         return acc;
       }, {})
     );
+    setReason("");
   }, [selectedItems]);
+
+  useEffect(() => {
+    if (!open) setReason("");
+  }, [open]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -159,7 +166,10 @@ export const RefundItemsModal: React.FC<RefundItemsModalProps> = ({
               name="reason"
               placeholder="Please add reason here"
               required
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
             />
+            <CancelRefundTagSelect reason={reason} />
           </div>
 
           <AlertDialog open={openAlertDialog} onOpenChange={setOpenAlertDialog}>

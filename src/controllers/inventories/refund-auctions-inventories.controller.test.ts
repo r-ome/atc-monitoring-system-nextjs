@@ -89,6 +89,7 @@ test("RefundAuctionsInventoriesController parses JSON payloads and delegates val
   assert.deepEqual(capturedInput, {
     auction_bidder_id: "ab-1",
     reason: "Damaged",
+    tag: undefined,
     auction_inventories: [
       {
         auction_inventory_id: "ai-1",

@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { InputNumber } from "@/app/components/ui/InputNumber";
 import { Label } from "@/app/components/ui/label";
 import { refundAuctionsInventories } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
+import { CancelRefundTagSelect } from "@/app/components/shared/CancelRefundTagSelect";
 
 interface RefundItemModalProps {
   open: boolean;
@@ -40,12 +41,20 @@ export const RefundItemModal: React.FC<RefundItemModalProps> = ({
   const [newAuctionInventory, setNewAuctionInventory] = useState<{
     price?: number;
   }>({});
+  const [reason, setReason] = useState<string>("");
 
   useEffect(() => {
     if (!auctionInventory) return;
 
     setNewAuctionInventory({ price: auctionInventory.price });
   }, [auctionInventory]);
+
+  useEffect(() => {
+    if (!open) {
+      setReason("");
+      setRefundType("PARTIAL");
+    }
+  }, [open]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -128,12 +137,15 @@ export const RefundItemModal: React.FC<RefundItemModalProps> = ({
               </div>
             </div>
           ) : null}
-          <div>
+          <div className="space-y-2">
             <Textarea
               placeholder="Please add reason why you would refund this item"
               name="reason"
               required
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
             />
+            {refundType === "FULL" && <CancelRefundTagSelect reason={reason} />}
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => onOpenChange(false)}>

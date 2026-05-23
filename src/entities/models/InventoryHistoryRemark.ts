@@ -1,3 +1,52 @@
+export const CANCEL_REFUND_TAG_VALUES = [
+  "MISSING",
+  "DAMAGED",
+  "NOT_DECLARED_DAMAGED",
+  "WRONG_BIDDER",
+  "REBID",
+  "DOUBLE_ENCODE",
+  "WRONG_ENCODE",
+  "NOT_CLAIMED",
+  "INVOICE_ERROR",
+  "VOIDED",
+  "OTHER",
+] as const;
+
+export type CancelRefundTag = (typeof CANCEL_REFUND_TAG_VALUES)[number];
+
+export const CANCEL_REFUND_TAG_LABELS: Record<CancelRefundTag, string> = {
+  MISSING: "Missing",
+  DAMAGED: "Damaged",
+  NOT_DECLARED_DAMAGED: "Not Declared Damaged",
+  WRONG_BIDDER: "Wrong Bidder",
+  REBID: "Rebid",
+  DOUBLE_ENCODE: "Double Encode",
+  WRONG_ENCODE: "Wrong Encode",
+  NOT_CLAIMED: "Not Claimed",
+  INVOICE_ERROR: "Invoice Error",
+  VOIDED: "Voided",
+  OTHER: "Other",
+};
+
+// Order matters — more specific patterns first. Keep this function pure (no
+// imports beyond what's needed) so it can run on both the client (live preview
+// in the modal) and the server (authoritative tag at write time + backfill).
+export function inferCancelRefundTag(reason: string | null | undefined): CancelRefundTag {
+  const r = (reason ?? "").toUpperCase();
+  if (!r.trim()) return "OTHER";
+  if (/NOT DECLARED?|MISDECLAR|MISDEC|WRONG DECLAR|WRONG DECLER|NOT DECLARE/.test(r)) return "NOT_DECLARED_DAMAGED";
+  if (/\b(MISSING|NOT FOUND|UNFOUND|HINDI MAKITA)\b/.test(r)) return "MISSING";
+  if (/\b(DAMAGE|DAMAGED|SCRATCH|SCRATCHES)\b/.test(r)) return "DAMAGED";
+  if (/REBID/.test(r)) return "REBID";
+  if (/DOUBLE (ENCODE|PRICE)/.test(r)) return "DOUBLE_ENCODE";
+  if (/WRONG (BARCODE|DESCRIPTION|DATE|ENCODE|CONTROL)|ORIGINAL PRICE|IN RECEIPT.*IN CONTROL/.test(r)) return "WRONG_ENCODE";
+  if (/BELONG TO BIDDER|TO BIDDER|FOR BIDDER|WRONG BIDDER|\bBIDDER \d/.test(r)) return "WRONG_BIDDER";
+  if (/HINDI KUMUKUHA/.test(r)) return "NOT_CLAIMED";
+  if (/INVOICE|ADD ON|ADD-ON|NA ADD|NEXT PAYMENT/.test(r)) return "INVOICE_ERROR";
+  if (/VOID/.test(r)) return "VOIDED";
+  return "OTHER";
+}
+
 type InventoryHistoryAction =
   | "encoded"
   | "bought_item_encoded"

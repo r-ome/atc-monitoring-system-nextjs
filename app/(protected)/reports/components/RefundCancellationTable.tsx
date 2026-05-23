@@ -4,6 +4,8 @@ import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionD
 import { AuctionStatusBadge } from "@/app/components/admin";
 import { ColumnDef, CoreRow, Row } from "@tanstack/react-table";
 import { RefundCancellationEntry } from "src/entities/models/Report";
+import { CANCEL_REFUND_TAG_LABELS } from "src/entities/models/InventoryHistoryRemark";
+import { Badge } from "@/app/components/ui/badge";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown, Receipt } from "lucide-react";
@@ -137,6 +139,20 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
     ),
   },
   {
+    accessorKey: "tag",
+    header: () => <div className="text-center">Tag</div>,
+    cell: ({ row }) =>
+      row.original.tag ? (
+        <div className="flex justify-center">
+          <Badge variant="outline">
+            {CANCEL_REFUND_TAG_LABELS[row.original.tag]}
+          </Badge>
+        </div>
+      ) : (
+        <div className="text-center text-muted-foreground">—</div>
+      ),
+  },
+  {
     accessorKey: "reason",
     size: 240,
     header: () => <div className="text-center">Reason</div>,
@@ -194,6 +210,8 @@ export const RefundCancellationTable = ({ data }: Props) => {
       r.control,
       r.status,
       r.reason,
+      r.tag,
+      r.tag ? CANCEL_REFUND_TAG_LABELS[r.tag] : null,
       r.updated_by,
     ]
       .filter(Boolean)
@@ -221,6 +239,13 @@ export const RefundCancellationTable = ({ data }: Props) => {
           <span aria-hidden>·</span>
           <span>{r.status === "REFUNDED" ? "Refunded" : "Cancelled"} {r.status_date}</span>
         </div>
+        {r.tag ? (
+          <div>
+            <Badge variant="outline" className="text-[11px]">
+              {CANCEL_REFUND_TAG_LABELS[r.tag]}
+            </Badge>
+          </div>
+        ) : null}
         {r.reason ? (
           <div className="text-[13px] text-muted-foreground">
             <span className="font-semibold">Reason:</span> {r.reason}

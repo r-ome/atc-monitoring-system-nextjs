@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { PaymentMethod } from "./PaymentMethod";
+import { CANCEL_REFUND_TAG_VALUES } from "./InventoryHistoryRemark";
 
 export const PAYMENT_PURPOSE = [
   "REGISTRATION",
@@ -193,6 +194,7 @@ export type UndoPaymentResult = {
 export const refundAuctionInventoriesSchema = z.object({
   auction_bidder_id: z.string(),
   reason: z.string().min(1, { message: "This field is required!" }),
+  tag: z.enum(CANCEL_REFUND_TAG_VALUES).optional(),
   auction_inventories: z
     .array(
       z.object({

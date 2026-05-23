@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2Icon, OctagonAlert } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertDialog,
@@ -19,6 +19,7 @@ import { useAuctionItemContext } from "../context/AuctionItemContext";
 import { Button } from "@/app/components/ui/button";
 import { cancelItems } from "@/app/(protected)/auctions/actions";
 import { toast } from "sonner";
+import { CancelRefundTagSelect } from "@/app/components/shared/CancelRefundTagSelect";
 
 interface CancelItemModalProps {
   open: boolean;
@@ -32,6 +33,11 @@ export const CancelItemModal: React.FC<CancelItemModalProps> = ({
   const router = useRouter();
   const { auctionInventory, auctionBidderId } = useAuctionItemContext();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [reason, setReason] = useState<string>("");
+
+  useEffect(() => {
+    if (!open) setReason("");
+  }, [open]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,12 +78,15 @@ export const CancelItemModal: React.FC<CancelItemModalProps> = ({
               You are about to cancel this item. Are you sure?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div>
+          <div className="space-y-2">
             <Textarea
               placeholder="Please add reason why you would cancel this item"
               name="reason"
               required
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
             />
+            <CancelRefundTagSelect reason={reason} />
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
