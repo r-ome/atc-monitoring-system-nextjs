@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { TriangleAlert, Loader2Icon } from "lucide-react";
 import { undoPayment } from "../actions";
-import { PasswordInput } from "@/app/components/ui/input-password";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -16,7 +15,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/app/components/ui/alert-dialog";
-import { Label } from "@/app/components/ui/label";
 
 interface UndoPaymentButtonProps {
   receipt_id: string;
@@ -30,12 +28,6 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
   const [openFinalAlertDialog, setOpenFinalAlertDialog] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [password, setPassword] = useState<string>("");
-  const [disableConfirm, setDisableConfirm] = useState<boolean>(true);
-
-  useEffect(() => {
-    setDisableConfirm(password !== "helloworld");
-  }, [password]);
 
   const handleSubmit = async () => {
     setOpenAlertDialog(false);
@@ -51,7 +43,6 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
         toast.success("Successfully UNDID the payment!");
         setOpenAlertDialog(false);
         setOpenFinalAlertDialog(false);
-        setPassword("");
         router.back();
       }
 
@@ -69,7 +60,6 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
       <Button
         variant={"destructive"}
         onClick={async () => {
-          setPassword("");
           setOpenAlertDialog(true);
         }}
       >
@@ -100,22 +90,6 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
                   BE UNDONE!
                 </span>
               </div>
-              <div>
-                <div className="flex gap-4">
-                  <Label htmlFor="password" className="w-40">
-                    Password:
-                  </Label>
-                  <div className="w-full">
-                    <PasswordInput
-                      value={password}
-                      name="password"
-                      onChange={(e) =>
-                        setPassword(e.target.value.toLowerCase())
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -123,7 +97,7 @@ export const UndoPaymentButton: React.FC<UndoPaymentButtonProps> = ({
 
             <Button
               type="button"
-              disabled={disableConfirm || isLoading}
+              disabled={isLoading}
               onClick={handleSubmit}
             >
               SUBMIT
