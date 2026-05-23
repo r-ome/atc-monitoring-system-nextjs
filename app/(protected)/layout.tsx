@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { requireSession } from "@/app/lib/auth";
 import { SessionActivityWatcher } from "./SessionActivityWatcher";
+import { RouteActivityLogger } from "./RouteActivityLogger";
 import { AuctionItemSearchOverlay } from "@/app/(protected)/auctions/[auction_date]/AuctionItemSearchOverlay";
 import { RailNav } from "@/app/components/rail/RailNav";
 import { AppHeader } from "@/app/components/header/AppHeader";
@@ -18,6 +19,7 @@ export default async function RootLayout({
       <SessionActivityWatcher
         initialLastActivityAt={session.user.lastActivityAt ?? null}
       />
+      <RouteActivityLogger />
       <AuctionItemSearchOverlay />
       <RailNav session={session} />
 
