@@ -144,7 +144,11 @@ export const revalidateManifest = async (
   const user = await requireUser();
 
   return await RequestContext.run(
-    { branch_id: user.branch.branch_id },
+    {
+      branch_id: user.branch.branch_id,
+      username: user.username ?? "",
+      branch_name: user.branch.name ?? "",
+    },
     async () => RevalidateManifestController(auctionId, data),
   );
 };

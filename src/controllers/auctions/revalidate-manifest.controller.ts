@@ -5,6 +5,7 @@ import {
 } from "src/entities/errors/common";
 import { type UploadManifestInput } from "src/entities/models/Manifest";
 import { err, ok } from "src/entities/models/Result";
+import { logActivity } from "@/app/lib/log-activity";
 
 export const RevalidateManifestController = async (
   auction_id: string,
@@ -12,6 +13,13 @@ export const RevalidateManifestController = async (
 ) => {
   try {
     const processed = await revalidateManifestUseCase(auction_id, data);
+    const invalid = processed.filter((row) => !row.isValid).length;
+    await logActivity(
+      "UPDATE",
+      "manifest",
+      auction_id,
+      `Revalidated manifest: ${processed.length} records (${invalid} invalid)`,
+    );
     return ok(processed);
   } catch (error) {
     if (error instanceof NotFoundError) {
