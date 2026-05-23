@@ -8,112 +8,119 @@ type ActivityRoute = {
 export type ActivityRouteView = {
   entity_id: string;
   description: string;
+  params: RouteParams;
 };
+
+export const AUCTION_ITEM_DETAILS_ROUTE_PATTERN =
+  "/auctions/[auction_date]/monitoring/[auction_inventory_id]";
+export const INVENTORY_DETAILS_ROUTE_PATTERN =
+  "/containers/[barcode]/inventories/[inventory_id]";
 
 const ROUTES: ActivityRoute[] = [
   {
     pattern: "/auctions/[auction_date]/registered-bidders/[bidder_number]",
     description: ({ auction_date, bidder_number }) =>
-      `Viewed registered bidder #${bidder_number} for auction ${auction_date}`,
+      `Viewed auction > registered bidders > #${bidder_number} for auction ${auction_date}`,
   },
   {
     pattern: "/auctions/[auction_date]/registered-bidders",
     description: ({ auction_date }) =>
-      `Viewed registered bidders for auction ${auction_date}`,
+      `Viewed auction > registered bidders for auction ${auction_date}`,
   },
   {
-    pattern: "/auctions/[auction_date]/monitoring/[auction_inventory_id]",
+    pattern: AUCTION_ITEM_DETAILS_ROUTE_PATTERN,
     description: ({ auction_date }) =>
-      `Viewed auction item details for auction ${auction_date}`,
+      `Viewed auction > monitoring > item details for auction ${auction_date}`,
   },
   {
     pattern: "/auctions/[auction_date]/monitoring",
     description: ({ auction_date }) =>
-      `Viewed auction monitoring for ${auction_date}`,
+      `Viewed auction > monitoring for auction ${auction_date}`,
   },
   {
     pattern: "/auctions/[auction_date]/counter-check",
     description: ({ auction_date }) =>
-      `Viewed counter check for auction ${auction_date}`,
+      `Viewed auction > counter check for auction ${auction_date}`,
   },
   {
     pattern: "/auctions/[auction_date]/payments/[receipt_number]/receipt",
     description: ({ auction_date, receipt_number }) =>
-      `Viewed printable receipt ${receipt_number} for auction ${auction_date}`,
+      `Viewed auction > payments > ${receipt_number} > printable receipt for auction ${auction_date}`,
   },
   {
     pattern: "/auctions/[auction_date]/payments/[receipt_number]",
     description: ({ auction_date, receipt_number }) =>
-      `Viewed receipt ${receipt_number} for auction ${auction_date}`,
+      `Viewed auction > payments > ${receipt_number} for auction ${auction_date}`,
   },
   {
     pattern: "/auctions/[auction_date]/payments",
     description: ({ auction_date }) =>
-      `Viewed auction payments for ${auction_date}`,
+      `Viewed auction > payments for auction ${auction_date}`,
   },
   {
     pattern: "/auctions/[auction_date]/manifest",
     description: ({ auction_date }) =>
-      `Viewed manifest for auction ${auction_date}`,
+      `Viewed auction > manifest for auction ${auction_date}`,
   },
   {
     pattern: "/auctions/[auction_date]",
     description: ({ auction_date }) =>
-      `Viewed auction overview for ${auction_date}`,
+      `Viewed auction > overview for auction ${auction_date}`,
   },
   {
-    pattern: "/containers/[barcode]/inventories/[inventory_id]",
-    description: ({ barcode }) =>
-      `Viewed inventory item in container ${barcode}`,
+    pattern: INVENTORY_DETAILS_ROUTE_PATTERN,
+    description: ({ barcode, inventory_id }) =>
+      `Viewed containers > ${barcode} > inventories > ${inventory_id}`,
   },
   {
     pattern: "/containers/[barcode]",
-    description: ({ barcode }) => `Viewed container ${barcode}`,
+    description: ({ barcode }) => `Viewed containers > ${barcode}`,
   },
   {
     pattern: "/bidders/[bidder_number]",
-    description: ({ bidder_number }) => `Viewed bidder #${bidder_number}`,
+    description: ({ bidder_number }) => `Viewed bidders > #${bidder_number}`,
   },
   {
     pattern: "/payroll/[payroll_period_id]",
-    description: () => "Viewed payroll period details",
+    description: ({ payroll_period_id }) => `Viewed payroll > ${payroll_period_id}`,
   },
   {
     pattern: "/suppliers/[supplier_code]",
-    description: ({ supplier_code }) => `Viewed supplier ${supplier_code}`,
+    description: ({ supplier_code }) => `Viewed suppliers > ${supplier_code}`,
   },
   {
     pattern: "/transactions/[transaction_date]",
     description: ({ transaction_date }) =>
-      `Viewed transactions for ${transaction_date}`,
+      `Viewed transactions > ${transaction_date}`,
   },
   {
     pattern: "/configurations/activity-logs/[date]",
-    description: ({ date }) => `Viewed activity logs for ${date}`,
+    description: ({ date }) =>
+      `Viewed configurations > activity logs > ${date}`,
   },
   {
     pattern: "/users/create",
-    description: () => "Viewed create user",
+    description: () => "Viewed users > create",
   },
   {
     pattern: "/suppliers/create",
-    description: () => "Viewed create supplier",
+    description: () => "Viewed suppliers > create",
   },
   {
     pattern: "/bidders/create",
-    description: () => "Viewed create bidder",
+    description: () => "Viewed bidders > create",
   },
   {
     pattern: "/configurations/payment-methods/create",
-    description: () => "Viewed create payment method",
+    description: () => "Viewed configurations > payment methods > create",
   },
   {
     pattern: "/configurations/payment-methods",
-    description: () => "Viewed payment methods",
+    description: () => "Viewed configurations > payment methods",
   },
   {
     pattern: "/configurations/activity-logs",
-    description: () => "Viewed activity logs calendar",
+    description: () => "Viewed configurations > activity logs",
   },
   {
     pattern: "/configurations",
@@ -121,7 +128,7 @@ const ROUTES: ActivityRoute[] = [
   },
   {
     pattern: "/monitoring-all",
-    description: () => "Viewed all monitoring",
+    description: () => "Viewed monitoring > all",
   },
   {
     pattern: "/bought-items",
@@ -223,6 +230,7 @@ export function getActivityRouteView(
     return {
       entity_id: route.pattern,
       description: route.description(params),
+      params,
     };
   }
 
