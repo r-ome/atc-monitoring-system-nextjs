@@ -664,11 +664,6 @@ export const PaymentRepository: IPaymentRepository = {
           });
         }
 
-        const total_payment = receipt?.payments.reduce(
-          (acc, item) => (acc += item.amount_paid),
-          0,
-        );
-
         const remaining_bidder_receipts = await tx.receipt_records.findMany({
           where: {
             auction_bidder_id: receipt.auction_bidder_id,
@@ -678,15 +673,8 @@ export const PaymentRepository: IPaymentRepository = {
           select: { receipt_id: true },
         });
 
-        await tx.auctions_bidders.update({
-          where: {
-            auction_bidder_id: receipt.auction_bidder_id,
-          },
-          data: {
-            balance: { increment: total_payment },
-            already_consumed: remaining_bidder_receipts.length > 0 ? 1 : 0,
-          },
-        });
+        const nextAlreadyConsumed =
+          remaining_bidder_receipts.length > 0 ? 1 : 0;
 
         await tx.auctions_inventories.updateMany({
           where: { receipt_id },
@@ -700,6 +688,44 @@ export const PaymentRepository: IPaymentRepository = {
             },
           },
           data: { status: "SOLD" },
+        });
+
+        const auction_bidder = await tx.auctions_bidders.findFirst({
+          where: { auction_bidder_id: receipt.auction_bidder_id },
+          include: {
+            auctions_inventories: {
+              where: { status: { in: ["UNPAID", "PARTIAL"] } },
+              include: { histories: true },
+            },
+          },
+        });
+
+        if (!auction_bidder) {
+          throw new NotFoundError("Error undoing payment!", {
+            cause: "Registered bidder not found!",
+          });
+        }
+
+        const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
+          auction_bidder.auctions_inventories,
+        );
+        const serviceChargeAmount =
+          (totalUnpaidItemsPrice * auction_bidder.service_charge) / 100;
+        const registrationFeeAmount = nextAlreadyConsumed
+          ? 0
+          : auction_bidder.registration_fee;
+
+        await tx.auctions_bidders.update({
+          where: {
+            auction_bidder_id: receipt.auction_bidder_id,
+          },
+          data: {
+            balance:
+              totalUnpaidItemsPrice +
+              serviceChargeAmount -
+              registrationFeeAmount,
+            already_consumed: nextAlreadyConsumed,
+          },
         });
 
         await tx.payments.deleteMany({ where: { receipt_id } });

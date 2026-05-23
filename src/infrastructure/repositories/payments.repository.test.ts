@@ -261,6 +261,117 @@ test("handleBidderPullOut marks previously unsold paid inventories as sold", asy
   });
 });
 
+test("undoPayment recalculates balance with current service charge settings", async () => {
+  const bidderBalanceWrites: Array<{
+    where: { auction_bidder_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const auctionStatusWrites: Array<Record<string, unknown>> = [];
+
+  const undoneReceiptItem = {
+    auction_inventory_id: "ai-old-receipt",
+    inventory_id: "inv-old-receipt",
+    status: "PAID",
+    price: 185200,
+    histories: [],
+  };
+  const existingUnpaidItem = {
+    auction_inventory_id: "ai-existing-unpaid",
+    inventory_id: "inv-existing-unpaid",
+    status: "UNPAID",
+    price: 41400,
+    histories: [],
+  };
+
+  const tx = {
+    receipt_records: {
+      findFirst: async () => ({
+        receipt_id: "receipt-0953-1",
+        receipt_number: "0953-1",
+        purpose: "PULL_OUT",
+        auction_bidder_id: "bidder-0953",
+        payments: [{ amount_paid: 202424 }],
+        auctions_inventories: [undoneReceiptItem],
+        auction_bidder: {
+          auction_bidder_id: "bidder-0953",
+          service_charge: 10,
+          registration_fee: 5000,
+          already_consumed: 1,
+        },
+      }),
+      count: async () => 0,
+      findMany: async () => [],
+      delete: async () => ({}),
+    },
+    auctions_inventories: {
+      updateMany: async (args: Record<string, unknown>) => {
+        auctionStatusWrites.push(args);
+        undoneReceiptItem.status = "UNPAID";
+        return { count: 1 };
+      },
+    },
+    inventories: {
+      updateMany: async () => ({ count: 1 }),
+    },
+    auctions_bidders: {
+      findFirst: async () => ({
+        auction_bidder_id: "bidder-0953",
+        service_charge: 10,
+        registration_fee: 5000,
+        already_consumed: 1,
+        auctions_inventories: [undoneReceiptItem, existingUnpaidItem],
+      }),
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { auction_bidder_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        bidderBalanceWrites.push({ where, data });
+        return { where, data };
+      },
+    },
+    payments: {
+      deleteMany: async () => ({ count: 1 }),
+    },
+    inventory_histories: {
+      createMany: async () => ({ count: 1 }),
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await PaymentRepository.undoPayment("receipt-0953-1");
+
+  assert.deepEqual(auctionStatusWrites, [
+    {
+      where: { receipt_id: "receipt-0953-1" },
+      data: { status: "UNPAID", receipt_id: null },
+    },
+  ]);
+  assert.deepEqual(bidderBalanceWrites, [
+    {
+      where: { auction_bidder_id: "bidder-0953" },
+      data: {
+        balance: 244260,
+        already_consumed: 0,
+      },
+    },
+  ]);
+});
+
 test("updatePaymentMethod updates a non-registration payment by payment id only", async () => {
   const paymentFindArgs: Array<Record<string, unknown>> = [];
   const paymentMethodFindArgs: Array<Record<string, unknown>> = [];
