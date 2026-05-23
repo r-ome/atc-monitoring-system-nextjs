@@ -27,6 +27,18 @@ test("parseAuctionInventorySearchInput accepts numeric and alphanumeric barcodes
     mode: "barcode",
     barcode: "108-03-301",
   });
+
+  assert.deepEqual(parseAuctionInventorySearchInput("43-145"), {
+    raw: "43-145",
+    mode: "barcode",
+    barcode: "43-145",
+  });
+
+  assert.deepEqual(parseAuctionInventorySearchInput("43-145-334"), {
+    raw: "43-145-334",
+    mode: "barcode",
+    barcode: "43-145-334",
+  });
 });
 
 test("parseAuctionInventorySearchInput pads shorthand inventory barcode item segments", () => {

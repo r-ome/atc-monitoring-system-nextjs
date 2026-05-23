@@ -168,7 +168,7 @@ export type AuctionInventorySearchPage = {
 };
 
 const BARCODE_PREFIX_SEGMENT_PATTERN = /^[A-Z0-9]{2,3}$/;
-const BARCODE_CONTAINER_SEGMENT_PATTERN = /^\d{2}$/;
+const BARCODE_CONTAINER_SEGMENT_PATTERN = /^\d{2,3}$/;
 const BARCODE_ITEM_SEGMENT_PATTERN = /^\d{1,3}$/;
 const CONTROL_SEARCH_PATTERN = /^\d{1,4}$/;
 
