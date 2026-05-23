@@ -38,6 +38,7 @@ export const AuctionInventoryWrapper: React.FC<
         <CancelItemModal
           open={openCancelDialog}
           onOpenChange={setOpenCancelDialog}
+          auctionInventory={auctionInventory}
         />
 
         <UpdateItemModal

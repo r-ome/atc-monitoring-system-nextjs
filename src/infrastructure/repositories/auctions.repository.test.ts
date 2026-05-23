@@ -995,3 +995,206 @@ test("uploadManifest re-encodes void inventory with an auction item as unpaid so
     ],
   ]);
 });
+
+test("cancelItems creates the auction 5013 bin when cancelling an item from an old auction", async () => {
+  const auctionBidderCreates: Array<Record<string, unknown>> = [];
+  const bidderBalanceWrites: Array<Record<string, unknown>> = [];
+  const auctionInventoryWrites: Array<Record<string, unknown>> = [];
+  const inventoryWrites: Array<Record<string, unknown>> = [];
+  const historyWrites: Array<Record<string, unknown>> = [];
+
+  const tx = {
+    auctions_bidders: {
+      findFirst: async ({ where }: { where: Record<string, unknown> }) => {
+        if ("auction_bidder_id" in where) {
+          return {
+            auction_bidder_id: "ab-0070",
+            auction_id: "auction-1",
+            service_charge: 10,
+            bidder: {
+              bidder_number: "0070",
+              first_name: "Juan",
+              last_name: "Dela Cruz",
+            },
+          };
+        }
+
+        return null;
+      },
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        auctionBidderCreates.push(data);
+        return {
+          auction_bidder_id: "ab-5013",
+          ...data,
+        };
+      },
+      update: async ({ data }: { data: Record<string, unknown> }) => {
+        bidderBalanceWrites.push(data);
+        return {};
+      },
+    },
+    bidders: {
+      findFirst: async () => ({
+        bidder_id: "bidder-5013",
+        bidder_number: "5013",
+      }),
+    },
+    payment_methods: {
+      findFirst: async () => ({ payment_method_id: "cash" }),
+    },
+    auctions_inventories: {
+      findMany: async () => [
+        {
+          auction_inventory_id: "ai-1",
+          inventory_id: "inventory-1",
+          status: "UNPAID",
+          price: 1000,
+          histories: [],
+          receipt: null,
+        },
+      ],
+      updateMany: async (args: Record<string, unknown>) => {
+        auctionInventoryWrites.push(args);
+        return { count: 1 };
+      },
+    },
+    receipt_records: {
+      create: async () => {
+        throw new Error("Unpaid cancellation should not create a receipt");
+      },
+    },
+    inventories: {
+      updateMany: async (args: Record<string, unknown>) => {
+        inventoryWrites.push(args);
+        return { count: 1 };
+      },
+    },
+    inventory_histories: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        historyWrites.push(data);
+        return data;
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await AuctionRepository.cancelItems(
+    {
+      auction_bidder_id: "ab-0070",
+      auction_inventory_ids: ["ai-1"],
+      inventory_ids: ["inventory-1"],
+      reason: "DAMAGED",
+    },
+    "JUDY",
+  );
+
+  assert.deepEqual(auctionBidderCreates, [
+    {
+      auction_id: "auction-1",
+      bidder_id: "bidder-5013",
+      service_charge: 0,
+      registration_fee: 0,
+      balance: 0,
+    },
+  ]);
+  assert.deepEqual(bidderBalanceWrites, [
+    { balance: { decrement: 1100 } },
+  ]);
+  assert.deepEqual(auctionInventoryWrites, [
+    {
+      data: {
+        status: "CANCELLED",
+        auction_bidder_id: "ab-5013",
+      },
+      where: { auction_inventory_id: { in: ["ai-1"] } },
+    },
+  ]);
+  assert.deepEqual(inventoryWrites, [
+    {
+      data: { status: "UNSOLD" },
+      where: { inventory_id: { in: ["inventory-1"] } },
+    },
+  ]);
+  assert.deepEqual(historyWrites, [
+    {
+      auction_inventory_id: "ai-1",
+      inventory_id: "inventory-1",
+      auction_status: "CANCELLED",
+      inventory_status: "UNSOLD",
+      tag: "DAMAGED",
+      remarks:
+        "Cancelled item | Bidder: #0070 Juan Dela Cruz | Reason: DAMAGED | Updated by: JUDY",
+    },
+  ]);
+});
+
+test("cancelItems rejects already refunded auction items", async () => {
+  const tx = {
+    auctions_bidders: {
+      findFirst: async () => ({
+        auction_bidder_id: "ab-0070",
+        auction_id: "auction-1",
+        service_charge: 0,
+        bidder: {
+          bidder_number: "0070",
+          first_name: "Juan",
+          last_name: "Dela Cruz",
+        },
+      }),
+    },
+    payment_methods: {
+      findFirst: async () => ({ payment_method_id: "cash" }),
+    },
+    auctions_inventories: {
+      findMany: async () => [
+        {
+          auction_inventory_id: "ai-refunded",
+          inventory_id: "inventory-refunded",
+          status: "REFUNDED",
+          price: 1000,
+          histories: [],
+          receipt: null,
+        },
+      ],
+      updateMany: async () => {
+        throw new Error("Refunded items should not be updated as cancelled");
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await assert.rejects(
+    () =>
+      AuctionRepository.cancelItems({
+        auction_bidder_id: "ab-0070",
+        auction_inventory_ids: ["ai-refunded"],
+        inventory_ids: ["inventory-refunded"],
+        reason: "DAMAGED",
+      }),
+    /Cancelled or refunded items cannot be cancelled again/,
+  );
+});

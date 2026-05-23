@@ -50,7 +50,7 @@ export const AuctionItemActionButtons: React.FC<
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => setOpenCancelDialog(true)}
-          disabled={["CANCELLED"].includes(auctionInventory.status)}
+          disabled={["CANCELLED", "REFUNDED"].includes(auctionInventory.status)}
         >
           Cancel Item
         </DropdownMenuItem>

@@ -75,7 +75,12 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setOpenCancelItemsModal(true)}
-            disabled={selectedItems.some((item) => item.status === "CANCELLED")}
+            disabled={
+              !selectedItems.length ||
+              selectedItems.some((item) =>
+                ["CANCELLED", "REFUNDED"].includes(item.status),
+              )
+            }
           >
             Cancel Items
           </DropdownMenuItem>

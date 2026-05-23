@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -15,23 +14,24 @@ import {
 } from "@/app/components/ui/alert-dialog";
 import { Textarea } from "@/app/components/ui/textarea";
 import { SetStateAction } from "react";
-import { useAuctionItemContext } from "../context/AuctionItemContext";
 import { Button } from "@/app/components/ui/button";
 import { cancelItems } from "@/app/(protected)/auctions/actions";
 import { toast } from "sonner";
 import { CancelRefundTagSelect } from "@/app/components/shared/CancelRefundTagSelect";
+import { AuctionsInventory } from "src/entities/models/Auction";
 
 interface CancelItemModalProps {
   open: boolean;
   onOpenChange: React.Dispatch<SetStateAction<boolean>>;
+  auctionInventory: AuctionsInventory;
 }
 
 export const CancelItemModal: React.FC<CancelItemModalProps> = ({
   open,
   onOpenChange,
+  auctionInventory,
 }) => {
   const router = useRouter();
-  const { auctionInventory, auctionBidderId } = useAuctionItemContext();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [reason, setReason] = useState<string>("");
 
@@ -41,14 +41,14 @@ export const CancelItemModal: React.FC<CancelItemModalProps> = ({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
     const formData = new FormData(event.currentTarget);
-    formData.append("auction_bidder_id", auctionBidderId);
+    formData.append("auction_bidder_id", auctionInventory.auction_bidder_id);
     formData.append("auction_inventories", JSON.stringify([auctionInventory]));
 
-    const res = await cancelItems(formData);
+    try {
+      const res = await cancelItems(formData);
 
-    if (res) {
-      setIsLoading(false);
       if (res.ok) {
         toast.success("Successfully cancelled item!");
         router.refresh();
@@ -60,6 +60,8 @@ export const CancelItemModal: React.FC<CancelItemModalProps> = ({
           description: res.error.cause as string,
         });
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,12 +92,10 @@ export const CancelItemModal: React.FC<CancelItemModalProps> = ({
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2Icon className="animate-spin" />}
-                Submit
-              </Button>
-            </AlertDialogAction>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading && <Loader2Icon className="animate-spin" />}
+              Submit
+            </Button>
           </AlertDialogFooter>
         </form>
       </AlertDialogContent>

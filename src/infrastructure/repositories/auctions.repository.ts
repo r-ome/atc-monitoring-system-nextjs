@@ -929,6 +929,19 @@ export const AuctionRepository: IAuctionRepository = {
           include: { receipt: true, histories: true },
         });
 
+        if (auction_inventories.length !== data.auction_inventory_ids.length) {
+          throw new NotFoundError("Some selected auction items were not found!");
+        }
+
+        const non_cancellable_items = auction_inventories.filter((item) =>
+          CANCELLED_OR_REFUNDED_AUCTION_ITEM_STATUSES.includes(item.status),
+        );
+        if (non_cancellable_items.length) {
+          throw new NotFoundError(
+            "Cancelled or refunded items cannot be cancelled again!",
+          );
+        }
+
         const paid_items = auction_inventories.filter(
           (item) => item.status === "PAID",
         );
@@ -985,7 +998,7 @@ export const AuctionRepository: IAuctionRepository = {
                     auction_status: "CANCELLED",
                     inventory_status: "UNSOLD",
                     tag: cancel_tag,
-                    remarks: buildRefundedHistoryRemark(
+                    remarks: buildCancelledHistoryRemark(
                       {
                         bidder_number: bidder.bidder.bidder_number,
                         bidder_name: `${bidder.bidder.first_name} ${bidder.bidder.last_name}`,
@@ -1000,17 +1013,37 @@ export const AuctionRepository: IAuctionRepository = {
           });
         }
 
-        const atc_default_bidder = await tx.auctions_bidders.findFirst({
+        let atc_default_bidder = await tx.auctions_bidders.findFirst({
           where: {
             auction_id: bidder.auction_id,
             bidder: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
           },
         });
 
+        if (!atc_default_bidder) {
+          const default_bidder = await tx.bidders.findFirst({
+            where: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
+          });
+
+          if (!default_bidder) {
+            throw new NotFoundError("ATC default bidder 5013 not found!");
+          }
+
+          atc_default_bidder = await tx.auctions_bidders.create({
+            data: {
+              auction_id: bidder.auction_id,
+              bidder_id: default_bidder.bidder_id,
+              service_charge: 0,
+              registration_fee: 0,
+              balance: 0,
+            },
+          });
+        }
+
         await tx.auctions_inventories.updateMany({
           data: {
             status: "CANCELLED",
-            auction_bidder_id: atc_default_bidder?.auction_bidder_id,
+            auction_bidder_id: atc_default_bidder.auction_bidder_id,
           },
           where: { auction_inventory_id: { in: data.auction_inventory_ids } },
         });
