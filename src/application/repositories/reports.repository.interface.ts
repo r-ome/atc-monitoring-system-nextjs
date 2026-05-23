@@ -13,6 +13,7 @@ import {
   ContainerStatusRow,
   PriceComparisonRow,
 } from "src/entities/models/Report";
+import { CancelRefundTag } from "src/entities/models/InventoryHistoryRemark";
 
 export interface IReportsRepository {
   getTotalSales: (
@@ -55,6 +56,10 @@ export interface IReportsRepository {
     branch_id: string,
     date: string,
   ) => Promise<RefundCancellationRow[]>;
+  updateRefundCancellationTag: (
+    auction_inventory_id: string,
+    tag: CancelRefundTag,
+  ) => Promise<void>;
   getSupplierRevenueSummary: (
     branch_id: string,
     date: string,

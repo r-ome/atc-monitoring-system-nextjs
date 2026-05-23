@@ -555,6 +555,29 @@ export const ReportsRepository: IReportsRepository = {
     }
   },
 
+  updateRefundCancellationTag: async (auction_inventory_id, tag) => {
+    try {
+      const primary = await prisma.inventory_histories.findFirst({
+        where: {
+          auction_inventory_id,
+          auction_status: { in: ["REFUNDED", "CANCELLED"] },
+        },
+        orderBy: { created_at: "desc" },
+      });
+      if (!primary) {
+        throw new DatabaseOperationError(
+          "No refund/cancellation history found for this item.",
+        );
+      }
+      await prisma.inventory_histories.update({
+        where: { inventory_history_id: primary.inventory_history_id },
+        data: { tag },
+      });
+    } catch (error) {
+      handleError("Error updating refund/cancellation tag", error);
+    }
+  },
+
   getSupplierRevenueSummary: async (branch_id, date) => {
     try {
       const { start, end } = parseDateRange(date);

@@ -24,6 +24,7 @@ import "./controllers/expenses/repair-petty-cash-consistency.controller.test";
 import "./controllers/reports/get-expenses-summary.controller.test";
 import "./controllers/reports/get-financial-report.controller.test";
 import "./controllers/reports/get-total-sales.controller.test";
+import "./controllers/reports/update-refund-cancellation-tag.controller.test";
 import "./controllers/reports/get-container-status.controller.test";
 import "../app/lib/reports/generateCashFlow.test";
 import "./controllers/reports/log-cash-flow-report.controller.test";

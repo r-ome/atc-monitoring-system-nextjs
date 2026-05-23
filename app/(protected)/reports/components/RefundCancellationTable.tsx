@@ -1,11 +1,14 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { AuctionStatusBadge } from "@/app/components/admin";
 import { ColumnDef, CoreRow, Row } from "@tanstack/react-table";
 import { RefundCancellationEntry } from "src/entities/models/Report";
-import { CANCEL_REFUND_TAG_LABELS } from "src/entities/models/InventoryHistoryRemark";
-import { Badge } from "@/app/components/ui/badge";
+import {
+  CANCEL_REFUND_TAG_LABELS,
+  CANCEL_REFUND_TAG_VALUES,
+} from "src/entities/models/InventoryHistoryRemark";
 import { formatNumberToCurrency } from "@/app/lib/utils";
 import { Button } from "@/app/components/ui/button";
 import { ArrowUpDown, Receipt } from "lucide-react";
@@ -14,6 +17,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import { FilterColumnComponent } from "@/app/components/data-table/FilterColumnComponent";
+import { UpdateTagModal } from "./UpdateTagModal";
 
 const parseDisplayDate = (value: string) => new Date(value).getTime();
 
@@ -106,6 +111,12 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
               {row.original.control}
             </div>
           )}
+          {row.original.tag && (
+            <div>
+              <span className="font-semibold">Tag:</span>{" "}
+              {CANCEL_REFUND_TAG_LABELS[row.original.tag]}
+            </div>
+          )}
         </TooltipContent>
       </Tooltip>
     ),
@@ -139,20 +150,6 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
     ),
   },
   {
-    accessorKey: "tag",
-    header: () => <div className="text-center">Tag</div>,
-    cell: ({ row }) =>
-      row.original.tag ? (
-        <div className="flex justify-center">
-          <Badge variant="outline">
-            {CANCEL_REFUND_TAG_LABELS[row.original.tag]}
-          </Badge>
-        </div>
-      ) : (
-        <div className="text-center text-muted-foreground">—</div>
-      ),
-  },
-  {
     accessorKey: "reason",
     size: 240,
     header: () => <div className="text-center">Reason</div>,
@@ -168,7 +165,7 @@ const columns: ColumnDef<RefundCancellationEntry>[] = [
         </TooltipTrigger>
         <TooltipContent
           side="top"
-          className="max-w-80 space-y-1 whitespace-normal break-words text-center"
+          className="max-w-80 space-y-1.5 whitespace-normal break-words text-center"
         >
           <div>{row.original.reason || "—"}</div>
           {row.original.updated_by && (
@@ -187,11 +184,27 @@ interface Props {
 }
 
 export const RefundCancellationTable = ({ data }: Props) => {
-  const refunded = data.filter((d) => d.status === "REFUNDED");
-  const cancelled = data.filter((d) => d.status === "CANCELLED");
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [selectedEntry, setSelectedEntry] =
+    useState<RefundCancellationEntry | null>(null);
+
+  const filteredData = useMemo(() => {
+    if (tagFilter.length === 0) return data;
+    return data.filter((d) => d.tag && tagFilter.includes(d.tag));
+  }, [data, tagFilter]);
+
+  const refunded = filteredData.filter((d) => d.status === "REFUNDED");
+  const cancelled = filteredData.filter((d) => d.status === "CANCELLED");
   const totalRefundedValue = refunded.reduce((sum, d) => sum + d.price, 0);
   const totalCancelledValue = cancelled.reduce((sum, d) => sum + d.price, 0);
   const totalAffectedValue = totalRefundedValue + totalCancelledValue;
+
+  const tagOptions = useMemo(() => {
+    const present = new Set(data.map((d) => d.tag).filter(Boolean) as string[]);
+    return CANCEL_REFUND_TAG_VALUES.filter((tag) => present.has(tag)).map(
+      (tag) => ({ value: tag, label: CANCEL_REFUND_TAG_LABELS[tag] }),
+    );
+  }, [data]);
 
   const globalFilterFn = (
     row: CoreRow<RefundCancellationEntry>,
@@ -239,16 +252,15 @@ export const RefundCancellationTable = ({ data }: Props) => {
           <span aria-hidden>·</span>
           <span>{r.status === "REFUNDED" ? "Refunded" : "Cancelled"} {r.status_date}</span>
         </div>
-        {r.tag ? (
-          <div>
-            <Badge variant="outline" className="text-[11px]">
-              {CANCEL_REFUND_TAG_LABELS[r.tag]}
-            </Badge>
-          </div>
-        ) : null}
         {r.reason ? (
           <div className="text-[13px] text-muted-foreground">
             <span className="font-semibold">Reason:</span> {r.reason}
+          </div>
+        ) : null}
+        {r.tag ? (
+          <div className="text-[13px] text-muted-foreground">
+            <span className="font-semibold">Tag:</span>{" "}
+            {CANCEL_REFUND_TAG_LABELS[r.tag]}
           </div>
         ) : null}
       </div>
@@ -256,6 +268,7 @@ export const RefundCancellationTable = ({ data }: Props) => {
   };
 
   return (
+    <>
     <AuctionDataTable
       icon={Receipt}
       title="Refunds & Cancellations"
@@ -275,7 +288,7 @@ export const RefundCancellationTable = ({ data }: Props) => {
       rowLabel="entry"
       renderMobileCard={renderMobileCard}
       columns={columns}
-      data={data}
+      data={filteredData}
       initialSorting={[{ id: "auction_date", desc: true }]}
       searchFilter={{
         globalFilterFn,
@@ -283,6 +296,25 @@ export const RefundCancellationTable = ({ data }: Props) => {
           placeholder: "Search bidder, item, barcode, reason, or status...",
         },
       }}
+      actionButtons={
+        tagOptions.length > 0 ? (
+          <FilterColumnComponent
+            options={tagOptions}
+            defaultValue={tagFilter}
+            onChangeEvent={setTagFilter}
+            placeholder="Filter by tag"
+          />
+        ) : null
+      }
+      onRowClick={(row) => setSelectedEntry(row)}
     />
+    <UpdateTagModal
+      entry={selectedEntry}
+      open={selectedEntry !== null}
+      onOpenChange={(open) => {
+        if (!open) setSelectedEntry(null);
+      }}
+    />
+    </>
   );
 };

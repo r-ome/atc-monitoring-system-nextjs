@@ -49,25 +49,27 @@ export const CancelRefundTagsChart = ({ data }: Props) => {
     <ChartContainer config={chartConfig} className="min-h-[280px] w-full">
       <BarChart
         data={counts}
-        layout="vertical"
-        margin={{ top: 8, right: 32, bottom: 8, left: 8 }}
+        margin={{ top: 16, right: 8, bottom: 8, left: 8 }}
       >
-        <CartesianGrid horizontal={false} />
-        <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-        <YAxis
+        <CartesianGrid vertical={false} />
+        <XAxis
           type="category"
           dataKey="label"
-          width={150}
           tick={{ fontSize: 11 }}
           tickLine={false}
           axisLine={false}
+          interval={0}
+          angle={-30}
+          textAnchor="end"
+          height={70}
         />
+        <YAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
         <ChartTooltip content={<ChartTooltipContent />} />
         <Bar dataKey="cancelled" stackId="a" fill="var(--color-cancelled)" />
         <Bar dataKey="refunded" stackId="a" fill="var(--color-refunded)">
           <LabelList
             dataKey="total"
-            position="right"
+            position="top"
             className="text-xs fill-foreground"
           />
         </Bar>

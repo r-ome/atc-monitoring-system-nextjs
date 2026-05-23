@@ -5,6 +5,10 @@ import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { logActivity } from "@/app/lib/log-activity";
 import { runWithUserContext } from "@/app/lib/protected-action";
 import { GetExpensesSummaryController } from "src/controllers/reports/get-expenses-summary.controller";
+import {
+  UpdateRefundCancellationTagController,
+  UpdateRefundCancellationTagInput,
+} from "src/controllers/reports/update-refund-cancellation-tag.controller";
 
 export const getExpensesSummary = async (
   branch_id: string,
@@ -15,6 +19,16 @@ export const getExpensesSummary = async (
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
     async () => await GetExpensesSummaryController(branch_id, date),
+  );
+};
+
+export const updateRefundCancellationTag = async (
+  input: Partial<UpdateRefundCancellationTagInput>,
+) => {
+  const user = await requireUser();
+  return await runWithUserContext(
+    user,
+    async () => await UpdateRefundCancellationTagController(input),
   );
 };
 
