@@ -471,6 +471,50 @@ export const getFinalReportPreviewUseCase = async (
   const candidateInventoryIds = new Set([...matchedByTwoPartIds]);
   const warehouseCheckItems = unsoldItems.filter((item) => !candidateInventoryIds.has(item.inventory_id));
 
+  // Compute appended barcode aliases before applying draft tax edits. Existing
+  // drafts may have saved tax edits against the virtual appended barcode
+  // shown in the UI, while the source monitoring row still carries its raw
+  // two-part barcode until the final rename step.
+  const maxSuffix = container.inventories.reduce((max, item) => {
+    if (!isThreePartBarcode(item.barcode)) return max;
+    const suffix = Number(item.barcode.split("-")[2]);
+    return Number.isFinite(suffix) && suffix > max ? suffix : max;
+  }, 0);
+
+  const appendableUnsoldItems = container.inventories
+    .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "SOLD")
+    .map(toInventoryRow);
+
+  const appendableInventoryById = new Map(
+    appendableUnsoldItems.map((item) => [item.inventory_id, item]),
+  );
+  const appendedIds = (draft?.appended_inventory_ids ?? []).filter((id) =>
+    appendableInventoryById.has(id),
+  );
+  const appendedBarcodeByInventoryId = new Map<string, string>();
+  appendedIds.forEach((id, index) => {
+    appendedBarcodeByInventoryId.set(
+      id,
+      `${container.barcode}-${formatNumberPadding(maxSuffix + index + 1, 3)}`,
+    );
+  });
+
+  const inventoryIdByBarcodeControl = new Map<string, string>();
+  for (const item of container.inventories) {
+    inventoryIdByBarcodeControl.set(
+      `${item.barcode}|${item.control ?? "NC"}`,
+      item.inventory_id,
+    );
+  }
+  for (const [inventoryId, appendedBarcode] of appendedBarcodeByInventoryId) {
+    const item = appendableInventoryById.get(inventoryId);
+    if (!item) continue;
+    inventoryIdByBarcodeControl.set(
+      `${appendedBarcode}|${item.control}`,
+      inventoryId,
+    );
+  }
+
   const persistedTaxDeduction = await ContainerRepository.getContainerTaxDeduction(
     container.container_id,
   );
@@ -518,11 +562,16 @@ export const getFinalReportPreviewUseCase = async (
     // does not auto-compute the initial 30k deduction; the user configures
     // deductions manually in the Container Tax step.
     if (draft && draft.tax_edits.length > 0) {
-      const editsByBarcodeControl = new Map(
-        draft.tax_edits.map((e) => [`${e.barcode}|${e.control}`, e]),
-      );
+      const editsByInventoryId = new Map<string, (typeof draft.tax_edits)[number]>();
+      for (const edit of draft.tax_edits) {
+        const inventoryId =
+          edit.inventory_id ??
+          inventoryIdByBarcodeControl.get(`${edit.barcode}|${edit.control}`);
+        if (!inventoryId) continue;
+        editsByInventoryId.set(inventoryId, edit);
+      }
       adjustedMonitoring = effectiveMonitoring.map((item) => {
-        const edit = editsByBarcodeControl.get(`${item.barcode}|${item.control}`);
+        const edit = editsByInventoryId.get(item.inventory_id);
         if (!edit || edit.deducted_amount <= 0) return item;
         const grossPrice =
           item.was_bought_item && item.bought_item_price != null
@@ -591,34 +640,6 @@ export const getFinalReportPreviewUseCase = async (
   const availableBidders = [...bidderMap.values()].sort((a, b) =>
     a.bidder_number.localeCompare(b.bidder_number),
   );
-
-  // Compute the next available 3-part suffix on this container, used to give
-  // appended two-part SOLD inventories a virtual 3-part barcode in both the
-  // monitoring sheet and the inventory list of the report output. The rename
-  // is preview-only — the underlying inventory.barcode in the DB stays two-part.
-  const maxSuffix = container.inventories.reduce((max, item) => {
-    if (!isThreePartBarcode(item.barcode)) return max;
-    const suffix = Number(item.barcode.split("-")[2]);
-    return Number.isFinite(suffix) && suffix > max ? suffix : max;
-  }, 0);
-
-  const appendableUnsoldItems = container.inventories
-    .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "SOLD")
-    .map(toInventoryRow);
-
-  const appendableInventoryById = new Map(
-    appendableUnsoldItems.map((item) => [item.inventory_id, item]),
-  );
-  const appendedIds = (draft?.appended_inventory_ids ?? []).filter((id) =>
-    appendableInventoryById.has(id),
-  );
-  const appendedBarcodeByInventoryId = new Map<string, string>();
-  appendedIds.forEach((id, index) => {
-    appendedBarcodeByInventoryId.set(
-      id,
-      `${container.barcode}-${formatNumberPadding(maxSuffix + index + 1, 3)}`,
-    );
-  });
 
   const renameForAppend = <T extends { inventory_id: string; barcode: string }>(row: T): T => {
     const renamed = appendedBarcodeByInventoryId.get(row.inventory_id);

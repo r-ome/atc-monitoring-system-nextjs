@@ -104,10 +104,20 @@ function getFinalReportTaxDeductionSummary(
 } {
   const draft = finalReportDraftSchema.safeParse(container.final_report_draft);
   if (draft.success && draft.data.tax_edits.length > 0) {
-    // Build lookup of inventories by `${barcode}|${control}` for enrichment.
+    // Build lookup of inventories by stable id, plus barcode aliases for older
+    // drafts that predate inventory_id on tax edits.
+    const byInventoryId = new Map<
+      string,
+      {
+        description: string;
+        price: number;
+        bidder_number: string | null;
+      }
+    >();
     const lookup = new Map<
       string,
       {
+        inventory_id: string;
         description: string;
         price: number;
         bidder_number: string | null;
@@ -117,17 +127,40 @@ function getFinalReportTaxDeductionSummary(
       const control = inv.control ?? "NC";
       const key = `${inv.barcode}|${control}`;
       const ai = inv.auctions_inventory;
-      lookup.set(key, {
+      const entry = {
+        inventory_id: inv.inventory_id,
         description: inv.description ?? "",
         price: Number(ai?.price ?? 0),
         bidder_number: ai?.auction_bidder?.bidder?.bidder_number ?? null,
-      });
+      };
+      byInventoryId.set(inv.inventory_id, entry);
+      lookup.set(key, entry);
     }
+    const maxSuffix = container.inventories.reduce((max, inv) => {
+      const parts = inv.barcode.split("-");
+      if (parts.length !== 3) return max;
+      const suffix = Number(parts[2]);
+      return Number.isFinite(suffix) && suffix > max ? suffix : max;
+    }, 0);
+    draft.data.appended_inventory_ids.forEach((inventoryId, index) => {
+      const info = byInventoryId.get(inventoryId);
+      if (!info) return;
+      const virtualBarcode = `${container.barcode}-${String(maxSuffix + index + 1).padStart(3, "0")}`;
+      const control =
+        container.inventories.find((inv) => inv.inventory_id === inventoryId)
+          ?.control ?? "NC";
+      lookup.set(`${virtualBarcode}|${control}`, {
+        inventory_id: inventoryId,
+        ...info,
+      });
+    });
 
     const items: FinalReportTaxDeductionItem[] = draft.data.tax_edits
       .filter((e) => e.deducted_amount > 0)
       .map((e) => {
-        const info = lookup.get(`${e.barcode}|${e.control}`);
+        const info =
+          (e.inventory_id ? byInventoryId.get(e.inventory_id) : undefined) ??
+          lookup.get(`${e.barcode}|${e.control}`);
         // Raw DB price is the gross/pre-deduction price — deductions are only
         // applied in the preview/workbook output, never written back.
         const original_price = info?.price ?? 0;

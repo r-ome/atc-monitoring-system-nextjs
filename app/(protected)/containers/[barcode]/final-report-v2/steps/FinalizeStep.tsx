@@ -25,38 +25,8 @@ import { buildReportData } from "../../components/inventories/FinalReportWorkben
 import { cn } from "@/app/lib/utils";
 import { StepHeading } from "../shared/StepHeading";
 import { peso } from "../shared/format";
-import type {
-  FinalReportAvailableBidder,
-  FinalReportMonitoringRow,
-} from "src/entities/models/FinalReport";
+import { reassign5013ToRandomBidders } from "../shared/reassign5013";
 import type { V2StepProps } from "../shared/types";
-
-const reassign5013 = (
-  monitoring: FinalReportMonitoringRow[],
-  availableBidders: FinalReportAvailableBidder[],
-) => {
-  const poolByAuction = new Map<string, FinalReportAvailableBidder[]>();
-  for (const b of availableBidders) {
-    if (b.bidder_number === "5013") continue;
-    const arr = poolByAuction.get(b.auction_id) ?? [];
-    arr.push(b);
-    poolByAuction.set(b.auction_id, arr);
-  }
-  let reassignedCount = 0;
-  const result = monitoring.map((row) => {
-    if (row.bidder_number !== "5013") return row;
-    const pool = poolByAuction.get(row.auction_id);
-    if (!pool || pool.length === 0) return row;
-    const pick = pool[Math.floor(Math.random() * pool.length)];
-    reassignedCount++;
-    return {
-      ...row,
-      bidder_number: pick.bidder_number,
-      auction_bidder_id: pick.auction_bidder_id,
-    };
-  });
-  return { monitoring: result, reassignedCount };
-};
 
 type SuccessState = {
   reportFilename: string;
@@ -168,13 +138,9 @@ const FinalizeStepBody = ({
         return;
       }
       const originalReportData = buildReportData(originalRes.value, []);
-      const { monitoring: origMonitoring } = reassign5013(
-        originalReportData.monitoring,
-        originalRes.value.available_bidders,
-      );
       const originalBlob = generateReport(
         {
-          monitoring: origMonitoring,
+          monitoring: originalReportData.monitoring,
           inventories: originalReportData.inventories,
           sheetDetails: container,
           deductions: originalRes.value.report.deductions,
@@ -199,10 +165,11 @@ const FinalizeStepBody = ({
       }
       const modifiedPreview = fresh;
       const modifiedReportData = buildReportData(modifiedPreview, []);
-      const { monitoring: modMonitoring, reassignedCount } = reassign5013(
-        modifiedReportData.monitoring,
-        modifiedPreview.available_bidders,
-      );
+      const { monitoring: modMonitoring, reassignedCount } =
+        reassign5013ToRandomBidders(
+          modifiedReportData.monitoring,
+          modifiedPreview.available_bidders,
+        );
       const modifiedBlob = generateReport(
         {
           monitoring: modMonitoring,

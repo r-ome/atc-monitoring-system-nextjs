@@ -14,6 +14,7 @@ const warehouseBoughtItemSchema = z.object({
 });
 
 const taxEditEntrySchema = z.object({
+  inventory_id: z.string().min(1).optional(),
   barcode: z.string().min(1),
   control: z.string(),
   deducted_amount: z.coerce.number().nonnegative(),

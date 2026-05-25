@@ -91,6 +91,7 @@ export const finalizeFinalReportUseCase = async (input: {
       const byInventoryId = new Map<
         string,
         {
+          inventory_id: string;
           barcode: string;
           control: string;
           description: string;
@@ -103,6 +104,7 @@ export const finalizeFinalReportUseCase = async (input: {
         const control = inv.control ?? "NC";
         const ai = inv.auctions_inventory;
         byInventoryId.set(inv.inventory_id, {
+          inventory_id: inv.inventory_id,
           barcode: inv.barcode,
           control,
           description: inv.description ?? "",
@@ -113,6 +115,20 @@ export const finalizeFinalReportUseCase = async (input: {
           inventory_id: inv.inventory_id,
         });
       }
+      const maxSuffix = container.inventories.reduce((max, inv) => {
+        const parts = inv.barcode.split("-");
+        if (parts.length !== 3) return max;
+        const suffix = Number(parts[2]);
+        return Number.isFinite(suffix) && suffix > max ? suffix : max;
+      }, 0);
+      draft.appended_inventory_ids.forEach((inventoryId, index) => {
+        const inv = byInventoryId.get(inventoryId);
+        if (!inv) return;
+        const virtualBarcode = `${container.barcode}-${String(maxSuffix + index + 1).padStart(3, "0")}`;
+        byBarcodeControl.set(`${virtualBarcode}|${inv.control}`, {
+          inventory_id: inventoryId,
+        });
+      });
 
       // 4a) Tax Step deductions → tax_deduction record (existing column, still
       // used by the preview's persisted-deduction path).
@@ -120,8 +136,11 @@ export const finalizeFinalReportUseCase = async (input: {
         const items: FinalReportDeductionItem[] = draft.tax_edits
           .filter((edit) => edit.deducted_amount > 0)
           .map((edit) => {
-            const info = byBarcodeControl.get(`${edit.barcode}|${edit.control}`);
-            const inv = info ? byInventoryId.get(info.inventory_id) : undefined;
+            const inventoryId =
+              edit.inventory_id ??
+              byBarcodeControl.get(`${edit.barcode}|${edit.control}`)
+                ?.inventory_id;
+            const inv = inventoryId ? byInventoryId.get(inventoryId) : undefined;
             const original_price = inv?.price ?? 0;
             return {
               control: edit.control || "NC",

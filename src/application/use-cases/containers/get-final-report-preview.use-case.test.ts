@@ -282,6 +282,134 @@ test("getFinalReportPreviewUseCase applies staged appended inventories to monito
   }
 });
 
+test("getFinalReportPreviewUseCase applies tax edits to appended rows by inventory id", async () => {
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => buildContainer(),
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      appended_inventory_ids: ["monitoring-source-1"],
+      tax_edits: [
+        {
+          inventory_id: "monitoring-source-1",
+          barcode: "32-04-002",
+          control: "0001",
+          deducted_amount: 200,
+        },
+      ],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    const monitoringRow = preview.report.monitoring.find(
+      (row) => row.inventory_id === "monitoring-source-1",
+    );
+    assert.equal(monitoringRow?.barcode, "32-04-002");
+    assert.equal(monitoringRow?.price, 300);
+    assert.deepEqual(preview.report.deductions, [
+      {
+        control: "0001",
+        description: "BAG",
+        bidder_number: "0001",
+        original_price: 500,
+        deducted_amount: 200,
+      },
+    ]);
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
+test("getFinalReportPreviewUseCase applies old tax edits saved with virtual appended barcode", async () => {
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => buildContainer(),
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      appended_inventory_ids: ["monitoring-source-1"],
+      tax_edits: [
+        {
+          barcode: "32-04-002",
+          control: "0001",
+          deducted_amount: 200,
+        },
+      ],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    const monitoringRow = preview.report.monitoring.find(
+      (row) => row.inventory_id === "monitoring-source-1",
+    );
+    assert.equal(monitoringRow?.barcode, "32-04-002");
+    assert.equal(monitoringRow?.price, 300);
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
 test("getFinalReportPreviewUseCase moves excluded bidder 740 rows to deductions", async () => {
   const restoreContainer = patchMethod(
     ContainerRepository,

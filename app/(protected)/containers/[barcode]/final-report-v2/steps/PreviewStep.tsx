@@ -25,12 +25,9 @@ import { buildReportData } from "../../components/inventories/FinalReportWorkben
 import { cn } from "@/app/lib/utils";
 import { StepHeading } from "../shared/StepHeading";
 import { peso } from "../shared/format";
+import { reassign5013ToRandomBidders } from "../shared/reassign5013";
 import type { V2StepProps } from "../shared/types";
-import type {
-  FinalReportAvailableBidder,
-  FinalReportMonitoringRow,
-  FinalReportPreview,
-} from "src/entities/models/FinalReport";
+import type { FinalReportPreview } from "src/entities/models/FinalReport";
 
 type SheetKey = "items" | "final" | "encode" | "unsold" | "bill";
 
@@ -43,34 +40,6 @@ const SHEET_META: Record<
   encode: { label: "ENCODE", accent: "#5f3dc4" },
   unsold: { label: "UNSOLD", accent: "#d97706" },
   bill: { label: "BILL", accent: "#6f42c1" },
-};
-
-// 5013 reassignment helper (same logic as GenerateStep)
-const reassign5013ToRandomBidders = (
-  monitoring: FinalReportMonitoringRow[],
-  availableBidders: FinalReportAvailableBidder[],
-): { monitoring: FinalReportMonitoringRow[]; reassignedCount: number } => {
-  const poolByAuction = new Map<string, FinalReportAvailableBidder[]>();
-  for (const b of availableBidders) {
-    if (b.bidder_number === "5013") continue;
-    const arr = poolByAuction.get(b.auction_id) ?? [];
-    arr.push(b);
-    poolByAuction.set(b.auction_id, arr);
-  }
-  let reassignedCount = 0;
-  const result = monitoring.map((row) => {
-    if (row.bidder_number !== "5013") return row;
-    const pool = poolByAuction.get(row.auction_id);
-    if (!pool || pool.length === 0) return row;
-    const pick = pool[Math.floor(Math.random() * pool.length)];
-    reassignedCount++;
-    return {
-      ...row,
-      bidder_number: pick.bidder_number,
-      auction_bidder_id: pick.auction_bidder_id,
-    };
-  });
-  return { monitoring: result, reassignedCount };
 };
 
 export const PreviewStep = (props: V2StepProps) => {
@@ -147,10 +116,12 @@ const PreviewStepBody = ({
 
       const reportData = buildReportData(previewForGen, []);
       const { monitoring: finalMonitoring, reassignedCount } =
-        reassign5013ToRandomBidders(
-          reportData.monitoring,
-          previewForGen.available_bidders,
-        );
+        variant === "modified"
+          ? reassign5013ToRandomBidders(
+              reportData.monitoring,
+              previewForGen.available_bidders,
+            )
+          : { monitoring: reportData.monitoring, reassignedCount: 0 };
 
       generateReport(
         {
@@ -167,7 +138,7 @@ const PreviewStepBody = ({
 
       if (reassignedCount > 0) {
         toast.info(
-          `Reassigned ${reassignedCount} bidder 5013 item(s) to random bidders on the same auction.`,
+          `Reassigned ${reassignedCount} bidder 5013 item(s) to random bidders in the modified workbook.`,
         );
       }
       toast.success(
@@ -186,7 +157,7 @@ const PreviewStepBody = ({
         <StepHeading
           n={5}
           title="Preview the final report"
-          sub="This is a simulation of what the supplier will receive. Click any tab below to see how that sheet looks. Download the preview file to inspect it in Excel before finalizing."
+          sub="This is a simulation of what the supplier will receive. In the modified workbook, bidder 5013 rows are changed to random non-5013 bidder numbers. Download the preview file to inspect it in Excel before finalizing."
         />
         <div className="flex gap-2">
           <DropdownMenu>

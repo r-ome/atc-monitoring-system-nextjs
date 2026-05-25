@@ -65,6 +65,9 @@ const TaxStepBody = ({
   const draftEditByKey = useMemo(() => {
     const m = new Map<string, number>();
     for (const e of state.draft.tax_edits) {
+      if (e.inventory_id) {
+        m.set(e.inventory_id, e.deducted_amount);
+      }
       m.set(`${e.barcode}|${e.control}`, e.deducted_amount);
     }
     return m;
@@ -73,7 +76,10 @@ const TaxStepBody = ({
   const draftDeductionDescs = useMemo(() => {
     const out = new Set<string>();
     for (const row of monitoring) {
-      if (draftEditByKey.has(`${row.barcode}|${row.control}`)) {
+      if (
+        draftEditByKey.has(row.inventory_id) ||
+        draftEditByKey.has(`${row.barcode}|${row.control}`)
+      ) {
         out.add(row.description);
       }
     }
@@ -157,9 +163,9 @@ const TaxStepBody = ({
         const serverDeduction = deductionMap.get(key) ?? 0;
         // Local draft edit (may be different from serverDeduction while the
         // user is typing, before the next preview refresh).
-        const persistedEdit = draftEditByKey.get(
-          `${row.barcode}|${row.control}`,
-        );
+        const persistedEdit =
+          draftEditByKey.get(row.inventory_id) ??
+          draftEditByKey.get(`${row.barcode}|${row.control}`);
         const sheetPrice =
           row.was_bought_item && row.bought_item_price != null
             ? row.bought_item_price
@@ -264,11 +270,17 @@ const TaxStepBody = ({
   // every render and held in a ref so registerBeforeLeave can flush exactly
   // once when the user navigates away.
   const pendingEditsRef = useRef<
-    { barcode: string; control: string; deducted_amount: number }[]
+    {
+      inventory_id: string;
+      barcode: string;
+      control: string;
+      deducted_amount: number;
+    }[]
   >([]);
   pendingEditsRef.current = tableRows
     .filter((r) => r.deducted > 0)
     .map((r) => ({
+      inventory_id: r.inventory_id,
       barcode: r.barcode,
       control: r.control,
       deducted_amount: r.deducted,
