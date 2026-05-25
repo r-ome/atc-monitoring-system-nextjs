@@ -31,7 +31,7 @@ export const Footer = ({
   loading,
 }: FooterProps) => {
   return (
-    <footer className="flex h-16 items-center justify-between border-t bg-background px-6">
+    <footer className="flex h-16 items-center justify-between border-t bg-white px-6">
       <Button
         type="button"
         variant="outline"

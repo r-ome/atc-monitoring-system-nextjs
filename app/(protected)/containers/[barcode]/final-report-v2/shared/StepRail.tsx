@@ -18,7 +18,7 @@ export const StepRail = ({
   const currentIdx = V2_STEP_ORDER.indexOf(current);
 
   return (
-    <div className="flex items-center gap-0 border-b bg-background px-6 py-3.5">
+    <div className="flex items-center gap-0 border-b bg-white px-6 py-3.5">
       {V2_STEP_ORDER.map((key, idx) => {
         const meta = V2_STEP_META[key];
         const done = idx < currentIdx;

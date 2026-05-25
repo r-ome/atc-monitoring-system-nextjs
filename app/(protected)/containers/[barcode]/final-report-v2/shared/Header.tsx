@@ -2,6 +2,8 @@
 
 import { ChevronRight, X } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { Card } from "@/app/components/ui/card";
+import { BranchBadge } from "@/app/components/admin";
 import { cn } from "@/app/lib/utils";
 import type { V2ContainerContext } from "./types";
 
@@ -24,8 +26,8 @@ export const Header = ({
   onNavigate,
 }: HeaderProps) => {
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-background px-6">
-      <nav className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+    <>
+      <nav className="flex items-center gap-1.5 text-[12px] text-muted-foreground 2xl:text-[14px]">
         <button
           type="button"
           onClick={() => onNavigate("/containers")}
@@ -39,30 +41,45 @@ export const Header = ({
           onClick={() => onNavigate(`/containers/${container.barcode}`)}
           className="cursor-pointer hover:text-foreground"
         >
-          {container.barcode} · {container.supplier.name}
+          {container.barcode}
         </button>
         <ChevronRight size={12} className="opacity-60" />
-        <span className="font-semibold text-foreground">
+        <span className="font-medium text-foreground">
           Generate final report
         </span>
       </nav>
 
-      <div className="flex items-center gap-3">
-        {savedAgo ? (
-          <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
-            <span
-              className={cn(
-                "h-1.5 w-1.5 rounded-full",
-                savedError ? "bg-destructive" : "bg-emerald-500",
-              )}
-            />
-            {savedError ? "Couldn't save" : `Draft saved · ${savedAgo} ago`}
+      <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4 sm:gap-6 sm:p-5 2xl:p-6">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {container.branch_name ? (
+              <BranchBadge branch={container.branch_name} />
+            ) : null}
+            <span className="text-[11.5px] font-medium uppercase tracking-wider text-muted-foreground">
+              {container.barcode} · {container.supplier.name}
+            </span>
           </div>
-        ) : null}
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X size={14} /> Close
-        </Button>
-      </div>
-    </header>
+          <h1 className="truncate text-[18px] font-semibold tracking-tight sm:text-[22px] 2xl:text-[28px]">
+            Generate final report
+          </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          {savedAgo ? (
+            <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  savedError ? "bg-destructive" : "bg-emerald-500",
+                )}
+              />
+              {savedError ? "Couldn't save" : `Draft saved · ${savedAgo} ago`}
+            </div>
+          ) : null}
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X size={14} /> Close
+          </Button>
+        </div>
+      </Card>
+    </>
   );
 };

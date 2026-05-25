@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { PageContainer } from "@/app/components/PageContainer";
 import {
   getFinalReportDraft,
   saveFinalReportDraft,
@@ -370,7 +371,7 @@ export const V2Wizard = ({
   const stepIndex = V2_STEP_ORDER.indexOf(state.step);
 
   return (
-    <div className="flex h-[calc(100dvh-9rem)] min-h-[640px] flex-col overflow-hidden rounded-lg border bg-background shadow-sm 2xl:h-[calc(100dvh-10rem)]">
+    <PageContainer>
       <Header
         container={container}
         savedAgo={savedAgo}
@@ -378,6 +379,7 @@ export const V2Wizard = ({
         onClose={handleClose}
         onNavigate={navigateWithFlush}
       />
+      <div className="flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm">
       <StepRail
         current={state.step}
         onJump={goTo}
@@ -387,7 +389,7 @@ export const V2Wizard = ({
         isStepEnabled={() => draftLoaded && !state.finalized}
       />
 
-      <main className="relative flex flex-1 flex-col overflow-auto">
+      <main className="relative flex flex-col">
         {draftLoadError ? (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/95 p-6 backdrop-blur-sm">
             <div className="flex max-w-[420px] flex-col items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center">
@@ -467,6 +469,7 @@ export const V2Wizard = ({
               : null)
         }
       />
-    </div>
+      </div>
+    </PageContainer>
   );
 };
