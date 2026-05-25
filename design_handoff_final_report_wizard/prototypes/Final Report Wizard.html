@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ATC · Generate Final Report (Wizard redesign)</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  h1 { margin: 0; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="final-report-wizard.jsx"></script>
+<script type="text/babel" src="final-report-step1.jsx"></script>
+<script type="text/babel" src="final-report-step2.jsx"></script>
+<script type="text/babel" src="final-report-step-tax-data.jsx"></script>
+<script type="text/babel" src="final-report-step-tax-filter.jsx"></script>
+<script type="text/babel" src="final-report-step-tax-panels.jsx"></script>
+<script type="text/babel" src="final-report-step-tax.jsx"></script>
+<script type="text/babel" src="final-report-step-append.jsx"></script>
+<script type="text/babel" src="final-report-step3.jsx"></script>
+<script type="text/babel" src="final-report-step3b.jsx"></script>
+<script type="text/babel" src="final-report-step4.jsx"></script>
+<script type="text/babel" src="final-report-frames.jsx"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const W = 1320, H = 900;
+
+function Root() {
+  return (
+    <DesignCanvas>
+      <DCSection
+        id="flow"
+        title="Generate Final Report · wizard redesign"
+        subtitle="Four plain-language steps mapped 1:1 to the server flow. Same theme as the homepage and inventory modals — Geist + stone surfaces + slate-blue accent. The wizard takes over the main pane but keeps the rail in view so the user knows where they are."
+      >
+        <DCArtboard id="s1-setup" label="Step 1 · Setup" width={W} height={H}>
+          <Frame1/>
+        </DCArtboard>
+        <DCArtboard id="s2-blocked" label="Step 2 · Resolve (12 items need attention)" width={W} height={H}>
+          <Frame2Blocked/>
+        </DCArtboard>
+        <DCArtboard id="s2-merge" label="Step 2 · Merge — SOLD picker pane open" width={W} height={H}>
+          <Frame2Merge/>
+        </DCArtboard>
+        <DCArtboard id="s2-split" label="Step 2 · Qty Split — pane with auto-suggested ₱" width={W} height={H}>
+          <Frame2Split/>
+        </DCArtboard>
+        <DCArtboard id="s2-clear" label="Step 2 · All resolved · Continue enabled" width={W} height={H}>
+          <Frame2Clear/>
+        </DCArtboard>
+        <DCArtboard id="s3-tax-fresh" label="Step 3 · Container Tax — unmet (₱24,500 still needed)" width={W} height={H}>
+          <FrameTaxFresh/>
+        </DCArtboard>
+        <DCArtboard id="s3-tax-partial" label="Step 3 · Container Tax — partial deductions applied" width={W} height={H}>
+          <FrameTaxPartial/>
+        </DCArtboard>
+        <DCArtboard id="s3-tax-met" label="Step 3 · Container Tax — target met · Continue enabled" width={W} height={H}>
+          <FrameTaxMet/>
+        </DCArtboard>
+        <DCArtboard id="s4-append-list" label="Step 4 · Append items — 8 two-parts getting new barcodes" width={W} height={H}>
+          <FrameAppendList/>
+        </DCArtboard>
+        <DCArtboard id="s4-append-empty" label="Step 4 · Append items — nothing to append" width={W} height={H}>
+          <FrameAppendEmpty/>
+        </DCArtboard>
+        <DCArtboard id="s3-preview-items" label="Step 3 · Preview · Sheet 1 (Items list)" width={W} height={H}>
+          <Frame3/>
+        </DCArtboard>
+        <DCArtboard id="s3-preview-final" label="Step 3 · Preview · Sheet 2 (FINAL COMPUTATION)" width={W} height={H}>
+          <Frame3Final/>
+        </DCArtboard>
+        <DCArtboard id="s3-preview-encode" label="Step 3 · Preview · Sheet 3 (ENCODE)" width={W} height={H}>
+          <Frame3Encode/>
+        </DCArtboard>
+        <DCArtboard id="s3-preview-unsold" label="Step 3 · Preview · Sheet 4 (UNSOLD)" width={W} height={H}>
+          <Frame3Unsold/>
+        </DCArtboard>
+        <DCArtboard id="s3-preview-bill" label="Step 3 · Preview · Sheet 5 (BILL)" width={W} height={H}>
+          <Frame3Bill/>
+        </DCArtboard>
+        <DCArtboard id="s4-finalize" label="Step 4 · Finalize (confirmation checked)" width={W} height={H}>
+          <Frame4/>
+        </DCArtboard>
+        <DCArtboard id="s4-success" label="Step 4 · Done — receipt" width={W} height={H}>
+          <Frame4Success/>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
+</script>
+</body>
+</html>

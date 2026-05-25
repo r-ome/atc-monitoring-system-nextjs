@@ -9,7 +9,6 @@ import { Inventory } from "src/entities/models/Inventory";
 import { CoreRow, Row } from "@tanstack/react-table";
 import { AuctionsInventory } from "src/entities/models/Auction";
 import { GenerateContainerReportModal } from "./GenerateContainerReportModal";
-import { FinalReportWorkbench } from "./FinalReportWorkbench";
 import { CreateInventoryModal } from "../../inventories/[inventory_id]/CreateInventoryModal";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
@@ -46,8 +45,6 @@ interface ContainerInventoriesProps {
 export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
   inventories,
   container,
-  userBranchId,
-  tarlacBranchId,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -55,7 +52,6 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
   const [openUpload, setOpenUpload] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [openGenerate, setOpenGenerate] = useState(false);
-  const [openFinalReport, setOpenFinalReport] = useState(false);
 
   const globalFilterFn = (
     row: CoreRow<InventoryRowType>,
@@ -129,7 +125,13 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
               <DropdownMenuItem onClick={() => setOpenGenerate(true)}>
                 Generate Inventory Report
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setOpenFinalReport(true)}>
+              <DropdownMenuItem
+                onClick={() =>
+                  router.push(
+                    `/containers/${container.barcode}/final-report-v2`,
+                  )
+                }
+              >
                 Generate Final Report
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -158,14 +160,6 @@ export const ContainerInventoriesTable: React.FC<ContainerInventoriesProps> = ({
             container={container}
             open={openGenerate}
             onOpenChange={setOpenGenerate}
-          />
-          <FinalReportWorkbench
-            inventories={inventories}
-            container={container}
-            userBranchId={userBranchId}
-            tarlacBranchId={tarlacBranchId}
-            open={openFinalReport}
-            onOpenChange={setOpenFinalReport}
           />
         </div>
       }
