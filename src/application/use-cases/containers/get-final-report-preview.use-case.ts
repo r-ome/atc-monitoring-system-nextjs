@@ -481,8 +481,13 @@ export const getFinalReportPreviewUseCase = async (
     return Number.isFinite(suffix) && suffix > max ? suffix : max;
   }, 0);
 
+  const mergedSoldInventoryIds = new Set(
+    draft?.merged_inventories.map((merge) => merge.old_inventory_id) ?? [],
+  );
+
   const appendableUnsoldItems = container.inventories
     .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "SOLD")
+    .filter((item) => !mergedSoldInventoryIds.has(item.inventory_id))
     .map(toInventoryRow);
 
   const appendableInventoryById = new Map(

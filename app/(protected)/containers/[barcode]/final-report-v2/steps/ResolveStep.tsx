@@ -153,13 +153,27 @@ export const ResolveStep = ({
   );
 
   // Candidate lists
-  const soldTwoPart = useMemo(
-    () =>
-      (preview?.report.monitoring ?? []).filter(
-        (row) => row.barcode.split("-").length === 2,
-      ),
-    [preview?.report.monitoring],
-  );
+  const soldTwoPart = useMemo(() => {
+    const originalTwoPartById = new Map(
+      (preview?.appendable_unsold_items ?? []).map((item) => [
+        item.inventory_id,
+        item,
+      ]),
+    );
+
+    return (preview?.report.monitoring ?? [])
+      .map((row) => {
+        const original = originalTwoPartById.get(row.inventory_id);
+        return original
+          ? {
+              ...row,
+              barcode: original.barcode,
+              control: original.control,
+            }
+          : row;
+      })
+      .filter((row) => row.barcode.split("-").length === 2);
+  }, [preview?.appendable_unsold_items, preview?.report.monitoring]);
   const soldMultiQty = useMemo(
     () =>
       (preview?.report.monitoring ?? []).filter(
@@ -297,6 +311,9 @@ export const ResolveStep = ({
             ...(controlChoice ? { control_choice: controlChoice } : {}),
           },
         ],
+        appended_inventory_ids: next.appended_inventory_ids.filter(
+          (id) => id !== targetSoldInventoryId,
+        ),
         qty_splits: next.qty_splits
           .filter(
             (s) => s.source_auction_inventory_id !== targetAuctionInventoryId,

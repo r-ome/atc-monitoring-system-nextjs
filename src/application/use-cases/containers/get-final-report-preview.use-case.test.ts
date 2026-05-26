@@ -216,6 +216,75 @@ test("getFinalReportPreviewUseCase applies staged manual merges virtually", asyn
   }
 });
 
+test("getFinalReportPreviewUseCase does not append SOLD rows already staged for merge", async () => {
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => buildContainer(),
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      appended_inventory_ids: ["monitoring-source-1"],
+      merged_inventories: [
+        {
+          old_inventory_id: "monitoring-source-1",
+          new_inventory_id: "unsold-1",
+        },
+      ],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    assert.equal(
+      preview.appendable_unsold_items.some(
+        (row) => row.inventory_id === "monitoring-source-1",
+      ),
+      false,
+    );
+    assert.equal(
+      preview.report.inventories.some(
+        (row) =>
+          row.inventory_id === "monitoring-source-1" &&
+          row.barcode === "32-04-002",
+      ),
+      false,
+    );
+    assert.equal(preview.report.monitoring[0].inventory_id, "unsold-1");
+    assert.equal(preview.report.monitoring[0].barcode, "32-04-001");
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
 test("getFinalReportPreviewUseCase applies staged appended inventories to monitoring and inventory list", async () => {
   const restoreContainer = patchMethod(
     ContainerRepository,
