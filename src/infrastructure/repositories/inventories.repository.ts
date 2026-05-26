@@ -874,7 +874,7 @@ export const InventoryRepository: IInventoryRepository = {
     try {
       const existingInventory = await prisma.inventories.findFirst({
         where: buildTenantWhere("inventories", { inventory_id }),
-        select: { inventory_id: true },
+        select: { inventory_id: true, barcode: true, control: true },
       });
 
       if (!existingInventory) {
@@ -1506,7 +1506,7 @@ export const InventoryRepository: IInventoryRepository = {
     try {
       const existingInventory = await prisma.inventories.findFirst({
         where: buildTenantWhere("inventories", { inventory_id }),
-        select: { inventory_id: true },
+        select: { inventory_id: true, barcode: true, control: true },
       });
 
       if (!existingInventory) {
@@ -1514,6 +1514,10 @@ export const InventoryRepository: IInventoryRepository = {
       }
 
       await prisma.inventories.delete({ where: { inventory_id } });
+      return {
+        barcode: existingInventory.barcode,
+        control: existingInventory.control,
+      };
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error deleting inventory", {

@@ -10,8 +10,9 @@ import { ok, err } from "src/entities/models/Result";
 
 export const DeleteInventoryController = async (inventory_id: string) => {
   try {
-    await InventoryRepository.deleteInventory(inventory_id);
-    await logActivity("DELETE", "inventory", inventory_id, `Deleted inventory ${inventory_id}`);
+    const deleted = await InventoryRepository.deleteInventory(inventory_id);
+    const inventoryLabel = `${deleted.barcode}:${deleted.control ?? "NC"}`;
+    await logActivity("DELETE", "inventory", inventory_id, `Deleted inventory ${inventoryLabel}`);
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

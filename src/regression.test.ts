@@ -20,6 +20,7 @@ import "./controllers/auctions/confirm-add-on.controller.test";
 import "./controllers/auctions/delete-failed-manifest-record.controller.test";
 import "./controllers/inventories/refund-auctions-inventories.controller.test";
 import "./controllers/inventories/merge-inventories.controller.test";
+import "./controllers/inventories/delete-inventory.controller.test";
 import "./controllers/payments/update-payment-method.controller.test";
 import "./controllers/expenses/repair-petty-cash-consistency.controller.test";
 import "./controllers/reports/get-expenses-summary.controller.test";

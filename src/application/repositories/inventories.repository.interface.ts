@@ -94,5 +94,7 @@ export interface IInventoryRepository {
   appendInventories: (
     data: { barcode: string; inventory_id: string }[],
   ) => Promise<void>;
-  deleteInventory: (inventory_id: string) => Promise<void>;
+  deleteInventory: (
+    inventory_id: string,
+  ) => Promise<{ barcode: string; control: string | null }>;
 }
