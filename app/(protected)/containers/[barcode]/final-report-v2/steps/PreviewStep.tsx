@@ -20,12 +20,16 @@ import {
   TableRow,
 } from "@/app/components/ui/table";
 import { generateReport } from "@/app/lib/reports";
-import { getFinalReportPreview } from "@/app/(protected)/containers/actions";
+import {
+  getFinalReportPreview,
+  logFinalReportGeneration,
+} from "@/app/(protected)/containers/actions";
 import { buildReportData } from "../../components/inventories/FinalReportWorkbench/shared/buildReportData";
 import { cn } from "@/app/lib/utils";
 import { StepHeading } from "../shared/StepHeading";
 import { peso } from "../shared/format";
 import { reassign5013ToRandomBidders } from "../shared/reassign5013";
+import { buildFinalReportGenerationLogInput } from "../shared/activity-log";
 import type { V2StepProps } from "../shared/types";
 import type { FinalReportPreview } from "src/entities/models/FinalReport";
 
@@ -135,6 +139,23 @@ const PreviewStepBody = ({
         buildSheetName(),
         { download: true },
       );
+
+      const logRes = await logFinalReportGeneration(
+        buildFinalReportGenerationLogInput({
+          action:
+            variant === "modified" ? "preview_modified" : "preview_original",
+          workbookVariant: variant,
+          container,
+          options: state.options,
+          sheets,
+          preview: previewForGen,
+          draft: state.draft,
+          reassignedBidder5013Count: reassignedCount,
+        }),
+      );
+      if (!logRes.ok) {
+        toast.error(`Activity log failed: ${logRes.error.message}`);
+      }
 
       if (reassignedCount > 0) {
         toast.info(

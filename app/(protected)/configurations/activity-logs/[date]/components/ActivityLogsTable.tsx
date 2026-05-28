@@ -41,7 +41,7 @@ type ItemTableActivityDescription = {
 };
 
 type OptionsTableActivityDescription = {
-  type: "container_report";
+  type: "container_report" | "final_report_generated";
   summary: string;
   barcode: string | null;
   options: {
@@ -121,28 +121,66 @@ function parseOptionsTableActivityDescription(
   try {
     const parsed = JSON.parse(
       description,
-    ) as Partial<OptionsTableActivityDescription>;
+    ) as Partial<OptionsTableActivityDescription> & {
+      data?: { option?: unknown; value?: unknown }[];
+      files?: {
+        variant?: unknown;
+        filename?: unknown;
+        version?: unknown;
+        size_bytes?: unknown;
+      }[];
+    };
 
-    if (parsed.type !== "container_report" || !Array.isArray(parsed.options)) {
+    if (
+      (parsed.type !== "container_report" &&
+        parsed.type !== "final_report_generated") ||
+      !Array.isArray(parsed.options)
+    ) {
       return null;
     }
 
-    const summary = parsed.summary ?? "Generated container report";
+    const summary =
+      parsed.summary ??
+      (parsed.type === "final_report_generated"
+        ? "Generated final report"
+        : "Generated container report");
     const barcode =
       parsed.barcode?.toString() ??
-      summary
-        .match(/^Generated container report for ([^(]+?)(?:\s+\(|$)/)?.[1]
-        ?.trim() ??
+      summary.match(
+        /^Generated (?:container|(?:original |modified )?final) report(?: preview)? for ([^(]+?)(?:\s+\(|$)/,
+      )?.[1]?.trim() ??
       null;
+    const dataRows = Array.isArray(parsed.data)
+      ? parsed.data.map((item) => ({
+          option: item.option?.toString() ?? "",
+          value: item.value?.toString() ?? "",
+        }))
+      : [];
+    const fileRows = Array.isArray(parsed.files)
+      ? parsed.files.map((file) => ({
+          option: `File ${file.variant?.toString() ?? ""}`.trim(),
+          value: [
+            file.filename?.toString() ?? "",
+            file.version != null ? `v${file.version}` : "",
+            file.size_bytes != null ? `${file.size_bytes} bytes` : "",
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        }))
+      : [];
 
     return {
-      type: "container_report",
+      type: parsed.type,
       summary,
       barcode,
-      options: parsed.options.map((item) => ({
-        option: item.option?.toString() ?? "",
-        value: item.value?.toString() ?? "",
-      })),
+      options: [
+        ...parsed.options.map((item) => ({
+          option: item.option?.toString() ?? "",
+          value: item.value?.toString() ?? "",
+        })),
+        ...dataRows,
+        ...fileRows,
+      ],
     };
   } catch {
     return null;

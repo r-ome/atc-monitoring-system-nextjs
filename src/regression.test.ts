@@ -34,6 +34,7 @@ import "./controllers/reports/log-cash-flow-report.controller.test";
 import "./controllers/containers/get-containers.controller.test";
 import "./controllers/containers/get-container-by-barcode.controller.test";
 import "./controllers/containers/log-container-report.controller.test";
+import "./controllers/containers/log-final-report-generation.controller.test";
 import "./infrastructure/repositories/auction-manifest-write.test";
 import "./infrastructure/repositories/containers.repository.test";
 import "./infrastructure/repositories/inventories.repository.test";

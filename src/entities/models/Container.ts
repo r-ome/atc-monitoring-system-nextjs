@@ -202,6 +202,43 @@ export type LogContainerReportInput = z.infer<
   typeof logContainerReportSchema
 >;
 
+export const FINAL_REPORT_GENERATION_ACTIONS = [
+  "preview_original",
+  "preview_modified",
+  "finalize",
+  "upload_generated_files",
+] as const;
+
+const finalReportGenerationLogRowSchema = z.object({
+  option: z.string().min(1),
+  value: z.string(),
+});
+
+export const logFinalReportGenerationSchema = z.object({
+  container_id: z.string().min(1),
+  barcode: z.string().min(1),
+  supplier_name: z.string().min(1),
+  action: z.enum(FINAL_REPORT_GENERATION_ACTIONS),
+  workbook_variant: z.enum(["original", "modified"]).optional(),
+  options: z.array(finalReportGenerationLogRowSchema).default([]),
+  data: z.array(finalReportGenerationLogRowSchema).default([]),
+  files: z
+    .array(
+      z.object({
+        variant: z.string().min(1),
+        container_file_id: z.string().min(1),
+        version: z.coerce.number().int().positive(),
+        filename: z.string().min(1),
+        size_bytes: z.coerce.number().int().nonnegative(),
+      }),
+    )
+    .default([]),
+});
+
+export type LogFinalReportGenerationInput = z.infer<
+  typeof logFinalReportGenerationSchema
+>;
+
 export const createContainerSchema = z.object({
   supplier_id: z.string().min(1),
   branch_id: z.string().min(1),

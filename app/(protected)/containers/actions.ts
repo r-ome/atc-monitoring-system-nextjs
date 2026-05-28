@@ -19,6 +19,7 @@ import { DeleteContainerController } from "src/controllers/containers/delete-con
 import { MergeInventoriesController } from "src/controllers/inventories/merge-inventories.controller";
 import { AppendInventoriesController } from "src/controllers/inventories/append-inventories.controller";
 import { LogContainerReportController } from "src/controllers/containers/log-container-report.controller";
+import { LogFinalReportGenerationController } from "src/controllers/containers/log-final-report-generation.controller";
 import { GetFinalReportPreviewController } from "src/controllers/containers/get-final-report-preview.controller";
 import { ApplyFinalReportMatchesController } from "src/controllers/containers/apply-final-report-matches.controller";
 import { CreateFinalReportBoughtItemsController } from "src/controllers/containers/create-final-report-bought-items.controller";
@@ -294,6 +295,18 @@ export const logContainerReport = async (input: Record<string, unknown>) => {
   return await runWithUserContext(
     auth.value,
     async () => await LogContainerReportController(input),
+  );
+};
+
+export const logFinalReportGeneration = async (
+  input: Record<string, unknown>,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await LogFinalReportGenerationController(input),
   );
 };
 

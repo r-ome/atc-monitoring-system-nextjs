@@ -18,7 +18,7 @@ import { generateReport } from "@/app/lib/reports";
 import {
   finalizeFinalReport,
   getFinalReportPreview,
-  logContainerReport,
+  logFinalReportGeneration,
   uploadGeneratedFinalReportFiles,
 } from "@/app/(protected)/containers/actions";
 import { buildReportData } from "../../components/inventories/FinalReportWorkbench/shared/buildReportData";
@@ -26,6 +26,7 @@ import { cn } from "@/app/lib/utils";
 import { StepHeading } from "../shared/StepHeading";
 import { peso } from "../shared/format";
 import { reassign5013ToRandomBidders } from "../shared/reassign5013";
+import { buildFinalReportGenerationLogInput } from "../shared/activity-log";
 import type { V2StepProps } from "../shared/types";
 
 type SuccessState = {
@@ -196,17 +197,18 @@ const FinalizeStepBody = ({
 
       // 4. Log + upload. Errors here are post-finalize — surface them but
       // still show the success view so the user knows the container is locked.
-      const logRes = await logContainerReport({
-        container_id: container.container_id,
-        barcode: container.barcode,
-        supplier_name: container.supplier.name,
-        selected_dates: state.options.selected_dates,
-        exclude_bidder_740: state.options.exclude_bidder_740,
-        exclude_refunded_bidder_5013:
-          state.options.exclude_refunded_bidder_5013,
-        deduct_thirty_k: state.options.deduct_thirty_k,
-        sheets,
-      });
+      const logRes = await logFinalReportGeneration(
+        buildFinalReportGenerationLogInput({
+          action: "finalize",
+          workbookVariant: "modified",
+          container,
+          options: state.options,
+          sheets,
+          preview: modifiedPreview,
+          draft: state.draft,
+          reassignedBidder5013Count: reassignedCount,
+        }),
+      );
       if (!logRes.ok) {
         partialFailures.push(`Activity log: ${logRes.error.message}`);
       }
