@@ -5,6 +5,7 @@ import {
 import { ContainerWithBranchRow } from "src/entities/models/Container";
 import {
   AuctionsStatisticsRow,
+  AuctionStatisticsDateRange,
   UnpaidBidderBranchBalanceRow,
 } from "src/entities/models/Statistics";
 import { BannedBidderRow } from "src/entities/models/BidderBanHistory";
@@ -18,6 +19,8 @@ export interface IStatisticsRepository {
   getUnpaidBidderBalanceSummary: () => Promise<
     UnpaidBidderBranchBalanceRow[]
   >;
-  getAuctionsStatistics: () => Promise<AuctionsStatisticsRow[]>;
+  getAuctionsStatistics: (
+    dateRange?: AuctionStatisticsDateRange,
+  ) => Promise<AuctionsStatisticsRow[]>;
   getBannedBidders: () => Promise<BannedBidderRow[]>;
 }

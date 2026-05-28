@@ -3,14 +3,19 @@ import { ok, err } from "src/entities/models/Result";
 import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { StatisticsRepository } from "src/infrastructure/di/repositories";
-import { AuctionsStatisticsRow } from "src/entities/models/Statistics";
+import {
+  AuctionStatisticsDateRange,
+  AuctionsStatisticsRow,
+} from "src/entities/models/Statistics";
 
 function presenter(auctions: AuctionsStatisticsRow[]) {
   return auctions.map((auction) => ({
     auction_id: auction.auction_id,
     auction_date: formatDate(auction.auction_date, "MMM dd, yyyy"),
+    auction_date_iso: formatDate(auction.auction_date, "yyyy-MM-dd"),
     total_registered_bidders: Number(auction.total_registered_bidders),
     total_items: auction.total_items,
+    total_sales: Number(auction.total_sales),
     total_cancelled_items: auction.total_cancelled_items,
     total_refunded_items: auction.total_refunded_items,
     total_bidders_with_balance: Number(auction.total_bidders_with_balance),
@@ -18,9 +23,12 @@ function presenter(auctions: AuctionsStatisticsRow[]) {
   }));
 }
 
-export const GetAuctionsStatisticsController = async () => {
+export const GetAuctionsStatisticsController = async (
+  dateRange?: AuctionStatisticsDateRange,
+) => {
   try {
-    const auction_statistics = await StatisticsRepository.getAuctionsStatistics();
+    const auction_statistics =
+      await StatisticsRepository.getAuctionsStatistics(dateRange);
     return ok(presenter(auction_statistics));
   } catch (error) {
     logger("GetAuctionsStatisticsController", error);

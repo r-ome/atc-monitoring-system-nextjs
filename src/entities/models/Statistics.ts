@@ -30,11 +30,17 @@ export type UnpaidBidderBalanceSummary = {
   total_balance: number;
 };
 
+export type AuctionStatisticsDateRange = {
+  start: Date;
+  end: Date;
+};
+
 export type AuctionsStatisticsRow = {
   auction_id: string;
   auction_date: Date;
   total_registered_bidders: number;
   total_items: number;
+  total_sales: number;
   total_cancelled_items: number;
   total_refunded_items: number;
   total_bidders_with_balance: number;
@@ -44,8 +50,10 @@ export type AuctionsStatisticsRow = {
 export type AuctionsStatistics = {
   auction_id: string;
   auction_date: string;
+  auction_date_iso: string;
   total_registered_bidders: number;
   total_items: number;
+  total_sales: number;
   total_cancelled_items: number;
   total_refunded_items: number;
   total_bidders_with_balance: number;

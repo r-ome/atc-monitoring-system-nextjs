@@ -7,6 +7,7 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { IStatisticsRepository } from "src/application/repositories/statistics.repository.interface";
 import { BiddersWithBirthdatesAndRecentAuctionSchema } from "src/entities/models/Bidder";
 import {
+  AuctionStatisticsDateRange,
   AuctionsStatisticsRow,
   UnpaidBidderBranchBalanceRow,
 } from "src/entities/models/Statistics";
@@ -157,8 +158,12 @@ export const StatisticsRepository: IStatisticsRepository = {
       throw error;
     }
   },
-  getAuctionsStatistics: async () => {
+  getAuctionsStatistics: async (dateRange?: AuctionStatisticsDateRange) => {
     try {
+      const whereClause = dateRange
+        ? "WHERE a.created_at >= ? AND a.created_at <= ?"
+        : "";
+      const params = dateRange ? [dateRange.start, dateRange.end] : [];
       const auctions = await tenantQuery({
         sql: `
         SELECT
@@ -166,6 +171,7 @@ export const StatisticsRepository: IStatisticsRepository = {
           a.created_at AS auction_date,
           CAST(COUNT(DISTINCT ab.auction_bidder_id) AS SIGNED) AS total_registered_bidders,
           CAST(COUNT(ai.auction_inventory_id) AS SIGNED) AS total_items,
+          CAST(COALESCE(SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END), 0) AS DECIMAL(15,2)) AS total_sales,
           CAST(SUM(CASE WHEN ai.status = 'CANCELLED' THEN 1 ELSE 0 END) AS SIGNED) AS total_cancelled_items,
           CAST(SUM(CASE WHEN ai.status = 'REFUNDED' THEN 1 ELSE 0 END) AS SIGNED) AS total_refunded_items,
           CAST(COUNT(DISTINCT CASE 
@@ -178,10 +184,12 @@ export const StatisticsRepository: IStatisticsRepository = {
         LEFT JOIN auctions_inventories ai ON ai.auction_bidder_id = ab.auction_bidder_id
         LEFT JOIN inventories i ON i.inventory_id = ai.inventory_id
         LEFT JOIN containers c ON c.container_id = i.container_id
+        ${whereClause}
         GROUP BY a.auction_id, a.created_at
         ORDER BY a.created_at DESC
       `,
         table: "a",
+        params,
       });
 
       return auctions as AuctionsStatisticsRow[];

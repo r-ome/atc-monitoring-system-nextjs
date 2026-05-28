@@ -33,6 +33,7 @@ import { RevalidateManifestController } from "src/controllers/auctions/revalidat
 import { PreviewAddOnController } from "src/controllers/auctions/preview-add-on.controller";
 import { ConfirmAddOnController } from "src/controllers/auctions/confirm-add-on.controller";
 import { DeleteFailedManifestRecordController } from "src/controllers/auctions/delete-failed-manifest-record.controller";
+import { GetAuctionsStatisticsController } from "src/controllers/statistics/get-auction-statistics.controller";
 import {
   type ManifestSheetRecord,
   type UploadManifestInput,
@@ -82,6 +83,22 @@ export const getAuction = async (auctionDate: string) => {
   return await RequestContext.run(
     { branch_id: user.branch.branch_id },
     async () => await GetAuctionController(new Date(auctionDate)),
+  );
+};
+
+export const getAuctionCalendarStatistics = async (
+  startDate: string,
+  endDate: string,
+) => {
+  const user = await requireUser();
+
+  return await RequestContext.run(
+    { branch_id: user.branch.branch_id },
+    async () =>
+      await GetAuctionsStatisticsController({
+        start: new Date(startDate),
+        end: new Date(endDate),
+      }),
   );
 };
 
