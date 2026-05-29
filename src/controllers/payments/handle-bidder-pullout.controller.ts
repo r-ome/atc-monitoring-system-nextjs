@@ -40,11 +40,15 @@ export const HandleBidderPullOutController = async (
     }
 
     const res = await PaymentRepository.handleBidderPullOut(data);
+    const storageFeeDescription =
+      data.storage_fee > 0
+        ? ` (includes ₱${data.storage_fee.toLocaleString()} storage fee)`
+        : "";
     await logActivity(
       "CREATE",
       "payment",
       res.receipt_id,
-      `Pull-out payment ₱${data.amount_to_be_paid.toLocaleString()} for bidder #${res.bidder_number}`,
+      `Pull-out payment ₱${data.amount_to_be_paid.toLocaleString()} for bidder #${res.bidder_number}${storageFeeDescription}`,
     );
     return ok(res);
   } catch (error) {

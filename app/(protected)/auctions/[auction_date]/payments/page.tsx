@@ -7,6 +7,7 @@ import { AuctionMiniStat } from "@/app/(protected)/auctions/components/AuctionMi
 import { ErrorComponent } from "@/app/components/ErrorComponent";
 import { PageContainer } from "@/app/components/PageContainer";
 import { formatNumberToCurrency } from "@/app/lib/utils";
+import { REFUND_PURPOSES } from "src/entities/models/Payment";
 
 export default async function Page({
   params,
@@ -26,17 +27,17 @@ export default async function Page({
   const transactions = transactions_res.value;
 
   const collected = transactions
-    .filter((t) => t.total_amount_paid > 0)
+    .filter((t) => !REFUND_PURPOSES.includes(t.purpose))
     .reduce((sum, t) => sum + t.total_amount_paid, 0);
   const refunded = transactions
-    .filter((t) => t.total_amount_paid < 0)
-    .reduce((sum, t) => sum + Math.abs(t.total_amount_paid), 0);
+    .filter((t) => REFUND_PURPOSES.includes(t.purpose))
+    .reduce((sum, t) => sum + t.total_amount_paid, 0);
   const net = collected - refunded;
   const positive_count = transactions.filter(
-    (t) => t.total_amount_paid > 0,
+    (t) => !REFUND_PURPOSES.includes(t.purpose),
   ).length;
   const refund_count = transactions.filter(
-    (t) => t.total_amount_paid < 0,
+    (t) => REFUND_PURPOSES.includes(t.purpose),
   ).length;
 
   return (

@@ -71,3 +71,41 @@ test("HandleBidderPullOutController logs the bidder number with a pound sign", a
     "Pull-out payment ₱24,160 for bidder #0755",
   );
 });
+
+test("HandleBidderPullOutController notes included storage fee in activity log", async () => {
+  const logActivityModule = await import("@/app/lib/log-activity");
+  let activityDescription = "";
+
+  restorers.push(
+    patchMethod(PaymentRepository, "handleBidderPullOut", async () => ({
+      receipt_id: "receipt-1",
+      bidder_number: "0158",
+    }) as never),
+    patchMethod(
+      logActivityModule,
+      "logActivity",
+      async (_action, _entityType, _entityId, description) => {
+        activityDescription = description;
+        return undefined as never;
+      },
+    ),
+  );
+
+  const result = await HandleBidderPullOutController({
+    auction_bidder_id: "ab-1",
+    amount_to_be_paid: 31110,
+    auction_inventory_ids: ["ai-1"],
+    payments: [{ payment_method: "CASH", amount_paid: 31110 }],
+    remarks: null,
+    storage_fee: 1000,
+  });
+
+  assert.equal(result.ok, true);
+  if (!result.ok) {
+    assert.fail("Expected valid pull-out request to succeed");
+  }
+  assert.equal(
+    activityDescription,
+    "Pull-out payment ₱31,110 for bidder #0158 (includes ₱1,000 storage fee)",
+  );
+});
