@@ -63,6 +63,72 @@ test("updateContainerStatus clears paid date when marked unpaid", async () => {
   assert.deepEqual(capturedData, { status: null });
 });
 
+test("uploadInventoryFile writes history rows for created inventories", async () => {
+  const historyRows: Array<{
+    inventory_id: string;
+    auction_status: string;
+    inventory_status: string;
+    remarks: string;
+  }> = [];
+
+  const tx = {
+    containers: {
+      findMany: async () => [
+        { container_id: "container-1", barcode: "32-04", status: null },
+      ],
+    },
+    inventories: {
+      create: async ({ data }: { data: { barcode: string } }) => ({
+        inventory_id: `inventory-${data.barcode}`,
+        ...data,
+      }),
+      updateMany: async () => ({ count: 0 }),
+    },
+    inventory_histories: {
+      createMany: async ({ data }: { data: typeof historyRows }) => {
+        historyRows.push(...data);
+        return { count: data.length };
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  const result = await ContainerRepository.uploadInventoryFile({
+    creates: [
+      {
+        container_id: "container-1",
+        barcode: "32-04-001",
+        control: "0001",
+        description: "BAG",
+        status: "UNSOLD",
+      },
+    ],
+    updates: [],
+    updated_by: "jerome",
+  });
+
+  assert.deepEqual(result, { created: 1, updated: 0 });
+  assert.deepEqual(historyRows, [
+    {
+      inventory_id: "inventory-32-04-001",
+      auction_status: "DISCREPANCY",
+      inventory_status: "UNSOLD",
+      remarks: "Inventory created from inventory file upload | Updated by: jerome",
+    },
+  ]);
+});
+
 test("getReportByContainerId totals only PAID hot item prices", async () => {
   restorers.push(
     patchMethod(

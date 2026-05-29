@@ -59,6 +59,7 @@ type InventoryHistoryAction =
   | "pullout_paid"
   | "pullout_undone"
   | "item_updated"
+  | "inventory_file_created"
   | "inventory_file_updated"
   | "item_merged"
   | "item_split_bought"
@@ -109,6 +110,7 @@ const HISTORY_PREFIXES = {
   pullout_paid: "Pull-out paid",
   pullout_undone: "Pull-out undone",
   item_updated: "Item updated",
+  inventory_file_created: "Inventory created from inventory file upload",
   inventory_file_updated: "Inventory file updated",
   item_merged: "Item merged",
   item_split_bought: "Item split bought",
@@ -242,6 +244,12 @@ export function buildInventoryFileUpdatedHistoryRemark(input: {
   }
 
   return parts.join(" | ");
+}
+
+export function buildInventoryFileCreatedHistoryRemark(updated_by?: string) {
+  if (!updated_by) return HISTORY_PREFIXES.inventory_file_created;
+
+  return `${HISTORY_PREFIXES.inventory_file_created} | Updated by: ${sanitizePart(updated_by)}`;
 }
 
 export function buildItemMergedHistoryRemark(params: {
@@ -410,6 +418,17 @@ export function parseInventoryHistoryRemark(
       updated_by: parseLabeledField(trimmed, "Updated by", []),
       previous_price: parsed_price?.previous_price,
       new_price: parsed_price?.new_price,
+    };
+  }
+
+  if (trimmed === HISTORY_PREFIXES.inventory_file_created) {
+    return { action: "inventory_file_created" };
+  }
+
+  if (trimmed.startsWith(`${HISTORY_PREFIXES.inventory_file_created} | `)) {
+    return {
+      action: "inventory_file_created",
+      updated_by: parseLabeledField(trimmed, "Updated by", []),
     };
   }
 

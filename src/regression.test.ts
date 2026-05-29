@@ -8,6 +8,7 @@ import "./application/use-cases/containers/container-report-file.use-case.test";
 import "./application/use-cases/containers/upload-inventory-file.use-case.test";
 import "./application/use-cases/inventories/upload-bought-items.use-case.test";
 import "./application/use-cases/inventories/update-auction-item.use-case.test";
+import "./application/use-cases/inventories/create-inventory.use-case.test";
 import "./entities/models/Auction.test";
 import "./entities/models/AuctionPayableAmount.test";
 import "./app/components/admin/status-badge.helpers.test";

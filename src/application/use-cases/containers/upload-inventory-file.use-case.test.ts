@@ -75,18 +75,22 @@ test("uploadInventoryFileUseCase inserts new rows, updates changed UNSOLD rows, 
       { BARCODE: "32-04-005", CONTROL: "5", DESCRIPTION: "NEW BAG" },
       { BARCODE: "32-04-006", CONTROL: "6", DESCRIPTION: "FIRST VALUE" },
       { BARCODE: "32-04-006", CONTROL: "7", DESCRIPTION: "LATEST VALUE" },
+      { BARCODE: " 32-04-008 ", CONTROL: "9", DESCRIPTION: "TRIMMED NEW BAG" },
       { BARCODE: "99-01-001", CONTROL: "8", DESCRIPTION: "WRONG CONTAINER" },
+      { BARCODE: "-32-04-007", CONTROL: "9", DESCRIPTION: "LEADING DASH" },
+      { BARCODE: "32-04-", CONTROL: "10", DESCRIPTION: "TRAILING DASH" },
+      { BARCODE: "", CONTROL: "11", DESCRIPTION: "EMPTY BARCODE" },
     ],
     "jerome",
   );
 
-  assert.equal(result.created, 2);
+  assert.equal(result.created, 3);
   assert.equal(result.updated, 1);
   assert.equal(result.skipped, 2);
   assert.equal(result.unchanged, 1);
-  assert.equal(result.invalid, 1);
+  assert.equal(result.invalid, 4);
   assert.equal(result.duplicate_in_file, 1);
-  assert.equal(result.total, 8);
+  assert.equal(result.total, 12);
 
   assert.deepEqual(
     capturedInput?.creates.map((item) => ({
@@ -97,6 +101,7 @@ test("uploadInventoryFileUseCase inserts new rows, updates changed UNSOLD rows, 
     [
       { barcode: "32-04-005", control: "0005", description: "NEW BAG" },
       { barcode: "32-04-006", control: "0007", description: "LATEST VALUE" },
+      { barcode: "32-04-008", control: "0009", description: "TRIMMED NEW BAG" },
     ],
   );
   assert.deepEqual(capturedInput?.updates, [

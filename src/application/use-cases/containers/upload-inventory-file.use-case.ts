@@ -8,6 +8,7 @@ import type {
 } from "src/entities/models/Inventory";
 import { InputParseError } from "src/entities/errors/common";
 import { formatNumberPadding } from "@/app/lib/utils";
+import { validateContainerInventoryBarcode } from "@/app/lib/inventory-barcode";
 
 export const uploadInventoryFileUseCase = async (
   barcode: string,
@@ -16,13 +17,20 @@ export const uploadInventoryFileUseCase = async (
 ): Promise<UploadInventoryFileResult> => {
   const container = await getContainerByBarcodeUseCase(barcode);
 
-  const formatted_rows: UploadInventoryFileCreateInput[] = rows.map((item) => ({
-    container_id: container.container_id,
-    barcode: item.BARCODE,
-    control: formatNumberPadding(item.CONTROL.toString(), 4),
-    description: item.DESCRIPTION,
-    status: "UNSOLD",
-  }));
+  const formatted_rows: UploadInventoryFileCreateInput[] = rows.map((item) => {
+    const barcode = validateContainerInventoryBarcode(
+      item.BARCODE.toString(),
+      container.barcode,
+    ).barcode;
+
+    return {
+      container_id: container.container_id,
+      barcode,
+      control: formatNumberPadding(item.CONTROL.toString(), 4),
+      description: item.DESCRIPTION,
+      status: "UNSOLD",
+    };
+  });
 
   const deduped_rows = Array.from(
     formatted_rows
@@ -45,9 +53,10 @@ export const uploadInventoryFileUseCase = async (
   let invalid = 0;
 
   deduped_rows.forEach((item) => {
-    const is_valid_barcode =
-      item.barcode.split("-").length === 2 ||
-      item.barcode.includes(container.barcode);
+    const is_valid_barcode = validateContainerInventoryBarcode(
+      item.barcode,
+      container.barcode,
+    ).isValid;
 
     if (!is_valid_barcode) {
       invalid += 1;

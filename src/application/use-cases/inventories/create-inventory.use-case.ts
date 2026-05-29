@@ -3,9 +3,22 @@ import { CreateInventoryInput } from "src/entities/models/Inventory";
 import { InventoryRepository } from "src/infrastructure/di/repositories";
 import { getContainerByIdUseCase } from "../containers/get-container-by-id.use-case";
 import { normalizeControl } from "@/app/lib/utils";
+import { validateContainerInventoryBarcode } from "@/app/lib/inventory-barcode";
 
 export const createInventoryUseCase = async (input: CreateInventoryInput) => {
   const container = await getContainerByIdUseCase(input.container_id);
+  const barcodeValidation = validateContainerInventoryBarcode(
+    input.barcode,
+    container.barcode,
+  );
+
+  if (!barcodeValidation.isValid) {
+    throw new InputParseError("Invalid Data!", {
+      cause: { barcode: [barcodeValidation.error] },
+    });
+  }
+
+  input.barcode = barcodeValidation.barcode;
   input.control = normalizeControl(input.control);
   const match = container.inventories.find((inventory) => {
     if (input.barcode.split("-").length === 3) {

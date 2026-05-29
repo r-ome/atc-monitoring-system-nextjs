@@ -18,6 +18,7 @@ import { Label } from "@/app/components/ui/label";
 import { toast } from "sonner";
 import { createInventory } from "@/app/(protected)/inventories/actions";
 import { InputNumber } from "@/app/components/ui/InputNumber";
+import { validateContainerInventoryBarcode } from "@/app/lib/inventory-barcode";
 
 interface CreateInventoryModalProps {
   container: {
@@ -39,6 +40,7 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrors(undefined);
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
     formData.append("container_id", container.container_id);
@@ -48,7 +50,18 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
       formData.set("barcode", `${container.barcode}`);
     }
 
-    setIsLoading(false);
+    const barcodeValidation = validateContainerInventoryBarcode(
+      formData.get("barcode")?.toString() ?? "",
+      container.barcode,
+    );
+
+    if (!barcodeValidation.isValid) {
+      setErrors({ barcode: [barcodeValidation.error] });
+      setIsLoading(false);
+      return;
+    }
+
+    formData.set("barcode", barcodeValidation.barcode);
 
     const res = await createInventory(formData);
     if (res) {

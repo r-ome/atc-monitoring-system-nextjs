@@ -18,7 +18,10 @@ import {
   FinalReportDraft,
   finalReportDraftSchema,
 } from "src/entities/models/FinalReportDraft";
-import { buildInventoryFileUpdatedHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
+import {
+  buildInventoryFileCreatedHistoryRemark,
+  buildInventoryFileUpdatedHistoryRemark,
+} from "src/entities/models/InventoryHistoryRemark";
 import { getInventorySalesAllocationForContainer } from "src/entities/models/InventorySalesAllocation";
 
 export const ContainerRepository: IContainerRepository = {
@@ -283,23 +286,35 @@ export const ContainerRepository: IContainerRepository = {
         const createContainerById = new Map(
           createContainers.map((container) => [container.container_id, container]),
         );
-        const created = input.creates.length
-          ? await tx.inventories.createMany({
-              data: input.creates.map((item) => {
+        const createdInventories = input.creates.length
+          ? await Promise.all(
+              input.creates.map((item) => {
                 const container = createContainerById.get(item.container_id);
-                return {
-                  ...item,
-                  ...(container
-                    ? getInventorySalesAllocationForContainer(
-                        container,
-                        "ENCODED_AFTER_CONTAINER_PAID",
-                      )
-                    : {}),
-                };
+                return tx.inventories.create({
+                  data: {
+                    ...item,
+                    ...(container
+                      ? getInventorySalesAllocationForContainer(
+                          container,
+                          "ENCODED_AFTER_CONTAINER_PAID",
+                        )
+                      : {}),
+                  },
+                });
               }),
-              skipDuplicates: true,
-            })
-          : { count: 0 };
+            )
+          : [];
+
+        if (createdInventories.length) {
+          await tx.inventory_histories.createMany({
+            data: createdInventories.map((item) => ({
+              inventory_id: item.inventory_id,
+              auction_status: "DISCREPANCY",
+              inventory_status: "UNSOLD",
+              remarks: buildInventoryFileCreatedHistoryRemark(input.updated_by),
+            })),
+          });
+        }
 
         const appliedUpdates = (
           await Promise.all(
@@ -349,7 +364,7 @@ export const ContainerRepository: IContainerRepository = {
         }
 
         return {
-          created: created.count,
+          created: createdInventories.length,
           updated: appliedUpdates.length,
         };
       });
