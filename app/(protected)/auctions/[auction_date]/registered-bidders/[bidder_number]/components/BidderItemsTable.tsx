@@ -160,6 +160,14 @@ export function BidderItemsTable({
             placeholder: "Search item here",
           },
         }}
+        columnFilter={{
+          column: "auction_status",
+          options: [
+            { label: "PAID", value: "PAID" },
+            { label: "UNPAID", value: "UNPAID" },
+          ],
+          filterComponentProps: { placeholder: "Filter by status" },
+        }}
         renderMobileCard={renderMobileCard}
       />
     </BidderPullOutModalProvider>

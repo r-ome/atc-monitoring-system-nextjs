@@ -89,6 +89,8 @@ export const columns: ColumnDef<AuctionInventory>[] = [
     accessorKey: "auction_status",
     accessorFn: (row) => row.status,
     size: 80,
+    enableColumnFilter: true,
+    filterFn: "includesIn",
     header: ({ column }) => {
       return (
         <div className="flex justify-center">

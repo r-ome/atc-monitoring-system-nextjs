@@ -44,7 +44,7 @@ export const FilterColumnComponent: React.FC<FilterColumnComponentProps> = ({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="w-[200px] justify-start">
+        <Button variant="outline" className="w-full justify-start md:w-[200px]">
           {selected.length > 0
             ? selected
                 .map((value) => options.find((o) => o.value === value)?.label)
@@ -52,7 +52,7 @@ export const FilterColumnComponent: React.FC<FilterColumnComponentProps> = ({
             : placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
         <Command>
           <CommandGroup>
             {options.map((option) => {
