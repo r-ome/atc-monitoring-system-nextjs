@@ -194,6 +194,9 @@ export default async function Page({
   type HighestItem = {
     price: number;
     description: string | null;
+    barcode: string;
+    control: string;
+    manifest_number: string;
     bidder_number: string;
     bidder_name: string;
   };
@@ -205,6 +208,9 @@ export default async function Page({
           top = {
             price: item.price,
             description: item.description,
+            barcode: item.inventory.barcode,
+            control: item.inventory.control,
+            manifest_number: item.manifest_number,
             bidder_number: rb.bidder.bidder_number,
             bidder_name: rb.bidder.full_name,
           };
@@ -375,6 +381,10 @@ export default async function Page({
                       {highest_item.description}
                     </div>
                   ) : null}
+                  <div className="mt-1 font-mono text-[11.5px] text-muted-foreground 2xl:text-[14px]">
+                    {highest_item.barcode} · {highest_item.control} ·{" "}
+                    {highest_item.manifest_number || "N/A"}
+                  </div>
                   <div className="font-mono mt-0.5 text-[12px] text-muted-foreground 2xl:text-[14.5px]">
                     Sold to #{highest_item.bidder_number} · {highest_item.bidder_name}
                   </div>
