@@ -363,6 +363,14 @@ export const getFinalReportPreviewUseCase = async (
     item.auctions_inventory.auction_bidder.bidder.bidder_number ===
       ATC_DEFAULT_BIDDER_NUMBER;
 
+  // Bidder 0740 is excluded from the report when the option is on: it's pulled
+  // out of monitoring (see selectedAuctionInventories) and surfaced as a
+  // deduction instead. Keep it out of the appendable list and the ENCODE
+  // inventory listing too, so no 0740 item leaks into the workbook.
+  const isExcludedBidder740 = (item: (typeof container.inventories)[number]) =>
+    input.exclude_bidder_740 &&
+    item.auctions_inventory?.auction_bidder.bidder.bidder_number === "0740";
+
   const isRefundedReviewItem = (item: (typeof container.inventories)[number]) =>
     item.auctions_inventory?.status === "REFUNDED" &&
     !isRefundedBidder5013(item) &&
@@ -492,6 +500,7 @@ export const getFinalReportPreviewUseCase = async (
   const appendableUnsoldItems = container.inventories
     .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "SOLD")
     .filter((item) => !mergedSoldInventoryIds.has(item.inventory_id))
+    .filter((item) => !isExcludedBidder740(item))
     .map(toInventoryRow);
 
   const appendableInventoryById = new Map(
@@ -667,6 +676,7 @@ export const getFinalReportPreviewUseCase = async (
             item.auctions_inventory?.status === "REFUNDED")
         ),
     )
+    .filter((item) => !isExcludedBidder740(item))
     .map(toInventoryRow);
   const appendedInventoryRows = appendedIds.flatMap((id) => {
     const row = appendableInventoryById.get(id);

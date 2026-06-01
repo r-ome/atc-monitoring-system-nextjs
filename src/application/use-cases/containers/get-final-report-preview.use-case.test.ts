@@ -525,6 +525,14 @@ test("getFinalReportPreviewUseCase moves excluded bidder 740 rows to deductions"
         deducted_amount: 700,
       },
     ]);
+    // 0740 is also kept out of the ENCODE inventory listing.
+    assert.equal(
+      preview.report.inventories.some(
+        (item) =>
+          item.auctions_inventory?.auction_bidder?.bidder_number === "0740",
+      ),
+      false,
+    );
   } finally {
     restoreTax();
     restoreCounterCheck();
