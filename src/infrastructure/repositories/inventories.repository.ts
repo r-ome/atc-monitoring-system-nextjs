@@ -7,6 +7,7 @@ import {
 import { IInventoryRepository } from "src/application/repositories/inventories.repository.interface";
 import {
   DatabaseOperationError,
+  InputParseError,
   NotFoundError,
 } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
@@ -229,6 +230,19 @@ export const InventoryRepository: IInventoryRepository = {
 
         if (!auction_inventory) {
           throw new NotFoundError("Auction Inventory does not exist!");
+        }
+
+        if (
+          auction_inventory.status === "PAID" &&
+          data.price < auction_inventory.price
+        ) {
+          throw new InputParseError("Invalid Data!", {
+            cause: {
+              price: [
+                "Paid item price cannot be lowered through item update. Use the refund process instead.",
+              ],
+            },
+          });
         }
 
         const is_item_reassigned =

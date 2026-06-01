@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import prisma from "@/app/lib/prisma/prisma";
 import { InventoryRepository } from "./inventories.repository";
 import { patchMethod } from "src/test-utils/patch";
+import { InputParseError } from "src/entities/errors/common";
 
 const restorers: Array<() => void> = [];
 
@@ -206,6 +207,108 @@ test("updateAuctionItem recalculates affected bidder balances after reassigning 
       },
     ],
   );
+});
+
+test("updateAuctionItem rejects lower prices for paid items", async () => {
+  let updateCalled = false;
+  let containerLookupCalled = false;
+
+  const tx = {
+    auctions_bidders: {
+      findFirst: async ({
+        where,
+      }: {
+        where: {
+          auction_id?: string;
+          bidder?: { bidder_number?: string };
+        };
+      }) => {
+        if (
+          where.auction_id === "auction-1" &&
+          where.bidder?.bidder_number === "0002"
+        ) {
+          return {
+            auction_bidder_id: "bidder-2",
+            service_charge: 5,
+          };
+        }
+
+        return null;
+      },
+    },
+    containers: {
+      findFirst: async () => {
+        containerLookupCalled = true;
+        return null;
+      },
+    },
+    auctions_inventories: {
+      findFirst: async () => ({
+        auction_inventory_id: "ai-1",
+        inventory_id: "inv-1",
+        auction_bidder_id: "bidder-1",
+        status: "PAID",
+        price: 500,
+        qty: "1",
+        description: "ITEM",
+        manifest_number: "M1",
+        inventory: {
+          inventory_id: "inv-1",
+          barcode: "32-04-001",
+          control: "0001",
+          container_id: "container-1",
+          sales_allocation: "CONTAINER",
+          sales_allocation_reason: "NORMAL",
+          sales_allocation_note: null,
+        },
+        auction_bidder: {
+          bidder: { bidder_number: "0001" },
+        },
+      }),
+      update: async () => {
+        updateCalled = true;
+        return undefined;
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await assert.rejects(
+    () =>
+      InventoryRepository.updateAuctionItem({
+        auction_id: "auction-1",
+        auction_inventory_id: "ai-1",
+        inventory_id: "inv-1",
+        barcode: "32-04-001",
+        control: "0001",
+        description: "ITEM",
+        price: 400,
+        qty: "1",
+        manifest_number: "M1",
+        bidder_number: "0002",
+        container_id: "container-1",
+      }),
+    (error: unknown) => {
+      assert.ok(error instanceof InputParseError);
+      assert.match(String(error.cause?.price?.[0]), /refund process/);
+      return true;
+    },
+  );
+
+  assert.equal(updateCalled, false);
+  assert.equal(containerLookupCalled, false);
 });
 
 test("applyDirectBoughtItem records direct bought items as paid bought inventory", async () => {
