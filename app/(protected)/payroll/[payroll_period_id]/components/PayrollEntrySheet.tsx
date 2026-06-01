@@ -69,6 +69,10 @@ type DeductionDraft = { _key: string } & Omit<
 let _key = 0;
 const nextKey = () => String(++_key);
 
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
 function initEarnings(entry: PayrollEntry | null): EarningDraft[] {
   if (!entry) return [];
   return entry.earnings.map((e) => ({ ...e, _key: nextKey() }));
@@ -159,6 +163,12 @@ export const PayrollEntrySheet: React.FC<Props> = ({
   }, [open, periodId]);
 
   // Live preview
+  const regularCount = workedDates.filter((d) => d.type === "REGULAR").length;
+  const auctionCount = workedDates.filter((d) => d.type === "AUCTION").length;
+  const leaveCount = workedDates.filter((d) => d.type === "LEAVE").length;
+  const hasExplicitAuction = earnings.some(
+    (e) => e.type === "AUCTION" && Number(e.amount) > 0,
+  );
   const breakdown = selectedEmployee
     ? computeBasicPayFromDays({
         salary_type: selectedEmployee.salary_type,
@@ -168,8 +178,11 @@ export const PayrollEntrySheet: React.FC<Props> = ({
         worked_dates: workedDates,
       })
     : null;
-  const basicPay = breakdown?.basic_pay ?? entry?.basic_pay ?? 0;
-  const autoAuction = breakdown?.auction_earning ?? 0;
+  const basicPay =
+    selectedEmployee?.salary_type === "DAILY_RATE" && hasExplicitAuction
+      ? round2((selectedEmployee.default_daily_rate ?? 0) * (regularCount + auctionCount))
+      : breakdown?.basic_pay ?? entry?.basic_pay ?? 0;
+  const autoAuction = hasExplicitAuction ? 0 : breakdown?.auction_earning ?? 0;
 
   const otHourPay = (Number(otHours) || 0) * (Number(otHourRate) || 0);
   const otMinutePay = (Number(otMinutes) || 0) * (Number(otMinuteRate) || 0);
@@ -236,10 +249,9 @@ export const PayrollEntrySheet: React.FC<Props> = ({
         (e) =>
           !["BASIC_PAY", "OVERTIME_HOUR", "OVERTIME_MINUTE"].includes(e.type),
       );
-
-      const regularCount = workedDates.filter((d) => d.type === "REGULAR").length;
-      const auctionCount = workedDates.filter((d) => d.type === "AUCTION").length;
-      const leaveCount = workedDates.filter((d) => d.type === "LEAVE").length;
+      const shouldPreserveAuction = extraEarnings.some(
+        (e) => e.type === "AUCTION" && Number(e.amount) > 0,
+      );
 
       const payload = {
         payroll_period_id: periodId,
@@ -251,15 +263,20 @@ export const PayrollEntrySheet: React.FC<Props> = ({
         ot_rate_is_manual: otManual,
         ot_hour_rate_snapshot: otManual ? Number(otHourRate) || null : null,
         ot_minute_rate_snapshot: otManual ? Number(otMinuteRate) || null : null,
+        preserve_uploaded_basic_pay: true,
+        preserve_uploaded_auction: shouldPreserveAuction,
         worked_dates: workedDates,
         remarks: remarks || null,
-        earnings: extraEarnings.map((e) => ({
-          type: e.type,
-          amount: Number(e.amount) || 0,
-          quantity: e.quantity ?? null,
-          rate: e.rate ?? null,
-          remarks: e.remarks ?? null,
-        })),
+        earnings: [
+          { type: "BASIC_PAY" as const, amount: basicPay, remarks: null },
+          ...extraEarnings.map((e) => ({
+            type: e.type,
+            amount: Number(e.amount) || 0,
+            quantity: e.quantity ?? null,
+            rate: e.rate ?? null,
+            remarks: e.remarks ?? null,
+          })),
+        ],
         deductions: deductions.map((d) => ({
           type: d.type,
           amount: Number(d.amount) || 0,
