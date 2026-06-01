@@ -1000,7 +1000,7 @@ export const InventoryRepository: IInventoryRepository = {
       return await prisma.inventories.findMany({
         where: {
           is_bought_item: { not: null, gt: 0 },
-          auction_date: { gte: start, lt: end },
+          created_at: { gte: start, lt: end },
           container: { branch_id: params.branchId },
         },
         include: {
