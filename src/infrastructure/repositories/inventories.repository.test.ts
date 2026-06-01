@@ -460,3 +460,177 @@ test("applyDirectBoughtItem records direct bought items as paid bought inventory
     },
   ]);
 });
+
+test("applyDirectBoughtItem reuses refunded auction rows instead of recreating them", async () => {
+  const auctionDate = new Date("2026-05-23T00:00:00.000Z");
+  const auctionInventoryCreates: Array<{ data: Record<string, unknown> }> = [];
+  const auctionInventoryUpdates: Array<{
+    where: Record<string, unknown>;
+    data: Record<string, unknown>;
+  }> = [];
+  const inventoryUpdates: Array<{
+    where: { inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const historyCreates: Array<{ data: Record<string, unknown> }> = [];
+
+  const tx = {
+    auctions_bidders: {
+      findFirst: async ({
+        where,
+      }: {
+        where: {
+          auction_bidder_id?: string;
+          auction_id?: string;
+          bidder?: { bidder_number?: string };
+        };
+      }) => {
+        if (
+          where.auction_id === "auction-1" &&
+          where.bidder?.bidder_number === "5013"
+        ) {
+          return {
+            auction_bidder_id: "atc-bidder",
+            service_charge: 10,
+            registration_fee: 0,
+            already_consumed: 1,
+          };
+        }
+
+        if (where.auction_bidder_id === "atc-bidder") {
+          return {
+            auction_bidder_id: "atc-bidder",
+            service_charge: 10,
+            registration_fee: 0,
+            already_consumed: 1,
+            auctions_inventories: [
+              {
+                status: "PAID",
+                price: 100,
+                histories: [],
+              },
+            ],
+          };
+        }
+
+        return null;
+      },
+      update: async () => ({ balance: 0 }),
+    },
+    inventories: {
+      findFirst: async () => ({
+        inventory_id: "inventory-1",
+        barcode: "43-145-318",
+        control: "0180",
+        description: "KW",
+        status: "UNSOLD",
+        auctions_inventory: {
+          auction_inventory_id: "refunded-auction-inventory",
+          status: "REFUNDED",
+          receipt_id: "refund-receipt",
+        },
+        container: {
+          container_id: "container-1",
+          barcode: "43-145",
+          status: null,
+        },
+      }),
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        inventoryUpdates.push({ where, data });
+        return { where, data };
+      },
+    },
+    auctions_inventories: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        auctionInventoryCreates.push({ data });
+        return {
+          auction_inventory_id: "new-auction-inventory",
+          ...data,
+        };
+      },
+      update: async ({
+        where,
+        data,
+      }: {
+        where: Record<string, unknown>;
+        data: Record<string, unknown>;
+      }) => {
+        auctionInventoryUpdates.push({ where, data });
+        return {
+          auction_inventory_id: "refunded-auction-inventory",
+          ...data,
+        };
+      },
+      delete: async () => {
+        throw new Error("refunded auction row should not be deleted");
+      },
+    },
+    inventory_histories: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        historyCreates.push({ data });
+        return { data };
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await InventoryRepository.applyDirectBoughtItem({
+    inventory_id: "inventory-1",
+    auction_id: "auction-1",
+    auction_date: auctionDate.toISOString(),
+    price: 100,
+    qty: "1",
+  });
+
+  assert.equal(auctionInventoryCreates.length, 0);
+  assert.deepEqual(auctionInventoryUpdates, [
+    {
+      where: { auction_inventory_id: "refunded-auction-inventory" },
+      data: {
+        auction_bidder_id: "atc-bidder",
+        description: "KW",
+        status: "PAID",
+        price: 100,
+        qty: "1",
+        manifest_number: "BOUGHT ITEM",
+        auction_date: auctionDate,
+        receipt_id: null,
+      },
+    },
+  ]);
+  assert.equal(
+    historyCreates[0].data.auction_inventory_id,
+    "refunded-auction-inventory",
+  );
+  assert.equal(historyCreates[0].data.auction_status, "PAID");
+  assert.equal(historyCreates[0].data.inventory_status, "BOUGHT_ITEM");
+  assert.deepEqual(inventoryUpdates[0], {
+    where: { inventory_id: "inventory-1" },
+    data: {
+      status: "BOUGHT_ITEM",
+      is_bought_item: 100,
+      auction_date: auctionDate,
+      sales_allocation: "CONTAINER",
+      sales_allocation_reason: "NORMAL",
+      sales_allocation_note: null,
+    },
+  });
+});

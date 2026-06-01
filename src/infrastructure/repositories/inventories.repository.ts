@@ -1404,7 +1404,7 @@ export const InventoryRepository: IInventoryRepository = {
             return;
           }
           throw new NotFoundError(
-            `Inventory ${data.inventory_id} (barcode ${inventory.barcode}, control ${inventory.control ?? "NC"}) is no longer UNSOLD (current status: ${inventory.status}).`,
+            `Item ${inventory.barcode} (control ${inventory.control ?? "NC"}) is no longer UNSOLD (current status: ${inventory.status}).`,
           );
         }
 
@@ -1462,31 +1462,57 @@ export const InventoryRepository: IInventoryRepository = {
             return;
           }
           throw new NotFoundError(
-            `Inventory ${data.inventory_id} (barcode ${targetInventory.barcode}, control ${targetInventory.control ?? "NC"}) is no longer UNSOLD (current status: ${targetInventory.status}).`,
+            `Item ${targetInventory.barcode} (control ${targetInventory.control ?? "NC"}) is no longer UNSOLD (current status: ${targetInventory.status}).`,
           );
         }
-        if (targetInventory.auctions_inventory) {
-          throw new NotFoundError(
-            `Inventory ${data.inventory_id} (barcode ${targetInventory.barcode}, control ${targetInventory.control ?? "NC"}) already has an auction record.`,
-          );
-        }
-
         const auctionDate = data.auction_date
           ? new Date(data.auction_date)
           : new Date();
 
-        const created = await tx.auctions_inventories.create({
-          data: {
-            auction_bidder_id: atcBidder.auction_bidder_id,
-            inventory_id: data.inventory_id,
-            description: targetInventory.description,
-            status: "PAID",
-            price: data.price,
-            qty: data.qty,
-            manifest_number: "BOUGHT ITEM",
-            auction_date: auctionDate,
-          },
-        });
+        let auctionInventoryId: string;
+        if (targetInventory.auctions_inventory) {
+          // A refunded/cancelled item returns to the UNSOLD pool but keeps its
+          // inactive auction record. Reuse that row so history remains attached
+          // to one auction item, while clearing the old refund/cancel receipt link.
+          const existingStatus = targetInventory.auctions_inventory.status;
+          if (existingStatus !== "CANCELLED" && existingStatus !== "REFUNDED") {
+            throw new NotFoundError(
+              `Item ${targetInventory.barcode} (control ${targetInventory.control ?? "NC"}) already has an active auction record (status: ${existingStatus}).`,
+            );
+          }
+
+          const updated = await tx.auctions_inventories.update({
+            where: {
+              auction_inventory_id:
+                targetInventory.auctions_inventory.auction_inventory_id,
+            },
+            data: {
+              auction_bidder_id: atcBidder.auction_bidder_id,
+              description: targetInventory.description,
+              status: "PAID",
+              price: data.price,
+              qty: data.qty,
+              manifest_number: "BOUGHT ITEM",
+              auction_date: auctionDate,
+              receipt_id: null,
+            },
+          });
+          auctionInventoryId = updated.auction_inventory_id;
+        } else {
+          const created = await tx.auctions_inventories.create({
+            data: {
+              auction_bidder_id: atcBidder.auction_bidder_id,
+              inventory_id: data.inventory_id,
+              description: targetInventory.description,
+              status: "PAID",
+              price: data.price,
+              qty: data.qty,
+              manifest_number: "BOUGHT ITEM",
+              auction_date: auctionDate,
+            },
+          });
+          auctionInventoryId = created.auction_inventory_id;
+        }
 
         await tx.inventories.update({
           where: { inventory_id: data.inventory_id },
@@ -1503,7 +1529,7 @@ export const InventoryRepository: IInventoryRepository = {
 
         await tx.inventory_histories.create({
           data: {
-            auction_inventory_id: created.auction_inventory_id,
+            auction_inventory_id: auctionInventoryId,
             inventory_id: data.inventory_id,
             auction_status: "PAID",
             inventory_status: "BOUGHT_ITEM",
