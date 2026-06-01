@@ -40,10 +40,14 @@ export const finalizeFinalReportUseCase = async (input: {
   // 1) Manual merges staged from the UNSOLD overview
   for (const merge of draft.merged_inventories) {
     const result = await InventoryRepository.mergeInventories(merge);
-    mergedInventories.push({
-      entity_id: merge.new_inventory_id,
-      result,
-    });
+    // null = the merge was already applied by a prior (partially-completed)
+    // finalize attempt and was skipped as a no-op; nothing to log.
+    if (result) {
+      mergedInventories.push({
+        entity_id: merge.new_inventory_id,
+        result,
+      });
+    }
   }
 
   // 2) VOIDs

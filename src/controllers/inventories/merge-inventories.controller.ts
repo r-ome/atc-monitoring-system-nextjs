@@ -23,18 +23,21 @@ export const MergeInventoriesController = async (
     }
 
     const mergeResult = await InventoryRepository.mergeInventories(data);
-    const description = JSON.stringify({
-      type: "merged_inventories",
-      summary: `Merged inventories into container ${mergeResult.merged_into_barcode}`,
-      items: mergeResult.items,
-    });
+    // null = merge already applied (idempotent no-op); nothing to log.
+    if (mergeResult) {
+      const description = JSON.stringify({
+        type: "merged_inventories",
+        summary: `Merged inventories into container ${mergeResult.merged_into_barcode}`,
+        items: mergeResult.items,
+      });
 
-    await logActivity(
-      "UPDATE",
-      "inventory",
-      data.new_inventory_id,
-      description,
-    );
+      await logActivity(
+        "UPDATE",
+        "inventory",
+        data.new_inventory_id,
+        description,
+      );
+    }
     return ok({});
   } catch (error) {
     if (error instanceof InputParseError) {

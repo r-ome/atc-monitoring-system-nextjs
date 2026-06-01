@@ -78,7 +78,7 @@ export interface IInventoryRepository {
   ) => Promise<InventoryRow>;
   mergeInventories: (
     data: MergeInventoriesInput,
-  ) => Promise<MergeInventoriesResult>;
+  ) => Promise<MergeInventoriesResult | null>;
   applySplitBoughtItems: (
     data: ApplyFinalReportQtySplitInput,
     updated_by?: string,

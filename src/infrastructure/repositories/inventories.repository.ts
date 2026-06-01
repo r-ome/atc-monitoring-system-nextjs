@@ -1116,6 +1116,16 @@ export const InventoryRepository: IInventoryRepository = {
           }),
         ]);
 
+        // Idempotency guard for non-atomic finalize replays. A prior finalize
+        // attempt may have committed this merge (relinking the SOLD item's
+        // auction record to the surviving inventory and soft-deleting the old
+        // inventory) before a later step failed and left the draft intact. On
+        // retry the same merge is replayed; treat the already-applied state as
+        // a no-op instead of throwing.
+        if (old_inventory && old_inventory.deleted_at && !old_auction_inventory) {
+          return null;
+        }
+
         if (!old_inventory || !new_inventory || !old_auction_inventory) {
           const missing: string[] = [];
           if (!old_inventory)
@@ -1386,6 +1396,13 @@ export const InventoryRepository: IInventoryRepository = {
             `Inventory ${data.inventory_id} not found.`,
           );
         if (inventory.status !== "UNSOLD") {
+          // Idempotency guard for finalize replays: a prior attempt may have
+          // already voided this item before a later step failed and left the
+          // draft intact. The desired end state is already achieved, so treat
+          // the replay as a no-op instead of throwing.
+          if (inventory.status === "VOID") {
+            return;
+          }
           throw new NotFoundError(
             `Inventory ${data.inventory_id} (barcode ${inventory.barcode}, control ${inventory.control ?? "NC"}) is no longer UNSOLD (current status: ${inventory.status}).`,
           );
@@ -1433,6 +1450,17 @@ export const InventoryRepository: IInventoryRepository = {
             `Inventory ${data.inventory_id} not found.`,
           );
         if (targetInventory.status !== "UNSOLD") {
+          // Idempotency guard for finalize replays: a prior attempt may have
+          // already converted this item to a bought item (auction record +
+          // ATC balance sync) before a later step failed and left the draft
+          // intact. Treat the already-applied state as a no-op.
+          if (
+            targetInventory.status === "BOUGHT_ITEM" &&
+            targetInventory.auctions_inventory?.manifest_number ===
+              "BOUGHT ITEM"
+          ) {
+            return;
+          }
           throw new NotFoundError(
             `Inventory ${data.inventory_id} (barcode ${targetInventory.barcode}, control ${targetInventory.control ?? "NC"}) is no longer UNSOLD (current status: ${targetInventory.status}).`,
           );
