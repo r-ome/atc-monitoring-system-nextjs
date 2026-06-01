@@ -150,6 +150,8 @@ export const upsertPayrollEntrySchema = z.object({
   ot_rate_is_manual: z.coerce.boolean().default(false),
   ot_hour_rate_snapshot: z.coerce.number().optional().nullable(),
   ot_minute_rate_snapshot: z.coerce.number().optional().nullable(),
+  preserve_uploaded_basic_pay: z.coerce.boolean().default(false),
+  preserve_uploaded_auction: z.coerce.boolean().default(false),
   worked_dates: z.array(workedDateSchema).optional().nullable(),
   remarks: z.string().optional().nullable(),
   earnings: z.array(earningInputSchema).default([]),

@@ -142,6 +142,7 @@ export type PayrollSheetRow = {
   otMinPay: number | null;
   auction: number | null;
   container: number | null;
+  otherEarning: number | null;
   leaveWithPay: number | null;
   holiday: number | null;
   grossPay: number | null;
@@ -233,6 +234,7 @@ export const getPayrollRegularSheetData = (
       otMinPay: ["OT PAY", "OT MINUTE PAY", "OT PAY (MINUTES)"],
       auction: ["AUCTION"],
       container: ["CONTAINER"],
+      otherEarning: ["OTHER", "OTHER EARNING"],
       leaveWithPay: ["LEAVE WITH PAY", "LEAVE W/ PAY", "LEAVE W/PAY"],
       holiday: ["HOLIDAY"],
       grossPay: ["GROSS PAY"],
@@ -240,7 +242,7 @@ export const getPayrollRegularSheetData = (
       pagibig: ["PAG IBIG", "PAGIBIG", "PAG-IBIG"],
       sss: ["SSS"],
       pagibigLoan: ["PAG IBIG LOAN", "PAGIBIG LOAN", "PAG-IBIG LOAN"],
-      others: ["OTHERS", "OTHER"],
+      others: ["OTHERS", "OTHER DEDUCTION"],
       slc: ["SLC"],
       late: ["LATE", "LATES"],
       undertime: ["UNDERTIME"],
@@ -305,6 +307,7 @@ export const getPayrollRegularSheetData = (
         otMinPay: cellNum(r, "otMinPay"),
         auction: cellNum(r, "auction"),
         container: cellNum(r, "container"),
+        otherEarning: cellNum(r, "otherEarning"),
         leaveWithPay: cellNum(r, "leaveWithPay"),
         holiday: cellNum(r, "holiday"),
         grossPay: cellNum(r, "grossPay"),

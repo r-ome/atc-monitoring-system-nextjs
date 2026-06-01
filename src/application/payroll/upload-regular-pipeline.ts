@@ -262,8 +262,9 @@ export function validateRegularUpload(
     const otHours = row.otHour ?? 0;
     const otMinutes = row.otMin ?? 0;
 
+    const basicPay = row.basicPay ?? breakdown.basic_pay;
     const earnings: RegularUploadEarning[] = [
-      { type: "BASIC_PAY", amount: breakdown.basic_pay },
+      { type: "BASIC_PAY", amount: basicPay },
     ];
     if (otHours > 0 && otHourRate > 0) {
       earnings.push({
@@ -290,6 +291,9 @@ export function validateRegularUpload(
     }
     if ((row.container ?? 0) > 0) {
       earnings.push({ type: "CONTAINER", amount: row.container ?? 0 });
+    }
+    if ((row.otherEarning ?? 0) > 0) {
+      earnings.push({ type: "OTHER_EARNING", amount: row.otherEarning ?? 0 });
     }
     if ((row.leaveWithPay ?? 0) > 0) {
       earnings.push({ type: "LEAVE_WITH_PAY", amount: row.leaveWithPay ?? 0 });
@@ -320,7 +324,7 @@ export function validateRegularUpload(
     const totals = computeEntryTotals(routed.earnings, routed.deductions);
 
     res.computed = {
-      basic_pay: breakdown.basic_pay,
+      basic_pay: basicPay,
       gross_pay: totals.gross_pay,
       total_deductions: totals.total_deductions,
       net_pay: totals.net_pay,
@@ -339,9 +343,9 @@ export function validateRegularUpload(
     ) => {
       mismatches.push({ field, sheet, computed, delta: computed - sheet });
     };
-    if (row.basicPay != null && !eq(row.basicPay, breakdown.basic_pay)) {
-      pushMismatch("Basic Pay", row.basicPay, breakdown.basic_pay);
-      res.basic_pay_delta = breakdown.basic_pay - (row.basicPay ?? 0);
+    if (row.basicPay != null && !eq(row.basicPay, basicPay)) {
+      pushMismatch("Basic Pay", row.basicPay, basicPay);
+      res.basic_pay_delta = basicPay - (row.basicPay ?? 0);
     }
     // For non-declared employees we route SSS/PH/PI into earnings as
     // *_ALLOWANCE rows, which inflates our gross above what the sheet's

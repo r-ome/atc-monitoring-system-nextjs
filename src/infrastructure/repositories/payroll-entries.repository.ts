@@ -128,14 +128,21 @@ export const PayrollEntryRepository: IPayrollEntryRepository = {
           })
         : null;
 
-      const basicPay = breakdown
-        ? breakdown.basic_pay
-        : computeBasicPay({
-            salary_type: snapshot.salary_type_snapshot,
-            daily_rate: snapshot.daily_rate_snapshot,
-            monthly_salary: snapshot.monthly_salary_snapshot,
-            days_worked: input.days_worked,
-          });
+      const uploadedBasicPay = input.earnings.find(
+        (e) => e.type === "BASIC_PAY" && e.amount > 0,
+      );
+
+      const basicPay =
+        input.preserve_uploaded_basic_pay && uploadedBasicPay
+          ? uploadedBasicPay.amount
+          : breakdown
+            ? breakdown.basic_pay
+            : computeBasicPay({
+                salary_type: snapshot.salary_type_snapshot,
+                daily_rate: snapshot.daily_rate_snapshot,
+                monthly_salary: snapshot.monthly_salary_snapshot,
+                days_worked: input.days_worked,
+              });
 
       const derivedDaysWorked = breakdown
         ? breakdown.regular_days + breakdown.auction_days
@@ -146,6 +153,9 @@ export const PayrollEntryRepository: IPayrollEntryRepository = {
       const autoEarnings = input.earnings.filter(
         (e) => e.type !== "OVERTIME_HOUR" && e.type !== "OVERTIME_MINUTE" && e.type !== "BASIC_PAY"
       );
+      const preserveUploadedAuction =
+        input.preserve_uploaded_auction &&
+        autoEarnings.some((e) => e.type === "AUCTION" && e.amount > 0);
 
       const basicPayEarning = {
         type: "BASIC_PAY" as const,
@@ -175,7 +185,7 @@ export const PayrollEntryRepository: IPayrollEntryRepository = {
           }
         : null;
 
-      const autoAuctionEarning = breakdown && breakdown.auction_earning > 0
+      const autoAuctionEarning = !preserveUploadedAuction && breakdown && breakdown.auction_earning > 0
         ? {
             type: "AUCTION" as const,
             amount: breakdown.auction_earning,
@@ -185,9 +195,9 @@ export const PayrollEntryRepository: IPayrollEntryRepository = {
           }
         : null;
 
-      // When worked_dates drives the breakdown, drop any user-supplied AUCTION
-      // earning rows — the auto computation is authoritative.
-      const extraEarnings = hasWorkedDates
+      // Manual entry saves still let worked_dates drive auction pay. Upload
+      // saves can preserve the workbook's explicit AUCTION amount.
+      const extraEarnings = hasWorkedDates && !preserveUploadedAuction
         ? autoEarnings.filter((e) => e.type !== "AUCTION")
         : autoEarnings;
 
@@ -415,6 +425,8 @@ export const PayrollEntryRepository: IPayrollEntryRepository = {
           ot_rate_is_manual: false,
           ot_hour_rate_snapshot: null,
           ot_minute_rate_snapshot: null,
+          preserve_uploaded_basic_pay: true,
+          preserve_uploaded_auction: true,
           worked_dates: row.worked_dates ?? null,
           remarks: row.remarks ?? null,
           earnings: row.earnings,
