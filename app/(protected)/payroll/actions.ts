@@ -54,7 +54,7 @@ export const createPayrollPeriod = async (formData: FormData) => {
 };
 
 export const postPayrollPeriod = async (payroll_period_id: string) => {
-  const auth = await authorizeAction({ allowedRoles: ["OWNER", "SUPER_ADMIN"] });
+  const auth = await authorizeAction({ allowedRoles: ["OWNER", "SUPER_ADMIN", "CASHIER"] });
   if (!auth.ok) return auth;
   return runWithUserContext(auth.value, () => PostPayrollPeriodController(payroll_period_id));
 };

@@ -18,6 +18,7 @@ export default async function PayrollPeriodPage({
   const session = await requireSession();
   const { user } = session;
   const isAdmin = ["SUPER_ADMIN", "OWNER"].includes(user.role);
+  const canWrite = ["SUPER_ADMIN", "OWNER", "CASHIER"].includes(user.role);
 
   const [period_res, entries_res, employees_res] = await Promise.all([
     getPayrollPeriod(payroll_period_id),
@@ -47,6 +48,7 @@ export default async function PayrollPeriodPage({
         entries={entries_res.value}
         employees={employees_res.value}
         isAdmin={isAdmin}
+        canWrite={canWrite}
         branchId={user.branch.branch_id}
       />
     </PageContainer>

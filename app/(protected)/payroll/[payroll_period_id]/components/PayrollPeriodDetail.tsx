@@ -185,7 +185,7 @@ export const PayrollPeriodDetail: React.FC<Props> = ({
                 <Button onClick={handleNewEntry}>Add Entry</Button>
               </>
             )}
-            {isAdmin && (
+            {canWrite && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button

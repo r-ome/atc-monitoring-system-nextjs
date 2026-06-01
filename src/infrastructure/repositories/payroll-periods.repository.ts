@@ -102,21 +102,20 @@ export const PayrollPeriodRepository: IPayrollPeriodRepository = {
       });
       const paidAt = period.pay_date ?? new Date();
 
-      // Petty cash guard: refuse to post if the branch's running balance
-      // as of the pay date can't cover the total net pay we're about to
-      // emit as SALARY expenses.
+      // Petty cash guard: refuse to post if the branch's latest running
+      // balance can't cover the total net pay we're about to emit as
+      // SALARY expenses.
       const totalNetPay = entries.reduce((s, e) => s + e.net_pay.toNumber(), 0);
       const dateStr = formatInTimeZone(paidAt, TZ, "yyyy-MM-dd");
       if (totalNetPay > 0) {
-        const endOfDay = fromZonedTime(`${dateStr} 23:59:59.999`, TZ);
         const pettyCash = await prisma.petty_cash.findFirst({
-          where: { branch_id: period.branch_id, created_at: { lte: endOfDay } },
+          where: { branch_id: period.branch_id },
           orderBy: { created_at: "desc" },
         });
         const balance = pettyCash?.amount.toNumber() ?? 0;
         if (balance < totalNetPay) {
           throw new DatabaseOperationError(
-            `Petty cash balance ${formatNumberToCurrency(balance)} on ${dateStr} is not enough to cover total payroll ${formatNumberToCurrency(totalNetPay)}.`,
+            `Current petty cash balance ${formatNumberToCurrency(balance)} is not enough to cover total payroll ${formatNumberToCurrency(totalNetPay)}.`,
           );
         }
       }
