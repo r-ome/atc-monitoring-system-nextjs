@@ -174,13 +174,18 @@ export const ResolveStep = ({
       })
       .filter((row) => row.barcode.split("-").length === 2);
   }, [preview?.appendable_unsold_items, preview?.report.monitoring]);
-  const soldMultiQty = useMemo(
+  // SOLD lots that can absorb an UNSOLD item. A split carves price off the
+  // source and adds a separate qty-1 row for the UNSOLD item — the source's
+  // own qty is never reduced (see replay in get-final-report-preview). So a
+  // qty-1 lot is a valid source too: it stays qty 1 and the UNSOLD item
+  // becomes its own qty-1 row.
+  const splitCandidates = useMemo(
     () =>
       (preview?.report.monitoring ?? []).filter(
         (row) =>
           row.bidder_number !== "5013" &&
           /^\d+$/.test(row.qty.trim()) &&
-          Number(row.qty) > 1,
+          Number(row.qty) >= 1,
       ),
     [preview?.report.monitoring],
   );
@@ -641,7 +646,7 @@ export const ResolveStep = ({
           [
             { kind: "merge", label: "Merge", Icon: ArrowRight, desc: "Attach this UNSOLD to a similar SOLD record (1:1)." },
             { kind: "buy", label: "Buy", Icon: Package, desc: "Sell it to the house bidder at a chosen price." },
-            { kind: "split", label: "Split", Icon: Filter, desc: "Absorb into a multi-qty SOLD lot. Original row untouched." },
+            { kind: "split", label: "Split", Icon: Filter, desc: "Absorb into a SOLD lot, carving off part of its price. Original row untouched." },
             { kind: "void", label: "Void", Icon: X, desc: "Remove from the final report. Use for missing or broken items." },
           ] as const
         ).map((entry) => (
@@ -686,7 +691,7 @@ export const ResolveStep = ({
               unsold={
                 allAttention.find((i) => i.inventory_id === pane.sourceId)!
               }
-              candidates={soldMultiQty}
+              candidates={splitCandidates}
               existingTotalsByCandidate={existingSplitTotalByCandidate}
               disabled={working}
               onConfirm={(target, price) =>
@@ -950,15 +955,15 @@ const SplitPaneBody = ({
   const [priceInput, setPriceInput] = useState("");
   const [q, setQ] = useState("");
   const [sameDescOnly, setSameDescOnly] = useState(true);
+  const [multiQtyOnly, setMultiQtyOnly] = useState(false);
 
   const picked = candidates.find((c) => c.auction_inventory_id === pickedId);
 
-  // Default per-unit price uses the SOLD lot's existing qty (not qty + 1).
-  // A 2-qty lot at ₱10,000 should suggest ₱5,000 per unit; using qty + 1
-  // would under-price the split and under-deduct the source row in the
-  // generated report.
+  // Default per-unit price. A multi-qty lot divides by its existing qty
+  // (a 2-qty lot at ₱10,000 suggests ₱5,000); a qty-1 lot has no existing
+  // per-unit split, so splitting it produces two units — suggest half.
   const autoPrice = picked
-    ? Math.round(picked.price / Math.max(1, Number(picked.qty)) / 100) * 100
+    ? Math.round(picked.price / Math.max(2, Number(picked.qty)) / 100) * 100
     : 0;
 
   const effectivePrice =
@@ -968,15 +973,20 @@ const SplitPaneBody = ({
   const sameDescMatches = candidates.filter(
     (c) => c.description.trim().toUpperCase() === normalizedUnsoldDesc,
   );
+  const multiQtyMatches = candidates.filter((c) => Number(c.qty) > 1);
   const baseCandidates =
     sameDescOnly && sameDescMatches.length > 0 ? sameDescMatches : candidates;
+  const qtyFiltered =
+    multiQtyOnly && multiQtyMatches.length > 0
+      ? baseCandidates.filter((c) => Number(c.qty) > 1)
+      : baseCandidates;
   const filtered = q
-    ? baseCandidates.filter((c) =>
+    ? qtyFiltered.filter((c) =>
         `${c.barcode} ${c.control} ${c.description}`
           .toUpperCase()
           .includes(q.toUpperCase()),
       )
-    : baseCandidates;
+    : qtyFiltered;
 
   return (
     <>
@@ -988,8 +998,8 @@ const SplitPaneBody = ({
           <span className="font-mono">{unsold.barcode}</span> · {unsold.description}
         </SheetTitle>
         <p className="text-[12.5px] text-muted-foreground">
-          Pick a SOLD lot with multiple quantity. We&apos;ll move one unit
-          from it to this UNSOLD item.
+          Pick a SOLD lot. We&apos;ll carve part of its price into this UNSOLD
+          item as a separate qty-1 row — the SOLD lot keeps its own qty.
         </p>
       </SheetHeader>
 
@@ -997,7 +1007,7 @@ const SplitPaneBody = ({
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search multi-qty SOLD lots…"
+          placeholder="Search SOLD lots…"
           className="h-8 text-[13px]"
         />
         <label className="flex cursor-pointer items-center gap-2 text-[12px] text-muted-foreground">
@@ -1020,12 +1030,32 @@ const SplitPaneBody = ({
             )}
           </span>
         </label>
+        <label className="flex cursor-pointer items-center gap-2 text-[12px] text-muted-foreground">
+          <Checkbox
+            checked={multiQtyOnly}
+            onCheckedChange={(v) => setMultiQtyOnly(v === true)}
+            disabled={multiQtyMatches.length === 0}
+          />
+          <span>
+            Multi-qty only
+            {multiQtyMatches.length > 0 ? (
+              <span className="ml-1 opacity-70">
+                ({multiQtyMatches.length}{" "}
+                {multiQtyMatches.length === 1 ? "lot" : "lots"})
+              </span>
+            ) : (
+              <span className="ml-1 opacity-70">
+                (none — showing all)
+              </span>
+            )}
+          </span>
+        </label>
       </div>
 
       <div className="flex-1 overflow-auto px-2.5 py-2">
         {filtered.length === 0 ? (
           <p className="px-2 py-4 text-[12.5px] text-muted-foreground">
-            No multi-qty SOLD lots available.
+            No SOLD lots available.
           </p>
         ) : (
           filtered.map((c) => {
@@ -1037,7 +1067,7 @@ const SplitPaneBody = ({
             // hint a value the confirm button would reject.
             const suggest = Math.min(
               remainingBudget,
-              Math.round(c.price / Math.max(1, Number(c.qty)) / 100) * 100,
+              Math.round(c.price / Math.max(2, Number(c.qty)) / 100) * 100,
             );
             return (
               <button

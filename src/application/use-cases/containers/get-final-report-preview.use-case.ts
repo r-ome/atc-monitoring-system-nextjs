@@ -129,7 +129,7 @@ const applyDraftToPreviewState = ({
     };
   });
 
-  // Apply qty splits: reduce source row's qty/price, append synthetic rows for each split target
+  // Apply qty splits: reduce source row's price (qty floored at 1), append synthetic rows for each split target
   const monitoringByAuctionInventoryId = new Map(
     monitoring.map((r, i) => [r.auction_inventory_id, i]),
   );
@@ -158,9 +158,13 @@ const applyDraftToPreviewState = ({
         status: "SOLD",
       });
     }
+    // A split SOLD lot never drops below qty 1: the split carves off price
+    // and adds a separate qty-1 row, it does not consume the source's own
+    // unit. This matches the committed report (splitReductionMap reduces
+    // price only) and lets a qty-1 lot stay qty 1 after a split.
     monitoring[idx] = {
       ...sourceRow,
-      qty: String(Math.max(0, remainingQty)),
+      qty: String(Math.max(1, remainingQty)),
       price: Math.max(0, remainingPrice),
     };
   }
