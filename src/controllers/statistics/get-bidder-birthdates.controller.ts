@@ -13,6 +13,7 @@ function presenter(bidders: BiddersWithBirthdatesAndRecentAuctionSchema[]) {
     last_name: bidder.last_name,
     age: bidder.age,
     bidder_number: bidder.bidder_number,
+    branch_name: bidder.branch_name,
     birthdate: formatDate(new Date(bidder.birthdate), date_format),
     last_auction_date: bidder.last_auction_date
       ? formatDate(new Date(bidder.last_auction_date), date_format)

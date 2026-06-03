@@ -104,13 +104,14 @@ function presentBidderBirthdays(
       details: {
         bidder_id: bidder.bidder_id,
         bidder_number: bidder.bidder_number,
+        branch_name: bidder.branch_name,
         full_name: `${bidder.first_name} ${bidder.last_name}`,
         birthdate: formatDate(birthdate, "MMM d"),
         age: bidder.age,
         last_auction_date: bidder.last_auction_date
           ? formatDate(new Date(bidder.last_auction_date), "MMM d, yyyy")
           : "N/A",
-        route_path: `/bidders/${bidder.bidder_number}`,
+        route_path: `/bidders/${bidder.bidder_number}-${bidder.branch_name}`,
       },
     };
   });

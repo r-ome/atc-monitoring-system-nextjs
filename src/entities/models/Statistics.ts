@@ -113,6 +113,7 @@ export type HomeCalendarBidderBirthdayEvent = HomeCalendarEventBase & {
   details: {
     bidder_id: string;
     bidder_number: string;
+    branch_name: string;
     full_name: string;
     birthdate: string;
     age: string;

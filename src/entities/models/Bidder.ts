@@ -215,6 +215,7 @@ export type BiddersWithBirthdatesAndRecentAuctionSchema = {
   bidder_number: string;
   first_name: string;
   last_name: string;
+  branch_name: string;
   birthdate: string;
   age: string;
   last_auction_date: string;

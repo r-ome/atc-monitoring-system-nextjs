@@ -25,10 +25,12 @@ export const StatisticsRepository: IStatisticsRepository = {
             b.first_name,
             b.last_name,
             b.bidder_number,
+            br.name AS branch_name,
             b.birthdate,
             TIMESTAMPDIFF(YEAR, b.birthdate, CURDATE()) AS age,
             ab.created_at AS last_auction_date
           FROM bidders b
+          INNER JOIN branches br ON br.branch_id = b.branch_id
           LEFT JOIN auctions_bidders ab
             ON ab.bidder_id = b.bidder_id
             AND ab.auction_id IN (

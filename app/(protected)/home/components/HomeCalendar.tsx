@@ -264,6 +264,7 @@ export function HomeCalendar() {
                 {selectedEvent.event_type === "BIDDER_BIRTHDAY" && (
                   <>
                     <DetailRow label="Bidder Number" value={selectedEvent.details.bidder_number} />
+                    <DetailRow label="Branch" value={selectedEvent.details.branch_name} />
                     <DetailRow label="Full Name" value={selectedEvent.details.full_name} />
                     <DetailRow label="Birthdate" value={selectedEvent.details.birthdate} />
                     <DetailRow label="Age" value={`${selectedEvent.details.age} y/o`} />
