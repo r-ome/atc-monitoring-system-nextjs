@@ -9,6 +9,7 @@ import { PageContainer } from "@/app/components/PageContainer";
 import { PageHeader } from "@/app/components/PageHeader";
 import { cn, formatDate, formatNumberCompact } from "@/app/lib/utils";
 import { getAuctionCalendarStatistics } from "@/app/(protected)/auctions/actions";
+import { getFullMonthFetchRange } from "@/app/(protected)/auctions/calendar-range";
 import type { AuctionsStatistics } from "src/entities/models/Statistics";
 import {
   addMonths,
@@ -24,29 +25,6 @@ import {
 } from "date-fns";
 
 const INITIAL_LOOKBACK_MONTHS = 2;
-
-function monthKey(date: Date) {
-  return format(date, "yyyy-MM");
-}
-
-function listMonthKeys(start: Date, end: Date) {
-  const keys: string[] = [];
-  let cursor = startOfMonth(start);
-  const last = startOfMonth(end);
-
-  while (cursor <= last) {
-    keys.push(monthKey(cursor));
-    cursor = addMonths(cursor, 1);
-  }
-
-  return keys;
-}
-
-function toDayEnd(date: Date) {
-  const end = new Date(date);
-  end.setHours(23, 59, 59, 999);
-  return end;
-}
 
 function AuctionDaySummary({
   auction,
@@ -174,9 +152,12 @@ export default function Page() {
       );
       const shouldRequestInitialRange =
         !hasRequestedInitialRangeRef.current && range.end >= initialStart;
-      const fetchStart = shouldRequestInitialRange ? initialStart : range.start;
-      const fetchEnd = toDayEnd(range.end);
-      const requestedMonthKeys = listMonthKeys(fetchStart, fetchEnd);
+      const requestedRange = getFullMonthFetchRange(
+        shouldRequestInitialRange ? initialStart : range.start,
+        range.end,
+      );
+      const { fetchStart, fetchEnd, monthKeys: requestedMonthKeys } =
+        requestedRange;
       const missingMonthKeys = requestedMonthKeys.filter(
         (key) =>
           !loadedMonthKeysRef.current.has(key) &&

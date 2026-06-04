@@ -12,6 +12,7 @@ import "./application/use-cases/inventories/create-inventory.use-case.test";
 import "./entities/models/Auction.test";
 import "./entities/models/AuctionPayableAmount.test";
 import "./app/components/admin/status-badge.helpers.test";
+import "../app/(protected)/auctions/calendar-range.test";
 import "../app/(protected)/containers/[barcode]/components/report/computeContainerReport.test";
 import "../app/(protected)/containers/[barcode]/components/report/computeFinalReportBreakdown.test";
 import "../app/(protected)/containers/[barcode]/final-report-v2/shared/reassign5013.test";
