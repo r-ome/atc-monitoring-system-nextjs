@@ -55,7 +55,7 @@ test("MergeInventoriesController logs merged item details for activity logs", as
   });
 
   assert.equal(result.ok, true);
-  assert.equal(entityId, "unsold-inventory-1");
+  assert.equal(entityId, "sold-inventory-1");
 
   const parsed = JSON.parse(activityDescription) as {
     type: string;

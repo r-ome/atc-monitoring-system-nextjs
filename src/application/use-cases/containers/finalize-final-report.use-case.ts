@@ -44,7 +44,7 @@ export const finalizeFinalReportUseCase = async (input: {
     // finalize attempt and was skipped as a no-op; nothing to log.
     if (result) {
       mergedInventories.push({
-        entity_id: merge.new_inventory_id,
+        entity_id: merge.old_inventory_id,
         result,
       });
     }

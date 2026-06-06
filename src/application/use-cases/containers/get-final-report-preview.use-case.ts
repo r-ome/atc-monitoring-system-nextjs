@@ -59,26 +59,6 @@ type DraftPreviewState = {
   unsoldItems: FinalReportInventoryRow[];
 };
 
-const getMergedControl = ({
-  oldControl,
-  newControl,
-  controlChoice,
-}: {
-  oldControl: string | null | undefined;
-  newControl: string | null | undefined;
-  controlChoice?: "UNSOLD" | "SOLD";
-}) => {
-  const normalizedNewControl = newControl ?? "NC";
-  if (
-    normalizedNewControl === "0000" ||
-    normalizedNewControl === "00NC" ||
-    controlChoice === "SOLD"
-  ) {
-    return oldControl ?? "NC";
-  }
-  return normalizedNewControl;
-};
-
 const applyDraftToPreviewState = ({
   draft,
   rawUnsoldItems,
@@ -106,28 +86,23 @@ const applyDraftToPreviewState = ({
 
   const unsoldItems = rawUnsoldItems.filter((item) => !resolved.has(item.inventory_id));
 
-  // Start by applying manual merges staged from the UNSOLD overview: update the
-  // selected two-part monitoring row to point at the selected three-part inventory.
-  const mergeByOldInventoryId = new Map(
-    draft.merged_inventories.map((merge) => [merge.old_inventory_id, merge]),
-  );
-  let monitoring: FinalReportMonitoringRow[] = rawMonitoring.map((row) => {
-    const merge = mergeByOldInventoryId.get(row.inventory_id);
-    if (!merge) return row;
-    const target = inventoryMap.get(merge.new_inventory_id);
-    if (!target) return row;
-    return {
-      ...row,
-      inventory_id: target.inventory_id,
-      barcode: target.barcode,
-      control: getMergedControl({
-        oldControl: row.control,
-        newControl: target.control,
-        controlChoice: merge.control_choice,
-      }),
-      status: "SOLD",
-    };
-  });
+  const mergedBarcodeBySoldInventoryId = new Map<string, string>();
+  for (const merge of draft.merged_inventories) {
+    const duplicate = inventoryMap.get(merge.new_inventory_id);
+    if (!duplicate) continue;
+    mergedBarcodeBySoldInventoryId.set(merge.old_inventory_id, duplicate.barcode);
+  }
+
+  // Staged merges keep the SOLD monitoring row canonical because it owns
+  // auction and receipt data, but preview its barcode as the UNSOLD
+  // duplicate's three-part barcode.
+  let monitoring: FinalReportMonitoringRow[] =
+    mergedBarcodeBySoldInventoryId.size === 0
+      ? rawMonitoring
+      : rawMonitoring.map((row) => {
+          const mergedBarcode = mergedBarcodeBySoldInventoryId.get(row.inventory_id);
+          return mergedBarcode ? { ...row, barcode: mergedBarcode } : row;
+        });
 
   // Apply qty splits: reduce source row's price (qty floored at 1), append synthetic rows for each split target
   const monitoringByAuctionInventoryId = new Map(
@@ -387,11 +362,13 @@ export const getFinalReportPreviewUseCase = async (
 
   // Apply draft virtually: filter resolved inventories and synthesize monitoring rows
   // so the rest of the preview reflects staged-but-not-yet-committed decisions.
+  const inventoryMap = new Map(container.inventories.map((i) => [i.inventory_id, i]));
+
   const draftState = applyDraftToPreviewState({
     draft,
     rawUnsoldItems,
     rawMonitoring: monitoringRowsAfterSplits,
-    inventoryMap: new Map(container.inventories.map((i) => [i.inventory_id, i])),
+    inventoryMap,
   });
 
   const unsoldItems = draftState.unsoldItems;
@@ -496,6 +473,15 @@ export const getFinalReportPreviewUseCase = async (
   const mergedSoldInventoryIds = new Set(
     draft?.merged_inventories.map((merge) => merge.old_inventory_id) ?? [],
   );
+  const mergedDuplicateInventoryIds = new Set(
+    draft?.merged_inventories.map((merge) => merge.new_inventory_id) ?? [],
+  );
+  const mergedBarcodeBySoldInventoryId = new Map<string, string>();
+  for (const merge of draft?.merged_inventories ?? []) {
+    const duplicate = inventoryMap.get(merge.new_inventory_id);
+    if (!duplicate) continue;
+    mergedBarcodeBySoldInventoryId.set(merge.old_inventory_id, duplicate.barcode);
+  }
 
   const appendableUnsoldItems = container.inventories
     .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "SOLD")
@@ -529,6 +515,14 @@ export const getFinalReportPreviewUseCase = async (
     if (!item) continue;
     inventoryIdByBarcodeControl.set(
       `${appendedBarcode}|${item.control}`,
+      inventoryId,
+    );
+  }
+  for (const [inventoryId, mergedBarcode] of mergedBarcodeBySoldInventoryId) {
+    const item = inventoryMap.get(inventoryId);
+    if (!item) continue;
+    inventoryIdByBarcodeControl.set(
+      `${mergedBarcode}|${item.control ?? "NC"}`,
       inventoryId,
     );
   }
@@ -620,6 +614,9 @@ export const getFinalReportPreviewUseCase = async (
     if (inventory.status !== "UNSOLD" || !isThreePartBarcode(inventory.barcode)) {
       continue;
     }
+    if (mergedDuplicateInventoryIds.has(inventory.inventory_id)) {
+      continue;
+    }
     if (autoResolvedInventoryIds.has(inventory.inventory_id)) {
       decisions[inventory.inventory_id] = "MATCHED_2PART";
     } else if (
@@ -663,10 +660,14 @@ export const getFinalReportPreviewUseCase = async (
     const renamed = appendedBarcodeByInventoryId.get(row.inventory_id);
     return renamed ? { ...row, barcode: renamed } : row;
   };
+  const renameForMerge = <T extends { inventory_id: string; barcode: string }>(row: T): T => {
+    const renamed = mergedBarcodeBySoldInventoryId.get(row.inventory_id);
+    return renamed ? { ...row, barcode: renamed } : row;
+  };
 
   const finalMonitoring = appendedBarcodeByInventoryId.size > 0
-    ? adjustedMonitoring.map(renameForAppend)
-    : adjustedMonitoring;
+    ? adjustedMonitoring.map(renameForAppend).map(renameForMerge)
+    : adjustedMonitoring.map(renameForMerge);
   const finalInventoryRows = container.inventories
     .filter(
       (item) =>
@@ -677,7 +678,9 @@ export const getFinalReportPreviewUseCase = async (
         ),
     )
     .filter((item) => !isExcludedBidder740(item))
-    .map(toInventoryRow);
+    .filter((item) => !mergedDuplicateInventoryIds.has(item.inventory_id))
+    .map(toInventoryRow)
+    .map(renameForMerge);
   const appendedInventoryRows = appendedIds.flatMap((id) => {
     const row = appendableInventoryById.get(id);
     const barcode = appendedBarcodeByInventoryId.get(id);

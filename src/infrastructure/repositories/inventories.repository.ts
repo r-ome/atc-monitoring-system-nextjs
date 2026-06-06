@@ -30,6 +30,15 @@ import {
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
 
+const isTwoPartBarcode = (barcode: string) => barcode.split("-").length === 2;
+const isThreePartBarcode = (barcode: string) => barcode.split("-").length === 3;
+const MERGE_TARGET_AUCTION_STATUSES = [
+  "PAID",
+  "UNPAID",
+  "CANCELLED",
+  "REFUNDED",
+] as const;
+
 export const InventoryRepository: IInventoryRepository = {
   getAuctionItemDetails: async (auction_inventory_id) => {
     try {
@@ -1117,12 +1126,14 @@ export const InventoryRepository: IInventoryRepository = {
         ]);
 
         // Idempotency guard for non-atomic finalize replays. A prior finalize
-        // attempt may have committed this merge (relinking the SOLD item's
-        // auction record to the surviving inventory and soft-deleting the old
-        // inventory) before a later step failed and left the draft intact. On
-        // retry the same merge is replayed; treat the already-applied state as
-        // a no-op instead of throwing.
-        if (old_inventory && old_inventory.deleted_at && !old_auction_inventory) {
+        // attempt may have already retired the UNSOLD duplicate while keeping
+        // the SOLD auction item intact.
+        if (
+          old_inventory &&
+          old_auction_inventory &&
+          new_inventory &&
+          new_inventory.deleted_at
+        ) {
           return null;
         }
 
@@ -1137,35 +1148,56 @@ export const InventoryRepository: IInventoryRepository = {
               `auctions_inventory for old_inventory (${data.old_inventory_id})`,
             );
           throw new NotFoundError(
-            `Merge failed — missing: ${missing.join(", ")}. (Likely the merge was already applied in a prior finalize attempt and the auction record was relinked.)`,
+            `Merge failed — missing: ${missing.join(", ")}.`,
           );
         }
 
-        await tx.inventory_histories.updateMany({
-          where: { inventory_id: data.old_inventory_id },
-          data: { inventory_id: data.new_inventory_id },
-        });
-
-        const autoInherit =
-          new_inventory.control === "0000" || new_inventory.control === "00NC";
-        const finalControl =
-          autoInherit || data.control_choice === "SOLD"
-            ? old_inventory.control
-            : new_inventory.control;
+        if (!isTwoPartBarcode(old_inventory.barcode)) {
+          throw new NotFoundError(
+            `Merge failed — SOLD item ${old_inventory.barcode} must be a two-part barcode.`,
+          );
+        }
+        if (old_inventory.status !== "SOLD") {
+          throw new NotFoundError(
+            `Merge failed — two-part item ${old_inventory.barcode} must be SOLD.`,
+          );
+        }
+        if (
+          !MERGE_TARGET_AUCTION_STATUSES.includes(
+            old_auction_inventory.status as (typeof MERGE_TARGET_AUCTION_STATUSES)[number],
+          )
+        ) {
+          throw new NotFoundError(
+            `Merge failed — two-part item ${old_inventory.barcode} has unsupported auction status ${old_auction_inventory.status}.`,
+          );
+        }
+        if (!isThreePartBarcode(new_inventory.barcode)) {
+          throw new NotFoundError(
+            `Merge failed — UNSOLD duplicate ${new_inventory.barcode} must be a three-part barcode.`,
+          );
+        }
+        if (new_inventory.status !== "UNSOLD") {
+          throw new NotFoundError(
+            `Merge failed — duplicate item ${new_inventory.barcode} must be UNSOLD.`,
+          );
+        }
+        if (new_auction_inventory) {
+          throw new NotFoundError(
+            `Merge failed — duplicate item ${new_inventory.barcode} already has an auction record.`,
+          );
+        }
 
         await tx.inventories.update({
-          where: { inventory_id: data.new_inventory_id },
+          where: { inventory_id: data.old_inventory_id },
           data: {
-            status: "SOLD",
-            control: finalControl,
-            auction_date: old_auction_inventory.auction_date,
+            barcode: new_inventory.barcode,
           },
         });
 
         await tx.inventory_histories.create({
           data: {
             auction_inventory_id: old_auction_inventory.auction_inventory_id,
-            inventory_id: data.new_inventory_id,
+            inventory_id: data.old_inventory_id,
             auction_status: "DISCREPANCY",
             inventory_status: "SOLD",
             remarks: buildItemMergedHistoryRemark({
@@ -1177,26 +1209,14 @@ export const InventoryRepository: IInventoryRepository = {
           },
         });
 
-        // If the surviving inventory already has an auction record (e.g. CANCELLED/REFUNDED),
-        // remove it before relinking the SOLD item's record.
-        if (new_auction_inventory) {
-          await tx.auctions_inventories.delete({
-            where: { inventory_id: data.new_inventory_id },
-          });
-        }
-
-        // Relink the SOLD item's auction record to the surviving (3-part) inventory.
-        await tx.auctions_inventories.update({
-          where: { inventory_id: data.old_inventory_id },
-          data: { inventory_id: data.new_inventory_id },
-        });
-
-        // Soft-delete the old 2-part inventory so its barcode remains discoverable.
+        // Soft-delete only the UNSOLD duplicate. The SOLD auction item keeps
+        // its inventory_id, auction_inventory, receipt, bidder, price, and
+        // history links after adopting the duplicate's three-part barcode.
         await tx.inventories.update({
-          where: { inventory_id: data.old_inventory_id },
+          where: { inventory_id: data.new_inventory_id },
           data: {
             deleted_at: new Date(),
-            description: `MERGED INTO: ${new_inventory.barcode} (ctrl: ${finalControl ?? "NC"})`,
+            description: `MERGED INTO: ${new_inventory.barcode} (was ${old_inventory.barcode}, ctrl: ${old_inventory.control ?? "NC"})`,
           },
         });
 
@@ -1204,7 +1224,7 @@ export const InventoryRepository: IInventoryRepository = {
           merged_into_barcode: new_inventory.container.barcode,
           items: [
             {
-              barcode: old_inventory.barcode,
+              barcode: new_inventory.barcode,
               control: old_inventory.control ?? "NC",
               description:
                 old_auction_inventory.description ?? old_inventory.description,
@@ -1215,11 +1235,9 @@ export const InventoryRepository: IInventoryRepository = {
             {
               barcode: new_inventory.barcode,
               control: new_inventory.control ?? "NC",
-              description:
-                new_auction_inventory?.description ?? new_inventory.description,
-              price: new_auction_inventory?.price.toString() ?? "",
-              bidder_number:
-                new_auction_inventory?.auction_bidder.bidder.bidder_number ?? "",
+              description: new_inventory.description,
+              price: "",
+              bidder_number: "",
             },
           ],
         };

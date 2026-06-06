@@ -34,7 +34,7 @@ export const MergeInventoriesController = async (
       await logActivity(
         "UPDATE",
         "inventory",
-        data.new_inventory_id,
+        data.old_inventory_id,
         description,
       );
     }

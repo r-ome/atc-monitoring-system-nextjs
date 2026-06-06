@@ -205,9 +205,19 @@ test("getFinalReportPreviewUseCase applies staged manual merges virtually", asyn
 
     assert.equal(preview.unsold_items.length, 0);
     assert.equal(preview.auto_resolved.length, 0);
-    assert.equal(preview.report.monitoring[0].inventory_id, "unsold-1");
+    assert.equal(preview.report.monitoring[0].inventory_id, "monitoring-source-1");
     assert.equal(preview.report.monitoring[0].barcode, "32-04-001");
     assert.equal(preview.report.monitoring[0].control, "0001");
+    assert.equal(
+      preview.report.inventories.some((row) => row.inventory_id === "unsold-1"),
+      false,
+    );
+    assert.equal(
+      preview.report.inventories.find(
+        (row) => row.inventory_id === "monitoring-source-1",
+      )?.barcode,
+      "32-04-001",
+    );
   } finally {
     restoreTax();
     restoreCounterCheck();
@@ -275,8 +285,12 @@ test("getFinalReportPreviewUseCase does not append SOLD rows already staged for 
       ),
       false,
     );
-    assert.equal(preview.report.monitoring[0].inventory_id, "unsold-1");
+    assert.equal(preview.report.monitoring[0].inventory_id, "monitoring-source-1");
     assert.equal(preview.report.monitoring[0].barcode, "32-04-001");
+    assert.equal(
+      preview.report.inventories.some((row) => row.inventory_id === "unsold-1"),
+      false,
+    );
   } finally {
     restoreTax();
     restoreCounterCheck();

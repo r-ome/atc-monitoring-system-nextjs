@@ -145,7 +145,7 @@ export type FinalReportVoidedItemChange = {
 export type FinalReportMergeChange = {
   // The UNSOLD three-part inventory that was merged INTO a SOLD two-part row.
   unsold: { inventory_id: string; barcode: string; control: string; description: string };
-  // The SOLD two-part row whose auction record was relinked to the UNSOLD.
+  // The SOLD two-part row that keeps the auction/payment record.
   sold: { inventory_id: string; barcode: string; control: string; description: string };
 };
 

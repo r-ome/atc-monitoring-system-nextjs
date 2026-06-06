@@ -97,7 +97,7 @@ test("finalizeFinalReportUseCase applies staged manual merges during finalize", 
     assert.deepEqual(mergeCalls, [draft.merged_inventories[0]]);
     assert.equal(clearedContainerId, "container-1");
     assert.equal(result.merged_inventories.length, 1);
-    assert.equal(result.merged_inventories[0].entity_id, "unsold-1");
+    assert.equal(result.merged_inventories[0].entity_id, "monitoring-source-1");
     assert.equal(
       result.merged_inventories[0].result.merged_into_barcode,
       "32-04",

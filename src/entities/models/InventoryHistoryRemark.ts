@@ -258,7 +258,7 @@ export function buildItemMergedHistoryRemark(params: {
   sold_barcode: string;
   sold_control: string;
 }): string {
-  return `${HISTORY_PREFIXES.item_merged}: UNSOLD item (barcode: ${params.unsold_barcode}, ctrl: ${params.unsold_control}) was linked to SOLD item (barcode: ${params.sold_barcode}, ctrl: ${params.sold_control}). SOLD item has been soft-deleted.`;
+  return `${HISTORY_PREFIXES.item_merged}: UNSOLD duplicate (barcode: ${params.unsold_barcode}, ctrl: ${params.unsold_control}) was merged into SOLD item (barcode: ${params.sold_barcode}, ctrl: ${params.sold_control}). SOLD item barcode updated to ${params.unsold_barcode}. UNSOLD duplicate has been soft-deleted.`;
 }
 
 export function buildItemSplitBoughtHistoryRemark(params: {
@@ -334,9 +334,13 @@ export function parseInventoryHistoryRemark(
   if (trimmed === HISTORY_PREFIXES.pullout_paid) return { action: "pullout_paid" };
   if (trimmed === HISTORY_PREFIXES.pullout_undone) return { action: "pullout_undone" };
   if (trimmed.startsWith(HISTORY_PREFIXES.item_merged)) {
-    const match = trimmed.match(
+    const legacyMatch = trimmed.match(
       /UNSOLD item \(barcode: (.+?), ctrl: (.+?)\) was linked to SOLD item \(barcode: (.+?), ctrl: (.+?)\)/,
     );
+    const duplicateMatch = trimmed.match(
+      /UNSOLD duplicate \(barcode: (.+?), ctrl: (.+?)\) was merged into SOLD item \(barcode: (.+?), ctrl: (.+?)\)/,
+    );
+    const match = duplicateMatch ?? legacyMatch;
     if (match) {
       return {
         action: "item_merged",
