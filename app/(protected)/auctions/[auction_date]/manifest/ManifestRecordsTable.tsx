@@ -19,6 +19,12 @@ import { AlertCircle, RefreshCw, FileText, X } from "lucide-react";
 type EncoderMode = "encoded" | "errors";
 type EncoderFilter = { name: string; mode: EncoderMode } | null;
 
+const isTwoPartBarcode = (barcode: string | null) => {
+  if (!barcode) return false;
+  const parts = barcode.trim().split("-");
+  return parts.length === 2 && parts.every((part) => part.trim().length > 0);
+};
+
 interface ManifestRecordsTableProps {
   manifestRecords: Manifest[];
   canDeleteFailedRecords: boolean;
@@ -44,17 +50,19 @@ export const ManifestRecordsTable = ({
   const [errorsOnly, setErrorsOnly] = useState(false);
   const [encoderFilter, setEncoderFilter] = useState<EncoderFilter>(null);
   const [slashedOnly, setSlashedOnly] = useState(false);
+  const [twoPartOnly, setTwoPartOnly] = useState(false);
 
-  // Errors-only, slashed-only, and the encoder filter are mutually exclusive —
-  // toggling one clears the others to keep the surface honest.
+  // These table-level filters are mutually exclusive to keep the result set clear.
   const toggleErrorsOnly = () => {
     setEncoderFilter(null);
     setSlashedOnly(false);
+    setTwoPartOnly(false);
     setErrorsOnly((v) => !v);
   };
   const toggleEncoderFilter = (name: string, mode: EncoderMode) => {
     setErrorsOnly(false);
     setSlashedOnly(false);
+    setTwoPartOnly(false);
     setEncoderFilter((current) =>
       current && current.name === name && current.mode === mode
         ? null
@@ -64,7 +72,14 @@ export const ManifestRecordsTable = ({
   const toggleSlashedOnly = () => {
     setErrorsOnly(false);
     setEncoderFilter(null);
+    setTwoPartOnly(false);
     setSlashedOnly((v) => !v);
+  };
+  const toggleTwoPartOnly = () => {
+    setErrorsOnly(false);
+    setEncoderFilter(null);
+    setSlashedOnly(false);
+    setTwoPartOnly((v) => !v);
   };
 
   const groupIndexMap = useMemo(
@@ -135,6 +150,9 @@ export const ManifestRecordsTable = ({
     if (slashedOnly) {
       return base.filter((item) => item.is_slash_item);
     }
+    if (twoPartOnly) {
+      return base.filter((item) => isTwoPartBarcode(item.barcode));
+    }
     if (encoderFilter) {
       return base.filter((item) => {
         const name = item.remarks?.trim() || "Unknown";
@@ -147,10 +165,14 @@ export const ManifestRecordsTable = ({
       return base.filter((item) => item.error_message?.trim());
     }
     return base;
-  }, [manifestRecords, errorsOnly, encoderFilter, slashedOnly]);
+  }, [manifestRecords, errorsOnly, encoderFilter, slashedOnly, twoPartOnly]);
 
   const slashedCount = useMemo(
     () => manifestRecords.filter((m) => m.is_slash_item).length,
+    [manifestRecords]
+  );
+  const twoPartCount = useMemo(
+    () => manifestRecords.filter((m) => isTwoPartBarcode(m.barcode)).length,
     [manifestRecords]
   );
 
@@ -454,6 +476,21 @@ export const ManifestRecordsTable = ({
                 {slashedOnly ? "Show all" : "Slashed only"}
                 <span className="font-mono ml-1 text-[12.5px] font-semibold">
                   · {slashedCount}
+                </span>
+              </Button>
+            ) : null}
+            {twoPartCount > 0 ? (
+              <Button
+                type="button"
+                variant={twoPartOnly ? "default" : "outline"}
+                size="sm"
+                className="h-8 gap-1.5"
+                onClick={toggleTwoPartOnly}
+                aria-pressed={twoPartOnly}
+              >
+                {twoPartOnly ? "Show all" : "Two-part only"}
+                <span className="font-mono ml-1 text-[12.5px] font-semibold">
+                  · {twoPartCount}
                 </span>
               </Button>
             ) : null}
