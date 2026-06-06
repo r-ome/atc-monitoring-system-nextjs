@@ -44,7 +44,7 @@ type RefundItem = {
   barcode?: string;
   control?: string;
   description?: string;
-  qty?: string;
+  qty?: string | number;
   price?: number;
 };
 

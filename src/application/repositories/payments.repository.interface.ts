@@ -37,6 +37,9 @@ export interface IPaymentRepository {
   getBidderReceipts: (
     auction_bidder_id: string
   ) => Promise<ReceiptRecordWithPaymentsRow[]>;
+  getBidderReceiptsWithItems: (
+    auction_bidder_id: string
+  ) => Promise<ReceiptRecordWithHistoriesRow[]>;
   updatePaymentMethod: (
     payment_id: string,
     data: UpdatePaymentMethodInput

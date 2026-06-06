@@ -74,12 +74,14 @@ function presenter(receipt: ReceiptRecordWithHistoriesRow) {
       if (item.auction_inventory) {
         receipt_price = getReceiptPrice(item.auction_inventory);
       }
+      const inventory = item.auction_inventory?.inventory ?? item.inventory;
 
       return {
         auction_inventory_id: item.auction_inventory_id,
-        barcode: item.auction_inventory?.inventory.barcode,
-        control: item.auction_inventory?.inventory.control || "NC",
-        description: item.auction_inventory?.description,
+        barcode: inventory?.barcode,
+        control: inventory?.control || "NC",
+        description:
+          item.auction_inventory?.description ?? inventory?.description,
         qty: item.auction_inventory?.qty,
         price: receipt_price ? receipt_price : item.auction_inventory?.price,
         manifest_number: item.auction_inventory?.manifest_number,

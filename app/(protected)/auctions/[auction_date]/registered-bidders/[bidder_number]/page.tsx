@@ -14,6 +14,7 @@ import { PageContainer } from "@/app/components/PageContainer";
 import { AuctionSecondaryHeader } from "@/app/(protected)/auctions/components/AuctionSecondaryHeader";
 import { AuctionSectionNav } from "@/app/(protected)/auctions/components/AuctionSectionNav";
 import { AuctionMiniStat } from "@/app/(protected)/auctions/components/AuctionMiniStat";
+import { getBidderReceiptsWithItems } from "@/app/(protected)/auctions/[auction_date]/payments/actions";
 
 export default async function Page({
   params,
@@ -36,6 +37,12 @@ export default async function Page({
     return <ErrorComponent error={res.error} />;
   }
   const bidder = res.value;
+
+  const receiptsRes = await getBidderReceiptsWithItems(bidder.auction_bidder_id);
+  if (!receiptsRes.ok) {
+    return <ErrorComponent error={receiptsRes.error} />;
+  }
+  const receipts = receiptsRes.value;
 
   const totalUnpaidItemsPrice = getAuctionInventoriesPayableBase(
     bidder.auction_inventories,
@@ -125,6 +132,7 @@ export default async function Page({
       <BidderItemsTable
         auctionInventories={bidder.auction_inventories}
         registeredBidder={bidder}
+        receipts={receipts}
       />
     </PageContainer>
   );

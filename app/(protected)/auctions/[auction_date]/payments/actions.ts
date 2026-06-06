@@ -17,6 +17,7 @@ import { GetPettyCashBalanceController } from "src/controllers/expenses/get-pett
 import { UpdateExpenseController } from "src/controllers/expenses/update-expense.controller";
 import { UndoPaymentController } from "src/controllers/payments/undo-payment.controller";
 import { AddStorageFeeController } from "src/controllers/payments/add-storage-fee.controller";
+import { GetBidderReceiptsWithItemsController } from "src/controllers/payments/get-bidder-receipts-with-items.controller";
 import { StorageFeePaymentInput } from "src/entities/models/Payment";
 import prisma from "@/app/lib/prisma/prisma";
 import { UpdatePettyCashController } from "src/controllers/expenses/update-petty-cash.controller";
@@ -108,6 +109,18 @@ export const getBidderReceipts = async (auction_bidder_id: string) => {
   return await runWithBranchContext(
     auth.value,
     async () => await GetBidderReceiptsController(auction_bidder_id),
+  );
+};
+
+export const getBidderReceiptsWithItems = async (
+  auction_bidder_id: string,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(
+    auth.value,
+    async () => await GetBidderReceiptsWithItemsController(auction_bidder_id),
   );
 };
 

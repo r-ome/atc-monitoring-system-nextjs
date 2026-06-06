@@ -485,6 +485,7 @@ export const PaymentRepository: IPaymentRepository = {
           auction_bidder: { include: { bidder: true } },
           inventory_histories: {
             include: {
+              inventory: true,
               auction_inventory: {
                 include: {
                   inventory: true,
@@ -516,9 +517,41 @@ export const PaymentRepository: IPaymentRepository = {
     try {
       return await prisma.receipt_records.findMany({
         where: { auction_bidder_id },
+        orderBy: { created_at: "asc" },
         include: {
           payments: { include: { payment_method: true } },
           auction_bidder: { include: { bidder: true } },
+        },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting bidder receipts", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+  getBidderReceiptsWithItems: async (auction_bidder_id) => {
+    try {
+      return await prisma.receipt_records.findMany({
+        where: { auction_bidder_id },
+        orderBy: { created_at: "asc" },
+        include: {
+          auction_bidder: { include: { bidder: true } },
+          inventory_histories: {
+            orderBy: { created_at: "asc" },
+            include: {
+              inventory: true,
+              auction_inventory: {
+                include: {
+                  inventory: true,
+                  histories: { orderBy: { created_at: "desc" } },
+                },
+              },
+            },
+          },
+          payments: { include: { payment_method: true } },
         },
       });
     } catch (error) {

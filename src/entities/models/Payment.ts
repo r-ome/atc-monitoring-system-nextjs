@@ -72,6 +72,7 @@ export type ReceiptRecordWithHistoriesRow = Prisma.receipt_recordsGetPayload<{
     payments: { include: { payment_method: true } };
     inventory_histories: {
       include: {
+        inventory: true;
         auction_inventory: { include: { inventory: true; histories: true } };
       };
     };
@@ -133,10 +134,12 @@ export type ReceiptRecords = {
     barcode?: string;
     control?: string;
     description?: string;
-    qty?: string;
+    qty?: string | number;
     price?: number;
-    manifest_number?: string;
+    manifest_number?: string | null;
     is_slash_item?: string | null;
+    auction_status?: string | null;
+    inventory_status?: string | null;
   }[];
   created_at: string;
 };
