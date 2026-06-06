@@ -121,7 +121,7 @@ export default async function Page({
               grandTotalBalance > 0
                 ? "Awaiting payment"
                 : grandTotalBalance < 0
-                  ? "Bidder is owed a refund"
+                  ? "Registration fee not fully consumed"
                   : "Settled"
             }
             danger={grandTotalBalance > 0}
