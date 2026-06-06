@@ -151,6 +151,116 @@ test("handleBidderPullOut charges only the partial price delta for add-on paymen
   ]);
 });
 
+test("handleBidderPullOut excludes storage fee from bidder balance decrement", async () => {
+  const paymentWrites: Array<Record<string, unknown>> = [];
+  const receiptWrites: Array<Record<string, unknown>> = [];
+  const bidderBalanceWrites: Array<{
+    where: { auction_bidder_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+
+  const tx = {
+    auctions_bidders: {
+      findFirst: async () => ({
+        auction_bidder_id: "bidder-0158",
+        service_charge: 10,
+        registration_fee: 3000,
+        already_consumed: 0,
+        bidder: { bidder_number: "0158" },
+      }),
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { auction_bidder_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        bidderBalanceWrites.push({ where, data });
+        return { where, data };
+      },
+    },
+    auctions_inventories: {
+      findMany: async () => [
+        {
+          auction_inventory_id: "ai-table",
+          inventory_id: "inv-table",
+          status: "UNPAID",
+          price: 30100,
+          histories: [],
+        },
+      ],
+      updateMany: async () => ({ count: 1 }),
+    },
+    inventories: {
+      updateMany: async () => ({ count: 1 }),
+    },
+    receipt_records: {
+      findFirst: async () => null,
+      count: async () => 0,
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        receiptWrites.push(data);
+        return {
+          receipt_id:
+            data.purpose === "STORAGE_FEE"
+              ? "receipt-0158-storage"
+              : "receipt-0158-pullout",
+          receipt_number: data.receipt_number,
+        };
+      },
+    },
+    payments: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        paymentWrites.push(data);
+        return data;
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await PaymentRepository.handleBidderPullOut({
+    auction_bidder_id: "bidder-0158",
+    auction_inventory_ids: ["ai-table"],
+    amount_to_be_paid: 31110,
+    payments: [{ payment_method: "cash", amount_paid: 31110 }],
+    storage_fee: 1000,
+  });
+
+  assert.deepEqual(receiptWrites.map((write) => write.purpose), [
+    "PULL_OUT",
+    "STORAGE_FEE",
+  ]);
+  assert.deepEqual(paymentWrites, [
+    {
+      receipt_id: "receipt-0158-pullout",
+      amount_paid: 30110,
+      payment_method_id: "cash",
+    },
+    {
+      receipt_id: "receipt-0158-storage",
+      amount_paid: 1000,
+      payment_method_id: "cash",
+    },
+  ]);
+  assert.deepEqual(bidderBalanceWrites, [
+    {
+      where: { auction_bidder_id: "bidder-0158" },
+      data: { balance: { decrement: 30110 }, already_consumed: 1 },
+    },
+  ]);
+});
+
 test("handleBidderPullOut marks previously unsold paid inventories as sold", async () => {
   const receiptWrites: Array<Record<string, unknown>> = [];
   const auctionStatusWrites: Array<Record<string, unknown>> = [];

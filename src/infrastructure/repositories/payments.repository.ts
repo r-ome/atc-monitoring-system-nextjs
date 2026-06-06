@@ -277,7 +277,7 @@ export const PaymentRepository: IPaymentRepository = {
           where: { auction_bidder_id: data.auction_bidder_id },
           data: {
             balance: {
-              decrement: expected_amount_to_be_paid,
+              decrement: expected_amount_to_be_paid - storage_fee,
             },
             already_consumed: 1,
           },
