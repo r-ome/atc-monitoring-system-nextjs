@@ -33,6 +33,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import type {
   FinalReportInventoryRow,
@@ -830,7 +835,8 @@ const MergePaneBody = ({
           Merge into
         </div>
         <SheetTitle className="text-[15px]">
-          <span className="font-mono">{unsold.barcode}</span> · {unsold.description}
+          <span className="font-mono">{unsold.barcode}</span> · Control:{" "}
+          <span className="font-mono">{unsold.control}</span> · {unsold.description}
         </SheetTitle>
         <p className="text-[12.5px] text-muted-foreground">
           Pick the SOLD record this UNSOLD item should be attached to. Strictly 1:1.
@@ -855,37 +861,45 @@ const MergePaneBody = ({
           filtered.map((c) => {
             const active = pickedId === c.inventory_id;
             return (
-              <button
-                key={c.auction_inventory_id}
-                type="button"
-                onClick={() => setPickedId(c.inventory_id)}
-                className={cn(
-                  "flex w-full items-start gap-3 rounded-md border px-3 py-2 text-left transition",
-                  active
-                    ? "border-primary bg-primary/5 border-[1.5px]"
-                    : "border-transparent hover:bg-muted/60",
-                )}
-              >
-                <span
-                  className={cn(
-                    "mt-1 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border",
-                    active ? "border-primary" : "border-muted-foreground/40",
-                  )}
-                >
-                  {active ? (
-                    <span className="h-2 w-2 rounded-full bg-primary" />
-                  ) : null}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px]">
-                    <span className="font-mono font-semibold">{c.barcode}</span>{" "}
-                    · {c.description}
-                  </div>
-                  <div className="text-[11.5px] text-muted-foreground">
-                    Bidder {c.bidder_number} · Qty {c.qty} · {peso(c.price)}
-                  </div>
-                </div>
-              </button>
+              <Tooltip key={c.auction_inventory_id}>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setPickedId(c.inventory_id)}
+                    className={cn(
+                      "flex w-full items-start gap-3 rounded-md border px-3 py-2 text-left transition",
+                      active
+                        ? "border-primary bg-primary/5 border-[1.5px]"
+                        : "border-transparent hover:bg-muted/60",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "mt-1 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border",
+                        active ? "border-primary" : "border-muted-foreground/40",
+                      )}
+                    >
+                      {active ? (
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                      ) : null}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13px]">
+                        <span className="font-mono font-semibold">{c.barcode}</span>{" "}
+                        · {c.description}
+                      </div>
+                      <div className="text-[11.5px] text-muted-foreground">
+                        Control: <span className="font-mono">{c.control}</span> · Bidder{" "}
+                        {c.bidder_number} · Qty {c.qty} · {peso(c.price)}
+                      </div>
+                    </div>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="space-y-0.5 text-xs">
+                  <div>Auction date: {c.auction_date}</div>
+                  <div>Manifest number: {c.manifest_number ?? "-"}</div>
+                </TooltipContent>
+              </Tooltip>
             );
           })
         )}
