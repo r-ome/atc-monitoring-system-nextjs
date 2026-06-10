@@ -203,6 +203,8 @@ test("getFinalReportPreviewUseCase applies staged manual merges virtually", asyn
       deduct_thirty_k: false,
     });
 
+    assert.equal(preview.attention_items.length, 1);
+    assert.equal(preview.attention_items[0].inventory_id, "unsold-1");
     assert.equal(preview.unsold_items.length, 0);
     assert.equal(preview.auto_resolved.length, 0);
     assert.equal(preview.report.monitoring[0].inventory_id, "monitoring-source-1");
@@ -217,6 +219,76 @@ test("getFinalReportPreviewUseCase applies staged manual merges virtually", asyn
         (row) => row.inventory_id === "monitoring-source-1",
       )?.barcode,
       "32-04-001",
+    );
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
+test("getFinalReportPreviewUseCase excludes soft-deleted merged rows from final report work", async () => {
+  const container = buildContainer() as {
+    inventories: Array<Record<string, unknown>>;
+  };
+  container.inventories.push({
+    inventory_id: "merged-tombstone-1",
+    container_id: "container-1",
+    barcode: "32-04-777",
+    control: "0777",
+    description: "MERGED INTO: 32-04-777 (was 32-04, ctrl: 0777)",
+    status: "UNSOLD",
+    is_bought_item: 0,
+    auction_date: null,
+    created_at: date,
+    updated_at: date,
+    deleted_at: date,
+    histories: [],
+    auctions_inventory: null,
+  });
+
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => container as never,
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => null,
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    assert.equal(
+      preview.attention_items.some(
+        (row) => row.inventory_id === "merged-tombstone-1",
+      ),
+      false,
+    );
+    assert.equal(
+      preview.report.inventories.some(
+        (row) => row.inventory_id === "merged-tombstone-1",
+      ),
+      false,
     );
   } finally {
     restoreTax();

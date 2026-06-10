@@ -201,6 +201,11 @@ export type FinalReportPreview = {
     };
   };
   auction_dates: Record<string, number>;
+  // All rows that need or needed attention before draft decisions are applied.
+  // The Resolve UI uses this so persisted draft decisions can still be shown
+  // as resolved instead of disappearing from the list.
+  attention_items: FinalReportInventoryRow[];
+  // Rows that still need attention after applying the current draft.
   unsold_items: FinalReportInventoryRow[];
   auto_resolved: FinalReportCandidate[];
   split_candidates: FinalReportCandidate[];

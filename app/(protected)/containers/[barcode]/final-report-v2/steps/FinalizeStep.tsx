@@ -27,6 +27,7 @@ import { StepHeading } from "../shared/StepHeading";
 import { peso } from "../shared/format";
 import { reassign5013ToRandomBidders } from "../shared/reassign5013";
 import { buildFinalReportGenerationLogInput } from "../shared/activity-log";
+import { findResolution } from "../shared/resolution";
 import type { V2StepProps } from "../shared/types";
 
 type SuccessState = {
@@ -78,7 +79,10 @@ const FinalizeStepBody = ({
     };
   })();
 
-  const unresolved = preview.unsold_items.length;
+  const unresolvedItems = preview.unsold_items.filter(
+    (item) => !findResolution(state.draft, item.inventory_id),
+  );
+  const unresolved = unresolvedItems.length;
   // Safety net: even if the user reached this step via a rail jump that
   // skipped AppendStep, we should not finalize without every appendable
   // two-part SOLD row having been staged. V2Wizard auto-stages centrally,

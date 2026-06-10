@@ -116,8 +116,8 @@ export const ResolveStep = ({
   const [working, setWorking] = useState(false);
 
   const allAttention = useMemo(
-    () => preview?.unsold_items ?? [],
-    [preview?.unsold_items],
+    () => preview?.attention_items ?? [],
+    [preview?.attention_items],
   );
 
   const filtered = useMemo(() => {
@@ -447,7 +447,7 @@ export const ResolveStep = ({
 
       {/* Filter tabs */}
       <div className="mb-3 flex items-center gap-2">
-        {tabBtn("all", "All to resolve", counts.all)}
+        {tabBtn("all", "All attention", counts.all)}
         {tabBtn("unsold", "UNSOLD", counts.unsold)}
         {tabBtn("refunded", "REFUNDED", counts.refunded)}
         <div className="ml-auto">

@@ -242,7 +242,11 @@ export const getFinalReportPreviewUseCase = async (
     ? null
     : await ContainerRepository.getFinalReportDraft(container.container_id);
 
-  const auctionDates = container.inventories.reduce<Record<string, number>>((acc, item) => {
+  const activeInventories = container.inventories.filter(
+    (item) => item.deleted_at === null,
+  );
+
+  const auctionDates = activeInventories.reduce<Record<string, number>>((acc, item) => {
     if (!item.auction_date || !item.auctions_inventory) return acc;
     const date = formatDate(item.auction_date, DATE_FORMAT);
     acc[date] = (acc[date] ?? 0) + 1;
@@ -301,7 +305,7 @@ export const getFinalReportPreviewUseCase = async (
       : null,
   });
 
-  const selectedDatedAuctionInventories = container.inventories
+  const selectedDatedAuctionInventories = activeInventories
     .filter((item) => item.auctions_inventory && item.auction_date)
     .filter((item) => input.selected_dates.includes(formatDate(item.auction_date!, DATE_FORMAT)))
     .filter((item) => item.auctions_inventory?.status !== "CANCELLED")
@@ -435,7 +439,7 @@ export const getFinalReportPreviewUseCase = async (
     Boolean(item.auction_date) &&
     input.selected_dates.includes(formatDate(item.auction_date!, DATE_FORMAT));
 
-  const rawUnsoldItems = container.inventories
+  const rawUnsoldItems = activeInventories
     .filter(
       (item) =>
         isThreePartBarcode(item.barcode) &&
@@ -445,7 +449,7 @@ export const getFinalReportPreviewUseCase = async (
 
   // Apply draft virtually: filter resolved inventories and synthesize monitoring rows
   // so the rest of the preview reflects staged-but-not-yet-committed decisions.
-  const inventoryMap = new Map(container.inventories.map((i) => [i.inventory_id, i]));
+  const inventoryMap = new Map(activeInventories.map((i) => [i.inventory_id, i]));
 
   const draftState = applyDraftToPreviewState({
     draft,
@@ -547,7 +551,7 @@ export const getFinalReportPreviewUseCase = async (
   // drafts may have saved tax edits against the virtual appended barcode
   // shown in the UI, while the source monitoring row still carries its raw
   // two-part barcode until the final rename step.
-  const maxSuffix = container.inventories.reduce((max, item) => {
+  const maxSuffix = activeInventories.reduce((max, item) => {
     if (!isThreePartBarcode(item.barcode)) return max;
     const suffix = Number(item.barcode.split("-")[2]);
     return Number.isFinite(suffix) && suffix > max ? suffix : max;
@@ -571,7 +575,7 @@ export const getFinalReportPreviewUseCase = async (
     mergedBarcodeBySoldInventoryId.set(merge.old_inventory_id, duplicate.barcode);
   }
 
-  const appendableUnsoldItems = container.inventories
+  const appendableUnsoldItems = activeInventories
     .filter((item) => isTwoPartBarcode(item.barcode) && item.status === "SOLD")
     .filter((item) => !mergedSoldInventoryIds.has(item.inventory_id))
     .filter((item) => !isExcludedBidder740(item))
@@ -592,7 +596,7 @@ export const getFinalReportPreviewUseCase = async (
   });
 
   const inventoryIdByBarcodeControl = new Map<string, string>();
-  for (const item of container.inventories) {
+  for (const item of activeInventories) {
     inventoryIdByBarcodeControl.set(
       `${item.barcode}|${item.control ?? "NC"}`,
       item.inventory_id,
@@ -698,7 +702,7 @@ export const getFinalReportPreviewUseCase = async (
   }
 
   const decisions: Record<string, FinalReportDecision> = {};
-  for (const inventory of container.inventories) {
+  for (const inventory of activeInventories) {
     if (inventory.status !== "UNSOLD" || !isThreePartBarcode(inventory.barcode)) {
       continue;
     }
@@ -756,7 +760,7 @@ export const getFinalReportPreviewUseCase = async (
   const finalMonitoring = appendedBarcodeByInventoryId.size > 0
     ? adjustedMonitoring.map(renameForAppend).map(renameForMerge)
     : adjustedMonitoring.map(renameForMerge);
-  const finalInventoryRows = container.inventories
+  const finalInventoryRows = activeInventories
     .filter((item) => item.status !== "VOID")
     .filter((item) => !draftVoidedInventoryIds.has(item.inventory_id))
     .filter((item) => !isExcludedBidder740(item))
@@ -782,6 +786,7 @@ export const getFinalReportPreviewUseCase = async (
       },
     },
     auction_dates: auctionDates,
+    attention_items: rawUnsoldItems,
     unsold_items: unsoldItems,
     auto_resolved: autoResolved,
     split_candidates: splitCandidates,
