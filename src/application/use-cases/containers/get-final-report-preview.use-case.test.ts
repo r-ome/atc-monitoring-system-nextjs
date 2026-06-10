@@ -226,6 +226,229 @@ test("getFinalReportPreviewUseCase applies staged manual merges virtually", asyn
   }
 });
 
+test("getFinalReportPreviewUseCase uses non-placeholder split source control when target control is 0000", async () => {
+  const container = buildContainer() as {
+    inventories: Array<Record<string, unknown>>;
+  };
+  const unsold = container.inventories.find(
+    (item) => item.inventory_id === "unsold-1",
+  );
+  const source = container.inventories.find(
+    (item) => item.inventory_id === "monitoring-source-1",
+  );
+  if (unsold) unsold.control = "0000";
+  if (source) source.control = "1050";
+
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => container as never,
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      qty_splits: [
+        {
+          source_auction_inventory_id: "auction-inventory-1",
+          splits: [{ target_inventory_id: "unsold-1", price: 200, qty: "1" }],
+        },
+      ],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    const splitRow = preview.report.monitoring.find(
+      (row) => row.inventory_id === "unsold-1",
+    );
+    assert.equal(splitRow?.control, "1050");
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
+test("getFinalReportPreviewUseCase generates stable split target control when target is 0000 and source is below 1000", async () => {
+  const container = buildContainer() as {
+    inventories: Array<Record<string, unknown>>;
+  };
+  const unsold = container.inventories.find(
+    (item) => item.inventory_id === "unsold-1",
+  );
+  const source = container.inventories.find(
+    (item) => item.inventory_id === "monitoring-source-1",
+  );
+  if (unsold) unsold.control = "0000";
+  if (source) source.control = "0232";
+
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => container as never,
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      qty_splits: [
+        {
+          source_auction_inventory_id: "auction-inventory-1",
+          splits: [{ target_inventory_id: "unsold-1", price: 200, qty: "1" }],
+        },
+      ],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const getSplitControl = async () => {
+      const preview = await getFinalReportPreviewUseCase({
+        barcode: "32-04",
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      });
+      return preview.report.monitoring.find(
+        (row) => row.inventory_id === "unsold-1",
+      )?.control;
+    };
+
+    const control = await getSplitControl();
+    const repeatedControl = await getSplitControl();
+    const numericControl = Number(control);
+
+    assert.equal(control, repeatedControl);
+    assert.notEqual(control, "0000");
+    assert.notEqual(control, "0232");
+    assert.equal(Number.isInteger(numericControl), true);
+    assert.equal(numericControl >= 1000 && numericControl <= 3000, true);
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
+test("getFinalReportPreviewUseCase generates stable split source control when source is 0000 and target is below 1000", async () => {
+  const container = buildContainer() as {
+    inventories: Array<Record<string, unknown>>;
+  };
+  const unsold = container.inventories.find(
+    (item) => item.inventory_id === "unsold-1",
+  );
+  const source = container.inventories.find(
+    (item) => item.inventory_id === "monitoring-source-1",
+  );
+  if (unsold) unsold.control = "0232";
+  if (source) source.control = "0000";
+
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => container as never,
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      qty_splits: [
+        {
+          source_auction_inventory_id: "auction-inventory-1",
+          splits: [{ target_inventory_id: "unsold-1", price: 200, qty: "1" }],
+        },
+      ],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    const sourceRow = preview.report.monitoring.find(
+      (row) => row.auction_inventory_id === "auction-inventory-1",
+    );
+    const splitRow = preview.report.monitoring.find(
+      (row) => row.inventory_id === "unsold-1",
+    );
+    const numericControl = Number(sourceRow?.control);
+
+    assert.notEqual(sourceRow?.control, "0000");
+    assert.notEqual(sourceRow?.control, "0232");
+    assert.equal(Number.isInteger(numericControl), true);
+    assert.equal(numericControl >= 1000 && numericControl <= 3000, true);
+    assert.equal(splitRow?.control, "0232");
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
 test("getFinalReportPreviewUseCase removes voided items from report inventory rows", async () => {
   const container = buildContainer() as {
     inventories: Array<Record<string, unknown>>;

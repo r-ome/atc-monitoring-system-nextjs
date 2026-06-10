@@ -54,6 +54,52 @@ const toNumber = (value: string | number | null | undefined) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const isPlaceholderControl = (control: string | null | undefined) => {
+  const value = (control ?? "").trim().toUpperCase();
+  return value === "" || value === "0000" || value === "00NC" || value === "NC";
+};
+
+const getStableGeneratedControl = (seed: string) => {
+  let hash = 0;
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return String(1000 + (hash % 2001));
+};
+
+const resolveSplitControls = ({
+  sourceControl,
+  targetControl,
+  seed,
+}: {
+  sourceControl: string;
+  targetControl: string;
+  seed: string;
+}) => {
+  const sourceIsPlaceholder = isPlaceholderControl(sourceControl);
+  const targetIsPlaceholder = isPlaceholderControl(targetControl);
+  if (!sourceIsPlaceholder && !targetIsPlaceholder) {
+    return { sourceControl, targetControl };
+  }
+
+  const sourceNumber = Number(sourceControl);
+  const targetNumber = Number(targetControl);
+  const generatedControl = getStableGeneratedControl(seed);
+  const resolvePlaceholder = (otherControl: string, otherNumber: number) =>
+    Number.isFinite(otherNumber) && otherNumber >= 1000
+      ? otherControl
+      : generatedControl;
+
+  return {
+    sourceControl: sourceIsPlaceholder
+      ? resolvePlaceholder(targetControl, targetNumber)
+      : sourceControl,
+    targetControl: targetIsPlaceholder
+      ? resolvePlaceholder(sourceControl, sourceNumber)
+      : targetControl,
+  };
+};
+
 type DraftPreviewState = {
   monitoring: FinalReportMonitoringRow[];
   unsoldItems: FinalReportInventoryRow[];
@@ -116,9 +162,17 @@ const applyDraftToPreviewState = ({
 
     let remainingQty = Number(sourceRow.qty) || 0;
     let remainingPrice = sourceRow.price;
+    let sourceControl = sourceRow.control;
     for (const s of split.splits) {
       const target = inventoryMap.get(s.target_inventory_id);
       if (!target) continue;
+      const targetControl = target.control ?? "NC";
+      const resolvedControls = resolveSplitControls({
+        sourceControl,
+        targetControl,
+        seed: `${sourceRow.auction_inventory_id}|${target.inventory_id}|${sourceControl}|${targetControl}`,
+      });
+      sourceControl = resolvedControls.sourceControl;
       remainingQty -= Number(s.qty) || 0;
       remainingPrice -= s.price;
       synthetic.push({
@@ -126,7 +180,7 @@ const applyDraftToPreviewState = ({
         auction_inventory_id: `${sourceRow.auction_inventory_id}:split:${s.target_inventory_id}`,
         inventory_id: target.inventory_id,
         barcode: target.barcode,
-        control: target.control ?? "NC",
+        control: resolvedControls.targetControl,
         description: target.description,
         qty: s.qty,
         price: s.price,
@@ -139,6 +193,7 @@ const applyDraftToPreviewState = ({
     // price only) and lets a qty-1 lot stay qty 1 after a split.
     monitoring[idx] = {
       ...sourceRow,
+      control: sourceControl,
       qty: String(Math.max(1, remainingQty)),
       price: Math.max(0, remainingPrice),
     };
@@ -320,17 +375,45 @@ export const getFinalReportPreviewUseCase = async (
 
   // Reduce source rows in-place when split-bought items reference them
   const splitReductionMap = new Map<string, number>();
+  const splitControlOverrideMap = new Map<string, string>();
+  const monitoringRowByAuctionInventoryId = new Map(
+    monitoringRows.map((row) => [row.auction_inventory_id, row]),
+  );
   for (const item of selectedAuctionInventories) {
-    const splitFromId = item.auctions_inventory?.split_from_auction_inventory_id;
+    const auctionInventory = item.auctions_inventory;
+    const splitFromId = auctionInventory?.split_from_auction_inventory_id;
     if (splitFromId) {
-      splitReductionMap.set(splitFromId, (splitReductionMap.get(splitFromId) ?? 0) + item.auctions_inventory!.price);
+      splitReductionMap.set(splitFromId, (splitReductionMap.get(splitFromId) ?? 0) + auctionInventory!.price);
+      const sourceRow = monitoringRowByAuctionInventoryId.get(splitFromId);
+      if (sourceRow) {
+        const targetControl = item.control ?? "NC";
+        const resolvedControls = resolveSplitControls({
+          sourceControl: sourceRow.control,
+          targetControl,
+          seed: `${splitFromId}|${auctionInventory!.auction_inventory_id}|${sourceRow.control}|${targetControl}`,
+        });
+        if (!splitControlOverrideMap.has(splitFromId)) {
+          splitControlOverrideMap.set(splitFromId, resolvedControls.sourceControl);
+        }
+        splitControlOverrideMap.set(
+          auctionInventory!.auction_inventory_id,
+          resolvedControls.targetControl,
+        );
+      }
     }
   }
-  const monitoringRowsAfterSplits = splitReductionMap.size === 0
+  const monitoringRowsAfterSplits =
+    splitReductionMap.size === 0 && splitControlOverrideMap.size === 0
     ? monitoringRows
     : monitoringRows.map((row) => {
         const reduction = splitReductionMap.get(row.auction_inventory_id) ?? 0;
-        return reduction > 0 ? { ...row, price: Math.max(0, row.price - reduction) } : row;
+        const control = splitControlOverrideMap.get(row.auction_inventory_id);
+        if (reduction <= 0 && !control) return row;
+        return {
+          ...row,
+          ...(control ? { control } : {}),
+          ...(reduction > 0 ? { price: Math.max(0, row.price - reduction) } : {}),
+        };
       });
 
   const isRefundedBidder5013 = (item: (typeof container.inventories)[number]) =>
