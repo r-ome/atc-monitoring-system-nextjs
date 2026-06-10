@@ -32,6 +32,7 @@ import "./controllers/reports/update-refund-cancellation-tag.controller.test";
 import "./controllers/reports/get-container-status.controller.test";
 import "../app/lib/activity-route-registry.test";
 import "../app/lib/reports/generateCashFlow.test";
+import "../app/lib/reports/generateBillReport.test";
 import "./controllers/reports/log-cash-flow-report.controller.test";
 import "./controllers/containers/get-containers.controller.test";
 import "./controllers/containers/get-container-by-barcode.controller.test";

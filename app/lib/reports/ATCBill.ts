@@ -537,7 +537,7 @@ const ATCBill = (sheetDetails: SheetDetails, workbook: xlsx.WorkBook) => {
   };
 
   sheet["F24"] = {
-    f: `'${workbook.SheetNames[0]}'!B1`,
+    f: "'FINAL COMPUTATION'!F9",
     t: "n",
     z: "#,##0.00",
     s: {
@@ -578,7 +578,7 @@ const ATCBill = (sheetDetails: SheetDetails, workbook: xlsx.WorkBook) => {
   };
 
   sheet["F33"] = {
-    f: `'${workbook.SheetNames[0]}'!B1`,
+    f: "'FINAL COMPUTATION'!F9",
     t: "n",
     z: "#,##0.00",
     s: {

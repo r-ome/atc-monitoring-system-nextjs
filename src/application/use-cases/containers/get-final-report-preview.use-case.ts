@@ -476,6 +476,11 @@ export const getFinalReportPreviewUseCase = async (
   const mergedDuplicateInventoryIds = new Set(
     draft?.merged_inventories.map((merge) => merge.new_inventory_id) ?? [],
   );
+  const draftVoidedInventoryIds = new Set(
+    draft?.bought_items
+      .filter((item) => item.action === "VOID")
+      .map((item) => item.inventory_id) ?? [],
+  );
   const mergedBarcodeBySoldInventoryId = new Map<string, string>();
   for (const merge of draft?.merged_inventories ?? []) {
     const duplicate = inventoryMap.get(merge.new_inventory_id);
@@ -669,14 +674,8 @@ export const getFinalReportPreviewUseCase = async (
     ? adjustedMonitoring.map(renameForAppend).map(renameForMerge)
     : adjustedMonitoring.map(renameForMerge);
   const finalInventoryRows = container.inventories
-    .filter(
-      (item) =>
-        !(
-          item.status === "VOID" &&
-          (item.auctions_inventory?.status === "CANCELLED" ||
-            item.auctions_inventory?.status === "REFUNDED")
-        ),
-    )
+    .filter((item) => item.status !== "VOID")
+    .filter((item) => !draftVoidedInventoryIds.has(item.inventory_id))
     .filter((item) => !isExcludedBidder740(item))
     .filter((item) => !mergedDuplicateInventoryIds.has(item.inventory_id))
     .map(toInventoryRow)

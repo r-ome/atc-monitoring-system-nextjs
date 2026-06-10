@@ -226,6 +226,104 @@ test("getFinalReportPreviewUseCase applies staged manual merges virtually", asyn
   }
 });
 
+test("getFinalReportPreviewUseCase removes voided items from report inventory rows", async () => {
+  const container = buildContainer() as {
+    inventories: Array<Record<string, unknown>>;
+  };
+  container.inventories.push({
+    inventory_id: "finalized-void-1",
+    container_id: "container-1",
+    barcode: "32-04-099",
+    control: "0099",
+    description: "VOID BAG",
+    status: "VOID",
+    is_bought_item: 0,
+    auction_date: date,
+    created_at: date,
+    updated_at: date,
+    deleted_at: null,
+    histories: [],
+    auctions_inventory: {
+      auction_inventory_id: "auction-inventory-void",
+      auction_bidder_id: "ab-void",
+      inventory_id: "finalized-void-1",
+      description: "VOID BAG",
+      status: "UNPAID",
+      price: 300,
+      qty: "1",
+      manifest_number: "MVOID",
+      is_slash_item: null,
+      auction_date: date,
+      auction_bidder: {
+        auction_id: "auction-void",
+        bidder: {
+          bidder_id: "bidder-void",
+          bidder_number: "0009",
+          first_name: "F",
+          middle_name: null,
+          last_name: "L",
+        },
+      },
+      histories: [],
+    },
+  });
+
+  const restoreContainer = patchMethod(
+    ContainerRepository,
+    "getContainerFinalReportData",
+    async () => container as never,
+  );
+  const restoreDraft = patchMethod(
+    ContainerRepository,
+    "getFinalReportDraft",
+    async () => ({
+      ...emptyFinalReportDraft({
+        selected_dates: ["May 07, 2026"],
+        exclude_bidder_740: false,
+        exclude_refunded_bidder_5013: false,
+        deduct_thirty_k: false,
+      }),
+      bought_items: [{ action: "VOID", inventory_id: "unsold-1" }],
+    }),
+  );
+  const restoreCounterCheck = patchMethod(
+    AuctionRepository,
+    "getCounterCheckRecords",
+    async () => [],
+  );
+  const restoreTax = patchMethod(
+    ContainerRepository,
+    "getContainerTaxDeduction",
+    async () => null,
+  );
+
+  try {
+    const preview = await getFinalReportPreviewUseCase({
+      barcode: "32-04",
+      selected_dates: ["May 07, 2026"],
+      exclude_bidder_740: false,
+      exclude_refunded_bidder_5013: false,
+      deduct_thirty_k: false,
+    });
+
+    assert.equal(
+      preview.report.inventories.some(
+        (row) => row.inventory_id === "finalized-void-1",
+      ),
+      false,
+    );
+    assert.equal(
+      preview.report.inventories.some((row) => row.inventory_id === "unsold-1"),
+      false,
+    );
+  } finally {
+    restoreTax();
+    restoreCounterCheck();
+    restoreDraft();
+    restoreContainer();
+  }
+});
+
 test("getFinalReportPreviewUseCase does not append SOLD rows already staged for merge", async () => {
   const restoreContainer = patchMethod(
     ContainerRepository,

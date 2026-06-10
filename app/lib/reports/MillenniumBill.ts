@@ -221,7 +221,7 @@ const MillenniumBill = (
   });
 
   sheet["B9"] = {
-    f: `'${workbook.SheetNames[0]}'!B1`,
+    f: "'FINAL COMPUTATION'!F9",
     t: "n",
     z: '"PHP" #,##0.00',
     s: {
@@ -589,7 +589,7 @@ const MillenniumBill = (
   };
 
   sheet["G23"] = {
-    f: `'${workbook.SheetNames[0]}'!B1`,
+    f: "'FINAL COMPUTATION'!F9",
     t: "n",
     z: "#,##0.00",
     s: {
@@ -637,7 +637,7 @@ const MillenniumBill = (
   };
 
   sheet["G31"] = {
-    f: `'${workbook.SheetNames[0]}'!B1`,
+    f: "'FINAL COMPUTATION'!F9",
     t: "n",
     z: '"PHP" #,##0.00',
     s: {
