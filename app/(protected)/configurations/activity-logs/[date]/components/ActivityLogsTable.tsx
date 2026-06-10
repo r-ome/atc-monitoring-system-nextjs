@@ -1,13 +1,13 @@
 "use client";
 
 import { forwardRef, useMemo, useTransition } from "react";
-import type { HTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { CoreRow, ColumnDef, Row } from "@tanstack/react-table";
 import { AuctionDataTable } from "@/app/(protected)/auctions/components/AuctionDataTable";
 import { SortableHeader } from "@/app/(protected)/auctions/components/SortableHeader";
 import { BranchBadge } from "@/app/components/admin";
-import { formatDate } from "@/app/lib/utils";
+import { cn, formatDate, formatNumberToCurrency } from "@/app/lib/utils";
 import { ActivityLog } from "src/entities/models/ActivityLog";
 import {
   Tooltip,
@@ -187,6 +187,68 @@ function parseOptionsTableActivityDescription(
   }
 }
 
+type FieldChangeActivityDescription = {
+  title: string;
+  changes: { field: string; before: string; after: string }[];
+};
+
+function parseExpenseUpdateActivityDescription(
+  description: string,
+): FieldChangeActivityDescription | null {
+  const match = description.match(/^(Updated expense \(.+?\)) — ([\s\S]+)$/);
+  if (!match) {
+    return null;
+  }
+
+  const [, title, rest] = match;
+  const changes = rest
+    .split(" | ")
+    .map((part) => {
+      const sep = part.indexOf(": ");
+      if (sep === -1) {
+        return null;
+      }
+      const field = part.slice(0, sep).trim();
+      const value = part.slice(sep + 2);
+      const arrow = value.indexOf(" → ");
+      if (arrow === -1) {
+        return { field, before: value.trim(), after: "" };
+      }
+      return {
+        field,
+        before: value.slice(0, arrow).trim(),
+        after: value.slice(arrow + 3).trim(),
+      };
+    })
+    .filter((change): change is FieldChangeActivityDescription["changes"][number] =>
+      Boolean(change),
+    );
+
+  if (!changes.length) {
+    return null;
+  }
+
+  return { title, changes };
+}
+
+// Amount values arrive as "₱70000"; reformat with grouping (e.g. "₱70,000.00").
+function formatExpenseChangeValue(field: string, value: string): string {
+  if (field !== "Amount" || !value.trim()) {
+    return value;
+  }
+  const numeric = Number(value.replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(numeric) ? formatNumberToCurrency(numeric) : value;
+}
+
+// "Added expense ₱85518 - …" → "Added expense ₱85,518.00 - …" (the leading
+// amount is stored without grouping by the controller).
+function formatPlainDescription(description: string): string {
+  return description.replace(
+    /^(Added expense )₱(\d+(?:\.\d+)?)/,
+    (_match, prefix, amount) => `${prefix}${formatNumberToCurrency(amount)}`,
+  );
+}
+
 function OptionValue({ option, value }: { option: string; value: string }) {
   if (option === "Auction dates") {
     const dates =
@@ -211,13 +273,21 @@ function OptionValue({ option, value }: { option: string; value: string }) {
 }
 
 const DescriptionSummary = forwardRef<
-  HTMLDivElement,
-  HTMLAttributes<HTMLDivElement> & { summary: string }
->(({ summary, ...props }, ref) => {
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & { summary: string }
+>(({ summary, className, ...props }, ref) => {
   return (
-    <div ref={ref} className="truncate" {...props}>
+    <button
+      ref={ref}
+      type="button"
+      className={cn(
+        "block w-full truncate bg-transparent p-0 text-left underline-offset-4",
+        className,
+      )}
+      {...props}
+    >
       <span>{summary}</span>
-    </div>
+    </button>
   );
 });
 DescriptionSummary.displayName = "DescriptionSummary";
@@ -231,6 +301,7 @@ function ActivityDescriptionCell({
 }) {
   const itemActivity = parseItemTableActivityDescription(description);
   const optionsActivity = parseOptionsTableActivityDescription(description);
+  const expenseUpdate = parseExpenseUpdateActivityDescription(description);
   const hasBidderNumbers = itemActivity?.items.some(
     (item) => item.bidder_number,
   );
@@ -243,21 +314,39 @@ function ActivityDescriptionCell({
   const Trigger = isPopover ? PopoverTrigger : TooltipTrigger;
   const Content = isPopover ? PopoverContent : TooltipContent;
   const overlayClass = isPopover
-    ? "w-[min(22rem,calc(100vw-2rem))] max-h-[70vh] overflow-auto p-3 text-xs"
-    : "max-w-none p-3 text-xs";
+    ? "w-[min(24rem,calc(100vw-2rem))] overflow-hidden"
+    : "w-fit max-w-[min(34rem,calc(100vw-2rem))] overflow-hidden shadow-md";
   const overlayProps = isPopover
-    ? { align: "start" as const, sideOffset: 6 }
-    : { side: "right" as const };
+    ? { align: "start" as const, collisionPadding: 16, sideOffset: 6 }
+    : { collisionPadding: 16, side: "right" as const };
+  const triggerClass = isPopover ? "cursor-pointer hover:underline" : undefined;
+  // Keep scrolling on this non-animated inner element so the overlay's
+  // entrance animation can't briefly flash a scrollbar on small content.
+  const Overlay = ({ children }: { children: ReactNode }) => (
+    <Content {...overlayProps} className={overlayClass}>
+      <div
+        className={cn(
+          "max-h-[70vh] overflow-auto text-xs",
+          isPopover && "p-3",
+        )}
+      >
+        {children}
+      </div>
+    </Content>
+  );
 
   if (itemActivity) {
     return (
       <Root>
         <Trigger asChild>
-          <DescriptionSummary summary={itemActivity.summary} />
+          <DescriptionSummary
+            summary={itemActivity.summary}
+            className={triggerClass}
+          />
         </Trigger>
-        <Content {...overlayProps} className={overlayClass}>
+        <Overlay>
           {itemActivity.reason ? (
-            <div className="mb-2 border-b border-primary-foreground/30 pb-2">
+            <div className="mb-2 border-b border-current/25 pb-2">
               <div className="font-semibold">Reason</div>
               <div className="mt-0.5 max-w-[22rem] whitespace-normal">
                 {itemActivity.reason}
@@ -265,49 +354,57 @@ function ActivityDescriptionCell({
             </div>
           ) : null}
           <div className={isPopover ? "overflow-x-auto" : undefined}>
-          <table className={isPopover ? "border-collapse" : "min-w-[18rem] border-collapse"}>
-            <thead>
-              <tr className="border-b border-primary-foreground/30">
-                <th className="py-1 pr-3 text-left font-semibold">Barcode</th>
-                <th className="px-3 py-1 text-left font-semibold">Control</th>
-                {hasDescriptions ? (
-                  <th className="px-3 py-1 text-left font-semibold">
-                    Description
+            <table
+              className={
+                isPopover ? "border-collapse" : "min-w-[18rem] border-collapse"
+              }
+            >
+              <thead>
+                <tr className="border-b border-current/25">
+                  <th className="py-1 pr-3 text-left font-semibold">
+                    Barcode
                   </th>
-                ) : null}
-                {hasBidderNumbers ? (
                   <th className="px-3 py-1 text-left font-semibold">
-                    Bidder #
+                    Control
                   </th>
-                ) : null}
-                <th className="py-1 pl-3 text-right font-semibold">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itemActivity.items.map((item, index) => (
-                <tr
-                  key={`${item.barcode}-${item.control}-${index}`}
-                  className="border-b border-primary-foreground/15 last:border-0"
-                >
-                  <td className="py-1 pr-3">{item.barcode}</td>
-                  <td className="px-3 py-1">{item.control}</td>
                   {hasDescriptions ? (
-                    <td className="max-w-[18rem] px-3 py-1 whitespace-normal">
-                      {item.description}
-                    </td>
+                    <th className="px-3 py-1 text-left font-semibold">
+                      Description
+                    </th>
                   ) : null}
                   {hasBidderNumbers ? (
-                    <td className="px-3 py-1">{item.bidder_number}</td>
+                    <th className="px-3 py-1 text-left font-semibold">
+                      Bidder #
+                    </th>
                   ) : null}
-                  <td className="py-1 pl-3 text-right tabular-nums">
-                    {item.price}
-                  </td>
+                  <th className="py-1 pl-3 text-right font-semibold">Price</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {itemActivity.items.map((item, index) => (
+                  <tr
+                    key={`${item.barcode}-${item.control}-${index}`}
+                    className="border-b border-current/10 last:border-0"
+                  >
+                    <td className="py-1 pr-3">{item.barcode}</td>
+                    <td className="px-3 py-1">{item.control}</td>
+                    {hasDescriptions ? (
+                      <td className="max-w-[18rem] px-3 py-1 whitespace-normal">
+                        {item.description}
+                      </td>
+                    ) : null}
+                    {hasBidderNumbers ? (
+                      <td className="px-3 py-1">{item.bidder_number}</td>
+                    ) : null}
+                    <td className="py-1 pl-3 text-right tabular-nums">
+                      {item.price}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </Content>
+        </Overlay>
       </Root>
     );
   }
@@ -316,56 +413,123 @@ function ActivityDescriptionCell({
     return (
       <Root>
         <Trigger asChild>
-          <DescriptionSummary summary={optionsActivity.summary} />
+          <DescriptionSummary
+            summary={optionsActivity.summary}
+            className={triggerClass}
+          />
         </Trigger>
-        <Content {...overlayProps} className={overlayClass}>
-          <div className="mb-2 border-b border-primary-foreground/30 pb-2 font-semibold">
+        <Overlay>
+          <div className="mb-2 border-b border-current/25 pb-2 font-semibold">
             {optionsActivity.barcode ?? "Container Report"}
           </div>
           <div className={isPopover ? "overflow-x-auto" : undefined}>
-          <table className={isPopover ? "w-full border-collapse" : "min-w-[22rem] border-collapse"}>
-            <thead>
-              <tr className="border-b border-primary-foreground/30">
-                <th className="w-1/2 py-1 pr-3 text-left font-semibold">
-                  Option
-                </th>
-                <th className="w-1/2 py-1 pl-3 text-right font-semibold">
-                  Value
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {optionsActivity.options.map((item, index) => (
-                <tr
-                  key={`${item.option}-${index}`}
-                  className="border-b border-primary-foreground/15 last:border-0"
-                >
-                  <td className="w-1/2 py-1 pr-3 align-center">
-                    {item.option}
-                  </td>
-                  <td className="w-1/2 py-1 pl-3 text-right align-top">
-                    <OptionValue option={item.option} value={item.value} />
-                  </td>
+            <table
+              className={
+                isPopover
+                  ? "w-full border-collapse"
+                  : "min-w-[22rem] border-collapse"
+              }
+            >
+              <thead>
+                <tr className="border-b border-current/25">
+                  <th className="w-1/2 py-1 pr-3 text-left font-semibold">
+                    Option
+                  </th>
+                  <th className="w-1/2 py-1 pl-3 text-right font-semibold">
+                    Value
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {optionsActivity.options.map((item, index) => (
+                  <tr
+                    key={`${item.option}-${index}`}
+                    className="border-b border-current/10 last:border-0"
+                  >
+                    <td className="w-1/2 py-1 pr-3 align-center">
+                      {item.option}
+                    </td>
+                    <td className="w-1/2 py-1 pl-3 text-right align-top whitespace-normal break-words">
+                      <OptionValue option={item.option} value={item.value} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </Content>
+        </Overlay>
       </Root>
     );
   }
 
+  if (expenseUpdate) {
+    return (
+      <Root>
+        <Trigger asChild>
+          <DescriptionSummary summary={description} className={triggerClass} />
+        </Trigger>
+        <Overlay>
+          <div className="mb-2 border-b border-current/25 pb-2 font-semibold">
+            {expenseUpdate.title}
+          </div>
+          <div className={isPopover ? "overflow-x-auto" : undefined}>
+            <table
+              className={
+                isPopover
+                  ? "w-full border-collapse"
+                  : "min-w-[24rem] border-collapse"
+              }
+            >
+              <thead>
+                <tr className="border-b border-current/25">
+                  <th className="py-1 pr-3 text-left font-semibold">Field</th>
+                  <th className="px-3 py-1 text-left font-semibold">Before</th>
+                  <th className="py-1 pl-3 text-left font-semibold">After</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenseUpdate.changes.map((change, index) => (
+                  <tr
+                    key={`${change.field}-${index}`}
+                    className="border-b border-current/10 last:border-0"
+                  >
+                    <td className="py-1 pr-3 font-medium whitespace-nowrap">
+                      {change.field}
+                    </td>
+                    <td className="px-3 py-1 whitespace-normal break-words">
+                      {formatExpenseChangeValue(change.field, change.before)}
+                    </td>
+                    <td className="py-1 pl-3 whitespace-normal break-words">
+                      {formatExpenseChangeValue(change.field, change.after)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Overlay>
+      </Root>
+    );
+  }
+
+  const displayDescription = formatPlainDescription(description);
+
   return (
     <Root>
       <Trigger asChild>
-        <div className="truncate">
-          <span>{description}</span>
-        </div>
+        <button
+          type="button"
+          className={cn(
+            "block w-full truncate bg-transparent p-0 text-left underline-offset-4",
+            triggerClass,
+          )}
+        >
+          <span>{displayDescription}</span>
+        </button>
       </Trigger>
-      <Content {...overlayProps} className={isPopover ? overlayClass : undefined}>
-        {description}
-      </Content>
+      <Overlay>
+        {displayDescription}
+      </Overlay>
     </Root>
   );
 }
@@ -418,7 +582,10 @@ const columns: ColumnDef<ActivityLog>[] = [
     header: () => <div className="text-left text-muted-foreground">Description</div>,
     cell: ({ row }) => (
       <div className="text-left">
-        <ActivityDescriptionCell description={row.original.description} />
+        <ActivityDescriptionCell
+          description={row.original.description}
+          variant="tooltip"
+        />
       </div>
     ),
   },
