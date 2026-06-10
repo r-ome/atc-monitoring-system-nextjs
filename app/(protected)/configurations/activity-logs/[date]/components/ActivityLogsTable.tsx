@@ -21,6 +21,11 @@ import {
 } from "@/app/components/ui/popover";
 import { Button } from "@/app/components/ui/button";
 import { Activity, RefreshCw } from "lucide-react";
+import {
+  formatExpenseChangeValue,
+  formatPlainExpenseDescription,
+  parseExpenseUpdateActivityDescription,
+} from "@/app/lib/activity-log-description";
 
 type ItemTableActivityDescription = {
   type:
@@ -185,68 +190,6 @@ function parseOptionsTableActivityDescription(
   } catch {
     return null;
   }
-}
-
-type FieldChangeActivityDescription = {
-  title: string;
-  changes: { field: string; before: string; after: string }[];
-};
-
-function parseExpenseUpdateActivityDescription(
-  description: string,
-): FieldChangeActivityDescription | null {
-  const match = description.match(/^(Updated expense \(.+?\)) — ([\s\S]+)$/);
-  if (!match) {
-    return null;
-  }
-
-  const [, title, rest] = match;
-  const changes = rest
-    .split(" | ")
-    .map((part) => {
-      const sep = part.indexOf(": ");
-      if (sep === -1) {
-        return null;
-      }
-      const field = part.slice(0, sep).trim();
-      const value = part.slice(sep + 2);
-      const arrow = value.indexOf(" → ");
-      if (arrow === -1) {
-        return { field, before: value.trim(), after: "" };
-      }
-      return {
-        field,
-        before: value.slice(0, arrow).trim(),
-        after: value.slice(arrow + 3).trim(),
-      };
-    })
-    .filter((change): change is FieldChangeActivityDescription["changes"][number] =>
-      Boolean(change),
-    );
-
-  if (!changes.length) {
-    return null;
-  }
-
-  return { title, changes };
-}
-
-// Amount values arrive as "₱70000"; reformat with grouping (e.g. "₱70,000.00").
-function formatExpenseChangeValue(field: string, value: string): string {
-  if (field !== "Amount" || !value.trim()) {
-    return value;
-  }
-  const numeric = Number(value.replace(/[^0-9.-]/g, ""));
-  return Number.isFinite(numeric) ? formatNumberToCurrency(numeric) : value;
-}
-
-// "Added expense ₱85518 - …" → "Added expense ₱85,518.00 - …" (the leading
-// amount is stored without grouping by the controller).
-function formatPlainDescription(description: string): string {
-  return description.replace(
-    /^(Added expense )₱(\d+(?:\.\d+)?)/,
-    (_match, prefix, amount) => `${prefix}${formatNumberToCurrency(amount)}`,
-  );
 }
 
 function OptionValue({ option, value }: { option: string; value: string }) {
@@ -512,7 +455,7 @@ function ActivityDescriptionCell({
     );
   }
 
-  const displayDescription = formatPlainDescription(description);
+  const displayDescription = formatPlainExpenseDescription(description);
 
   return (
     <Root>

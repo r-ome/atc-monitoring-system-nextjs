@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { subDays } from "date-fns";
 import {
+  getExpenseUpdateLogs,
   getExpensesByDate,
   getPaymentsByDate,
   getPettyCashBalance,
@@ -93,6 +94,16 @@ export default async function Page({
   const transactions = transactions_res.value;
   const current_petty_cash = current_petty_cash_res.value;
   const last_petty_cash = last_petty_cash_res.value;
+  const expense_update_logs_res = await getExpenseUpdateLogs(
+    expenses.map((expense) => expense.expense_id),
+    selected_branch?.branch_id,
+  );
+
+  if (!expense_update_logs_res.ok) {
+    return <ErrorComponent error={{ message: "Server Error" }} />;
+  }
+
+  const expense_update_logs = expense_update_logs_res.value;
 
   const formattedDate = formatDate(
     new Date(transaction_date),
@@ -135,6 +146,7 @@ export default async function Page({
         <TabsContent value="expense" className="flex flex-col gap-4 2xl:gap-6">
           <ExpensesTab
             expenses={expenses}
+            expenseUpdateLogs={expense_update_logs}
             selectedBranch={selected_branch}
             currentPettyCash={current_petty_cash}
             lastPettyCash={last_petty_cash}

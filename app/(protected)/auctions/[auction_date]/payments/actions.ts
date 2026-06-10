@@ -27,6 +27,7 @@ import { RecalculatePettyCashController } from "src/controllers/expenses/recalcu
 import { CheckPettyCashConsistencyController } from "src/controllers/expenses/check-petty-cash-consistency.controller";
 import { RepairPettyCashConsistencyController } from "src/controllers/expenses/repair-petty-cash-consistency.controller";
 import { UndoPettyCashRepairController } from "src/controllers/expenses/undo-petty-cash-repair.controller";
+import { GetExpenseUpdateLogsController } from "src/controllers/activity-logs/get-expense-update-logs.controller";
 
 export const getPaymentsByDate = async (
   date: string,
@@ -85,6 +86,19 @@ export const getExpensesByDate = async (
   return await runWithBranchContext(
     auth.value,
     async () => await GetExpensesByDateController(date, branch_id),
+  );
+};
+
+export const getExpenseUpdateLogs = async (
+  expense_ids: string[],
+  branch_id: string | undefined = undefined,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithBranchContext(
+    auth.value,
+    async () => await GetExpenseUpdateLogsController(expense_ids, branch_id),
   );
 };
 

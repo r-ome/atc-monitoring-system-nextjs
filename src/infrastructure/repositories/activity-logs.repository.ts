@@ -59,4 +59,27 @@ export const ActivityLogRepository: IActivityLogRepository = {
       throw error;
     }
   },
+
+  getExpenseUpdateLogs: async (expense_ids, branch_id) => {
+    try {
+      if (expense_ids.length === 0) return [];
+
+      return await prisma.activity_logs.findMany({
+        where: {
+          action: "UPDATE",
+          entity_type: "expense",
+          entity_id: { in: expense_ids },
+          ...(branch_id ? { branch_id } : {}),
+        },
+        orderBy: { created_at: "desc" },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting expense update logs", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
 };
