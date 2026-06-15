@@ -22,9 +22,9 @@ import {
 import { Button } from "@/app/components/ui/button";
 import { Activity, RefreshCw } from "lucide-react";
 import {
-  formatExpenseChangeValue,
   formatPlainExpenseDescription,
-  parseExpenseUpdateActivityDescription,
+  formatUpdateChangeValue,
+  parseUpdateActivityDescription,
 } from "@/app/lib/activity-log-description";
 
 type ItemTableActivityDescription = {
@@ -244,7 +244,7 @@ function ActivityDescriptionCell({
 }) {
   const itemActivity = parseItemTableActivityDescription(description);
   const optionsActivity = parseOptionsTableActivityDescription(description);
-  const expenseUpdate = parseExpenseUpdateActivityDescription(description);
+  const updateActivity = parseUpdateActivityDescription(description);
   const hasBidderNumbers = itemActivity?.items.some(
     (item) => item.bidder_number,
   );
@@ -405,7 +405,7 @@ function ActivityDescriptionCell({
     );
   }
 
-  if (expenseUpdate) {
+  if (updateActivity) {
     return (
       <Root>
         <Trigger asChild>
@@ -413,7 +413,7 @@ function ActivityDescriptionCell({
         </Trigger>
         <Overlay>
           <div className="mb-2 border-b border-current/25 pb-2 font-semibold">
-            {expenseUpdate.title}
+            {updateActivity.title}
           </div>
           <div className={isPopover ? "overflow-x-auto" : undefined}>
             <table
@@ -431,7 +431,7 @@ function ActivityDescriptionCell({
                 </tr>
               </thead>
               <tbody>
-                {expenseUpdate.changes.map((change, index) => (
+                {updateActivity.changes.map((change, index) => (
                   <tr
                     key={`${change.field}-${index}`}
                     className="border-b border-current/10 last:border-0"
@@ -440,10 +440,10 @@ function ActivityDescriptionCell({
                       {change.field}
                     </td>
                     <td className="px-3 py-1 whitespace-normal break-words">
-                      {formatExpenseChangeValue(change.field, change.before)}
+                      {formatUpdateChangeValue(change.field, change.before)}
                     </td>
                     <td className="py-1 pl-3 whitespace-normal break-words">
-                      {formatExpenseChangeValue(change.field, change.after)}
+                      {formatUpdateChangeValue(change.field, change.after)}
                     </td>
                   </tr>
                 ))}

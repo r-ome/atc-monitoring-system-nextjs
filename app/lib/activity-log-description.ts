@@ -5,16 +5,14 @@ export type ExpenseUpdateActivityDescription = {
   changes: { field: string; before: string; after: string }[];
 };
 
-export function parseExpenseUpdateActivityDescription(
-  description: string,
-): ExpenseUpdateActivityDescription | null {
-  const match = description.match(/^(Updated expense \(.+?\)) — ([\s\S]+)$/);
-  if (!match) {
-    return null;
-  }
+export type UpdateActivityDescription = ExpenseUpdateActivityDescription & {
+  type: "expense" | "auction_item";
+};
 
-  const [, title, rest] = match;
-  const changes = rest
+function parseActivityChanges(
+  value: string,
+): ExpenseUpdateActivityDescription["changes"] {
+  return value
     .split(" | ")
     .map((part) => {
       const sep = part.indexOf(": ");
@@ -37,22 +35,62 @@ export function parseExpenseUpdateActivityDescription(
       (change): change is ExpenseUpdateActivityDescription["changes"][number] =>
         Boolean(change),
     );
+}
+
+export function parseUpdateActivityDescription(
+  description: string,
+): UpdateActivityDescription | null {
+  const expenseMatch = description.match(
+    /^(Updated expense \(.+?\)) — ([\s\S]+)$/,
+  );
+  const auctionItemMatch = description.match(
+    /^(Updated auction item barcode: .+?) \| ([\s\S]+)$/,
+  );
+  const match = expenseMatch ?? auctionItemMatch;
+
+  if (!match) {
+    return null;
+  }
+
+  const [, title, rest] = match;
+  const changes = rest
+    ? parseActivityChanges(rest)
+    : [];
 
   if (!changes.length) {
     return null;
   }
 
-  return { title, changes };
+  return {
+    title,
+    changes,
+    type: expenseMatch ? "expense" : "auction_item",
+  };
 }
 
-export function formatExpenseChangeValue(field: string, value: string): string {
+export function parseExpenseUpdateActivityDescription(
+  description: string,
+): ExpenseUpdateActivityDescription | null {
+  const parsed = parseUpdateActivityDescription(description);
+
+  if (parsed?.type !== "expense") {
+    return null;
+  }
+
+  return {
+    title: parsed.title,
+    changes: parsed.changes,
+  };
+}
+
+export function formatUpdateChangeValue(field: string, value: string): string {
   const trimmed = value.trim();
 
   if (!trimmed) {
     return value;
   }
 
-  if (field === "Amount") {
+  if (field === "Amount" || field === "Price") {
     const numeric = Number(value.replace(/[^0-9.-]/g, ""));
     return Number.isFinite(numeric) ? formatNumberToCurrency(numeric) : value;
   }
@@ -66,6 +104,10 @@ export function formatExpenseChangeValue(field: string, value: string): string {
   }
 
   return value;
+}
+
+export function formatExpenseChangeValue(field: string, value: string): string {
+  return formatUpdateChangeValue(field, value);
 }
 
 export function formatPlainExpenseDescription(description: string): string {
