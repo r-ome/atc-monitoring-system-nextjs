@@ -6,8 +6,30 @@ export type ExpenseUpdateActivityDescription = {
 };
 
 export type UpdateActivityDescription = ExpenseUpdateActivityDescription & {
-  type: "expense" | "auction_item";
+  type: "expense" | "auction_item" | "generic";
 };
+
+const CHANGE_ARROWS = [" → ", " -> "] as const;
+const CURRENCY_FIELDS = new Set([
+  "amount",
+  "deduction total",
+  "duties and taxes",
+  "fee",
+  "net to supplier",
+  "price",
+  "registration fee",
+]);
+
+function getChangeArrow(value: string) {
+  for (const arrow of CHANGE_ARROWS) {
+    const index = value.indexOf(arrow);
+    if (index !== -1) {
+      return { arrow, index };
+    }
+  }
+
+  return null;
+}
 
 function parseActivityChanges(
   value: string,
@@ -21,14 +43,15 @@ function parseActivityChanges(
       }
       const field = part.slice(0, sep).trim();
       const value = part.slice(sep + 2);
-      const arrow = value.indexOf(" → ");
-      if (arrow === -1) {
+      const arrow = getChangeArrow(value);
+      if (!arrow) {
         return { field, before: value.trim(), after: "" };
       }
+
       return {
         field,
-        before: value.slice(0, arrow).trim(),
-        after: value.slice(arrow + 3).trim(),
+        before: value.slice(0, arrow.index).trim(),
+        after: value.slice(arrow.index + arrow.arrow.length).trim(),
       };
     })
     .filter(
@@ -43,10 +66,9 @@ export function parseUpdateActivityDescription(
   const expenseMatch = description.match(
     /^(Updated expense \(.+?\)) — ([\s\S]+)$/,
   );
-  const auctionItemMatch = description.match(
-    /^(Updated auction item barcode: .+?) \| ([\s\S]+)$/,
-  );
-  const match = expenseMatch ?? auctionItemMatch;
+  const pipeMatch = description.match(/^(Updated .+?) \| ([\s\S]+)$/);
+  const dashMatch = description.match(/^(Updated .+?) — ([\s\S]+)$/);
+  const match = expenseMatch ?? pipeMatch ?? dashMatch;
 
   if (!match) {
     return null;
@@ -64,7 +86,11 @@ export function parseUpdateActivityDescription(
   return {
     title,
     changes,
-    type: expenseMatch ? "expense" : "auction_item",
+    type: expenseMatch
+      ? "expense"
+      : title.startsWith("Updated auction item")
+        ? "auction_item"
+        : "generic",
   };
 }
 
@@ -90,7 +116,7 @@ export function formatUpdateChangeValue(field: string, value: string): string {
     return value;
   }
 
-  if (field === "Amount" || field === "Price") {
+  if (CURRENCY_FIELDS.has(field.trim().toLowerCase())) {
     const numeric = Number(value.replace(/[^0-9.-]/g, ""));
     return Number.isFinite(numeric) ? formatNumberToCurrency(numeric) : value;
   }
