@@ -263,10 +263,19 @@ function ActivityDescriptionCell({
     ? { align: "start" as const, collisionPadding: 16, sideOffset: 6 }
     : { collisionPadding: 16, side: "right" as const };
   const triggerClass = isPopover ? "cursor-pointer hover:underline" : undefined;
+  const updateOverlayClass = isPopover
+    ? "w-[min(24rem,calc(100vw-2rem))] overflow-hidden"
+    : "w-[min(28rem,calc(100vw-2rem))] overflow-hidden shadow-md";
   // Keep scrolling on this non-animated inner element so the overlay's
   // entrance animation can't briefly flash a scrollbar on small content.
-  const Overlay = ({ children }: { children: ReactNode }) => (
-    <Content {...overlayProps} className={overlayClass}>
+  const Overlay = ({
+    children,
+    className,
+  }: {
+    children: ReactNode;
+    className?: string;
+  }) => (
+    <Content {...overlayProps} className={className ?? overlayClass}>
       <div
         className={cn(
           "max-h-[70vh] overflow-auto text-xs",
@@ -411,23 +420,23 @@ function ActivityDescriptionCell({
         <Trigger asChild>
           <DescriptionSummary summary={description} className={triggerClass} />
         </Trigger>
-        <Overlay>
-          <div className="mb-2 border-b border-current/25 pb-2 font-semibold">
+        <Overlay className={updateOverlayClass}>
+          <div className="mb-2 border-b border-current/25 pb-2 font-semibold whitespace-normal break-words">
             {updateActivity.title}
           </div>
           <div className={isPopover ? "overflow-x-auto" : undefined}>
-            <table
-              className={
-                isPopover
-                  ? "w-full border-collapse"
-                  : "min-w-[24rem] border-collapse"
-              }
-            >
+            <table className="w-full table-fixed border-collapse">
               <thead>
                 <tr className="border-b border-current/25">
-                  <th className="py-1 pr-3 text-left font-semibold">Field</th>
-                  <th className="px-3 py-1 text-left font-semibold">Before</th>
-                  <th className="py-1 pl-3 text-left font-semibold">After</th>
+                  <th className="w-[32%] py-1 pr-3 text-left font-semibold">
+                    Field
+                  </th>
+                  <th className="w-[34%] px-3 py-1 text-left font-semibold">
+                    Before
+                  </th>
+                  <th className="w-[34%] py-1 pl-3 text-left font-semibold">
+                    After
+                  </th>
                 </tr>
               </thead>
               <tbody>
