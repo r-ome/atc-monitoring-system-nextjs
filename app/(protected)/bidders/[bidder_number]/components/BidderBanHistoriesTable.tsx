@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { Ban, Loader2Icon, Trash2Icon } from "lucide-react";
+import { Ban, Loader2Icon, Trash2Icon, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import type { BidderStatus } from "src/entities/models/Bidder";
 import { DataTable } from "@/app/components/data-table/data-table";
 import { Button } from "@/app/components/ui/button";
 import { Label } from "@/app/components/ui/label";
@@ -21,6 +22,7 @@ import {
 import {
   createBanHistory,
   deleteBanHistory,
+  updateBidderStatus,
 } from "@/app/(protected)/bidders/actions";
 
 type BanHistoryRow = {
@@ -31,16 +33,21 @@ type BanHistoryRow = {
 
 interface BidderBanHistoriesTableProps {
   bidder_id: string;
+  bidder_status: BidderStatus;
   ban_histories: BanHistoryRow[];
 }
 
+type DialogMode = "ban" | "unban";
+
 const BidderBanHistoriesTable = ({
   bidder_id,
+  bidder_status,
   ban_histories,
 }: BidderBanHistoriesTableProps) => {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<DialogMode | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const isBanned = bidder_status === "BANNED";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,7 +59,24 @@ const BidderBanHistoriesTable = ({
 
     if (res.ok) {
       toast.success("Bidder banned and history recorded!");
-      setOpen(false);
+      setDialogMode(null);
+      router.refresh();
+    } else {
+      toast.error(res.error.message, {
+        description:
+          typeof res.error.cause === "string" ? res.error.cause : undefined,
+      });
+    }
+  };
+
+  const handleUnban = async () => {
+    setIsLoading(true);
+    const res = await updateBidderStatus(bidder_id, "ACTIVE");
+    setIsLoading(false);
+
+    if (res.ok) {
+      toast.success("Bidder unbanned!");
+      setDialogMode(null);
       router.refresh();
     } else {
       toast.error(res.error.message, {
@@ -139,44 +163,87 @@ const BidderBanHistoriesTable = ({
         actionButtons={
           <Button
             size="sm"
-            variant="destructive"
-            onClick={() => setOpen(true)}
+            variant={isBanned ? "default" : "destructive"}
+            onClick={() => setDialogMode(isBanned ? "unban" : "ban")}
           >
-            Ban Bidder
+            {isBanned ? (
+              <>
+                <UserCheck className="h-4 w-4" />
+                Unban Bidder
+              </>
+            ) : (
+              "Ban Bidder"
+            )}
           </Button>
         }
       />
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={dialogMode !== null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setDialogMode(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ban Bidder</DialogTitle>
-            <DialogDescription>
-              This will set the bidder status to BANNED and record the reason.
-            </DialogDescription>
+            {dialogMode === "unban" ? (
+              <>
+                <DialogTitle>Unban Bidder</DialogTitle>
+                <DialogDescription>
+                  This will set the bidder status back to ACTIVE. Existing ban
+                  history entries will be kept.
+                </DialogDescription>
+              </>
+            ) : (
+              <>
+                <DialogTitle>Ban Bidder</DialogTitle>
+                <DialogDescription>
+                  This will set the bidder status to BANNED and record the
+                  reason.
+                </DialogDescription>
+              </>
+            )}
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="remarks">Reason / Remarks</Label>
-              <Textarea
-                name="remarks"
-                placeholder="Enter the reason for banning this bidder..."
-                required
-                rows={4}
-              />
-            </div>
+          {dialogMode === "unban" ? (
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" variant="destructive" disabled={isLoading}>
+              <Button type="button" onClick={handleUnban} disabled={isLoading}>
                 {isLoading && <Loader2Icon className="animate-spin" />}
-                Confirm Ban
+                Confirm Unban
               </Button>
             </DialogFooter>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="remarks">Reason / Remarks</Label>
+                <Textarea
+                  name="remarks"
+                  placeholder="Enter the reason for banning this bidder..."
+                  required
+                  rows={4}
+                />
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  disabled={isLoading}
+                >
+                  {isLoading && <Loader2Icon className="animate-spin" />}
+                  Confirm Ban
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </>

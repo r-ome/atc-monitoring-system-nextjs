@@ -21,5 +21,9 @@ export interface IBidderRepository {
     bidder_id: string,
     data: UpdateBidderInput,
   ): Promise<BidderWithBranchRow>;
+  updateBidderStatus(
+    bidder_id: string,
+    status: UpdateBidderInput["status"],
+  ): Promise<BidderWithBranchRow>;
   uploadBidders(data: CreateBidderBulkInput[]): Promise<Prisma.BatchPayload>;
 }

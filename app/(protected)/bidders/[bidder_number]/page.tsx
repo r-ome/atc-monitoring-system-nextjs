@@ -155,6 +155,7 @@ export default async function Page({
 
       <BidderBanHistoriesTable
         bidder_id={bidder.bidder_id}
+        bidder_status={bidder.status}
         ban_histories={bidder.ban_histories}
       />
     </PageContainer>

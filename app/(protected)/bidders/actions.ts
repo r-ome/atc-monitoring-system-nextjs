@@ -2,6 +2,7 @@
 
 import { CreateBidderController } from "src/controllers/bidders/create-bidder.controller";
 import { UpdateBidderController } from "src/controllers/bidders/update-bidder.controller";
+import { UpdateBidderStatusController } from "src/controllers/bidders/update-bidder-status.controller";
 import { GetBiddersController } from "src/controllers/bidders/get-bidders.controller";
 import { GetBidderByBidderNumberController } from "src/controllers/bidders/get-bidder-by-bidder-number.controller";
 import { UploadBiddersController } from "src/controllers/bidders/upload-bidders.controller";
@@ -10,6 +11,7 @@ import { UpdateBidderRequirementController } from "src/controllers/bidder-requir
 import { DeleteBidderRequirementController } from "src/controllers/bidder-requirement/delete-bidder-requirement.controller";
 import { CreateBanHistoryController } from "src/controllers/bidder-ban-history/create-ban-history.controller";
 import { DeleteBanHistoryController } from "src/controllers/bidder-ban-history/delete-ban-history.controller";
+import type { BidderStatus } from "src/entities/models/Bidder";
 import {
   authorizeAction,
   runWithBranchContext,
@@ -61,6 +63,19 @@ export const updateBidder = async (bidder_id: string, formData: FormData) => {
   return await runWithUserContext(
     auth.value,
     async () => await UpdateBidderController(bidder_id, data),
+  );
+};
+
+export const updateBidderStatus = async (
+  bidder_id: string,
+  status: BidderStatus,
+) => {
+  const auth = await authorizeAction();
+  if (!auth.ok) return auth;
+
+  return await runWithUserContext(
+    auth.value,
+    async () => await UpdateBidderStatusController(bidder_id, { status }),
   );
 };
 

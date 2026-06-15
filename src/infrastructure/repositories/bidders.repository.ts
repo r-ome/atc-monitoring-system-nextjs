@@ -152,6 +152,22 @@ export const BidderRepository: IBidderRepository = {
       throw error;
     }
   },
+  updateBidderStatus: async (bidder_id, status) => {
+    try {
+      return await prisma.bidders.update({
+        include: { branch: true },
+        where: { bidder_id },
+        data: { status },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error updating bidder status!", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
   uploadBidders: async (data) => {
     try {
       return await prisma.$transaction(async (tx) => {
