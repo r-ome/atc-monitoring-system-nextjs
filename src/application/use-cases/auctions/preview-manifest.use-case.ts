@@ -1,6 +1,7 @@
 import { AuctionRepository, ContainerRepository, InventoryRepository } from "src/infrastructure/di/repositories";
 import { ManifestSheetRecord } from "src/entities/models/Manifest";
 import {
+  addLowPriceWarnings,
   formatControlDescriptionQty,
   normalizeManifestDescriptions,
   formatSlashedBarcodes,
@@ -28,8 +29,9 @@ export const previewManifestUseCase = async (
   const withFormattedQty = formatControlDescriptionQty(withEmptyFieldsValidated);
   const withNormalizedDescriptions =
     normalizeManifestDescriptions(withFormattedQty);
+  const withPriceWarnings = addLowPriceWarnings(withNormalizedDescriptions);
   const withFormattedBarcodes = formatSlashedBarcodes(
-    withNormalizedDescriptions,
+    withPriceWarnings,
   );
   const withoutManifestDuplicates = removeManifestDuplicates(withFormattedBarcodes);
   const withValidatedBidders = validateBidders(withoutManifestDuplicates, registered_bidders);

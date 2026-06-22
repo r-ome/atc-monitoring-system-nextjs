@@ -9,6 +9,7 @@ import {
 } from "src/entities/models/Manifest";
 import {
   addContainerIdForNewInventories,
+  addLowPriceWarnings,
   formatSlashedBarcodes,
   formatControlDescriptionQty,
   formatExistingInventories,
@@ -63,8 +64,9 @@ export const revalidateManifestUseCase = async (
   const withNormalizedDescriptions = normalizeManifestDescriptions(
     withFormattedQty,
   );
+  const withPriceWarnings = addLowPriceWarnings(withNormalizedDescriptions);
   const withFormattedBarcodes = formatSlashedBarcodes(
-    withNormalizedDescriptions,
+    withPriceWarnings,
   );
   const withoutManifestDuplicates = removeManifestDuplicates(
     withFormattedBarcodes,

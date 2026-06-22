@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   addContainerIdForNewInventories,
+  addLowPriceWarnings,
   divideIntoHundreds,
   divideQuantites,
   formatControlDescriptionQty,
@@ -202,9 +203,61 @@ test("normalizeManifestDescriptions collapses whitespace inside parens, normaliz
   );
 });
 
-test("divideIntoHundreds keeps total intact while rounding to the nearest hundred", () => {
+test("addLowPriceWarnings warns without invalidating prices below one hundred", () => {
+  const [lowPrice, zeroPrice, regularPrice] = addLowPriceWarnings(
+    (
+      [
+        ["40", "Existing warning."],
+        ["0", undefined],
+        ["100", undefined],
+      ] as const
+    ).map(([PRICE, warning]) => ({
+        BARCODE: "32-04-001",
+        CONTROL: "0001",
+        DESCRIPTION: "VASE",
+        BIDDER: "0007",
+        PRICE,
+        QTY: "1",
+        MANIFEST: "M-1",
+        isValid: true,
+        error: "",
+        forUpdating: false,
+        isSlashItem: "",
+        warning,
+      })),
+  );
+
+  assert.equal(lowPrice.isValid, true);
+  assert.equal(
+    lowPrice.warning,
+    "Existing warning. Price ₱40 is below ₱100. Please verify.",
+  );
+  assert.equal(zeroPrice.warning, undefined);
+  assert.equal(regularPrice.warning, undefined);
+});
+
+test("divideIntoHundreds keeps total intact while allocating in hundreds", () => {
   assert.deepEqual(divideIntoHundreds(1000, 3), [300, 300, 400]);
   assert.deepEqual(divideIntoHundreds(250, 2), [100, 150]);
+});
+
+test("divideIntoHundreds uses zero allocations instead of negative prices", () => {
+  const allocations = divideIntoHundreds(1000, 12);
+
+  assert.deepEqual(allocations, [0, 0, ...Array<number>(10).fill(100)]);
+  assert.equal(allocations.reduce((total, price) => total + price, 0), 1000);
+  assert.ok(allocations.every((price) => price >= 0));
+});
+
+test("divideIntoHundreds remains non-negative for a previously failing split", () => {
+  const allocations = divideIntoHundreds(3500, 13);
+
+  assert.deepEqual(allocations, [
+    ...Array<number>(4).fill(200),
+    ...Array<number>(9).fill(300),
+  ]);
+  assert.equal(allocations.reduce((total, price) => total + price, 0), 3500);
+  assert.ok(allocations.every((price) => price >= 0));
 });
 
 test("divideQuantites preserves LOT/SET text and distributes counted quantities", () => {

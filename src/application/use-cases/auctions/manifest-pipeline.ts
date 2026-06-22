@@ -288,14 +288,36 @@ export const normalizeManifestDescriptions = (
   });
 };
 
+export const addLowPriceWarnings = (
+  data: UploadManifestInput[],
+): UploadManifestInput[] => {
+  return data.map((item) => {
+    if (!item.isValid) return item;
+
+    const price = Number(item.PRICE);
+    if (!Number.isFinite(price) || price <= 0 || price >= 100) return item;
+
+    const priceWarning = `Price ₱${item.PRICE} is below ₱100. Please verify.`;
+
+    return {
+      ...item,
+      warning: [item.warning, priceWarning].filter(Boolean).join(" "),
+    };
+  });
+};
+
 export const divideIntoHundreds = (total: number, parts: number) => {
-  const portion = total / parts;
-  const rounded_portions = Array(parts)
-    .fill(0)
-    .map(() => Math.round(portion / 100) * 100);
-  const difference = total - rounded_portions.reduce((a, b) => a + b, 0);
-  rounded_portions[rounded_portions.length - 1] += difference;
-  return rounded_portions;
+  const roundedDownPortion = Math.floor(total / parts / 100) * 100;
+  const roundedPortions = Array<number>(parts).fill(roundedDownPortion);
+  let remainder = total - roundedDownPortion * parts;
+
+  for (let i = roundedPortions.length - 1; i >= 0 && remainder > 0; i--) {
+    const allocation = Math.min(100, remainder);
+    roundedPortions[i] += allocation;
+    remainder -= allocation;
+  }
+
+  return roundedPortions;
 };
 
 export const divideQuantites = (qty: string | number, parts: number) => {
