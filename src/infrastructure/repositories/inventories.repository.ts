@@ -21,6 +21,7 @@ import {
   buildItemVoidedHistoryRemark,
   buildItemDirectBoughtHistoryRemark,
   buildItemUpdatedHistoryRemark,
+  parseInventoryHistoryRemark,
 } from "src/entities/models/InventoryHistoryRemark";
 import {
   buildSalesAllocationChangedHistoryRemark,
@@ -38,6 +39,44 @@ const MERGE_TARGET_AUCTION_STATUSES = [
   "CANCELLED",
   "REFUNDED",
 ] as const;
+
+type PriceChangeHistory = {
+  remarks?: string | null;
+  created_at?: Date | string | null;
+};
+
+function getLatestPaidBaselinePrice(histories: PriceChangeHistory[]) {
+  const priceIncreases = histories
+    .map((history, index) => {
+      const parsed = parseInventoryHistoryRemark(history.remarks);
+
+      if (
+        typeof parsed.previous_price !== "number" ||
+        typeof parsed.new_price !== "number" ||
+        parsed.previous_price >= parsed.new_price
+      ) {
+        return null;
+      }
+
+      return {
+        paid_price: parsed.previous_price,
+        created_at: history.created_at
+          ? new Date(history.created_at).getTime()
+          : 0,
+        index,
+      };
+    })
+    .filter((priceChange): priceChange is NonNullable<typeof priceChange> =>
+      Boolean(priceChange),
+    );
+
+  if (!priceIncreases.length) return null;
+
+  return priceIncreases.sort((a, b) => {
+    if (b.created_at !== a.created_at) return b.created_at - a.created_at;
+    return b.index - a.index;
+  })[0].paid_price;
+}
 
 export const InventoryRepository: IInventoryRepository = {
   getAuctionItemDetails: async (auction_inventory_id) => {
@@ -234,6 +273,7 @@ export const InventoryRepository: IInventoryRepository = {
           include: {
             inventory: true,
             auction_bidder: { include: { bidder: true } },
+            histories: { orderBy: { created_at: "desc" } },
           },
         });
 
@@ -370,6 +410,16 @@ export const InventoryRepository: IInventoryRepository = {
             where: { auction_bidder_id: selected_bidder?.auction_bidder_id },
             data: { balance: { increment: new_computed_price } },
           });
+        }
+
+        if (auction_inventory_status === "PARTIAL") {
+          const paidBaselinePrice = getLatestPaidBaselinePrice(
+            auction_inventory.histories,
+          );
+
+          if (paidBaselinePrice === data.price) {
+            auction_inventory_status = "PAID";
+          }
         }
 
         const previous_values: Record<string, string | number | null> = {

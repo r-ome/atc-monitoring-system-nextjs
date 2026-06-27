@@ -311,6 +311,175 @@ test("updateAuctionItem rejects lower prices for paid items", async () => {
   assert.equal(containerLookupCalled, false);
 });
 
+test("updateAuctionItem marks partial item paid when price returns to paid baseline", async () => {
+  let itemUpdated = false;
+  const auctionInventoryWrites: Array<{
+    where: { auction_inventory_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+  const bidderBalanceWrites: Array<{
+    where: { auction_bidder_id: string };
+    data: Record<string, unknown>;
+  }> = [];
+
+  const tx = {
+    auctions_bidders: {
+      findFirst: async ({
+        where,
+      }: {
+        where: {
+          auction_bidder_id?: string;
+          auction_id?: string;
+          bidder?: { bidder_number?: string };
+        };
+      }) => {
+        if (
+          where.auction_id === "auction-1" &&
+          where.bidder?.bidder_number === "0038"
+        ) {
+          return {
+            auction_bidder_id: "bidder-38",
+            service_charge: 5,
+          };
+        }
+
+        if (where.auction_bidder_id === "bidder-38") {
+          return {
+            auction_bidder_id: "bidder-38",
+            balance: 2646,
+            service_charge: 5,
+            registration_fee: 3000,
+            already_consumed: 1,
+            auctions_inventories: itemUpdated
+              ? [
+                  {
+                    status: "PAID",
+                    price: 280,
+                    histories: [],
+                  },
+                ]
+              : [
+                  {
+                    status: "PARTIAL",
+                    price: 2800,
+                    histories: [
+                      {
+                        remarks:
+                          "Item updated | Price: 280 → 2800 | Updated by: MICHIE",
+                        created_at: new Date("2026-06-23T03:41:45.000Z"),
+                      },
+                    ],
+                  },
+                ],
+          };
+        }
+
+        return null;
+      },
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { auction_bidder_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        bidderBalanceWrites.push({ where, data });
+        return { where, data };
+      },
+    },
+    containers: {
+      findFirst: async () => ({
+        container_id: "container-1",
+        barcode: "98-40",
+        status: null,
+      }),
+    },
+    inventory_histories: {
+      create: async () => undefined,
+    },
+    auctions_inventories: {
+      findFirst: async () => ({
+        auction_inventory_id: "ai-1",
+        inventory_id: "inv-1",
+        auction_bidder_id: "bidder-38",
+        status: "PARTIAL",
+        price: 2800,
+        qty: "1",
+        description: "KW DI",
+        manifest_number: "M18",
+        histories: [
+          {
+            remarks: "Pull-out paid",
+            created_at: new Date("2026-06-22T06:35:07.000Z"),
+          },
+          {
+            remarks: "Item updated | Price: 280 → 2800 | Updated by: MICHIE",
+            created_at: new Date("2026-06-23T03:41:45.000Z"),
+          },
+        ],
+        inventory: {
+          inventory_id: "inv-1",
+          barcode: "98-40-321",
+          control: "0092",
+          container_id: "container-1",
+          sales_allocation: "CONTAINER",
+          sales_allocation_reason: "NORMAL",
+          sales_allocation_note: null,
+        },
+        auction_bidder: {
+          bidder: { bidder_number: "0038" },
+        },
+      }),
+      update: async ({
+        where,
+        data,
+      }: {
+        where: { auction_inventory_id: string };
+        data: Record<string, unknown>;
+      }) => {
+        itemUpdated = true;
+        auctionInventoryWrites.push({ where, data });
+        return { where, data };
+      },
+    },
+  };
+
+  restorers.push(
+    patchMethod(
+      prisma,
+      "$transaction",
+      (async (...args: unknown[]) => {
+        const callback = args[0];
+        assert.equal(typeof callback, "function");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (callback as any)(tx);
+      }) as typeof prisma.$transaction,
+    ),
+  );
+
+  await InventoryRepository.updateAuctionItem({
+    auction_id: "auction-1",
+    auction_inventory_id: "ai-1",
+    inventory_id: "inv-1",
+    barcode: "98-40-321",
+    control: "0092",
+    description: "KW DI",
+    price: 280,
+    qty: "1",
+    manifest_number: "M18",
+    bidder_number: "0038",
+    container_id: "container-1",
+  });
+
+  assert.equal(auctionInventoryWrites[0].data.status, "PAID");
+  assert.deepEqual(bidderBalanceWrites.slice(-1), [
+    {
+      where: { auction_bidder_id: "bidder-38" },
+      data: { balance: 0 },
+    },
+  ]);
+});
+
 test("mergeInventories updates the SOLD barcode, retires the UNSOLD duplicate, and preserves the SOLD auction row", async () => {
   const inventoryUpdates: Array<{
     where: { inventory_id: string };
