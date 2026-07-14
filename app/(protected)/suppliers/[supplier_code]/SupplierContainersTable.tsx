@@ -13,6 +13,7 @@ export type SupplierContainerRow = {
   branch: { name: string };
   arrival_date: Date | null;
   due_date: Date | null;
+  paid_item_prices: number[];
   total_item_sales: number;
   container_sales_commission: number;
   atc_group_commission: number;

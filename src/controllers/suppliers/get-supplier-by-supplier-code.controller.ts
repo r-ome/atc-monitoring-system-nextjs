@@ -49,12 +49,13 @@ function presenter(supplier: SupplierWithContainersRow) {
         (item) => item.status === "UNSOLD",
       ).length;
 
-      const total_item_sales = container.inventories.reduce((sum, item) => {
-        if (item.auctions_inventory?.status === "PAID") {
-          return sum + (item.auctions_inventory.price ?? 0);
-        }
-        return sum;
-      }, 0);
+      const paid_item_prices = container.inventories
+        .filter((item) => item.auctions_inventory?.status === "PAID")
+        .map((item) => item.auctions_inventory?.price ?? 0);
+      const total_item_sales = paid_item_prices.reduce(
+        (sum, price) => sum + price,
+        0,
+      );
 
       const container_sales_commission = computeSalesCommission(total_item_sales);
       const atc_group_commission = Math.round(container_sales_commission / 3);
@@ -71,6 +72,7 @@ function presenter(supplier: SupplierWithContainersRow) {
         branch: container.branch,
         due_date: container.due_date,
         arrival_date: container.arrival_date,
+        paid_item_prices,
         total_item_sales,
         container_sales_commission,
         atc_group_commission,
