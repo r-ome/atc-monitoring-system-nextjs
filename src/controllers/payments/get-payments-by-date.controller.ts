@@ -29,6 +29,7 @@ function presenter(payments: PaymentWithDetailsRow[]) {
       receipt_id: payment.receipt.receipt_id,
       receipt_number: payment.receipt.receipt_number,
       purpose: payment.receipt.purpose,
+      storage_fee: payment.receipt.storage_fee,
     },
     bidder: {
       bidder_id: payment.receipt.auction_bidder.bidder_id,

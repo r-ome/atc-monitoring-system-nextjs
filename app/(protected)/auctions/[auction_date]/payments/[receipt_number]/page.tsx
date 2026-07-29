@@ -141,6 +141,11 @@ export default async function Page({
               ? `(${formatNumberToCurrency(receipt.total_amount_paid)})`
               : formatNumberToCurrency(receipt.total_amount_paid)}
           </span>
+          {receipt.storage_fee > 0 ? (
+            <span className="text-[11.5px] text-muted-foreground 2xl:text-[13.5px]">
+              includes {formatNumberToCurrency(receipt.storage_fee)} storage fee
+            </span>
+          ) : null}
         </div>
       </Card>
 

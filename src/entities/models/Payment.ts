@@ -50,6 +50,7 @@ export type Payment = {
     receipt_id: string;
     receipt_number: string;
     purpose: PaymentPurpose;
+    storage_fee: number;
   };
   bidder: {
     bidder_id: string;
@@ -113,6 +114,7 @@ export type ReceiptRecords = {
   auction_bidder_id: string;
   total_amount_paid: number;
   purpose: PaymentPurpose;
+  storage_fee: number;
   auction_date: string;
   remarks?: string | null;
   payments: {

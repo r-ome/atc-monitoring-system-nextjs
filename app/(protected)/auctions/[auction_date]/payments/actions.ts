@@ -180,23 +180,43 @@ export const updateExpense = async (
 };
 
 export const getStorageFeeTotal = async (
+  auction_id: string,
   parent_receipt_number: string,
 ): Promise<number> => {
   const auth = await authorizeAction();
   if (!auth.ok) return 0;
 
   return await runWithBranchContext(auth.value, async () => {
+    // A fee bundled into the pull-out sits on the receipt itself; one added
+    // after the receipt was settled is a separate transfer with its own
+    // STORAGE_FEE receipt. The invoice shows the total of both.
+    //
+    // Receipt numbers repeat across auctions, so this has to be scoped by
+    // auction or it would pick up another auction's fees for the same number.
     const records = await prisma.receipt_records.findMany({
       where: {
-        receipt_number: { startsWith: `${parent_receipt_number}SF` },
-        purpose: "STORAGE_FEE",
+        auction_bidder: { auction_id },
+        OR: [
+          { receipt_number: parent_receipt_number },
+          {
+            receipt_number: { startsWith: `${parent_receipt_number}SF` },
+            purpose: "STORAGE_FEE",
+          },
+        ],
       },
-      include: { payments: true },
+      select: {
+        purpose: true,
+        storage_fee: true,
+        payments: { select: { amount_paid: true } },
+      },
     });
-    return records.reduce(
-      (acc, r) => acc + r.payments.reduce((s, p) => s + p.amount_paid, 0),
-      0,
-    );
+
+    return records.reduce((acc, r) => {
+      if (r.purpose === "STORAGE_FEE") {
+        return acc + r.payments.reduce((s, p) => s + p.amount_paid, 0);
+      }
+      return acc + r.storage_fee;
+    }, 0);
   });
 };
 

@@ -34,7 +34,10 @@ export default function ReceiptViewer() {
       if (!receipt_res.ok) { setIsLoading(false); return; }
       setReceipt(receipt_res.value);
 
-      const sfTotal = await getStorageFeeTotal(receipt_number);
+      const sfTotal = await getStorageFeeTotal(
+        res.value.auction_id,
+        receipt_number,
+      );
       setStorageFeeTotal(sfTotal);
       setIsLoading(false);
     };

@@ -20,7 +20,6 @@ import {
   inferCancelRefundTag,
 } from "src/entities/models/InventoryHistoryRemark";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
-import { allocateStorageFee } from "src/entities/models/StorageFeeAllocation";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 
 const TZ = "Asia/Manila";
@@ -185,11 +184,14 @@ export const PaymentRepository: IPaymentRepository = {
             ? `${registered_bidder.bidder.bidder_number}-${pull_out_number}`
             : `${registered_bidder.bidder.bidder_number}(AO)-${pull_out_number}`;
 
+        const storage_fee = data.storage_fee ?? 0;
+
         const created_receipt = await tx.receipt_records.create({
           data: {
             receipt_number,
             purpose: status === "UNPAID" ? "PULL_OUT" : "ADD_ON",
             auction_bidder_id: data.auction_bidder_id,
+            storage_fee,
             inventory_histories: {
               create: auction_inventories.map((auction_inventory) => ({
                 auction_inventory_id: auction_inventory.auction_inventory_id,
@@ -202,45 +204,20 @@ export const PaymentRepository: IPaymentRepository = {
           },
         });
 
-        const storage_fee = data.storage_fee ?? 0;
-        const allocation = allocateStorageFee(data.payments, storage_fee);
-
+        // Every submitted entry is one real transfer, recorded at the amount the
+        // bidder actually sent. The storage fee rides along on the receipt, so
+        // nothing here has to be shaved down to account for it.
         await Promise.all(
-          allocation.entries.map((entry) =>
+          data.payments.map((item) =>
             tx.payments.create({
               data: {
                 receipt_id: created_receipt.receipt_id,
-                amount_paid: entry.pullOutAmount,
-                payment_method_id: entry.payment_method,
+                amount_paid: item.amount_paid,
+                payment_method_id: item.payment_method,
               },
             }),
           ),
         );
-
-        if (storage_fee > 0) {
-          const sf_count = await tx.receipt_records.count({
-            where: { receipt_number: { startsWith: `${receipt_number}SF` } },
-          });
-          const sf_receipt_number = `${receipt_number}SF${sf_count + 1}`;
-          const sf_receipt = await tx.receipt_records.create({
-            data: {
-              receipt_number: sf_receipt_number,
-              purpose: "STORAGE_FEE",
-              auction_bidder_id: data.auction_bidder_id,
-            },
-          });
-          await Promise.all(
-            allocation.storageRows.map((row) =>
-              tx.payments.create({
-                data: {
-                  receipt_id: sf_receipt.receipt_id,
-                  amount_paid: row.amount_paid,
-                  payment_method_id: row.payment_method,
-                },
-              }),
-            ),
-          );
-        }
 
         await tx.auctions_inventories.updateMany({
           data: {
@@ -599,8 +576,13 @@ export const PaymentRepository: IPaymentRepository = {
           throw new NotFoundError("Parent receipt not found!");
         }
 
+        // Receipt numbers repeat across auctions, so this has to be scoped by
+        // bidder: counting every "0158-1SF..." in the database numbered one
+        // bidder's first storage fee as 0158-1SF2 because an unrelated auction
+        // already had a 0158-1SF1.
         const sf_count = await tx.receipt_records.count({
           where: {
+            auction_bidder_id: parent.auction_bidder_id,
             receipt_number: { startsWith: `${parent.receipt_number}SF` },
           },
         });

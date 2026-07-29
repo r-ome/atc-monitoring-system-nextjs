@@ -51,6 +51,7 @@ function presenter(receipt: ReceiptRecordWithHistoriesRow) {
     receipt_number: receipt.receipt_number,
     auction_bidder_id: receipt.auction_bidder_id,
     purpose: receipt.purpose,
+    storage_fee: receipt.storage_fee,
     auction_date: formatDate(
       receipt.auction_bidder.created_at,
       "MMMM dd, yyyy",

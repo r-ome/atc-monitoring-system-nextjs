@@ -12,15 +12,24 @@ const ReceiptNumberCell = ({ row }: { row: Row<Payment> }) => {
   const payment = row.original;
   const router = useRouter();
   return (
-    <div
-      className="flex justify-center cursor-pointer hover:underline"
-      onClick={() => {
-        router.push(
-          `/auctions/${payment.auction_date}/payments/${payment.receipt.receipt_number}`
-        );
-      }}
-    >
-      {payment.receipt.receipt_number}
+    <div className="flex flex-col items-center">
+      <span
+        className="cursor-pointer hover:underline"
+        onClick={() => {
+          router.push(
+            `/auctions/${payment.auction_date}/payments/${payment.receipt.receipt_number}`
+          );
+        }}
+      >
+        {payment.receipt.receipt_number}
+      </span>
+      {/* A storage fee is settled by these same transfers rather than one of
+          its own, so it is noted against the receipt instead of the amount. */}
+      {payment.receipt.storage_fee > 0 ? (
+        <span className="text-[11px] text-muted-foreground">
+          incl. ₱{payment.receipt.storage_fee.toLocaleString()} storage fee
+        </span>
+      ) : null}
     </div>
   );
 };

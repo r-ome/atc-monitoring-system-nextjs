@@ -86,6 +86,7 @@ export const ViewBillingModal: React.FC<ViewBillingModalProps> = ({
       auction_bidder_id: registeredBidder.auction_bidder_id,
       total_amount_paid: 0,
       purpose: "PULL_OUT" as PaymentPurpose,
+      storage_fee: 0,
       auction_date: registeredBidder.auction_date,
       bidder: {
         bidder_id: registeredBidder.bidder.bidder_id,

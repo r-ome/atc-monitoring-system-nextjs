@@ -31,6 +31,7 @@ const createPayment = (
     receipt_id: `receipt-${purpose}-${bidder_number}`,
     receipt_number: `RN-${bidder_number}`,
     purpose,
+    storage_fee: 0,
   },
   bidder: {
     bidder_id: `bidder-${bidder_number}`,
@@ -130,7 +131,7 @@ test("generateCashFlow keeps dynamic income and expense rows before signatures",
   assert.equal(sheet["H4"]?.f, "SUM(G16:G19)");
 });
 
-test("generateCashFlow lists each pull-out tender separately but the storage fee once", () => {
+test("generateCashFlow lists every inward row at the amount actually transferred", () => {
   const paymentMethods = [
     "CASH",
     "GCASH",
@@ -142,10 +143,12 @@ test("generateCashFlow lists each pull-out tender separately but the storage fee
   ].map(createPaymentMethod);
   const [, , bank] = paymentMethods;
 
+  // Bidder 0930 owed 55,372 for items plus a 400 storage fee and settled it
+  // with two bank transfers. The fee is carried on the receipt, so it never
+  // becomes a payment row of its own.
   const payments = [
     { ...createPayment("PULL_OUT", 50000, bank, "0930"), payment_id: "p-1" },
-    { ...createPayment("PULL_OUT", 5372, bank, "0930"), payment_id: "p-2" },
-    { ...createPayment("STORAGE_FEE", 400, bank, "0930"), payment_id: "p-3" },
+    { ...createPayment("PULL_OUT", 5772, bank, "0930"), payment_id: "p-2" },
   ];
 
   const yesterdayPettyCash: PettyCash = {
@@ -164,16 +167,48 @@ test("generateCashFlow lists each pull-out tender separately but the storage fee
     paymentMethods,
   });
 
-  // Both operator-entered tenders survive as their own inward rows.
+  // Both rows match a real transfer, duplicate method and all.
   assert.equal(sheet["A17"]?.v, "PULLOUT");
   assert.equal(sheet["C17"]?.v, 50000);
   assert.equal(sheet["A18"]?.v, "");
-  assert.equal(sheet["C18"]?.v, 5372);
+  assert.equal(sheet["C18"]?.v, 5772);
 
-  // The derived storage fee lands on a single row instead of a pro-rated pair.
-  assert.equal(sheet["A19"]?.v, "STORAGE FEE");
-  assert.equal(sheet["C19"]?.v, 400);
-  assert.equal(sheet["D19"]?.v, "BANK");
-  // The signature block follows immediately, so no fourth inward row exists.
-  assert.equal(sheet["A20"]?.v, "PREPARED BY: ");
+  // The signature block follows immediately: no invented storage fee row.
+  assert.equal(sheet["A19"]?.v, "PREPARED BY: ");
+});
+
+test("generateCashFlow still reports a separately paid storage fee as its own row", () => {
+  const paymentMethods = ["CASH", "GCASH", "BANK", "MAYA"].map(
+    createPaymentMethod,
+  );
+  const [cash, , bank] = paymentMethods;
+
+  // A fee added after the receipt was settled is a genuine second transfer.
+  const payments = [
+    { ...createPayment("PULL_OUT", 55772, bank, "0930"), payment_id: "p-1" },
+    { ...createPayment("STORAGE_FEE", 400, cash, "0930"), payment_id: "p-2" },
+  ];
+
+  const yesterdayPettyCash: PettyCash = {
+    petty_cash_id: "petty-cash-1",
+    amount: 0,
+    remarks: "Opening balance",
+    branch: { branch_id: "branch-1", name: "Main" },
+    created_at: "2026-07-27T00:00:00.000Z",
+    updated_at: "2026-07-27T00:00:00.000Z",
+  };
+
+  const sheet = generateCashFlow({
+    payments,
+    expenses: [],
+    yesterdayPettyCash,
+    paymentMethods,
+  });
+
+  const firstRow = 4 + 8 + 1 + 1;
+  assert.equal(sheet[`A${firstRow}`]?.v, "PULLOUT");
+  assert.equal(sheet[`C${firstRow}`]?.v, 55772);
+  assert.equal(sheet[`A${firstRow + 1}`]?.v, "STORAGE FEE");
+  assert.equal(sheet[`C${firstRow + 1}`]?.v, 400);
+  assert.equal(sheet[`D${firstRow + 1}`]?.v, "CASH");
 });

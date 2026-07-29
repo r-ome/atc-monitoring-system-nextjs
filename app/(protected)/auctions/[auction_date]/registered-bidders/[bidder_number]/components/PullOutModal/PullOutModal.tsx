@@ -129,6 +129,7 @@ export const PullOutModal: React.FC<PullOutModalProps> = ({
       auction_bidder_id: bidderPaymentDetails.auction_bidder_id,
       total_amount_paid: grandTotal,
       purpose: "PULL_OUT" as PaymentPurpose,
+      storage_fee: storageFee,
       auction_date: bidderPaymentDetails.auction_date,
       bidder: {
         bidder_id: bidderPaymentDetails.bidder.bidder_id,
