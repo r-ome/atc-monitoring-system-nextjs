@@ -11,6 +11,7 @@ import "./application/use-cases/inventories/update-auction-item.use-case.test";
 import "./application/use-cases/inventories/create-inventory.use-case.test";
 import "./entities/models/Auction.test";
 import "./entities/models/AuctionPayableAmount.test";
+import "./entities/models/StorageFeeAllocation.test";
 import "./app/components/admin/status-badge.helpers.test";
 import "../app/(protected)/auctions/calendar-range.test";
 import "../app/(protected)/containers/[barcode]/components/report/computeContainerReport.test";

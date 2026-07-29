@@ -48,9 +48,9 @@ export const columns: ColumnDef<Payment>[] = [
         <div className="flex justify-center">
           <StatusBadge
             variant={
-              ["PULL_OUT", "REGISTRATION"].includes(payment.receipt.purpose)
-                ? "success"
-                : "error"
+              REFUND_PURPOSES.includes(payment.receipt.purpose)
+                ? "error"
+                : "success"
             }
           >
             {payment.receipt.purpose.replace(/_/g, " ")}

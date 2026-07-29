@@ -152,8 +152,8 @@ export default async function Page({
             Payments
           </span>
           <span className="ml-auto text-[11px] text-muted-foreground 2xl:text-[14px]">
-            {receipt.payments.length} method
-            {receipt.payments.length === 1 ? "" : "s"}
+            {receipt.payments.length} payment entr
+            {receipt.payments.length === 1 ? "y" : "ies"}
           </span>
         </div>
 

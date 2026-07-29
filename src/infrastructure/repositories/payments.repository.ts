@@ -20,6 +20,7 @@ import {
   inferCancelRefundTag,
 } from "src/entities/models/InventoryHistoryRemark";
 import { getAuctionInventoriesPayableBase } from "src/entities/models/AuctionPayableAmount";
+import { allocateStorageFee } from "src/entities/models/StorageFeeAllocation";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 
 const TZ = "Asia/Manila";
@@ -202,25 +203,18 @@ export const PaymentRepository: IPaymentRepository = {
         });
 
         const storage_fee = data.storage_fee ?? 0;
+        const allocation = allocateStorageFee(data.payments, storage_fee);
 
         await Promise.all(
-          data.payments.map((item) => {
-            const storage_portion =
-              storage_fee > 0
-                ? Math.round(
-                    (item.amount_paid * storage_fee) /
-                      expected_amount_to_be_paid,
-                  )
-                : 0;
-            const pullout_portion = item.amount_paid - storage_portion;
-            return tx.payments.create({
+          allocation.entries.map((entry) =>
+            tx.payments.create({
               data: {
                 receipt_id: created_receipt.receipt_id,
-                amount_paid: pullout_portion,
-                payment_method_id: item.payment_method,
+                amount_paid: entry.pullOutAmount,
+                payment_method_id: entry.payment_method,
               },
-            });
-          }),
+            }),
+          ),
         );
 
         if (storage_fee > 0) {
@@ -236,18 +230,15 @@ export const PaymentRepository: IPaymentRepository = {
             },
           });
           await Promise.all(
-            data.payments.map((item) => {
-              const storage_portion = Math.round(
-                (item.amount_paid * storage_fee) / expected_amount_to_be_paid,
-              );
-              return tx.payments.create({
+            allocation.storageRows.map((row) =>
+              tx.payments.create({
                 data: {
                   receipt_id: sf_receipt.receipt_id,
-                  amount_paid: storage_portion,
-                  payment_method_id: item.payment_method,
+                  amount_paid: row.amount_paid,
+                  payment_method_id: row.payment_method,
                 },
-              });
-            }),
+              }),
+            ),
           );
         }
 

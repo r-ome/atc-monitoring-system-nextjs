@@ -129,3 +129,51 @@ test("generateCashFlow keeps dynamic income and expense rows before signatures",
   assert.equal(sheet["G19"]?.v, 300);
   assert.equal(sheet["H4"]?.f, "SUM(G16:G19)");
 });
+
+test("generateCashFlow lists each pull-out tender separately but the storage fee once", () => {
+  const paymentMethods = [
+    "CASH",
+    "GCASH",
+    "BANK",
+    "MAYA",
+    "CHECK",
+    "CREDIT CARD",
+    "PAYPAL",
+  ].map(createPaymentMethod);
+  const [, , bank] = paymentMethods;
+
+  const payments = [
+    { ...createPayment("PULL_OUT", 50000, bank, "0930"), payment_id: "p-1" },
+    { ...createPayment("PULL_OUT", 5372, bank, "0930"), payment_id: "p-2" },
+    { ...createPayment("STORAGE_FEE", 400, bank, "0930"), payment_id: "p-3" },
+  ];
+
+  const yesterdayPettyCash: PettyCash = {
+    petty_cash_id: "petty-cash-1",
+    amount: 0,
+    remarks: "Opening balance",
+    branch: { branch_id: "branch-1", name: "Main" },
+    created_at: "2026-07-27T00:00:00.000Z",
+    updated_at: "2026-07-27T00:00:00.000Z",
+  };
+
+  const sheet = generateCashFlow({
+    payments,
+    expenses: [],
+    yesterdayPettyCash,
+    paymentMethods,
+  });
+
+  // Both operator-entered tenders survive as their own inward rows.
+  assert.equal(sheet["A17"]?.v, "PULLOUT");
+  assert.equal(sheet["C17"]?.v, 50000);
+  assert.equal(sheet["A18"]?.v, "");
+  assert.equal(sheet["C18"]?.v, 5372);
+
+  // The derived storage fee lands on a single row instead of a pro-rated pair.
+  assert.equal(sheet["A19"]?.v, "STORAGE FEE");
+  assert.equal(sheet["C19"]?.v, 400);
+  assert.equal(sheet["D19"]?.v, "BANK");
+  // The signature block follows immediately, so no fourth inward row exists.
+  assert.equal(sheet["A20"]?.v, "PREPARED BY: ");
+});
