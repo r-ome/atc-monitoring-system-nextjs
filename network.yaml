@@ -44,7 +44,7 @@ Parameters:
     Description: "Existing EC2 KeyPair name for SSH access."
   InstanceType:
     Type: String
-    Default: t3.micro
+    Default: t3.medium
     AllowedValues:
       - t3.micro
       - t3.small
@@ -53,10 +53,22 @@ Parameters:
       - t4g.small
       - t4g.medium
     Description: "EC2 instance type."
+  RootVolumeSize:
+    Type: Number
+    Default: 20
+    MinValue: 8
+    MaxValue: 16384
+    Description: "EC2 root EBS volume size in GiB."
   Ec2AmiSsmParameter:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id
     Description: "SSM parameter for the AMI ID (default: latest Amazon Ubuntu 22.04 LTS)."
+  ElasticIpAllocationId:
+    Type: String
+    Default: eipalloc-04fd765e881537055
+    AllowedPattern: "^eipalloc-[0-9a-f]+$"
+    ConstraintDescription: "Must be an existing VPC Elastic IP allocation ID."
+    Description: "Existing Elastic IP allocation associated with the EC2 application instance."
 
   SshCidr:
     Type: String
@@ -436,6 +448,12 @@ Resources:
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref AppInstanceProfile
       KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: true
+            VolumeSize: !Ref RootVolumeSize
+            VolumeType: gp2
       SubnetId: !Ref PublicSubnet1
       SecurityGroupIds:
         - !Ref Ec2SecurityGroup
@@ -457,6 +475,12 @@ Resources:
           RDS endpoint (from CloudFormation Outputs): use mysql client from this instance.
           EOF
 
+  AppElasticIpAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !Ref ElasticIpAllocationId
+      InstanceId: !Ref AppInstance
+
 Outputs:
   VpcId:
     Value: !Ref VPC
@@ -475,6 +499,8 @@ Outputs:
     Value: !GetAtt AppInstance.PublicIp
   Ec2PublicDns:
     Value: !GetAtt AppInstance.PublicDnsName
+  Ec2ElasticIpAllocationId:
+    Value: !Ref ElasticIpAllocationId
 
   RdsEndpointAddress:
     Value: !GetAtt DbInstance.Endpoint.Address

@@ -61,6 +61,8 @@ jobs:
             APP_DIR=~/atc-monitoring-system
             RUNTIME_DIR=$APP_DIR/runtime
             MIG_DIR=$APP_DIR/migrations-runner
+            DEPLOY_USER="$(id -un)"
+            DEPLOY_HOME="$HOME"
 
             if [ -z "${AWS_REGION:-}" ] || [ -z "${AWS_S3_CONTAINER_REPORTS_BUCKET:-}" ]; then
               echo "Missing AWS_REGION or AWS_S3_CONTAINER_REPORTS_BUCKET GitHub variable/secret."
@@ -125,5 +127,10 @@ jobs:
 
             ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma
 
-            # --- Reload app ---
-            pm2 reload "$APP_DIR/ecosystem.config.js" --update-env
+            # --- Start or reload app and persist it across instance restarts ---
+            pm2 startOrReload "$APP_DIR/ecosystem.config.js" --update-env
+            pm2 save
+
+            if ! systemctl is-enabled "pm2-$DEPLOY_USER" >/dev/null 2>&1; then
+              sudo env PATH="$PATH:/usr/bin" pm2 startup systemd -u "$DEPLOY_USER" --hp "$DEPLOY_HOME"
+            fi
