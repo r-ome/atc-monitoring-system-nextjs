@@ -67,7 +67,11 @@ export const UpdateSupplierModal: React.FC<UpdateSupplierModalProps> = ({
     if (res.ok) {
       toast.success("Successfully updated supplier!");
       setOpen(false);
-      router.refresh();
+      if (res.value.supplier_code !== supplier.supplier_code) {
+        router.replace(`/suppliers/${encodeURIComponent(res.value.supplier_code)}`);
+      } else {
+        router.refresh();
+      }
     } else {
       const description =
         typeof res.error?.cause === "string" ? res.error?.cause : null;

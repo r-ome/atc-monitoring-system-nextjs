@@ -50,9 +50,10 @@ export const UpdateSupplierController = async (
           ],
         })
       : "";
+    const summary = `Updated supplier ${supplier.name} (${supplier.supplier_code})`;
     const description = diffDescription
-      ? `Updated supplier ${supplier.name} | ${diffDescription}`
-      : `Updated supplier ${supplier.name}`;
+      ? `${summary} | ${diffDescription}`
+      : summary;
     await logActivity("UPDATE", "supplier", supplier_id, description);
     return ok(presentSupplier(supplier));
   } catch (error) {

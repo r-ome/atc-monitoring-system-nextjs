@@ -20,6 +20,7 @@ import {
   Menu,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
+import { SUPPLIER_MANAGEMENT_ROLES } from "@/app/lib/supplier-permissions";
 import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { logSessionLogout } from "@/app/(protected)/session-actions";
@@ -38,7 +39,7 @@ const NAV_ITEMS = [
   { id: "items", label: "Bought Items", href: "/bought-items", icon: Package, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
   { id: "branches", label: "Branches", href: "/branches", icon: Building2, roles: ["OWNER", "SUPER_ADMIN"] },
   { id: "containers", label: "Containers", href: "/containers", icon: Container, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
-  { id: "suppliers", label: "Suppliers", href: "/suppliers", icon: Truck, roles: ["OWNER", "SUPER_ADMIN"] },
+  { id: "suppliers", label: "Suppliers", href: "/suppliers", icon: Truck, roles: SUPPLIER_MANAGEMENT_ROLES },
   { id: "payroll", label: "Payroll", href: "/payroll", icon: Banknote, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
   { id: "transactions", label: "Transactions", href: "/transactions", icon: HandCoins, roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
   { id: "users", label: "Users", href: "/users", icon: UsersRound, roles: ["OWNER", "SUPER_ADMIN"] },

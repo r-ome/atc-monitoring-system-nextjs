@@ -13,10 +13,12 @@ export type SupplierRowType = Omit<Supplier, "containers"> & {
 
 interface SuppliersTableProps {
   suppliers: SupplierRowType[];
+  canManageSuppliers: boolean;
 }
 
 export const SuppliersTable: React.FC<SuppliersTableProps> = ({
   suppliers,
+  canManageSuppliers,
 }) => {
   const router = useRouter();
   const globalFilterFn = (
@@ -67,8 +69,10 @@ export const SuppliersTable: React.FC<SuppliersTableProps> = ({
         globalFilterFn,
         searchComponentProps: { placeholder: "Search by name or code…" },
       }}
-      onRowClick={(supplier) =>
-        router.push(`suppliers/${supplier.supplier_code}`)
+      onRowClick={
+        canManageSuppliers
+          ? (supplier) => router.push(`/suppliers/${encodeURIComponent(supplier.supplier_code)}`)
+          : undefined
       }
       renderMobileCard={renderMobileCard}
     />

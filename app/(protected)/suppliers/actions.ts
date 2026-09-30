@@ -5,6 +5,7 @@ import {
   runWithBranchContext,
   runWithUserContext,
 } from "@/app/lib/protected-action";
+import { SUPPLIER_MANAGEMENT_ROLES } from "@/app/lib/supplier-permissions";
 import { UpdateSupplierController } from "src/controllers/suppliers/update-supplier.controller";
 import { CreateSupplierController } from "src/controllers/suppliers/create-supplier.controller";
 import { GetSupplierBySupplierCodeController } from "src/controllers/suppliers/get-supplier-by-supplier-code.controller";
@@ -12,7 +13,7 @@ import { GetSuppliersController } from "src/controllers/suppliers/get-suppliers.
 
 export const getSupplierBySupplierCode = async (supplier_code: string) => {
   const auth = await authorizeAction({
-    allowedRoles: ["OWNER", "SUPER_ADMIN"],
+    allowedRoles: SUPPLIER_MANAGEMENT_ROLES,
   });
   if (!auth.ok) return auth;
 
@@ -23,7 +24,7 @@ export const getSupplierBySupplierCode = async (supplier_code: string) => {
 
 export const createSupplier = async (form_data: FormData) => {
   const auth = await authorizeAction({
-    allowedRoles: ["OWNER", "SUPER_ADMIN"],
+    allowedRoles: SUPPLIER_MANAGEMENT_ROLES,
   });
   if (!auth.ok) return auth;
 
@@ -47,7 +48,7 @@ export const updateSupplier = async (
   form_data: FormData
 ) => {
   const auth = await authorizeAction({
-    allowedRoles: ["OWNER", "SUPER_ADMIN"],
+    allowedRoles: SUPPLIER_MANAGEMENT_ROLES,
   });
   if (!auth.ok) return auth;
 
