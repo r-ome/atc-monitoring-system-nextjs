@@ -32,6 +32,7 @@ test("computeContainerReport calculates service charge per paid item bidder rate
   ]);
 
   assert.equal(report.totalItemSales, 3000);
+  assert.equal(report.totalPaidAndUnpaidItemSales, 8000);
   assert.equal(report.totalServiceCharge, 400);
   assert.equal(report.totalProfit, -18_950);
   assert.equal(report.atcAllocatedItemSales, 0);
@@ -67,8 +68,37 @@ test("computeContainerReport excludes ATC allocated paid items from container pr
   ]);
 
   assert.equal(report.totalItemSales, 1000);
+  assert.equal(report.totalPaidAndUnpaidItemSales, 1000);
   assert.equal(report.totalServiceCharge, 100);
   assert.equal(report.atcAllocatedItemSales, 2000);
   assert.equal(report.atcAllocatedItemCount, 1);
   assert.equal(report.totalProfit, -19_683);
+});
+
+test("computeContainerReport includes unpaid container sales and excludes cancelled and refunded items", () => {
+  const report = computeContainerReport([
+    {
+      sales_allocation: "CONTAINER",
+      auctions_inventory: { status: "UNPAID", price: 5000 },
+    },
+    {
+      auctions_inventory: { status: "CANCELLED", price: 2000 },
+    },
+    {
+      auctions_inventory: { status: "REFUNDED", price: 3000 },
+    },
+    { auctions_inventory: null },
+  ]);
+
+  assert.equal(report.totalItemSales, 0);
+  assert.equal(report.totalPaidAndUnpaidItemSales, 5000);
+  assert.equal(report.containerSalesCommission, 0);
+  assert.equal(report.totalServiceCharge, 0);
+});
+
+test("computeContainerReport returns zero sales for an empty container", () => {
+  const report = computeContainerReport([]);
+
+  assert.equal(report.totalItemSales, 0);
+  assert.equal(report.totalPaidAndUnpaidItemSales, 0);
 });

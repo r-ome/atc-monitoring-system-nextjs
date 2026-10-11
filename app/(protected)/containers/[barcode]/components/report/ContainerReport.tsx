@@ -39,11 +39,13 @@ function ReportRow({
   label,
   hint,
   value,
+  totalValue,
   className,
 }: {
   label: string;
   hint: string;
   value: number;
+  totalValue?: number;
   className?: string;
 }) {
   return (
@@ -61,6 +63,7 @@ function ReportRow({
       </div>
       <span className={`text-sm font-semibold tabular-nums ${className ?? ""}`}>
         {formatPeso(value)}
+        {totalValue !== undefined && ` / ${formatPeso(totalValue)}`}
       </span>
     </div>
   );
@@ -71,6 +74,7 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
 }) => {
   const {
     totalItemSales,
+    totalPaidAndUnpaidItemSales,
     totalServiceCharge,
     containerSalesCommission,
     atcGroupCommission,
@@ -110,8 +114,9 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
       <CardContent className="space-y-1">
         <ReportRow
           label="Total Item Sales"
-          hint="Sum of all PAID auction item prices in this container."
+          hint="PAID item prices / combined PAID and UNPAID item prices in this container. Excludes ATC allocated items. Commissions and profit use the PAID amount."
           value={totalItemSales}
+          totalValue={totalPaidAndUnpaidItemSales}
           className="text-green-600"
         />
 

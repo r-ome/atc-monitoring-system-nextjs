@@ -9,6 +9,7 @@ type InventoryLike = {
 
 export type ContainerReportData = {
   totalItemSales: number;
+  totalPaidAndUnpaidItemSales: number;
   totalServiceCharge: number;
   royalty: number;
   containerSalesCommission: number;
@@ -54,6 +55,17 @@ export function computeContainerReport(
   const totalItemSales = containerPaidItems.reduce((sum, item) => {
     return sum + (item.price ?? 0);
   }, 0);
+  const totalPaidAndUnpaidItemSales = inventories.reduce((sum, inv) => {
+    const item = inv.auctions_inventory;
+    if (
+      inv.sales_allocation === "ATC" ||
+      !item ||
+      (item.status !== "PAID" && item.status !== "UNPAID")
+    ) {
+      return sum;
+    }
+    return sum + (item.price ?? 0);
+  }, 0);
 
   const totalServiceCharge = containerPaidItems.reduce((sum, item) => {
     const serviceChargeRate = item.bidder?.service_charge ?? 0;
@@ -73,6 +85,7 @@ export function computeContainerReport(
 
   return {
     totalItemSales,
+    totalPaidAndUnpaidItemSales,
     totalServiceCharge,
     royalty,
     containerSalesCommission,
