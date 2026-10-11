@@ -21,6 +21,8 @@ import {
   Receipt,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import { ActivityLog } from "src/entities/models/ActivityLog";
+import { PaymentUpdateLogsAlert } from "./components/payments/PaymentUpdateLogsAlert";
 
 const PAYMENT_METHOD_ICONS: Record<string, LucideIcon> = {
   CASH: Banknote,
@@ -35,10 +37,12 @@ const RED_CARD = "gap-0 py-0 [&_[data-slot=card-content]]:p-4 [&_p.text-2xl]:tex
 
 interface InwardTransactionsTabProps {
   transactions: Payment[];
+  paymentUpdateLogs: ActivityLog[];
 }
 
 export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
   transactions,
+  paymentUpdateLogs,
 }) => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
@@ -138,6 +142,11 @@ export const InwardTransactionsTab: React.FC<InwardTransactionsTabProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
+      <PaymentUpdateLogsAlert
+        paymentUpdateLogs={paymentUpdateLogs}
+        transactions={transactions}
+      />
+
       <StatCard
         title="Total Inward"
         value={`₱${totalInwardCash.toLocaleString()}`}

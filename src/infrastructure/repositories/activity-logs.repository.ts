@@ -82,4 +82,27 @@ export const ActivityLogRepository: IActivityLogRepository = {
       throw error;
     }
   },
+
+  getPaymentUpdateLogs: async (payment_ids, branch_id) => {
+    try {
+      if (payment_ids.length === 0) return [];
+
+      return await prisma.activity_logs.findMany({
+        where: {
+          action: "UPDATE",
+          entity_type: "payment",
+          entity_id: { in: payment_ids },
+          ...(branch_id ? { branch_id } : {}),
+        },
+        orderBy: { created_at: "desc" },
+      });
+    } catch (error) {
+      if (isPrismaError(error) || isPrismaValidationError(error)) {
+        throw new DatabaseOperationError("Error getting payment update logs", {
+          cause: error.message,
+        });
+      }
+      throw error;
+    }
+  },
 };

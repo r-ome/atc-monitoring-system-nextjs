@@ -1,21 +1,8 @@
 import { logger } from "@/app/lib/logger";
 import { ActivityLogRepository } from "src/infrastructure/di/repositories";
 import { DatabaseOperationError } from "src/entities/errors/common";
-import { ActivityLog, ActivityLogRow } from "src/entities/models/ActivityLog";
 import { err, ok } from "src/entities/models/Result";
-
-function presenter(log: ActivityLogRow): ActivityLog {
-  return {
-    activity_log_id: log.activity_log_id,
-    username: log.username,
-    branch_name: log.branch_name,
-    action: log.action,
-    entity_type: log.entity_type,
-    entity_id: log.entity_id,
-    description: log.description,
-    created_at: log.created_at.toISOString(),
-  };
-}
+import { presentActivityLog } from "./present-activity-log";
 
 export const GetExpenseUpdateLogsController = async (
   expense_ids: string[],
@@ -27,7 +14,7 @@ export const GetExpenseUpdateLogsController = async (
       branch_id,
     );
 
-    return ok(logs.map(presenter));
+    return ok(logs.map(presentActivityLog));
   } catch (error) {
     logger("GetExpenseUpdateLogsController", error);
     if (error instanceof DatabaseOperationError) {

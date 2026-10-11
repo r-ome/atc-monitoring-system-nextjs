@@ -10,4 +10,8 @@ export interface IActivityLogRepository {
     expense_ids: string[],
     branch_id?: string,
   ): Promise<ActivityLogRow[]>;
+  getPaymentUpdateLogs(
+    payment_ids: string[],
+    branch_id?: string,
+  ): Promise<ActivityLogRow[]>;
 }

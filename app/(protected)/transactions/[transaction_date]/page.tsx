@@ -28,6 +28,7 @@ import { InwardTransactionsTab } from "./InwardTransactionsTab";
 import { ExpensesTab } from "./ExpensesTab";
 import { PayrollTab } from "./PayrollTab";
 import { GenerateExpenseReport } from "./GenerateExpenseReport";
+import { getPaymentUpdateLogs } from "./actions";
 
 export default async function Page({
   params,
@@ -94,12 +95,18 @@ export default async function Page({
   const transactions = transactions_res.value;
   const current_petty_cash = current_petty_cash_res.value;
   const last_petty_cash = last_petty_cash_res.value;
-  const expense_update_logs_res = await getExpenseUpdateLogs(
-    expenses.map((expense) => expense.expense_id),
-    selected_branch?.branch_id,
-  );
+  const [expense_update_logs_res, payment_update_logs_res] = await Promise.all([
+    getExpenseUpdateLogs(
+      expenses.map((expense) => expense.expense_id),
+      selected_branch?.branch_id,
+    ),
+    getPaymentUpdateLogs(
+      transactions.map((transaction) => transaction.payment_id),
+      selected_branch?.branch_id,
+    ),
+  ]);
 
-  if (!expense_update_logs_res.ok) {
+  if (!expense_update_logs_res.ok || !payment_update_logs_res.ok) {
     return <ErrorComponent error={{ message: "Server Error" }} />;
   }
 
@@ -141,7 +148,10 @@ export default async function Page({
           <TabsTrigger value="payroll">Payroll</TabsTrigger>
         </TabsList>
         <TabsContent value="inward" className="flex flex-col gap-4 2xl:gap-6">
-          <InwardTransactionsTab transactions={transactions} />
+          <InwardTransactionsTab
+            transactions={transactions}
+            paymentUpdateLogs={payment_update_logs_res.value}
+          />
         </TabsContent>
         <TabsContent value="expense" className="flex flex-col gap-4 2xl:gap-6">
           <ExpensesTab
