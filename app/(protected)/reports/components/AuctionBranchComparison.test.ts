@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { JsxEmit, ModuleKind, transpileModule } from "typescript";
 import * as jsxRuntime from "react/jsx-runtime";
+import { isValidElement, type ReactElement } from "react";
 import type { AuctionBranchComparison } from "src/entities/models/Report";
 import type { Result } from "src/entities/models/Result";
 
@@ -68,12 +69,81 @@ const comparison = (year: string): AuctionBranchComparison => ({
     branch_id: `branch-${index}`, branch_name: name,
     summary: { total_sales: 100, items_sold: 2, bidder_attendances: 1, total_registration_fee: 20,
       highest_item_sold: 60, avg_selling_price: 50, auction_count: 1 },
+    auctions: Array.from({ length: index === 0 ? 2 : 1 }, (_, sequence) => ({
+      auction_id: `${index}-${sequence}`, auction_date: index === 0 ? `May ${sequence + 1}` : "Jun 7",
+      total_sales: index === 0 ? (sequence + 1) * 100 : 0, items_sold: index === 0 ? 2 : 0,
+      registered_bidders: sequence + 3, total_registration_fee: 20, highest_item_sold: 60,
+      avg_selling_price: index === 0 ? (sequence + 1) * 50 : 0,
+    })),
     months: Array.from({ length: 12 }, (_, month) => ({ month: `${year}-${month + 1}`,
       total_sales: 100, items_sold: 2, bidder_attendances: 1, total_registration_fee: 20,
       highest_item_sold: 60, avg_selling_price: 50, auction_count: 1 })),
   })),
 });
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); };
+const elements = (output: unknown): ReactElement<Record<string, unknown>>[] => {
+  if (Array.isArray(output)) return output.flatMap(elements);
+  if (!isValidElement<Record<string, unknown>>(output)) return [];
+  return [output, ...elements(output.props.children)];
+};
+
+test("per-auction view aligns sequences, preserves zero results and leaves missing auctions as gaps", async () => {
+  const fixture = setup();
+  fixture.render("2026");
+  fixture.requests[0].resolve({ ok: true, value: comparison("2026") });
+  await flush();
+  const selectMode = elements(fixture.render("2026")).find((entry) => entry.props.value === "monthly")?.props.onValueChange;
+  assert.equal(typeof selectMode, "function");
+  if (typeof selectMode !== "function") assert.fail("Expected comparison mode selector");
+  selectMode("auction");
+  const output = fixture.render("2026");
+  const chart = elements(output).find((entry) => Array.isArray(entry.props.data));
+  assert.deepEqual(JSON.parse(JSON.stringify(chart?.props.data)), [
+    { label: "Auction 1", sequence: 1, "branch-0": 100, "branch-1": 0 },
+    { label: "Auction 2", sequence: 2, "branch-0": 200, "branch-1": null },
+  ]);
+  assert.ok(elements(output).some((entry) => entry.props.children === "No auction"));
+  const tooltip = elements(output).flatMap((entry) => elements(entry.props.content))
+    .find((entry) => typeof entry.props.formatter === "function")?.props.formatter;
+  if (typeof tooltip !== "function") assert.fail("Expected tooltip formatter");
+  assert.ok(elements(tooltip(0, "branch-1", { payload: { sequence: 1 } }))
+    .some((entry) => entry.props.children === "Jun 7"));
+  const selectMetric = elements(output).find((entry) => entry.props.value === "total_sales")?.props.onValueChange;
+  if (typeof selectMetric !== "function") assert.fail("Expected metric selector");
+  selectMetric("bidder_attendances");
+  const bidders = elements(fixture.render("2026")).find((entry) => Array.isArray(entry.props.data));
+  assert.deepEqual(JSON.parse(JSON.stringify(bidders?.props.data)), [
+    { label: "Auction 1", sequence: 1, "branch-0": 3, "branch-1": 3 },
+    { label: "Auction 2", sequence: 2, "branch-0": 4, "branch-1": null },
+  ]);
+  fixture.states[2] = ["branch-1"];
+  const filtered = elements(fixture.render("2026")).find((entry) => Array.isArray(entry.props.data));
+  assert.deepEqual(JSON.parse(JSON.stringify(filtered?.props.data)), [
+    { label: "Auction 1", sequence: 1, "branch-1": 3 },
+  ]);
+  selectMode("monthly");
+  fixture.render("2026");
+  fixture.render("2026", false);
+  fixture.render("2026");
+  assert.equal(fixture.requests.length, 1);
+  fixture.dispose();
+});
+
+test("per-auction mode switches auction count to sales without requesting new data", async () => {
+  const fixture = setup();
+  fixture.render("2026");
+  fixture.requests[0].resolve({ ok: true, value: comparison("2026") });
+  await flush();
+  fixture.states[3] = "auction_count";
+  const selectMode = elements(fixture.render("2026")).find((entry) => entry.props.value === "monthly")?.props.onValueChange;
+  if (typeof selectMode !== "function") assert.fail("Expected mode selector");
+  selectMode("auction");
+  const output = fixture.render("2026");
+  assert.equal(fixture.states[3], "total_sales");
+  assert.ok(!elements(output).some((entry) => entry.props.value === "auction_count"));
+  assert.equal(fixture.requests.length, 1);
+  fixture.dispose();
+});
 
 test("comparison requests only when active and reuses loaded data for view, branch and metric changes", async () => {
   const fixture = setup();

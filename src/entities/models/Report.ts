@@ -59,6 +59,7 @@ export type AuctionBranchComparisonEntry = {
   branch_name: string;
   summary: AuctionBranchMetrics;
   months: Array<AuctionBranchMetrics & { month: string }>;
+  auctions: AuctionKpiEntry[];
 };
 
 export type AuctionBranchComparison = {

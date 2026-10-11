@@ -70,6 +70,43 @@ test("comparison aggregates unrounded totals across months", () => {
   assert.equal(result.branches[0].summary.avg_selling_price, 100);
 });
 
+test("comparison sequences each branch's auctions by date with a stable same-date order", () => {
+  const rows = [
+    auction({ auction_id: "later", auction_date: new Date("2026-06-01T00:00:00Z"), total_sales: 101, items_sold: 2 }),
+    auction({ auction_id: "same-b" }),
+    auction({ auction_id: "other", branch_id: SECOND_ID, auction_date: new Date("2026-02-01T00:00:00Z"),
+      items_sold: 0, total_sales: 0, highest_item_sold: 0 }),
+    auction({ auction_id: "same-a" }),
+  ];
+  const originalOrder = rows.map((row) => row.auction_id);
+  const result = presentAuctionBranchComparison(branches, rows, "2026");
+  assert.deepEqual(result.branches[0].auctions.map((entry) => entry.auction_id), ["same-a", "same-b", "later"]);
+  assert.deepEqual(result.branches[1].auctions.map((entry) => entry.auction_id), ["other"]);
+  for (const entry of result.branches) {
+    const expected = rows.filter((row) => row.branch_id === entry.branch_id).sort((a, b) =>
+      a.auction_date.getTime() - b.auction_date.getTime() || a.auction_id.localeCompare(b.auction_id));
+    assert.deepEqual(entry.auctions, presentAuctionKpis(expected));
+    assert.equal(entry.summary.total_sales, entry.auctions.reduce((sum, auction) => sum + auction.total_sales, 0));
+    assert.equal(entry.summary.auction_count, entry.auctions.length);
+  }
+  assert.equal(result.branches[0].auctions[2].avg_selling_price, 51);
+  assert.equal(result.branches[1].auctions[0].avg_selling_price, 0);
+  assert.deepEqual(rows.map((row) => row.auction_id), originalOrder);
+});
+
+test("per-auction data excludes other years and branches and displays Manila dates", () => {
+  const result = presentAuctionBranchComparison(branches, [
+    auction({ auction_id: "before", auction_date: new Date("2025-12-31T15:59:59Z") }),
+    auction({ auction_id: "start", auction_date: new Date("2025-12-31T16:00:00Z") }),
+    auction({ auction_id: "month", auction_date: new Date("2026-04-30T16:00:00Z") }),
+    auction({ auction_id: "after", auction_date: new Date("2026-12-31T16:00:00Z") }),
+    auction({ branch_id: DELETED_ID }),
+  ], "2026");
+  assert.deepEqual(result.branches[0].auctions.map((entry) => [entry.auction_id, entry.auction_date]),
+    [["start", "Jan 01"], ["month", "May 01"]]);
+  assert.deepEqual(result.branches[1].auctions, []);
+});
+
 test("comparison controller queries active business branches once and validates branch selections", async () => {
   let reads = 0;
   const deleted = { ...branch(DELETED_ID, "Deleted"), deleted_at: new Date() };

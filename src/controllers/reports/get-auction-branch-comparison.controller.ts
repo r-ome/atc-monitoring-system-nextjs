@@ -6,9 +6,11 @@ import type { BranchRow } from "src/entities/models/Branch";
 import {
   auctionBranchComparisonSchema,
   type AuctionBranchComparison,
+  type AuctionBranchComparisonEntry,
   type AuctionBranchKpiRow,
   type AuctionBranchMetrics,
 } from "src/entities/models/Report";
+import { presentAuctionKpis } from "./get-auction-kpis.controller";
 
 function emptyMetrics(): AuctionBranchMetrics {
   return {
@@ -36,24 +38,31 @@ export function presentAuctionBranchComparison(
   rows: AuctionBranchKpiRow[],
   year: string,
 ): AuctionBranchComparison {
-  const entries = branches.map((branch) => ({
+  const entries: AuctionBranchComparisonEntry[] = branches.map((branch) => ({
     branch_id: branch.branch_id,
     branch_name: branch.name,
     summary: emptyMetrics(),
+    auctions: [],
     months: Array.from({ length: 12 }, (_, index) => ({
       month: `${year}-${String(index + 1).padStart(2, "0")}`,
       ...emptyMetrics(),
     })),
   }));
   const byBranch = new Map(entries.map((entry) => [entry.branch_id, entry]));
+  const auctionsByBranch = new Map<string, AuctionBranchKpiRow[]>(entries.map((entry) => [entry.branch_id, []]));
   for (const row of rows) {
     const branch = byBranch.get(row.branch_id);
     if (!branch || formatDate(row.auction_date, "yyyy") !== year) continue;
+    auctionsByBranch.get(row.branch_id)?.push(row);
     const monthIndex = Number(formatDate(row.auction_date, "MM")) - 1;
     addAuction(branch.months[monthIndex], row);
     addAuction(branch.summary, row);
   }
   for (const branch of entries) {
+    const auctions = auctionsByBranch.get(branch.branch_id) ?? [];
+    auctions.sort((first, second) => first.auction_date.getTime() - second.auction_date.getTime()
+      || first.auction_id.localeCompare(second.auction_id));
+    branch.auctions = presentAuctionKpis(auctions);
     for (const metrics of [branch.summary, ...branch.months]) {
       metrics.avg_selling_price = metrics.items_sold > 0
         ? Math.round(metrics.total_sales / metrics.items_sold)
