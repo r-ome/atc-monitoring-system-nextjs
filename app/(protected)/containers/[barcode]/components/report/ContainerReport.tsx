@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Button } from "@/app/components/ui/button";
 import {
   Card,
   CardContent,
@@ -39,32 +41,60 @@ function ReportRow({
   label,
   hint,
   value,
-  totalValue,
+  projectedValue,
+  projectedClassName,
   className,
 }: {
   label: string;
   hint: string;
   value: number;
-  totalValue?: number;
+  projectedValue?: number;
+  projectedClassName?: string;
   className?: string;
 }) {
   return (
-    <div className="flex justify-between items-center py-1">
-      <div className="flex items-center gap-1.5">
+    <div
+      className={`grid items-center gap-x-4 gap-y-1 py-1 ${
+        projectedValue !== undefined
+          ? "grid-cols-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
+          : "grid-cols-[minmax(0,1fr)_auto]"
+      }`}
+    >
+      <div
+        className={`flex items-center gap-1.5 ${
+          projectedValue !== undefined ? "col-span-2 sm:col-span-1" : ""
+        }`}
+      >
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <InfoIcon className="size-3.5 text-muted-foreground/60 cursor-help shrink-0" />
+            <button type="button" aria-label={`About ${label}`}>
+              <InfoIcon className="size-3.5 text-muted-foreground/60 cursor-help shrink-0" />
+            </button>
           </TooltipTrigger>
           <TooltipContent side="right" className="max-w-60 whitespace-pre-line">
             {hint}
           </TooltipContent>
         </Tooltip>
       </div>
-      <span className={`text-sm font-semibold tabular-nums ${className ?? ""}`}>
-        {formatPeso(value)}
-        {totalValue !== undefined && ` / ${formatPeso(totalValue)}`}
-      </span>
+      <div className="text-right">
+        {projectedValue !== undefined && (
+          <span className="block text-xs text-muted-foreground">Current</span>
+        )}
+        <span className={`text-sm font-semibold tabular-nums ${className ?? ""}`}>
+          {formatPeso(value)}
+        </span>
+      </div>
+      {projectedValue !== undefined && (
+        <div className="text-right">
+          <span className="block text-xs text-muted-foreground">Projected</span>
+          <span
+            className={`text-sm font-semibold tabular-nums ${projectedClassName ?? className ?? ""}`}
+          >
+            {formatPeso(projectedValue)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -72,9 +102,12 @@ function ReportRow({
 export const ContainerReport: React.FC<ContainerReportProps> = ({
   inventories,
 }) => {
+  const [showProjected, setShowProjected] = useState(false);
+  const projected = showProjected
+    ? computeContainerReport(inventories, "PAID_AND_UNPAID")
+    : undefined;
   const {
     totalItemSales,
-    totalPaidAndUnpaidItemSales,
     totalServiceCharge,
     containerSalesCommission,
     atcGroupCommission,
@@ -110,13 +143,34 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Container Sales Report</CardTitle>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            Current values use paid items only.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-pressed={showProjected}
+            onClick={() => setShowProjected((shown) => !shown)}
+          >
+            {showProjected ? "Hide projected values" : "Show projected values"}
+          </Button>
+        </div>
+        {showProjected && (
+          <p className="text-xs text-muted-foreground">
+            Projected values assume all unpaid items become paid at their current
+            prices and registered bidder rates. Cancelled and refunded items stay
+            excluded.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-1">
         <ReportRow
           label="Total Item Sales"
-          hint="PAID item prices / combined PAID and UNPAID item prices in this container. Excludes ATC allocated items. Commissions and profit use the PAID amount."
+          hint="Current: sum of PAID item prices. Projected: combined PAID and UNPAID item prices. Both exclude ATC allocated items. Current commissions and profit use paid sales only."
           value={totalItemSales}
-          totalValue={totalPaidAndUnpaidItemSales}
+          projectedValue={projected?.totalItemSales}
           className="text-green-600"
         />
 
@@ -124,26 +178,30 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
 
         <ReportRow
           label="Container Sales Commission"
-          hint={`Tiered rate applied to total sales:\n< ₱700,000 → 25%\n₱700,000–₱799,999 → 20%\n≥ ₱800,000 → 15%\n\nApplied rate: ${salesLabel}`}
+          hint={`Tiered rate applied to total sales:\n< ₱700,000 → 25%\n₱700,000–₱799,999 → 20%\n≥ ₱800,000 → 15%\n\nCurrent rate: ${salesLabel}\nProjected rate uses combined PAID and UNPAID sales.`}
           value={containerSalesCommission}
+          projectedValue={projected?.containerSalesCommission}
           className="text-orange-500"
         />
         <ReportRow
           label="ATC Group Commission"
           hint="Container Sales Commission ÷ 3"
           value={atcGroupCommission}
+          projectedValue={projected?.atcGroupCommission}
           className="text-orange-500"
         />
         <ReportRow
           label="Sorting / Preparation Fee"
           hint="5% of Total Item Sales"
           value={sortingFee}
+          projectedValue={projected?.sortingFee}
           className="text-orange-500"
         />
         <ReportRow
           label="Royalty"
-          hint={`Tiered flat amount based on total sales:\n< ₱450,000 → ₱20,000\n₱450,000–₱499,999 → ₱22,000\n₱500,000–₱549,999 → ₱25,000\n₱550,000–₱699,999 → ₱30,000\n₱700,000–₱799,999 → ₱32,000\n≥ ₱800,000 → ₱35,000\n\nApplied tier: ${royaltyLabel}`}
+          hint={`Tiered flat amount based on total sales:\n< ₱450,000 → ₱20,000\n₱450,000–₱499,999 → ₱22,000\n₱500,000–₱549,999 → ₱25,000\n₱550,000–₱699,999 → ₱30,000\n₱700,000–₱799,999 → ₱32,000\n≥ ₱800,000 → ₱35,000\n\nCurrent tier: ${royaltyLabel}\nProjected tier uses combined PAID and UNPAID sales.`}
           value={royalty}
+          projectedValue={projected?.royalty}
           className="text-orange-500"
         />
 
@@ -153,12 +211,17 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
           label="ATC Sales"
           hint="(Container Sales Commission − ATC Group Commission + Sorting Fee) − Royalty"
           value={atcSales}
+          projectedValue={projected?.atcSales}
+          projectedClassName={
+            projected && projected.atcSales < 0 ? "text-red-600" : "text-green-600"
+          }
           className={atcSales >= 0 ? "text-green-600" : "text-red-600"}
         />
         <ReportRow
           label="Service Charge"
-          hint="Sum of each PAID item price multiplied by that item's registered bidder service charge rate."
+          hint="Each item price multiplied by its registered bidder service charge rate. Current includes PAID items. Projected includes PAID and UNPAID items. Both exclude ATC allocated items."
           value={totalServiceCharge}
+          projectedValue={projected?.totalServiceCharge}
           className="text-green-600"
         />
 
@@ -168,14 +231,19 @@ export const ContainerReport: React.FC<ContainerReportProps> = ({
           label="Total Profit"
           hint="ATC Sales + Service Charge"
           value={totalProfit}
+          projectedValue={projected?.totalProfit}
+          projectedClassName={
+            projected && projected.totalProfit < 0 ? "text-red-600" : "text-green-600"
+          }
           className={totalProfit >= 0 ? "text-green-600" : "text-red-600"}
         />
         <ReportRow
           label={`ATC Allocated Item Sales${
             atcAllocatedItemCount > 0 ? ` (${atcAllocatedItemCount})` : ""
           }`}
-          hint="These paid item sales are allocated to ATC and are not included in this container's Total Profit."
+          hint={`Sales allocated to ATC, excluded from this container's Total Profit. Current includes ${atcAllocatedItemCount} PAID items.${projected ? ` Projected includes ${projected.atcAllocatedItemCount} PAID and UNPAID items.` : ""}`}
           value={atcAllocatedItemSales}
+          projectedValue={projected?.atcAllocatedItemSales}
           className="text-blue-600"
         />
       </CardContent>

@@ -37,22 +37,27 @@ function computeContainerSalesCommission(sales: number): number {
 }
 
 export function computeContainerReport(
-  inventories: InventoryLike[]
+  inventories: InventoryLike[],
+  salesBasis: "PAID" | "PAID_AND_UNPAID" = "PAID",
 ): ContainerReportData {
-  const paidInventoryItems = inventories.flatMap((inv) => {
-    if (inv.auctions_inventory?.status === "PAID") {
+  const includedInventoryItems = inventories.flatMap((inv) => {
+    if (
+      inv.auctions_inventory?.status === "PAID" ||
+      (salesBasis === "PAID_AND_UNPAID" &&
+        inv.auctions_inventory?.status === "UNPAID")
+    ) {
       return [{ inventory: inv, auction_inventory: inv.auctions_inventory }];
     }
     return [];
   });
-  const containerPaidItems = paidInventoryItems
+  const containerItems = includedInventoryItems
     .filter((item) => item.inventory.sales_allocation !== "ATC")
     .map((item) => item.auction_inventory);
-  const atcAllocatedPaidItems = paidInventoryItems
+  const atcAllocatedItems = includedInventoryItems
     .filter((item) => item.inventory.sales_allocation === "ATC")
     .map((item) => item.auction_inventory);
 
-  const totalItemSales = containerPaidItems.reduce((sum, item) => {
+  const totalItemSales = containerItems.reduce((sum, item) => {
     return sum + (item.price ?? 0);
   }, 0);
   const totalPaidAndUnpaidItemSales = inventories.reduce((sum, inv) => {
@@ -67,11 +72,11 @@ export function computeContainerReport(
     return sum + (item.price ?? 0);
   }, 0);
 
-  const totalServiceCharge = containerPaidItems.reduce((sum, item) => {
+  const totalServiceCharge = containerItems.reduce((sum, item) => {
     const serviceChargeRate = item.bidder?.service_charge ?? 0;
     return sum + ((item.price ?? 0) * serviceChargeRate) / 100;
   }, 0);
-  const atcAllocatedItemSales = atcAllocatedPaidItems.reduce((sum, item) => {
+  const atcAllocatedItemSales = atcAllocatedItems.reduce((sum, item) => {
     return sum + (item.price ?? 0);
   }, 0);
 
@@ -94,6 +99,6 @@ export function computeContainerReport(
     atcSales,
     totalProfit,
     atcAllocatedItemSales,
-    atcAllocatedItemCount: atcAllocatedPaidItems.length,
+    atcAllocatedItemCount: atcAllocatedItems.length,
   };
 }
