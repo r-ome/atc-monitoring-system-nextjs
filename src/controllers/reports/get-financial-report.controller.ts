@@ -13,8 +13,6 @@ import {
   SalesExpensesSummaryEntry,
   SalesExpensesSummaryTotals,
 } from "src/entities/models/Report";
-import { presentTotalExpenses } from "./get-total-expenses.controller";
-import { presentTotalSales } from "./get-total-sales.controller";
 import { formatDate } from "@/app/lib/utils";
 
 const MONTHS = [
@@ -223,7 +221,6 @@ export const GetFinancialReportController = async (
 ) => {
   try {
     const [
-      salesRows,
       expenseRows,
       containerFinancialRows,
       boughtItemLossRows,
@@ -231,7 +228,6 @@ export const GetFinancialReportController = async (
       ownerOrganicSaleRows,
       salaryRows,
     ] = await Promise.all([
-      ReportsRepository.getTotalSales(branch_id, date),
       ReportsRepository.getTotalExpenses(branch_id, date),
       ReportsRepository.getPaidContainerFinancials(branch_id, date),
       ReportsRepository.getBoughtItemLossEvents(branch_id, date),
@@ -241,8 +237,6 @@ export const GetFinancialReportController = async (
     ]);
 
     return ok({
-      sales: presentTotalSales(salesRows, mode),
-      expenses: presentTotalExpenses(expenseRows, mode),
       salesExpensesSummary: presentSalesExpensesSummary(
         containerFinancialRows,
         expenseRows,

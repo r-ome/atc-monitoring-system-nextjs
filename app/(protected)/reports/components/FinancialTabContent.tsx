@@ -22,14 +22,14 @@ export const FinancialTabContent = async ({
 }: Props) => {
   const [res, expensesSummaryRes] = await Promise.all([
     GetFinancialReportController(branchId, dateParam, mode),
-    getExpensesSummary(branchId, dateParam),
+    userRole === "SUPER_ADMIN" ? getExpensesSummary(branchId, dateParam) : null,
   ]);
 
   if (!res.ok) {
     return <ErrorComponent error={res.error} />;
   }
 
-  if (!expensesSummaryRes.ok) {
+  if (expensesSummaryRes && !expensesSummaryRes.ok) {
     return <ErrorComponent error={expensesSummaryRes.error} />;
   }
 
@@ -39,7 +39,7 @@ export const FinancialTabContent = async ({
         summary={res.value.salesExpensesSummary}
         branchName={branchName}
       />
-      {userRole === "SUPER_ADMIN" ? (
+      {expensesSummaryRes?.ok ? (
         <ExpensesSummaryTable
           branchName={branchName}
           data={expensesSummaryRes.value}

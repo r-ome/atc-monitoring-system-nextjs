@@ -1,7 +1,44 @@
-import test from "node:test";
+import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 
-import { presentSalesExpensesSummary } from "./get-financial-report.controller";
+import { GetFinancialReportController, presentSalesExpensesSummary } from "./get-financial-report.controller";
+import { ReportsRepository } from "src/infrastructure/di/repositories";
+import { patchMethod } from "src/test-utils/patch";
+
+const restorers: Array<() => void> = [];
+afterEach(() => { while (restorers.length) restorers.pop()?.(); });
+
+test("financial report keeps expense totals and does not request unused auction sales", async () => {
+  const calls: string[] = [];
+  const expenses = [{ created_at: new Date("2026-05-04T00:00:00Z"), total_amount: 125.5 }];
+  restorers.push(patchMethod(ReportsRepository, "getTotalSales", async () => {
+    throw new Error("Unused auction sales query must not run");
+  }));
+  restorers.push(patchMethod(ReportsRepository, "getTotalExpenses", async (branch, date) => {
+    assert.equal(branch, "branch-1");
+    assert.equal(date, "2026-05");
+    calls.push("expenses");
+    return expenses;
+  }));
+  const methods = ["getPaidContainerFinancials", "getBoughtItemLossEvents", "getBoughtItemGainEvents", "getOwnerOrganicSales", "getTotalSalaries"] as const;
+  for (const method of methods) {
+    restorers.push(patchMethod(ReportsRepository, method, async (branch, date) => {
+      assert.equal(branch, "branch-1");
+      assert.equal(date, "2026-05");
+      calls.push(method);
+      return [];
+    }));
+  }
+  const result = await GetFinancialReportController("branch-1", "2026-05", "daily");
+  assert.equal(result.ok, true);
+  if (!result.ok) assert.fail("Financial report failed");
+  assert.equal(calls.length, 6);
+  assert.deepEqual(result.value, {
+    salesExpensesSummary: presentSalesExpensesSummary([], expenses, [], [], [], [], "daily"),
+  });
+  assert.equal(result.value.salesExpensesSummary.totals.expenses, 125.5);
+  assert.equal(result.value.salesExpensesSummary.totals.net_income, -125.5);
+});
 
 test("presentSalesExpensesSummary totals income, expenses, and net income", () => {
   const result = presentSalesExpensesSummary(

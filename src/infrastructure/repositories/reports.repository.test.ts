@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import prisma from "@/app/lib/prisma/prisma";
 import { ReportsRepository } from "./reports.repository";
 import { patchMethod } from "src/test-utils/patch";
+import { Prisma } from "@prisma/client";
 
 const restorers: Array<() => void> = [];
 
@@ -12,6 +13,32 @@ afterEach(() => {
     restorers.pop()?.();
   }
 });
+
+for (const method of ["getTotalSales", "getAuctionKpis"] as const) {
+  test(`${method} scopes both aggregates with the outer branch and date range`, async () => {
+    let query: Prisma.Sql | undefined;
+    restorers.push(patchMethod(prisma, "$queryRaw", (async (sql: Prisma.Sql) => {
+      query = sql;
+      return [];
+    }) as typeof prisma.$queryRaw));
+    assert.deepEqual(await ReportsRepository[method]("branch-1", "2026"), []);
+    assert.ok(query);
+    assert.equal(query.values.length, 9);
+    assert.deepEqual(query.values.slice(0, 3), query.values.slice(6, 9));
+    assert.deepEqual(query.values.slice(3, 6), query.values.slice(6, 9));
+    assert.equal(query.values[0], "branch-1");
+    const aggregates = query.sql.split("LEFT JOIN (").slice(1);
+    assert.equal(aggregates.length, 2);
+    for (const aggregate of aggregates) {
+      const beforeGrouping = aggregate.split("GROUP BY ab.auction_id")[0];
+      assert.match(beforeGrouping, /report_auction\.branch_id = \?/);
+      assert.match(beforeGrouping, /report_auction\.created_at >= \?/);
+      assert.match(beforeGrouping, /report_auction\.created_at < \?/);
+      assert.match(beforeGrouping, /report_auction\.deleted_at IS NULL/);
+    }
+    assert.match(query.sql, /COALESCE\(item_totals\.total_sales, 0\)/);
+  });
+}
 
 test("getSupplierRevenueSummary uses an aggregate query and maps numeric values", async () => {
   let capturedQuery: { sql: string } | undefined;

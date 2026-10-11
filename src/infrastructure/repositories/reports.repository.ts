@@ -16,6 +16,8 @@ import {
   ExpenseSummaryRow,
   OwnerOrganicSaleRow,
   PaidContainerFinancialRow,
+  PRICE_COMPARISON_SELECT,
+  REFUND_CANCELLATION_SELECT,
 } from "src/entities/models/Report";
 
 function parseDateRange(date: string) {
@@ -78,7 +80,13 @@ export const ReportsRepository: IReportsRepository = {
             COUNT(ab.auction_bidder_id) AS total_bidders,
             SUM(ab.registration_fee) AS total_registration_fee
           FROM auctions_bidders ab
+          INNER JOIN auctions report_auction
+            ON report_auction.auction_id = ab.auction_id
           WHERE ab.deleted_at IS NULL
+            AND report_auction.deleted_at IS NULL
+            AND report_auction.branch_id = ${branch_id}
+            AND report_auction.created_at >= ${start}
+            AND report_auction.created_at < ${end}
           GROUP BY ab.auction_id
         ) AS bidder_totals
           ON bidder_totals.auction_id = a.auction_id
@@ -97,8 +105,14 @@ export const ReportsRepository: IReportsRepository = {
           FROM auctions_inventories ai
           INNER JOIN auctions_bidders ab
             ON ab.auction_bidder_id = ai.auction_bidder_id
+          INNER JOIN auctions report_auction
+            ON report_auction.auction_id = ab.auction_id
           WHERE ai.deleted_at IS NULL
             AND ab.deleted_at IS NULL
+            AND report_auction.deleted_at IS NULL
+            AND report_auction.branch_id = ${branch_id}
+            AND report_auction.created_at >= ${start}
+            AND report_auction.created_at < ${end}
           GROUP BY ab.auction_id
         ) AS item_totals
           ON item_totals.auction_id = a.auction_id
@@ -530,20 +544,7 @@ export const ReportsRepository: IReportsRepository = {
     try {
       const { start, end } = parseDateRange(date);
       return await prisma.auctions_inventories.findMany({
-        include: {
-          auction_bidder: { include: { bidder: true, auctions: true } },
-          inventory: true,
-          histories: {
-            include: {
-              receipt: {
-                include: {
-                  auction_bidder: { include: { bidder: true } },
-                },
-              },
-            },
-            orderBy: { created_at: "asc" },
-          },
-        },
+        select: REFUND_CANCELLATION_SELECT,
         where: {
           status: { in: ["REFUNDED", "CANCELLED"] },
           auction_bidder: { auctions: { branch_id, created_at: { gte: start, lt: end } } },
@@ -728,13 +729,7 @@ export const ReportsRepository: IReportsRepository = {
             },
           },
         },
-        include: {
-          auctions_inventory: {
-            include: {
-              auction_bidder: { include: { auctions: true } },
-            },
-          },
-        },
+        select: PRICE_COMPARISON_SELECT,
       });
     } catch (error) {
       handleError("Error getting price comparison", error);
@@ -772,7 +767,13 @@ export const ReportsRepository: IReportsRepository = {
             COUNT(DISTINCT ab.bidder_id) AS registered_bidders,
             SUM(ab.registration_fee) AS total_registration_fee
           FROM auctions_bidders ab
+          INNER JOIN auctions report_auction
+            ON report_auction.auction_id = ab.auction_id
           WHERE ab.deleted_at IS NULL
+            AND report_auction.deleted_at IS NULL
+            AND report_auction.branch_id = ${branch_id}
+            AND report_auction.created_at >= ${start}
+            AND report_auction.created_at < ${end}
           GROUP BY ab.auction_id
         ) AS bidder_totals
           ON bidder_totals.auction_id = a.auction_id
@@ -785,8 +786,14 @@ export const ReportsRepository: IReportsRepository = {
           FROM auctions_inventories ai
           INNER JOIN auctions_bidders ab
             ON ab.auction_bidder_id = ai.auction_bidder_id
+          INNER JOIN auctions report_auction
+            ON report_auction.auction_id = ab.auction_id
           WHERE ai.deleted_at IS NULL
             AND ab.deleted_at IS NULL
+            AND report_auction.deleted_at IS NULL
+            AND report_auction.branch_id = ${branch_id}
+            AND report_auction.created_at >= ${start}
+            AND report_auction.created_at < ${end}
           GROUP BY ab.auction_id
         ) AS item_totals
           ON item_totals.auction_id = a.auction_id

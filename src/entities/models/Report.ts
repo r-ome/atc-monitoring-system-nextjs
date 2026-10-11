@@ -172,20 +172,46 @@ export type TopBidderEntry = {
   auctions_attended: number;
 };
 
+export const REFUND_CANCELLATION_SELECT = {
+  auction_inventory_id: true,
+  description: true,
+  price: true,
+  status: true,
+  updated_at: true,
+  auction_bidder: {
+    select: {
+      bidder: {
+        select: { bidder_number: true, first_name: true, last_name: true },
+      },
+      auctions: { select: { created_at: true } },
+    },
+  },
+  inventory: { select: { barcode: true, control: true } },
+  histories: {
+    select: {
+      auction_status: true,
+      created_at: true,
+      remarks: true,
+      tag: true,
+      receipt: {
+        select: {
+          remarks: true,
+          auction_bidder: {
+            select: {
+              bidder: {
+                select: { bidder_number: true, first_name: true, last_name: true },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { created_at: "asc" },
+  },
+} satisfies Prisma.auctions_inventoriesSelect;
+
 export type RefundCancellationRow = Prisma.auctions_inventoriesGetPayload<{
-  include: {
-    auction_bidder: { include: { bidder: true; auctions: true } };
-    inventory: true;
-    histories: {
-      include: {
-        receipt: {
-          include: {
-            auction_bidder: { include: { bidder: true } };
-          };
-        };
-      };
-    };
-  };
+  select: typeof REFUND_CANCELLATION_SELECT;
 }>;
 
 export type RefundCancellationEntry = {
@@ -277,16 +303,20 @@ export type ContainerStatusEntry = {
 };
 
 // -- Price Comparison (Bought Items) --
+export const PRICE_COMPARISON_SELECT = {
+  is_bought_item: true,
+  auctions_inventory: {
+    select: {
+      price: true,
+      auction_bidder: {
+        select: { auctions: { select: { created_at: true } } },
+      },
+    },
+  },
+} satisfies Prisma.inventoriesSelect;
+
 export type PriceComparisonRow = Prisma.inventoriesGetPayload<{
-  include: {
-    auctions_inventory: {
-      include: {
-        auction_bidder: {
-          include: { auctions: true };
-        };
-      };
-    };
-  };
+  select: typeof PRICE_COMPARISON_SELECT;
 }>;
 
 export type PriceComparisonEntry = {

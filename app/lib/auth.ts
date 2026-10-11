@@ -12,6 +12,7 @@ import { InputParseError } from "src/entities/errors/common";
 import { redirect } from "next/navigation";
 import { UserRepository } from "src/infrastructure/di/repositories";
 import { isSessionExpired } from "./session-timeout";
+import { cache } from "react";
 
 type AuthStatus = "authenticated" | "unauthenticated" | "inactive";
 
@@ -96,7 +97,8 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export const getValidatedSession = async (): Promise<ValidatedSessionResult> => {
+// Share validation during one server render; React clears this cache per request.
+export const getValidatedSession = cache(async (): Promise<ValidatedSessionResult> => {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.username) {
@@ -128,7 +130,7 @@ export const getValidatedSession = async (): Promise<ValidatedSessionResult> => 
       },
     },
   };
-};
+});
 
 export const getRawSession = async () => {
   return await getServerSession(authOptions);
