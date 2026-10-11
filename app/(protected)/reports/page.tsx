@@ -92,6 +92,7 @@ const Page = async ({
           <AuctionReportsTabContent
             branchId={tabBranchId}
             year={selected_year}
+            userRole={user.role}
           />
         </Suspense>
       ),

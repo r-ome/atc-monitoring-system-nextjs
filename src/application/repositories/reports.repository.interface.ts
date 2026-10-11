@@ -1,5 +1,6 @@
 import {
   AuctionKpiRow,
+  AuctionBranchKpiRow,
   AuctionSalesSummaryRow,
   BoughtItemGainRow,
   BoughtItemLossRow,
@@ -16,6 +17,10 @@ import {
 import { CancelRefundTag } from "src/entities/models/InventoryHistoryRemark";
 
 export interface IReportsRepository {
+  getAuctionBranchComparison: (
+    branch_ids: string[],
+    year: string,
+  ) => Promise<AuctionBranchKpiRow[]>;
   getTotalSales: (
     branch_id: string,
     date: string,

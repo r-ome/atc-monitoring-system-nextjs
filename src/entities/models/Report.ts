@@ -34,6 +34,38 @@ export type AuctionKpiEntry = {
   avg_selling_price: number;
 };
 
+export const auctionBranchComparisonSchema = z.object({
+  year: z.string().regex(/^\d{4}$/).refine(
+    (year) => Number(year) >= 1000 && Number(year) <= 9998,
+    "Invalid year",
+  ),
+  branch_ids: z.array(z.string().uuid()).min(1).optional(),
+});
+
+export type AuctionBranchKpiRow = AuctionKpiRow & { branch_id: string };
+
+export type AuctionBranchMetrics = {
+  total_sales: number;
+  items_sold: number;
+  bidder_attendances: number;
+  total_registration_fee: number;
+  highest_item_sold: number;
+  avg_selling_price: number;
+  auction_count: number;
+};
+
+export type AuctionBranchComparisonEntry = {
+  branch_id: string;
+  branch_name: string;
+  summary: AuctionBranchMetrics;
+  months: Array<AuctionBranchMetrics & { month: string }>;
+};
+
+export type AuctionBranchComparison = {
+  year: string;
+  branches: AuctionBranchComparisonEntry[];
+};
+
 // -- Sales Reports --
 export type AuctionSalesSummaryRow = {
   auction_id: string;

@@ -8,6 +8,7 @@ import {
 } from "@/app/lib/error-handler";
 import {
   AuctionKpiRow,
+  AuctionBranchKpiRow,
   AuctionSalesSummaryRow,
   BidderReportRow,
   BoughtItemGainRow,
@@ -29,6 +30,14 @@ function parseDateRange(date: string) {
   }
   const [year, month] = parts;
   return { start: new Date(year, month, 1), end: new Date(year, month + 1, 1) };
+}
+
+// Auction dates and month labels use the same Asia/Manila calendar.
+function auctionYearRange(year: string) {
+  return {
+    start: new Date(`${year}-01-01T00:00:00+08:00`),
+    end: new Date(`${Number(year) + 1}-01-01T00:00:00+08:00`),
+  };
 }
 
 function handleError(context: string, error: unknown): never {
@@ -736,11 +745,80 @@ export const ReportsRepository: IReportsRepository = {
     }
   },
 
+  getAuctionBranchComparison: async (branch_ids, year) => {
+    if (branch_ids.length === 0) return [];
+    try {
+      const { start, end } = auctionYearRange(year);
+      const rows = await prisma.$queryRaw<
+        Array<{
+          branch_id: string;
+          auction_id: string;
+          auction_date: Date;
+          total_sales: Prisma.Decimal | number | string | null;
+          items_sold: bigint | number;
+          registered_bidders: bigint | number;
+          total_registration_fee: Prisma.Decimal | number | string | null;
+          highest_item_sold: Prisma.Decimal | number | string | null;
+        }>
+      >(Prisma.sql`
+        WITH scoped_auctions AS (
+          SELECT a.auction_id, a.branch_id, a.created_at AS auction_date
+          FROM auctions a
+          INNER JOIN branches b ON b.branch_id = a.branch_id
+          WHERE a.branch_id IN (${Prisma.join(branch_ids)})
+            AND a.deleted_at IS NULL
+            AND b.deleted_at IS NULL
+            AND b.name <> 'ALL'
+            AND a.created_at >= ${start}
+            AND a.created_at < ${end}
+        ), bidder_totals AS (
+          SELECT ab.auction_id,
+            COUNT(DISTINCT ab.bidder_id) AS registered_bidders,
+            SUM(ab.registration_fee) AS total_registration_fee
+          FROM auctions_bidders ab
+          INNER JOIN scoped_auctions sa ON sa.auction_id = ab.auction_id
+          WHERE ab.deleted_at IS NULL
+          GROUP BY ab.auction_id
+        ), item_totals AS (
+          SELECT ab.auction_id,
+            SUM(CASE WHEN ai.status = 'PAID' THEN 1 ELSE 0 END) AS items_sold,
+            SUM(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END) AS total_sales,
+            MAX(CASE WHEN ai.status = 'PAID' THEN ai.price ELSE 0 END) AS highest_item_sold
+          FROM auctions_inventories ai
+          INNER JOIN auctions_bidders ab ON ab.auction_bidder_id = ai.auction_bidder_id
+          INNER JOIN scoped_auctions sa ON sa.auction_id = ab.auction_id
+          WHERE ai.deleted_at IS NULL AND ab.deleted_at IS NULL
+          GROUP BY ab.auction_id
+        )
+        SELECT sa.branch_id, sa.auction_id, sa.auction_date,
+          COALESCE(bt.registered_bidders, 0) AS registered_bidders,
+          COALESCE(bt.total_registration_fee, 0) AS total_registration_fee,
+          COALESCE(it.items_sold, 0) AS items_sold,
+          COALESCE(it.total_sales, 0) AS total_sales,
+          COALESCE(it.highest_item_sold, 0) AS highest_item_sold
+        FROM scoped_auctions sa
+        LEFT JOIN bidder_totals bt ON bt.auction_id = sa.auction_id
+        LEFT JOIN item_totals it ON it.auction_id = sa.auction_id
+        ORDER BY sa.branch_id, sa.auction_date, sa.auction_id
+      `);
+      return rows.map((row): AuctionBranchKpiRow => ({
+        branch_id: row.branch_id,
+        auction_id: row.auction_id,
+        auction_date: row.auction_date,
+        total_sales: toNumber(row.total_sales),
+        items_sold: toNumber(row.items_sold),
+        registered_bidders: toNumber(row.registered_bidders),
+        total_registration_fee: toNumber(row.total_registration_fee),
+        highest_item_sold: toNumber(row.highest_item_sold),
+      }));
+    } catch (error) {
+      handleError("Error getting auction branch comparison", error);
+    }
+  },
+
   getAuctionKpis: async (branch_id, year) => {
     try {
-      const yearNum = Number(year);
-      const start = new Date(yearNum, 0, 1);
-      const end = new Date(yearNum + 1, 0, 1);
+      const { start, end } = auctionYearRange(year);
       const rows = await prisma.$queryRaw<
         Array<{
           auction_id: string;

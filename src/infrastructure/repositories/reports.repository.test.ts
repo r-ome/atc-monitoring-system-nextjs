@@ -8,6 +8,48 @@ import { Prisma } from "@prisma/client";
 
 const restorers: Array<() => void> = [];
 
+test("auction branch comparison scopes one query and keeps bidder fees separate from item totals", async () => {
+  let captured: Prisma.Sql | undefined;
+  let reads = 0;
+  restorers.push(patchMethod(prisma, "$queryRaw", (async (query: Prisma.Sql) => {
+    captured = query;
+    reads++;
+    return [{ branch_id: "branch-1", auction_id: "auction-1", auction_date: new Date("2026-05-01T00:00:00Z"),
+      total_sales: "1234.50", items_sold: BigInt(2), registered_bidders: BigInt(3),
+      total_registration_fee: "60.25", highest_item_sold: "1000.00" }];
+  }) as typeof prisma.$queryRaw));
+  const result = await ReportsRepository.getAuctionBranchComparison(["branch-1", "branch-2"], "2026");
+  assert.equal(reads, 1);
+  assert.ok(captured);
+  assert.deepEqual(captured.values, ["branch-1", "branch-2", new Date("2025-12-31T16:00:00Z"), new Date("2026-12-31T16:00:00Z")]);
+  assert.match(captured.sql, /b\.deleted_at IS NULL/);
+  assert.match(captured.sql, /b\.name <> 'ALL'/);
+  assert.equal(captured.sql.match(/INNER JOIN scoped_auctions/g)?.length, 2);
+  const bidderAggregate = captured.sql.split("bidder_totals AS (")[1].split("item_totals AS (")[0];
+  assert.match(bidderAggregate, /COUNT\(DISTINCT ab\.bidder_id\)/);
+  assert.match(bidderAggregate, /SUM\(ab\.registration_fee\)/);
+  assert.doesNotMatch(bidderAggregate, /auctions_inventories/);
+  assert.match(captured.sql, /ai\.status = 'PAID'/);
+  assert.match(captured.sql, /ai\.deleted_at IS NULL AND ab\.deleted_at IS NULL/);
+  assert.match(captured.sql, /LEFT JOIN bidder_totals/);
+  assert.match(captured.sql, /LEFT JOIN item_totals/);
+  assert.deepEqual(result, [{ branch_id: "branch-1", auction_id: "auction-1", auction_date: new Date("2026-05-01T00:00:00Z"),
+    total_sales: 1234.5, items_sold: 2, registered_bidders: 3, total_registration_fee: 60.25, highest_item_sold: 1000 }]);
+  assert.deepEqual(await ReportsRepository.getAuctionBranchComparison([], "2026"), []);
+  assert.equal(reads, 1);
+});
+
+test("selected branch and comparison use the same Manila year range", async () => {
+  const queries: Prisma.Sql[] = [];
+  restorers.push(patchMethod(prisma, "$queryRaw", (async (query: Prisma.Sql) => {
+    queries.push(query);
+    return [];
+  }) as typeof prisma.$queryRaw));
+  await ReportsRepository.getAuctionKpis("branch-1", "2026");
+  await ReportsRepository.getAuctionBranchComparison(["branch-1"], "2026");
+  assert.deepEqual(queries[0].values.slice(6, 9), queries[1].values);
+});
+
 afterEach(() => {
   while (restorers.length) {
     restorers.pop()?.();
