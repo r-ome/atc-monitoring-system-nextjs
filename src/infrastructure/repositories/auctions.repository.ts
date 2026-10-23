@@ -1,3 +1,7 @@
+import { withBidderActivity } from "./bidder-activity";
+import { isBidderActivityRecalculationEnabled, recalculateBidderActivity } from "./bidder-activity";
+import { SUPER_ADMIN_BRANCH } from "@/app/lib/prisma/prisma";
+import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
 import { Prisma } from "@prisma/client";
 import { IAuctionRepository } from "src/application/repositories/auctions.repository.interface";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
@@ -6,6 +10,7 @@ import prisma from "@/app/lib/prisma/prisma";
 import {
   DatabaseOperationError,
   NotFoundError,
+  InputParseError,
 } from "src/entities/errors/common";
 import {
   buildBoughtItemEncodedHistoryRemark,
@@ -43,19 +48,28 @@ import {
 } from "src/entities/models/InventorySalesAllocation";
 
 export const AuctionRepository: IAuctionRepository = {
-  startAuction: async (auction_date) => {
+  startAuction: async (auction_date, branch_id) => {
     try {
-      return await prisma.$transaction(async (tx) => {
+      if (typeof branch_id !== "string" || !branch_id.trim() || branch_id === SUPER_ADMIN_BRANCH) {
+        throw new InputParseError("Select a valid auction branch.");
+      }
+      return await withBidderActivity(prisma, {}, async (tx) => {
+        const branch = await tx.branches.findFirst({
+          where: { branch_id, deleted_at: null, name: { not: "ALL" } },
+          select: { branch_id: true },
+        });
+        if (!branch || branch_id === SUPER_ADMIN_BRANCH) throw new InputParseError("Select a valid auction branch.");
         const atc_default_bidder = await tx.bidders.findFirst({
-          where: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER },
+          where: { bidder_number: ATC_DEFAULT_BIDDER_NUMBER, branch_id, deleted_at: null },
         });
 
         if (!atc_default_bidder) {
           throw new NotFoundError("ATC DEFAULT BIDDER NOT FOUND!");
         }
 
-        return await tx.auctions.create({
+        const auction = await tx.auctions.create({
           data: {
+            branch_id,
             created_at: auction_date,
             registered_bidders: {
               create: {
@@ -79,7 +93,11 @@ export const AuctionRepository: IAuctionRepository = {
             },
           },
         });
-      });
+        const bidder_activity = isBidderActivityRecalculationEnabled()
+          ? await recalculateBidderActivity(tx, auction.branch_id)
+          : null;
+        return { auction, bidder_activity };
+      }, { timeout: 30_000 });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error creating Auction!", {
@@ -191,11 +209,10 @@ export const AuctionRepository: IAuctionRepository = {
   },
   registerBidder: async (data) => {
     try {
-      const bidder = await prisma.bidders.findFirst({
-        where: { bidder_id: data.bidder_id },
-      });
-
-      return await prisma.$transaction(async (tx) => {
+      return await withBidderActivity(prisma, { bidderIds: [data.bidder_id] }, async (tx) => {
+        const bidder = await tx.bidders.findFirst({ where: { bidder_id: data.bidder_id } });
+        if (!bidder) throw new NotFoundError("Bidder not found!");
+        if (bidder.status === "BANNED") throw new InputParseError("Banned bidders cannot register.");
         const created = await tx.auctions_bidders.create({
           data: {
             auction_id: data.auction_id,
@@ -220,12 +237,6 @@ export const AuctionRepository: IAuctionRepository = {
           },
         });
 
-        if (bidder?.status === "INACTIVE") {
-          await tx.bidders.update({
-            where: { bidder_id: data.bidder_id },
-            data: { status: "ACTIVE" },
-          });
-        }
 
         return created;
       });
@@ -341,7 +352,7 @@ export const AuctionRepository: IAuctionRepository = {
        * d. container barcodes without inventory barcode (e.g. 00-08)
        */
 
-      return await prisma.$transaction(async (tx) => {
+      return await withBidderActivity(prisma, { registrationIds: data.filter((item) => item.isValid).flatMap((item) => item.auction_bidder_id ? [item.auction_bidder_id] : []), itemIds: data.filter((item) => item.isValid).flatMap((item) => item.auction_inventory_id ? [item.auction_inventory_id] : []) }, async (tx) => {
         const auction = await tx.auctions.findFirst({
           where: { auction_id },
         });
@@ -910,7 +921,7 @@ export const AuctionRepository: IAuctionRepository = {
   cancelItems: async (data, updated_by) => {
     const cancel_tag = data.tag ?? inferCancelRefundTag(data.reason);
     try {
-      return await prisma.$transaction(async (tx) => {
+      return await withBidderActivity(prisma, { registrationIds: [data.auction_bidder_id], itemIds: data.auction_inventory_ids }, async (tx) => {
         const bidder = await tx.auctions_bidders.findFirst({
           where: { auction_bidder_id: data.auction_bidder_id },
           include: { bidder: true },
@@ -1114,19 +1125,21 @@ export const AuctionRepository: IAuctionRepository = {
   },
   uploadCounterCheck: async (auction_id, data) => {
     try {
-      const counter_check_records = await prisma.counter_check.createMany({
-        data: data.map((item) => ({
-          auction_id,
-          control: item.CONTROL,
-          price: item.PRICE.toString(),
-          page: item.PAGE,
-          description: item.DESCRIPTION.toString(),
-          time: item.TIME,
-          bidder_number: item.BIDDER,
-        })),
-      });
+      return await withBidderActivity(prisma, { auctionNumbers: data.map((item) => ({ auction_id, bidder_number: item.BIDDER })) }, async (tx) => {
+        const counter_check_records = await tx.counter_check.createMany({
+          data: data.map((item) => ({
+            auction_id,
+            control: item.CONTROL,
+            price: item.PRICE.toString(),
+            page: item.PAGE,
+            description: item.DESCRIPTION.toString(),
+            time: item.TIME,
+            bidder_number: item.BIDDER,
+          })),
+        });
 
-      return counter_check_records;
+        return counter_check_records;
+      });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error uploading counter check", {
@@ -1158,15 +1171,18 @@ export const AuctionRepository: IAuctionRepository = {
   },
   updateCounterCheck: async (counter_check_id, data) => {
     try {
-      return await prisma.counter_check.update({
-        where: { counter_check_id },
-        data: {
-          page: data.page,
-          control: data.control,
-          bidder_number: data.bidder_number,
-          price: data.price,
-          remarks: data.remarks,
-        },
+      return await withBidderActivity(prisma, { counterCheckIds: [counter_check_id] }, async (tx) => {
+        return await tx.counter_check.update({
+          where: { counter_check_id, auction: buildTenantWhere("auctions", {}) },
+          data: {
+            error: null,
+            page: data.page,
+            control: data.control,
+            bidder_number: data.bidder_number,
+            price: data.price,
+            remarks: data.remarks,
+          },
+        });
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -1182,7 +1198,7 @@ export const AuctionRepository: IAuctionRepository = {
     try {
       const valid_rows_in_sheet = data.filter((item) => item.isValid);
 
-      return await prisma.$transaction(
+      return await withBidderActivity(prisma, { manifestIds: [manifest_id], registrationIds: valid_rows_in_sheet.flatMap((item) => item.auction_bidder_id ? [item.auction_bidder_id] : []), itemIds: valid_rows_in_sheet.flatMap((item) => item.auction_inventory_id ? [item.auction_inventory_id] : []) },
         async (tx) => {
           // update manifest record
           const manifest = await tx.manifest_records.update({
@@ -1430,7 +1446,7 @@ export const AuctionRepository: IAuctionRepository = {
         throw new NotFoundError("AUCTION BIDDER NOT FOUND!");
       }
 
-      return await prisma.$transaction(async (tx) => {
+      return await withBidderActivity(prisma, { registrationIds: [auction_bidder_id] }, async (tx) => {
         const auction_bidder = await tx.auctions_bidders.findFirst({
           where: { auction_bidder_id },
           include: {
@@ -1501,7 +1517,7 @@ export const AuctionRepository: IAuctionRepository = {
         throw new NotFoundError("AUCTION BIDDER NOT FOUND!");
       }
 
-      return await prisma.$transaction(async (tx) => {
+      return await withBidderActivity(prisma, { registrationIds: [auction_bidder_id] }, async (tx) => {
         await tx.payments.deleteMany({
           where: {
             receipt: { auction_bidder_id },

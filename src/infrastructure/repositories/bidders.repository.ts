@@ -1,3 +1,6 @@
+import { withBidderActivity } from "./bidder-activity";
+import { getBidderActivityTime } from "src/entities/models/BidderActivity";
+import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
 import { IBidderRepository } from "src/application/repositories/bidders.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
 import {
@@ -76,7 +79,6 @@ export const BidderRepository: IBidderRepository = {
       const bidders = await prisma.bidders.findMany({
         include: {
           branch: true,
-          auctions_joined: { orderBy: { created_at: "desc" } },
         },
         orderBy: { bidder_number: "asc" },
       });
@@ -109,6 +111,7 @@ export const BidderRepository: IBidderRepository = {
           contact_number: data.contact_number,
           branch_id: data.branch_id,
           status: "ACTIVE",
+          last_activity_at: getBidderActivityTime(),
         },
       });
 
@@ -125,24 +128,26 @@ export const BidderRepository: IBidderRepository = {
   },
   updateBidder: async (bidder_id, data: UpdateBidderInput) => {
     try {
-      const updated = await prisma.bidders.update({
-        include: { branch: true },
-        where: { bidder_id },
-        data: {
-          bidder_number: data.bidder_number,
-          first_name: data.first_name,
-          middle_name: data.middle_name,
-          last_name: data.last_name,
-          birthdate: data.birthdate,
-          contact_number: data.contact_number,
-          registration_fee: data.registration_fee,
-          service_charge: data.service_charge,
-          branch_id: data.branch_id,
-          payment_term: data.payment_term,
-        },
-      });
+      return await withBidderActivity(prisma, { bidderIds: [bidder_id] }, async (tx) => {
+        const updated = await tx.bidders.update({
+          include: { branch: true },
+          where: { bidder_id, ...buildTenantWhere("bidders", {}) },
+          data: {
+            bidder_number: data.bidder_number,
+            first_name: data.first_name,
+            middle_name: data.middle_name,
+            last_name: data.last_name,
+            birthdate: data.birthdate,
+            contact_number: data.contact_number,
+            registration_fee: data.registration_fee,
+            service_charge: data.service_charge,
+            branch_id: data.branch_id,
+            payment_term: data.payment_term,
+          },
+        });
 
-      return updated;
+        return updated;
+      });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error updating bidder!", {
@@ -154,10 +159,12 @@ export const BidderRepository: IBidderRepository = {
   },
   updateBidderStatus: async (bidder_id, status) => {
     try {
-      return await prisma.bidders.update({
-        include: { branch: true },
-        where: { bidder_id },
-        data: { status },
+      return await withBidderActivity(prisma, { bidderIds: [bidder_id] }, async (tx) => {
+        return await tx.bidders.update({
+          include: { branch: true },
+          where: { bidder_id, ...buildTenantWhere("bidders", {}) },
+          data: { status },
+        });
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -184,6 +191,7 @@ export const BidderRepository: IBidderRepository = {
             birthdate: item.BIRTHDATE === "" ? null : item.BIRTHDATE,
             contact_number: item.CONTACT_NUMBER,
             status: "ACTIVE",
+            last_activity_at: getBidderActivityTime(),
             address: item.ADDRESS,
             tin_number: item.TIN_NUMBER,
             branch_id: item.branch_id,

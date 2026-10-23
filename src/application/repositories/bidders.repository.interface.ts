@@ -3,7 +3,7 @@ import type {
   BidderWithBranchRow,
   BidderWithDetailsRow,
   BidderWithDetailsAndReceiptsRow,
-  BidderWithLastAuctionRow,
+  BidderListRow,
   CreateBidderInput,
   UpdateBidderInput,
   CreateBidderBulkInput,
@@ -15,7 +15,7 @@ export interface IBidderRepository {
     bidder_number: string,
     branch_name: string,
   ): Promise<BidderWithDetailsAndReceiptsRow | null>;
-  getBidders(): Promise<BidderWithLastAuctionRow[]>;
+  getBidders(): Promise<BidderListRow[]>;
   createBidder(bidder: CreateBidderInput): Promise<BidderWithBranchRow>;
   updateBidder(
     bidder_id: string,

@@ -7,7 +7,9 @@ import {
   runWithUserContext,
 } from "@/app/lib/protected-action";
 import { RequestContext } from "@/app/lib/prisma/RequestContext";
-import { AuctionRepository } from "src/infrastructure/di/repositories";
+import { AuctionRepository, BranchRepository } from "src/infrastructure/di/repositories";
+import { SUPER_ADMIN_BRANCH } from "@/app/lib/prisma/prisma";
+import { err } from "src/entities/models/Result";
 import { GetAuctionController } from "src/controllers/auctions/get-auction.controller";
 import { StartAuctionController } from "src/controllers/auctions/start-auction.controller";
 import { RegisterBidderController } from "src/controllers/auctions/register-bidder.controller";
@@ -49,17 +51,27 @@ const revalidateAuctionManifestUploadPaths = (auctionDate: string) => {
   ].forEach((path) => revalidatePath(path));
 };
 
-export const startAuction = async (auctionDate: string) => {
-  const user = await requireUser();
-
-  return await RequestContext.run(
-    {
-      branch_id: user.branch.branch_id,
-      username: user.username ?? "",
-      branch_name: user.branch.name ?? "",
-    },
-    async () => await StartAuctionController(auctionDate),
-  );
+export const startAuction = async (auctionDate: string, targetBranchId?: string) => {
+  const auth = await authorizeAction({ allowedRoles: ["OWNER", "SUPER_ADMIN", "ADMIN", "CASHIER"] });
+  if (!auth.ok) return auth;
+  const user = auth.value;
+  if (targetBranchId !== undefined && (typeof targetBranchId !== "string" || !targetBranchId.trim())) {
+    return err({ message: "Select a valid auction branch." });
+  }
+  const branchId = targetBranchId || user.branch.branch_id;
+  if (branchId !== user.branch.branch_id && !["OWNER", "SUPER_ADMIN"].includes(user.role)) {
+    return err({ message: "Unauthorized", cause: "You cannot start an auction for another branch." });
+  }
+  if (!branchId || branchId === SUPER_ADMIN_BRANCH) return err({ message: "Select an auction branch." });
+  const branch = await BranchRepository.getBranch(branchId);
+  if (!branch || branch.deleted_at || branch.name === "ALL") return err({ message: "Select a valid auction branch." });
+  const result = await runWithUserContext({ ...user, branch: { branch_id: branch.branch_id, name: branch.name } },
+    () => StartAuctionController(auctionDate, branch.branch_id, user.role !== "SUPER_ADMIN"));
+  if (result.ok) {
+    revalidatePath("/bidders");
+    revalidatePath(`/auctions/${auctionDate}`);
+  }
+  return result;
 };
 
 export const getAuctionId = async (auctionDate: string) => {

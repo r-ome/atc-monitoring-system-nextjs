@@ -105,12 +105,6 @@ jobs:
             set_env_var "AWS_REGION" "$AWS_REGION"
             set_env_var "AWS_S3_CONTAINER_REPORTS_BUCKET" "$AWS_S3_CONTAINER_REPORTS_BUCKET"
 
-            # --- Deploy runtime (Next standalone) ---
-            mkdir -p "$RUNTIME_DIR"
-            rm -rf "$RUNTIME_DIR"/*
-            tar -xzf ~/release.tgz -C "$RUNTIME_DIR"
-            rm -f ~/release.tgz
-
             # --- Deploy prisma folder into migrations-runner ---
             mkdir -p "$MIG_DIR"
             rm -rf "$MIG_DIR/prisma"
@@ -126,6 +120,13 @@ jobs:
             set +a
 
             ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma
+
+            # --- Replace runtime only after migrations succeed ---
+            # With set -e, a failed migration preserves the current runtime files.
+            mkdir -p "$RUNTIME_DIR"
+            rm -rf "$RUNTIME_DIR"/*
+            tar -xzf ~/release.tgz -C "$RUNTIME_DIR"
+            rm -f ~/release.tgz
 
             # --- Start or reload app and persist it across instance restarts ---
             pm2 startOrReload "$APP_DIR/ecosystem.config.js" --update-env

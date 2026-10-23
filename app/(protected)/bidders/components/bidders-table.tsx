@@ -15,7 +15,8 @@ export type BidderRowType = {
   birthdate: string | null;
   last_active: {
     duration: string | null;
-    auction: string | null;
+    date: string | null;
+    timestamp: string | null;
   };
   status: string;
   branch: {
@@ -63,7 +64,7 @@ export const BiddersTable = ({
 
   const renderMobileCard = (row: Row<BidderRowType>) => {
     const b = row.original;
-    const lastActive = b.last_active.duration ?? "Never";
+    const lastActive = b.last_active.duration ?? "Not available";
     return (
       <div className="flex items-center gap-3 px-4 py-3">
         <span className="min-w-[52px] font-mono text-[15px] font-semibold">

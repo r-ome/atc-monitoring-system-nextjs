@@ -110,7 +110,7 @@ export const columns: ColumnDef<BidderRowType>[] = [
   },
   {
     id: "last_active",
-    accessorFn: (row) => row.last_active.auction,
+    accessorFn: (row) => row.last_active.timestamp,
     sortingFn: (rowA, rowB, columnId) => {
       const a = rowA.getValue<string | null>(columnId);
       const b = rowB.getValue<string | null>(columnId);
@@ -135,13 +135,13 @@ export const columns: ColumnDef<BidderRowType>[] = [
     },
     size: 100,
     cell: ({ row }) => {
-      const { duration, auction } = row.original.last_active;
+      const { duration, date } = row.original.last_active;
       return (
         <div className="flex justify-center">
           <Tooltip>
-            <TooltipTrigger>{duration ?? "Never"}</TooltipTrigger>
+            <TooltipTrigger>{duration ?? "Not available"}</TooltipTrigger>
             <TooltipContent>
-              Last Auction: {auction ?? "No auction history"}
+              Last Activity: {date ?? "Not available"}
             </TooltipContent>
           </Tooltip>
         </div>

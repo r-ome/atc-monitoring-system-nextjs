@@ -10,6 +10,8 @@
     "prepare": "husky",
     "precommit:verify": "npm run test:regression && sh -c 'rm -rf .next; trap \"rm -rf .next\" EXIT; npm run build || { echo \"Build failed, retrying once after cleaning .next...\"; rm -rf .next; npm run build; }'",
     "test:regression": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' node --test --require ts-node/register/transpile-only --require tsconfig-paths/register src/regression.test.ts",
+    "bidders:activity": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' node --require ts-node/register --require tsconfig-paths/register prisma/scripts/initialize-bidder-activity.ts",
+    "test:bidder-activity:mysql": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' node --require ts-node/register --require tsconfig-paths/register prisma/scripts/test-bidder-activity.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

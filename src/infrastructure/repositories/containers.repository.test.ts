@@ -1,3 +1,4 @@
+import { isolateBidderActivity } from "src/test-utils/isolate-bidder-activity";
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 
@@ -15,6 +16,7 @@ afterEach(() => {
 });
 
 test("updateContainerStatus saves a paid date", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedData: { status: Date | null } | undefined;
 
   restorers.push(
@@ -40,6 +42,7 @@ test("updateContainerStatus saves a paid date", async () => {
 });
 
 test("updateContainerStatus clears paid date when marked unpaid", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedData: { status: Date | null } | undefined;
 
   restorers.push(
@@ -64,6 +67,7 @@ test("updateContainerStatus clears paid date when marked unpaid", async () => {
 });
 
 test("uploadInventoryFile writes history rows for created inventories", async () => {
+  restorers.push(isolateBidderActivity(true));
   const historyRows: Array<{
     inventory_id: string;
     auction_status: string;
@@ -130,6 +134,7 @@ test("uploadInventoryFile writes history rows for created inventories", async ()
 });
 
 test("getReportByContainerId totals only PAID hot item prices", async () => {
+  restorers.push(isolateBidderActivity(false));
   restorers.push(
     patchMethod(
       prisma.containers,
@@ -214,6 +219,7 @@ test("getReportByContainerId totals only PAID hot item prices", async () => {
 });
 
 test("getReportByContainerId suggests categories for unassigned descriptions", async () => {
+  restorers.push(isolateBidderActivity(false));
   restorers.push(
     patchMethod(
       prisma.containers,

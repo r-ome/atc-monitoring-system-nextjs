@@ -1,3 +1,4 @@
+import { isolateBidderActivity } from "src/test-utils/isolate-bidder-activity";
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 
@@ -14,6 +15,7 @@ afterEach(() => {
 });
 
 test("updateManifest persists the normalized row barcode on the manifest record", async () => {
+  restorers.push(isolateBidderActivity(true));
   let manifestUpdateData: Record<string, unknown> | undefined;
 
   const tx = {
@@ -110,6 +112,7 @@ test("updateManifest persists the normalized row barcode on the manifest record"
 });
 
 test("updateManifest backfills inventory auction date when linking an existing inventory to a new auction item", async () => {
+  restorers.push(isolateBidderActivity(true));
   const auctionDate = new Date("2026-02-14T00:00:00.000Z");
   const inventoryUpdates: Array<{
     where: { inventory_id: string };
@@ -250,6 +253,7 @@ test("updateManifest backfills inventory auction date when linking an existing i
 });
 
 test("updateManifest persists the slash group when correcting a failed slash child row", async () => {
+  restorers.push(isolateBidderActivity(true));
   const auctionDate = new Date("2026-02-14T00:00:00.000Z");
   let manifestUpdateData: Record<string, unknown> | undefined;
   const auctionInventoryCreates: Array<Record<string, unknown>> = [];
@@ -361,6 +365,7 @@ test("updateManifest persists the slash group when correcting a failed slash chi
 });
 
 test("uploadManifest does not increment bidder balance for bought items", async () => {
+  restorers.push(isolateBidderActivity(true));
   const bidderBalanceWrites: Array<{
     where: { auction_bidder_id: string };
     data: Record<string, unknown>;
@@ -485,6 +490,7 @@ test("uploadManifest does not increment bidder balance for bought items", async 
 });
 
 test("uploadManifest re-encodes bought items as sold inventory and updates the existing auction item", async () => {
+  restorers.push(isolateBidderActivity(true));
   const auctionDate = new Date("2026-04-25T00:00:00.000Z");
   const inventoryUpdates: Array<{
     where: { inventory_id: string };
@@ -686,6 +692,7 @@ test("uploadManifest re-encodes bought items as sold inventory and updates the e
 });
 
 test("uploadManifest re-encodes void inventory without an auction item as a new unpaid sale", async () => {
+  restorers.push(isolateBidderActivity(true));
   const auctionDate = new Date("2026-05-22T00:00:00.000Z");
   const inventoryUpdates: Array<{
     where: { inventory_id: string };
@@ -829,6 +836,7 @@ test("uploadManifest re-encodes void inventory without an auction item as a new 
 });
 
 test("uploadManifest re-encodes void inventory with an auction item as unpaid sold inventory", async () => {
+  restorers.push(isolateBidderActivity(true));
   const auctionDate = new Date("2026-05-22T00:00:00.000Z");
   const inventoryUpdates: Array<{
     where: { inventory_id: string };
@@ -997,6 +1005,7 @@ test("uploadManifest re-encodes void inventory with an auction item as unpaid so
 });
 
 test("cancelItems creates the auction 5013 bin when cancelling an item from an old auction", async () => {
+  restorers.push(isolateBidderActivity(true));
   const auctionBidderCreates: Array<Record<string, unknown>> = [];
   const bidderBalanceWrites: Array<Record<string, unknown>> = [];
   const auctionInventoryWrites: Array<Record<string, unknown>> = [];
@@ -1141,6 +1150,7 @@ test("cancelItems creates the auction 5013 bin when cancelling an item from an o
 });
 
 test("cancelItems rejects already refunded auction items", async () => {
+  restorers.push(isolateBidderActivity(true));
   const tx = {
     auctions_bidders: {
       findFirst: async () => ({

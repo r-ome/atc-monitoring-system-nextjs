@@ -1,3 +1,4 @@
+import { isolateBidderActivity } from "src/test-utils/isolate-bidder-activity";
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 
@@ -9,6 +10,7 @@ import { Prisma } from "@prisma/client";
 const restorers: Array<() => void> = [];
 
 test("auction branch comparison scopes one query and keeps bidder fees separate from item totals", async () => {
+  restorers.push(isolateBidderActivity(false));
   let captured: Prisma.Sql | undefined;
   let reads = 0;
   restorers.push(patchMethod(prisma, "$queryRaw", (async (query: Prisma.Sql) => {
@@ -40,6 +42,7 @@ test("auction branch comparison scopes one query and keeps bidder fees separate 
 });
 
 test("selected branch and comparison use the same Manila year range", async () => {
+  restorers.push(isolateBidderActivity(false));
   const queries: Prisma.Sql[] = [];
   restorers.push(patchMethod(prisma, "$queryRaw", (async (query: Prisma.Sql) => {
     queries.push(query);
@@ -58,6 +61,7 @@ afterEach(() => {
 
 for (const method of ["getTotalSales", "getAuctionKpis"] as const) {
   test(`${method} scopes both aggregates with the outer branch and date range`, async () => {
+  restorers.push(isolateBidderActivity(false));
     let query: Prisma.Sql | undefined;
     restorers.push(patchMethod(prisma, "$queryRaw", (async (sql: Prisma.Sql) => {
       query = sql;
@@ -83,6 +87,7 @@ for (const method of ["getTotalSales", "getAuctionKpis"] as const) {
 }
 
 test("getSupplierRevenueSummary uses an aggregate query and maps numeric values", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(
@@ -128,6 +133,7 @@ test("getSupplierRevenueSummary uses an aggregate query and maps numeric values"
 });
 
 test("getContainerStatusOverview uses an aggregate query and maps counts", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(
@@ -181,6 +187,7 @@ test("getContainerStatusOverview uses an aggregate query and maps counts", async
 });
 
 test("getPaidContainerFinancials filters by paid container date and excluded barcode prefixes", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(
@@ -228,6 +235,7 @@ test("getPaidContainerFinancials filters by paid container date and excluded bar
 });
 
 test("getPaidContainerFinancials service charge only uses paid auction items", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(
@@ -255,6 +263,7 @@ test("getPaidContainerFinancials service charge only uses paid auction items", a
 });
 
 test("getBoughtItemLossEvents returns paid bought-item cash out keyed by payment date", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(
@@ -310,6 +319,7 @@ test("getBoughtItemLossEvents returns paid bought-item cash out keyed by payment
 });
 
 test("getBoughtItemGainEvents returns paid resale cash in keyed by payment date", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(
@@ -357,6 +367,7 @@ test("getBoughtItemGainEvents returns paid resale cash in keyed by payment date"
 });
 
 test("getOwnerOrganicSales returns 00/T0 PAID resales keyed by auction_date", async () => {
+  restorers.push(isolateBidderActivity(false));
   let capturedQuery: { sql: string } | undefined;
 
   restorers.push(

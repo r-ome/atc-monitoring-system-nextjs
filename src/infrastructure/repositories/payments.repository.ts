@@ -1,3 +1,4 @@
+import { withBidderActivity } from "./bidder-activity";
 import prisma from "@/app/lib/prisma/prisma";
 import {
   isPrismaError,
@@ -103,7 +104,7 @@ export const PaymentRepository: IPaymentRepository = {
   },
   handleBidderPullOut: async (data) => {
     try {
-      return await prisma.$transaction(async (tx) => {
+      return await withBidderActivity(prisma, { registrationIds: [data.auction_bidder_id], itemIds: data.auction_inventory_ids }, async (tx) => {
         const registered_bidder = await tx.auctions_bidders.findFirst({
           where: { auction_bidder_id: data.auction_bidder_id },
           include: { bidder: true },
@@ -251,12 +252,6 @@ export const PaymentRepository: IPaymentRepository = {
           },
         });
 
-        if (registered_bidder.bidder.status === "INACTIVE") {
-          await tx.bidders.update({
-            where: { bidder_id: registered_bidder.bidder_id },
-            data: { status: "ACTIVE" },
-          });
-        }
 
         return {
           receipt_id: created_receipt.receipt_id,
@@ -304,7 +299,7 @@ export const PaymentRepository: IPaymentRepository = {
        * add inventory_history
        */
 
-      await prisma.$transaction(async (tx) => {
+      await withBidderActivity(prisma, { registrationIds: [data.auction_bidder_id] }, async (tx) => {
         const auction_bidder = await tx.auctions_bidders.findFirst({
           where: { auction_bidder_id: data.auction_bidder_id },
           include: { bidder: true },
@@ -533,24 +528,26 @@ export const PaymentRepository: IPaymentRepository = {
   },
   updatePaymentMethod: async (payment_id, data) => {
     try {
-      const current_payment = await prisma.payments.findFirst({
-        where: { payment_id },
-        include: { payment_method: true },
-      });
-
-      if (current_payment) {
-        const new_payment_method = await prisma.payment_methods.findFirst({
-          where: { payment_method_id: data.payment_method },
-        });
-
-        await prisma.payments.update({
+      return await withBidderActivity(prisma, { paymentIds: [payment_id] }, async (tx) => {
+        const current_payment = await tx.payments.findFirst({
           where: { payment_id },
-          data: {
-            payment_method_id: data.payment_method,
-            remarks: `Updated payment type from ${current_payment?.payment_method?.name} to ${new_payment_method?.name}`,
-          },
+          include: { payment_method: true },
         });
-      }
+
+        if (current_payment) {
+          const new_payment_method = await tx.payment_methods.findFirst({
+            where: { payment_method_id: data.payment_method },
+          });
+
+          await tx.payments.update({
+            where: { payment_id },
+            data: {
+              payment_method_id: data.payment_method,
+              remarks: `Updated payment type from ${current_payment?.payment_method?.name} to ${new_payment_method?.name}`,
+            },
+          });
+        }
+      });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError(
@@ -566,7 +563,7 @@ export const PaymentRepository: IPaymentRepository = {
   },
   addStorageFee: async (data: StorageFeePaymentInput) => {
     try {
-      await prisma.$transaction(async (tx) => {
+      await withBidderActivity(prisma, { receiptIds: [data.parent_receipt_id] }, async (tx) => {
         const parent = await tx.receipt_records.findFirst({
           where: { receipt_id: data.parent_receipt_id },
           include: { auction_bidder: { include: { bidder: true } } },
@@ -614,7 +611,7 @@ export const PaymentRepository: IPaymentRepository = {
   },
   undoPayment: async (receipt_id) => {
     try {
-      return await prisma.$transaction(async (tx) => {
+      return await withBidderActivity(prisma, { receiptIds: [receipt_id] }, async (tx) => {
         const receipt = await tx.receipt_records.findFirst({
           where: { receipt_id },
           include: {
