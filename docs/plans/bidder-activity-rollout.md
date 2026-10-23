@@ -17,6 +17,8 @@ Deleted bidders and ATC bidder 5013 are excluded from automatic changes.
 Recalculation does not update the activity timestamp.
 
 The bidders page uses the shared activity timestamp for desktop/mobile display and date sorting.
+Until a bidder has that timestamp, the page falls back to the latest auction registration date.
+This fallback affects display only; it does not initialize activity or recalculate status.
 The list query no longer loads every auction registration.
 Auction startup revalidates the bidders page and records changed counts in the existing activity log.
 The existing SUPER_ADMIN audit-log exclusion remains in place.

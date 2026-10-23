@@ -79,6 +79,11 @@ export const BidderRepository: IBidderRepository = {
       const bidders = await prisma.bidders.findMany({
         include: {
           branch: true,
+          auctions_joined: {
+            select: { created_at: true },
+            orderBy: { created_at: "desc" },
+            take: 1,
+          },
         },
         orderBy: { bidder_number: "asc" },
       });
