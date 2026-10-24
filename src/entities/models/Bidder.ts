@@ -14,11 +14,8 @@ export type BidderWithBranchRow = Prisma.biddersGetPayload<{
   include: { branch: true };
 }>;
 
-export type BidderListRow = Prisma.biddersGetPayload<{
-  include: {
-    branch: true;
-    auctions_joined: { select: { created_at: true } };
-  };
+export type BidderWithLastAuctionRow = Prisma.biddersGetPayload<{
+  include: { branch: true; auctions_joined: true };
 }>;
 
 export type BidderWithDetailsRow = Prisma.biddersGetPayload<{

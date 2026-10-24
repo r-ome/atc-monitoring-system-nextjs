@@ -1,4 +1,3 @@
-import { withBidderActivity } from "./bidder-activity";
 import { Prisma } from "@prisma/client";
 import { IReportsRepository } from "src/application/repositories/reports.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
@@ -568,23 +567,21 @@ export const ReportsRepository: IReportsRepository = {
 
   updateRefundCancellationTag: async (auction_inventory_id, tag) => {
     try {
-      return await withBidderActivity(prisma, { itemIds: [auction_inventory_id], historyItemIds: [auction_inventory_id] }, async (tx) => {
-        const primary = await tx.inventory_histories.findFirst({
-          where: {
-            auction_inventory_id,
-            auction_status: { in: ["REFUNDED", "CANCELLED"] },
-          },
-          orderBy: [{ created_at: "desc" }, { inventory_history_id: "desc" }],
-        });
-        if (!primary) {
-          throw new DatabaseOperationError(
-            "No refund/cancellation history found for this item.",
-          );
-        }
-        await tx.inventory_histories.update({
-          where: { inventory_history_id: primary.inventory_history_id },
-          data: { tag },
-        });
+      const primary = await prisma.inventory_histories.findFirst({
+        where: {
+          auction_inventory_id,
+          auction_status: { in: ["REFUNDED", "CANCELLED"] },
+        },
+        orderBy: { created_at: "desc" },
+      });
+      if (!primary) {
+        throw new DatabaseOperationError(
+          "No refund/cancellation history found for this item.",
+        );
+      }
+      await prisma.inventory_histories.update({
+        where: { inventory_history_id: primary.inventory_history_id },
+        data: { tag },
       });
     } catch (error) {
       handleError("Error updating refund/cancellation tag", error);

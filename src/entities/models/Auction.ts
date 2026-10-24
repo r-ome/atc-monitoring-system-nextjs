@@ -1,11 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { RegisteredBidder } from "./Bidder";
 import { type InventoryStatus } from "./Inventory";
-import type { BidderActivityRecalculation } from "./BidderActivity";
-export type StartAuctionResult = {
-  auction: AuctionWithDetailsRow;
-  bidder_activity: BidderActivityRecalculation | null;
-};
 export type Override<T, R> = Omit<T, keyof R> & R;
 
 export const AUCTION_ITEM_STATUS = [

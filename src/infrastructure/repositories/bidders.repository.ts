@@ -1,13 +1,8 @@
-import { recalculateBidderActivity, withBidderActivity } from "./bidder-activity";
-import { SUPER_ADMIN_BRANCH } from "@/app/lib/prisma/prisma";
-import { getBidderActivityTime } from "src/entities/models/BidderActivity";
-import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
 import { IBidderRepository } from "src/application/repositories/bidders.repository.interface";
 import prisma from "@/app/lib/prisma/prisma";
 import {
   NotFoundError,
   DatabaseOperationError,
-  InputParseError,
 } from "src/entities/errors/common";
 import {
   isPrismaError,
@@ -17,19 +12,6 @@ import { UpdateBidderInput } from "src/entities/models/Bidder";
 import { payments_purpose } from "@prisma/client";
 
 export const BidderRepository: IBidderRepository = {
-  recalculateActivity: async (branch_id) => {
-    if (!branch_id?.trim() || branch_id === SUPER_ADMIN_BRANCH) {
-      throw new InputParseError("Select a valid bidder branch.");
-    }
-    return await withBidderActivity(prisma, {}, async (tx) => {
-      const branch = await tx.branches.findFirst({
-        where: { branch_id, deleted_at: null, name: { not: "ALL" } },
-        select: { branch_id: true },
-      });
-      if (!branch) throw new InputParseError("Select a valid bidder branch.");
-      return await recalculateBidderActivity(tx, branch_id);
-    }, { timeout: 30_000 });
-  },
   getBidder: async (bidder_id) => {
     try {
       const bidder = await prisma.bidders.findFirst({
@@ -94,11 +76,7 @@ export const BidderRepository: IBidderRepository = {
       const bidders = await prisma.bidders.findMany({
         include: {
           branch: true,
-          auctions_joined: {
-            select: { created_at: true },
-            orderBy: { created_at: "desc" },
-            take: 1,
-          },
+          auctions_joined: { orderBy: { created_at: "desc" } },
         },
         orderBy: { bidder_number: "asc" },
       });
@@ -131,7 +109,6 @@ export const BidderRepository: IBidderRepository = {
           contact_number: data.contact_number,
           branch_id: data.branch_id,
           status: "ACTIVE",
-          last_activity_at: getBidderActivityTime(),
         },
       });
 
@@ -148,26 +125,24 @@ export const BidderRepository: IBidderRepository = {
   },
   updateBidder: async (bidder_id, data: UpdateBidderInput) => {
     try {
-      return await withBidderActivity(prisma, { bidderIds: [bidder_id] }, async (tx) => {
-        const updated = await tx.bidders.update({
-          include: { branch: true },
-          where: { bidder_id, ...buildTenantWhere("bidders", {}) },
-          data: {
-            bidder_number: data.bidder_number,
-            first_name: data.first_name,
-            middle_name: data.middle_name,
-            last_name: data.last_name,
-            birthdate: data.birthdate,
-            contact_number: data.contact_number,
-            registration_fee: data.registration_fee,
-            service_charge: data.service_charge,
-            branch_id: data.branch_id,
-            payment_term: data.payment_term,
-          },
-        });
-
-        return updated;
+      const updated = await prisma.bidders.update({
+        include: { branch: true },
+        where: { bidder_id },
+        data: {
+          bidder_number: data.bidder_number,
+          first_name: data.first_name,
+          middle_name: data.middle_name,
+          last_name: data.last_name,
+          birthdate: data.birthdate,
+          contact_number: data.contact_number,
+          registration_fee: data.registration_fee,
+          service_charge: data.service_charge,
+          branch_id: data.branch_id,
+          payment_term: data.payment_term,
+        },
       });
+
+      return updated;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error updating bidder!", {
@@ -179,12 +154,10 @@ export const BidderRepository: IBidderRepository = {
   },
   updateBidderStatus: async (bidder_id, status) => {
     try {
-      return await withBidderActivity(prisma, { bidderIds: [bidder_id] }, async (tx) => {
-        return await tx.bidders.update({
-          include: { branch: true },
-          where: { bidder_id, ...buildTenantWhere("bidders", {}) },
-          data: { status },
-        });
+      return await prisma.bidders.update({
+        include: { branch: true },
+        where: { bidder_id },
+        data: { status },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -211,7 +184,6 @@ export const BidderRepository: IBidderRepository = {
             birthdate: item.BIRTHDATE === "" ? null : item.BIRTHDATE,
             contact_number: item.CONTACT_NUMBER,
             status: "ACTIVE",
-            last_activity_at: getBidderActivityTime(),
             address: item.ADDRESS,
             tin_number: item.TIN_NUMBER,
             branch_id: item.branch_id,

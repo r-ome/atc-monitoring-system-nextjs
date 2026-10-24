@@ -1,4 +1,3 @@
-import { isolateBidderActivity } from "src/test-utils/isolate-bidder-activity";
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 
@@ -15,7 +14,6 @@ afterEach(() => {
 });
 
 test("getPaymentsByDate uses Manila day boundaries for the query window", async () => {
-  restorers.push(isolateBidderActivity(false));
   const queryArgs: Array<Record<string, unknown>> = [];
 
   restorers.push(
@@ -46,7 +44,6 @@ test("getPaymentsByDate uses Manila day boundaries for the query window", async 
 });
 
 test("handleBidderPullOut charges only the partial price delta for add-on payments", async () => {
-  restorers.push(isolateBidderActivity(true));
   const paymentWrites: Array<Record<string, unknown>> = [];
   const bidderBalanceWrites: Array<{
     where: { auction_bidder_id: string };
@@ -155,7 +152,6 @@ test("handleBidderPullOut charges only the partial price delta for add-on paymen
 });
 
 test("handleBidderPullOut excludes storage fee from bidder balance decrement", async () => {
-  restorers.push(isolateBidderActivity(true));
   const paymentWrites: Array<Record<string, unknown>> = [];
   const receiptWrites: Array<Record<string, unknown>> = [];
   const bidderBalanceWrites: Array<{
@@ -261,7 +257,6 @@ test("handleBidderPullOut excludes storage fee from bidder balance decrement", a
 });
 
 test("handleBidderPullOut marks previously unsold paid inventories as sold", async () => {
-  restorers.push(isolateBidderActivity(true));
   const receiptWrites: Array<Record<string, unknown>> = [];
   const auctionStatusWrites: Array<Record<string, unknown>> = [];
   const inventoryStatusWrites: Array<Record<string, unknown>> = [];
@@ -372,7 +367,6 @@ test("handleBidderPullOut marks previously unsold paid inventories as sold", asy
 });
 
 test("undoPayment recalculates balance with current service charge settings", async () => {
-  restorers.push(isolateBidderActivity(true));
   const bidderBalanceWrites: Array<{
     where: { auction_bidder_id: string };
     data: Record<string, unknown>;
@@ -484,7 +478,6 @@ test("undoPayment recalculates balance with current service charge settings", as
 });
 
 test("updatePaymentMethod updates a non-registration payment by payment id only", async () => {
-  restorers.push(isolateBidderActivity(false));
   const paymentFindArgs: Array<Record<string, unknown>> = [];
   const paymentMethodFindArgs: Array<Record<string, unknown>> = [];
   const paymentUpdateArgs: Array<Record<string, unknown>> = [];
@@ -548,7 +541,6 @@ test("updatePaymentMethod updates a non-registration payment by payment id only"
 });
 
 test("handleBidderPullOut records the transferred amounts and carries the storage fee on the receipt", async () => {
-  restorers.push(isolateBidderActivity(true));
   const paymentWrites: Array<Record<string, unknown>> = [];
   const receiptWrites: Array<Record<string, unknown>> = [];
 
@@ -633,7 +625,6 @@ test("handleBidderPullOut records the transferred amounts and carries the storag
 });
 
 test("addStorageFee numbers storage receipts per bidder, not across the whole database", async () => {
-  restorers.push(isolateBidderActivity(true));
   const countArgs: Array<Record<string, unknown>> = [];
   const receiptWrites: Array<Record<string, unknown>> = [];
 

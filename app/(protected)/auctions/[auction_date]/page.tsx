@@ -31,7 +31,6 @@ import {
 import { formatNumberCompact, formatNumberToCurrency } from "@/app/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/app/components/ui/alert";
 import { ErrorComponent } from "@/app/components/ErrorComponent";
-import { SUPER_ADMIN_BRANCH } from "@/app/lib/prisma/prisma";
 
 export default async function Page({
   params,
@@ -54,7 +53,7 @@ export default async function Page({
             </Alert>
             {!["ENCODER", "MODERATOR"].includes(session.user.role) && (
               <div className="mt-4 flex justify-center">
-                <StartAuctionButton requiresBranchSelection={session.user.role === "SUPER_ADMIN" || session.user.branch?.branch_id === SUPER_ADMIN_BRANCH} />
+                <StartAuctionButton />
               </div>
             )}
           </div>

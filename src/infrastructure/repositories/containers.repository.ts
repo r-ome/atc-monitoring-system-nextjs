@@ -1,4 +1,3 @@
-import { withBidderActivity } from "./bidder-activity";
 import { Prisma } from "@prisma/client";
 import prisma from "@/app/lib/prisma/prisma";
 import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
@@ -274,7 +273,7 @@ export const ContainerRepository: IContainerRepository = {
   },
   uploadInventoryFile: async (input) => {
     try {
-      return await withBidderActivity(prisma, { inventoryIds: input.updates.map((item) => item.inventory_id) }, async (tx) => {
+      return await prisma.$transaction(async (tx) => {
         const createContainerIds = Array.from(
           new Set(input.creates.map((item) => item.container_id)),
         );
@@ -380,7 +379,7 @@ export const ContainerRepository: IContainerRepository = {
   },
   updateContainer: async (container_id, data) => {
     try {
-      return await withBidderActivity(prisma, { containerIds: [container_id] }, async (tx) => {
+      return await prisma.$transaction(async (tx) => {
         const current = await tx.containers.findFirst({
           where: buildTenantWhere("containers", { container_id }),
           select: { barcode: true },
@@ -391,7 +390,7 @@ export const ContainerRepository: IContainerRepository = {
         }
 
         const updated = await tx.containers.update({
-          where: { container_id, ...buildTenantWhere("containers", {}) },
+          where: { container_id },
           include: { supplier: true, branch: true },
           data: {
             supplier_id: data.supplier_id,
@@ -452,20 +451,18 @@ export const ContainerRepository: IContainerRepository = {
   },
   updateContainerStatus: async (container_id, paid_at) => {
     try {
-      return await withBidderActivity(prisma, { containerIds: [container_id] }, async (tx) => {
-        const current = await tx.containers.findFirst({
-          where: buildTenantWhere("containers", { container_id }),
-          select: { container_id: true },
-        });
+      const current = await prisma.containers.findFirst({
+        where: buildTenantWhere("containers", { container_id }),
+        select: { container_id: true },
+      });
 
-        if (!current) {
-          throw new NotFoundError("Container not found!");
-        }
+      if (!current) {
+        throw new NotFoundError("Container not found!");
+      }
 
-        return await tx.containers.update({
-          where: { container_id, ...buildTenantWhere("containers", {}) },
-          data: { status: paid_at ? new Date(`${paid_at}T00:00:00.000Z`) : null },
-        });
+      return await prisma.containers.update({
+        where: { container_id },
+        data: { status: paid_at ? new Date(`${paid_at}T00:00:00.000Z`) : null },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -479,19 +476,17 @@ export const ContainerRepository: IContainerRepository = {
   },
   deleteContainer: async (container_id) => {
     try {
-      return await withBidderActivity(prisma, { containerIds: [container_id] }, async (tx) => {
-        const current = await tx.containers.findFirst({
-          where: buildTenantWhere("containers", { container_id }),
-          select: { container_id: true },
-        });
+      const current = await prisma.containers.findFirst({
+        where: buildTenantWhere("containers", { container_id }),
+        select: { container_id: true },
+      });
 
-        if (!current) {
-          throw new NotFoundError("Container not found!");
-        }
+      if (!current) {
+        throw new NotFoundError("Container not found!");
+      }
 
-        return await tx.containers.delete({
-          where: { container_id, ...buildTenantWhere("containers", {}) },
-        });
+      return await prisma.containers.delete({
+        where: { container_id },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -523,11 +518,9 @@ export const ContainerRepository: IContainerRepository = {
   },
   setContainerTaxDeduction: async (container_id, record) => {
     try {
-      return await withBidderActivity(prisma, { containerIds: [container_id] }, async (tx) => {
-        await tx.containers.update({
-          where: { container_id, ...buildTenantWhere("containers", {}) },
-          data: { tax_deduction: record as unknown as Prisma.InputJsonValue },
-        });
+      await prisma.containers.update({
+        where: { container_id },
+        data: { tax_deduction: record as unknown as Prisma.InputJsonValue },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -540,11 +533,9 @@ export const ContainerRepository: IContainerRepository = {
   },
   clearContainerTaxDeduction: async (container_id) => {
     try {
-      return await withBidderActivity(prisma, { containerIds: [container_id] }, async (tx) => {
-        await tx.containers.update({
-          where: { container_id, ...buildTenantWhere("containers", {}) },
-          data: { tax_deduction: Prisma.JsonNull },
-        });
+      await prisma.containers.update({
+        where: { container_id },
+        data: { tax_deduction: Prisma.JsonNull },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {

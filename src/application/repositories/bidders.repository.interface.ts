@@ -1,10 +1,9 @@
 import { Prisma } from "@prisma/client";
-import type { BidderActivityRecalculation } from "src/entities/models/BidderActivity";
 import type {
   BidderWithBranchRow,
   BidderWithDetailsRow,
   BidderWithDetailsAndReceiptsRow,
-  BidderListRow,
+  BidderWithLastAuctionRow,
   CreateBidderInput,
   UpdateBidderInput,
   CreateBidderBulkInput,
@@ -16,8 +15,7 @@ export interface IBidderRepository {
     bidder_number: string,
     branch_name: string,
   ): Promise<BidderWithDetailsAndReceiptsRow | null>;
-  getBidders(): Promise<BidderListRow[]>;
-  recalculateActivity(branch_id: string): Promise<BidderActivityRecalculation>;
+  getBidders(): Promise<BidderWithLastAuctionRow[]>;
   createBidder(bidder: CreateBidderInput): Promise<BidderWithBranchRow>;
   updateBidder(
     bidder_id: string,

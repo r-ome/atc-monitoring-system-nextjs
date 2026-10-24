@@ -1,4 +1,3 @@
-import { withBidderActivity } from "./bidder-activity";
 import prisma from "@/app/lib/prisma/prisma";
 import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
 import {
@@ -216,7 +215,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   updateAuctionItem: async (data, updated_by?) => {
     try {
-      await withBidderActivity(prisma, { itemIds: [data.auction_inventory_id], auctionNumbers: [{ auction_id: data.auction_id, bidder_number: data.bidder_number }] }, async (tx) => {
+      await prisma.$transaction(async (tx) => {
         const syncAuctionBidderBalance = async (auction_bidder_id: string) => {
           const bidder = await tx.auctions_bidders.findFirst({
             where: { auction_bidder_id },
@@ -539,7 +538,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   resolveFinalReportMatches: async (data, updated_by?) => {
     try {
-      await withBidderActivity(prisma, { itemIds: data.matches.map((item) => item.auction_inventory_id), inventoryIds: data.matches.flatMap((item) => [item.source_inventory_id, item.target_inventory_id]) }, async (tx) => {
+      await prisma.$transaction(async (tx) => {
         const syncAuctionBidderBalance = async (auction_bidder_id: string) => {
           const bidder = await tx.auctions_bidders.findFirst({
             where: { auction_bidder_id },
@@ -679,7 +678,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   resolveFinalReportCounterCheckMatches: async (data, updated_by?) => {
     try {
-      await withBidderActivity(prisma, { registrationIds: data.matches.map((item) => item.auction_bidder_id), inventoryIds: data.matches.map((item) => item.inventory_id), counterCheckIds: data.matches.map((item) => item.counter_check_id) }, async (tx) => {
+      await prisma.$transaction(async (tx) => {
         const syncAuctionBidderBalance = async (auction_bidder_id: string) => {
           const bidder = await tx.auctions_bidders.findFirst({
             where: { auction_bidder_id },
@@ -797,7 +796,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   createFinalReportAddOns: async (data, updated_by?) => {
     try {
-      await withBidderActivity(prisma, { registrationIds: data.items.map((item) => item.auction_bidder_id), inventoryIds: data.items.map((item) => item.inventory_id) }, async (tx) => {
+      await prisma.$transaction(async (tx) => {
         const syncAuctionBidderBalance = async (auction_bidder_id: string) => {
           const bidder = await tx.auctions_bidders.findFirst({
             where: { auction_bidder_id },
@@ -946,27 +945,25 @@ export const InventoryRepository: IInventoryRepository = {
   },
   updateInventory: async (inventory_id, data) => {
     try {
-      return await withBidderActivity(prisma, { inventoryIds: [inventory_id] }, async (tx) => {
-        const existingInventory = await tx.inventories.findFirst({
-          where: buildTenantWhere("inventories", { inventory_id }),
-          select: { inventory_id: true, barcode: true, control: true },
-        });
-
-        if (!existingInventory) {
-          throw new NotFoundError("Inventory not found!");
-        }
-
-        const updated = await tx.inventories.update({
-          where: { inventory_id },
-          data: {
-            barcode: data.barcode,
-            control: normalizeControl(data.control),
-            description: data.description,
-          },
-        });
-
-        return updated;
+      const existingInventory = await prisma.inventories.findFirst({
+        where: buildTenantWhere("inventories", { inventory_id }),
+        select: { inventory_id: true, barcode: true, control: true },
       });
+
+      if (!existingInventory) {
+        throw new NotFoundError("Inventory not found!");
+      }
+
+      const updated = await prisma.inventories.update({
+        where: { inventory_id },
+        data: {
+          barcode: data.barcode,
+          control: normalizeControl(data.control),
+          description: data.description,
+        },
+      });
+
+      return updated;
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error updating inventory!", {
@@ -1034,11 +1031,9 @@ export const InventoryRepository: IInventoryRepository = {
   },
   updateBulkInventoryStatus: async (status, inventory_ids) => {
     try {
-      return await withBidderActivity(prisma, { inventoryIds: inventory_ids }, async (tx) => {
-        return await tx.inventories.updateMany({
-          where: { inventory_id: { in: inventory_ids } },
-          data: { status },
-        });
+      return await prisma.inventories.updateMany({
+        where: { inventory_id: { in: inventory_ids } },
+        data: { status },
       });
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
@@ -1134,7 +1129,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   mergeInventories: async (data) => {
     try {
-      return await withBidderActivity(prisma, { inventoryIds: [data.old_inventory_id, data.new_inventory_id] }, async (tx) => {
+      return await prisma.$transaction(async (tx) => {
         const [
           old_inventory,
           new_inventory,
@@ -1308,7 +1303,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   appendInventories: async (data) => {
     try {
-      await withBidderActivity(prisma, { inventoryIds: data.map((item) => item.inventory_id) }, async (tx) => {
+      await prisma.$transaction(async (tx) => {
         const existingInventories = await tx.inventories.findMany({
           where: buildTenantWhere("inventories", {
             inventory_id: { in: data.map((inventory) => inventory.inventory_id) },
@@ -1342,7 +1337,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   applySplitBoughtItems: async (data, updated_by?) => {
     try {
-      await withBidderActivity(prisma, { itemIds: [data.source_auction_inventory_id], inventoryIds: data.splits.map((item) => item.target_inventory_id) }, async (tx) => {
+      await prisma.$transaction(async (tx) => {
         const sourceAuctionInventory = await tx.auctions_inventories.findFirst({
           where: { auction_inventory_id: data.source_auction_inventory_id },
           include: {
@@ -1460,7 +1455,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   applyVoidInventory: async (data, updated_by?) => {
     try {
-      await withBidderActivity(prisma, { inventoryIds: [data.inventory_id] }, async (tx) => {
+      await prisma.$transaction(async (tx) => {
         const inventory = await tx.inventories.findFirst({
           where: buildTenantWhere("inventories", { inventory_id: data.inventory_id }),
         });
@@ -1504,7 +1499,7 @@ export const InventoryRepository: IInventoryRepository = {
   },
   applyDirectBoughtItem: async (data, updated_by?) => {
     try {
-      await withBidderActivity(prisma, { inventoryIds: [data.inventory_id] }, async (tx) => {
+      await prisma.$transaction(async (tx) => {
         const atcBidder = await tx.auctions_bidders.findFirst({
           where: {
             auction_id: data.auction_id,
@@ -1645,22 +1640,20 @@ export const InventoryRepository: IInventoryRepository = {
   },
   deleteInventory: async (inventory_id) => {
     try {
-      return await withBidderActivity(prisma, { inventoryIds: [inventory_id] }, async (tx) => {
-        const existingInventory = await tx.inventories.findFirst({
-          where: buildTenantWhere("inventories", { inventory_id }),
-          select: { inventory_id: true, barcode: true, control: true },
-        });
-
-        if (!existingInventory) {
-          throw new NotFoundError("Inventory not found!");
-        }
-
-        await tx.inventories.delete({ where: { inventory_id } });
-        return {
-          barcode: existingInventory.barcode,
-          control: existingInventory.control,
-        };
+      const existingInventory = await prisma.inventories.findFirst({
+        where: buildTenantWhere("inventories", { inventory_id }),
+        select: { inventory_id: true, barcode: true, control: true },
       });
+
+      if (!existingInventory) {
+        throw new NotFoundError("Inventory not found!");
+      }
+
+      await prisma.inventories.delete({ where: { inventory_id } });
+      return {
+        barcode: existingInventory.barcode,
+        control: existingInventory.control,
+      };
     } catch (error) {
       if (isPrismaError(error) || isPrismaValidationError(error)) {
         throw new DatabaseOperationError("Error deleting inventory", {

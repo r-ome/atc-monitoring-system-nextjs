@@ -5,7 +5,6 @@ import {
   AuctionWithDetailsRow,
   AuctionInventoryWithDetailsRow,
   AuctionInventoryWithHistoriesRow,
-  StartAuctionResult,
   AuctionWithBranchBiddersRow,
 } from "src/entities/models/Auction";
 import {
@@ -37,7 +36,7 @@ export interface IAuctionRepository {
   getAuctionId: (
     auction_date: Date,
   ) => Promise<{ auction_id: string } | null>;
-  startAuction: (auction_date: Date, branch_id: string) => Promise<StartAuctionResult>;
+  startAuction: (auction_date: Date) => Promise<AuctionWithDetailsRow>;
   registerBidder: (
     data: RegisterBidderInput,
   ) => Promise<AuctionBidderRow>;

@@ -102,14 +102,11 @@ model bidders {
   payment_term     Int                    @default(7)
   created_at       DateTime               @default(now()) @db.Timestamp(0)
   updated_at       DateTime               @default(now()) @updatedAt @db.DateTime(0)
-  last_activity_at DateTime?              @db.DateTime(0)
   deleted_at       DateTime?
   auctions_joined  auctions_bidders[]
   requirements     bidder_requirements[]
   ban_histories    bidder_ban_histories[]
   branch           branches               @relation(fields: [branch_id], references: [branch_id])
-
-  @@index([branch_id, status, last_activity_at], map: "bidders_branch_status_activity_idx")
 }
 
 model bidder_ban_histories {

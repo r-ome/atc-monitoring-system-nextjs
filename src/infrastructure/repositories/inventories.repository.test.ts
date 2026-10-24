@@ -1,4 +1,3 @@
-import { isolateBidderActivity } from "src/test-utils/isolate-bidder-activity";
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 
@@ -16,7 +15,6 @@ afterEach(() => {
 });
 
 test("searchAuctionItems finds child inventory barcodes from a container barcode search", async () => {
-  restorers.push(isolateBidderActivity(false));
   let capturedWhere: unknown;
 
   restorers.push(
@@ -51,7 +49,6 @@ test("searchAuctionItems finds child inventory barcodes from a container barcode
 });
 
 test("updateAuctionItem recalculates affected bidder balances after reassigning an unpaid item", async () => {
-  restorers.push(isolateBidderActivity(true));
   let itemReassigned = false;
   const bidderBalanceWrites: Array<{
     where: { auction_bidder_id: string };
@@ -213,7 +210,6 @@ test("updateAuctionItem recalculates affected bidder balances after reassigning 
 });
 
 test("updateAuctionItem rejects lower prices for paid items", async () => {
-  restorers.push(isolateBidderActivity(true));
   let updateCalled = false;
   let containerLookupCalled = false;
 
@@ -316,7 +312,6 @@ test("updateAuctionItem rejects lower prices for paid items", async () => {
 });
 
 test("updateAuctionItem marks partial item paid when price returns to paid baseline", async () => {
-  restorers.push(isolateBidderActivity(true));
   let itemUpdated = false;
   const auctionInventoryWrites: Array<{
     where: { auction_inventory_id: string };
@@ -486,7 +481,6 @@ test("updateAuctionItem marks partial item paid when price returns to paid basel
 });
 
 test("mergeInventories updates the SOLD barcode, retires the UNSOLD duplicate, and preserves the SOLD auction row", async () => {
-  restorers.push(isolateBidderActivity(true));
   const inventoryUpdates: Array<{
     where: { inventory_id: string };
     data: Record<string, unknown>;
@@ -627,7 +621,6 @@ test("mergeInventories updates the SOLD barcode, retires the UNSOLD duplicate, a
 });
 
 test("mergeInventories rejects UNSOLD duplicates that already have an auction row", async () => {
-  restorers.push(isolateBidderActivity(true));
   const tx = {
     inventories: {
       findFirst: async ({
@@ -725,7 +718,6 @@ test("mergeInventories rejects UNSOLD duplicates that already have an auction ro
 });
 
 test("applyDirectBoughtItem records direct bought items as paid bought inventory", async () => {
-  restorers.push(isolateBidderActivity(true));
   const auctionDate = new Date("2026-05-22T00:00:00.000Z");
   const auctionInventoryCreates: Array<{ data: Record<string, unknown> }> = [];
   const inventoryUpdates: Array<{
@@ -876,7 +868,6 @@ test("applyDirectBoughtItem records direct bought items as paid bought inventory
 });
 
 test("applyDirectBoughtItem reuses refunded auction rows instead of recreating them", async () => {
-  restorers.push(isolateBidderActivity(true));
   const auctionDate = new Date("2026-05-23T00:00:00.000Z");
   const auctionInventoryCreates: Array<{ data: Record<string, unknown> }> = [];
   const auctionInventoryUpdates: Array<{

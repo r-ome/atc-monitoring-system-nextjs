@@ -1,4 +1,4 @@
-import { BidderListRow } from "src/entities/models/Bidder";
+import { BidderWithLastAuctionRow } from "src/entities/models/Bidder";
 import { BidderRepository } from "src/infrastructure/di/repositories";
 import { formatDate } from "@/app/lib/utils";
 import { ok, err } from "src/entities/models/Result";
@@ -6,37 +6,37 @@ import { DatabaseOperationError } from "src/entities/errors/common";
 import { logger } from "@/app/lib/logger";
 import { formatDistanceToNow } from "date-fns";
 
-export const presentBidders = (bidders: BidderListRow[]) => {
+const presenter = (bidders: BidderWithLastAuctionRow[]) => {
   const date_format = "MMM dd, yyyy";
-  return bidders.map((item) => {
-    const lastActivity = item.last_activity_at ?? item.auctions_joined[0]?.created_at;
-    return {
-      ...item,
-      branch: {
-        branch_id: item.branch.branch_id,
-        name: item.branch.name,
-      },
-      last_active: {
-        date: lastActivity ? formatDate(lastActivity, date_format) : null,
-        timestamp: lastActivity?.toISOString() ?? null,
-        duration: lastActivity ? formatDistanceToNow(lastActivity) : null,
-      },
-      remarks: item.remarks || undefined,
-      full_name: `${item.first_name} ${item.last_name}`,
-      birthdate: item.birthdate ? formatDate(item.birthdate, date_format) : null,
-      created_at: formatDate(item.created_at, date_format),
-      updated_at: formatDate(item.updated_at, date_format),
-      deleted_at: item.deleted_at
-        ? formatDate(item.deleted_at, date_format)
+  return bidders.map((item) => ({
+    ...item,
+    branch: {
+      branch_id: item.branch.branch_id,
+      name: item.branch.name,
+    },
+    last_active: {
+      auction: item.auctions_joined[0]?.created_at
+        ? formatDate(item.auctions_joined[0]?.created_at, date_format)
         : null,
-    };
-  });
+      duration: item.auctions_joined[0]?.created_at
+        ? formatDistanceToNow(new Date(item.auctions_joined[0]?.created_at))
+        : null,
+    },
+    remarks: item.remarks || undefined,
+    full_name: `${item.first_name} ${item.last_name}`,
+    birthdate: item.birthdate ? formatDate(item.birthdate, date_format) : null,
+    created_at: formatDate(item.created_at, date_format),
+    updated_at: formatDate(item.updated_at, date_format),
+    deleted_at: item.deleted_at
+      ? formatDate(item.deleted_at, date_format)
+      : null,
+  }));
 };
 
 export const GetBiddersController = async () => {
   try {
     const bidders = await BidderRepository.getBidders();
-    return ok(presentBidders(bidders));
+    return ok(presenter(bidders));
   } catch (error) {
     logger("GetBiddersController", error);
     if (error instanceof DatabaseOperationError) {
