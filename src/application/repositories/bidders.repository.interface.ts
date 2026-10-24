@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import type { BidderActivityRecalculation } from "src/entities/models/BidderActivity";
 import type {
   BidderWithBranchRow,
   BidderWithDetailsRow,
@@ -16,6 +17,7 @@ export interface IBidderRepository {
     branch_name: string,
   ): Promise<BidderWithDetailsAndReceiptsRow | null>;
   getBidders(): Promise<BidderListRow[]>;
+  recalculateActivity(branch_id: string): Promise<BidderActivityRecalculation>;
   createBidder(bidder: CreateBidderInput): Promise<BidderWithBranchRow>;
   updateBidder(
     bidder_id: string,

@@ -62,3 +62,5 @@ import "./controllers/bidders/get-bidders.controller.test";
 import "./infrastructure/repositories/auction-start-activity.test";
 import "../app/(protected)/auctions/start-auction.actions.test";
 import "./controllers/auctions/start-auction.controller.test";
+import "../app/(protected)/bidders/recalculate.actions.test";
+import "./controllers/bidders/recalculate-bidder-activity.controller.test";

@@ -77,6 +77,18 @@ async function main() {
     assert.equal((await row(missingId)).last_activity_at, null);
     await initializeBidderActivity(direct, { ...options, apply: true }, now);
     assert.equal((await row(missingId)).last_activity_at?.toISOString(), old.toISOString());
+    const manual = await run(() => BidderRepository.recalculateActivity(branchA));
+    assert.equal(manual.activated, 1);
+    assert.equal(manual.deactivated, 2);
+    assert.equal((await row(staleId)).last_activity_at?.toISOString(), old.toISOString());
+    assert.equal((await row(bannedId)).status, "BANNED");
+    assert.equal((await row(otherId)).status, "ACTIVE");
+    const repeated = await run(() => BidderRepository.recalculateActivity(branchA));
+    assert.equal(repeated.activated, 0);
+    assert.equal(repeated.deactivated, 0);
+    await direct.bidders.updateMany({ where: { bidder_id: { in: [staleId, missingId] } }, data: { status: "ACTIVE" } });
+    await direct.bidders.update({ where: { bidder_id: recentId }, data: { status: "INACTIVE" } });
+    console.log("PASS: manual recalculation uses the startup rule, preserves activity, and is safe to repeat");
     const startedAt = performance.now();
     const started = await RequestContext.run({ branch_id: SUPER_ADMIN_BRANCH }, () => AuctionRepository.startAuction(old, branchA));
     console.log(`Isolated startup duration: ${(performance.now() - startedAt).toFixed(1)} ms (synthetic data only)`);

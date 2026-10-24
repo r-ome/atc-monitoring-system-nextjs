@@ -10,6 +10,10 @@ Batch operations remove duplicate bidder IDs and use bounded activity updates.
 Deadlocks retry the complete transaction, up to three attempts.
 
 Auction startup can recalculate statuses for its explicit, authorized branch.
+The bidders page also provides a "Recalculate status" button using the same rule and readiness checks.
+OWNER and SUPER_ADMIN select a branch. ADMIN and CASHIER can recalculate only their own branch.
+The button reports activated/deactivated counts and refreshes the status cards and table.
+Manual recalculation records an activity log but does not count as bidder activity.
 Six calendar months without activity means INACTIVE, including the exact cutoff second.
 The cutoff uses current Manila time, preserves the time of day, and clamps month ends.
 The selected auction date does not affect the cutoff.

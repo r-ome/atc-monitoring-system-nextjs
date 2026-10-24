@@ -1,5 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { SUPER_ADMIN_BRANCH } from "@/app/lib/prisma/prisma";
+import { BranchRepository } from "src/infrastructure/di/repositories";
+import { err } from "src/entities/models/Result";
+import { RecalculateBidderActivityController } from "src/controllers/bidders/recalculate-bidder-activity.controller";
+
 import { CreateBidderController } from "src/controllers/bidders/create-bidder.controller";
 import { UpdateBidderController } from "src/controllers/bidders/update-bidder.controller";
 import { UpdateBidderStatusController } from "src/controllers/bidders/update-bidder-status.controller";
@@ -51,6 +57,26 @@ export const getBidders = async () => {
     auth.value,
     async () => await GetBiddersController(),
   );
+};
+
+export const recalculateBidderStatuses = async (targetBranchId?: string) => {
+  const auth = await authorizeAction({ allowedRoles: ["OWNER", "SUPER_ADMIN", "ADMIN", "CASHIER"] });
+  if (!auth.ok) return auth;
+  const user = auth.value;
+  if (targetBranchId !== undefined && (typeof targetBranchId !== "string" || !targetBranchId.trim())) {
+    return err({ message: "Select a valid bidder branch." });
+  }
+  const branchId = targetBranchId ?? user.branch.branch_id;
+  if (branchId !== user.branch.branch_id && !["OWNER", "SUPER_ADMIN"].includes(user.role)) {
+    return err({ message: "Unauthorized", cause: "You cannot recalculate bidders for another branch." });
+  }
+  if (!branchId || branchId === SUPER_ADMIN_BRANCH) return err({ message: "Select a bidder branch." });
+  const branch = await BranchRepository.getBranch(branchId);
+  if (!branch || branch.deleted_at || branch.name === "ALL") return err({ message: "Select a valid bidder branch." });
+  const result = await runWithUserContext({ ...user, branch: { branch_id: branch.branch_id, name: branch.name } },
+    () => RecalculateBidderActivityController(branch.branch_id, user.role !== "SUPER_ADMIN"));
+  if (result.ok) revalidatePath("/bidders");
+  return result;
 };
 
 export const updateBidder = async (bidder_id: string, formData: FormData) => {
