@@ -1,4 +1,4 @@
-import { isBidderActivityRecalculationEnabled, recalculateBidderActivity, withBidderActivity } from "./bidder-activity";
+import { recalculateBidderActivity, withBidderActivity } from "./bidder-activity";
 import { SUPER_ADMIN_BRANCH } from "@/app/lib/prisma/prisma";
 import { getBidderActivityTime } from "src/entities/models/BidderActivity";
 import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
@@ -20,9 +20,6 @@ export const BidderRepository: IBidderRepository = {
   recalculateActivity: async (branch_id) => {
     if (!branch_id?.trim() || branch_id === SUPER_ADMIN_BRANCH) {
       throw new InputParseError("Select a valid bidder branch.");
-    }
-    if (!isBidderActivityRecalculationEnabled()) {
-      throw new InputParseError("Bidder status recalculation is not enabled. Contact an administrator.");
     }
     return await withBidderActivity(prisma, {}, async (tx) => {
       const branch = await tx.branches.findFirst({

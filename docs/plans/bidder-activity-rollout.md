@@ -62,41 +62,19 @@ Excluded writes have no bidder business activity:
 
 ## Deployment order
 
-The code tracks new activity after deployment. Bulk recalculation is off by default.
-The server setting `BIDDER_ACTIVITY_RECALCULATION_ENABLED=true` enables it.
-The setting is not public and does not require a new external service.
+Deploy through the existing workflow. There is no enable/disable setting or separate production initialization step.
 
-1. Apply `20261017000000_add_bidder_last_activity_at` before running the new Prisma client.
-2. Deploy this implementation with bulk recalculation disabled. Let all previous workers finish reloading.
-3. Use a full checkout with dependencies installed and the intended database environment to preview historical activity:
+Auction startup and "Recalculate status" directly call the same function for the selected branch.
+The function first fills missing activity timestamps from retained business history, in batches of 200.
+It then updates active/inactive statuses. Initialization and recalculation share the caller's transaction.
+If any step fails, the transaction rolls back, including auction creation when applicable.
 
-   ```sh
-   npm run bidders:activity -- --all-branches
-   ```
+Already tracked timestamps stay authoritative. Later calls do not rescan their historical records.
+Future timestamps produce an error instead of classifying invalid history.
+Historical timestamps remain estimates where old records have been permanently deleted.
 
-4. Review branch counts and future timestamps. Historical activity is an estimate; permanently deleted records can be unrecoverable.
-5. Initialize missing timestamps:
-
-   ```sh
-   npm run bidders:activity -- --all-branches --apply
-   ```
-
-6. Preview again. Every eligible bidder must have a timestamp and no unresolved future activity.
-7. Set `BIDDER_ACTIVITY_RECALCULATION_ENABLED=true` in the server environment and reload the application with that environment.
-8. Start an auction. Confirm its branch, changed counts, and bidders-page results.
-
-Both initialization modes also accept `--branch-id ID` and `--batch-size N`.
-The apply mode changes only missing activity timestamps. It preserves statuses, `updated_at`, and existing tracked timestamps.
-It commits per batch. If a later batch fails, earlier batches can remain committed; rerunning is safe.
-
-The standalone web release and migrations-runner do not contain the full TypeScript maintenance tooling.
-Run initialization from a full matching checkout, not from those extracted artifact directories.
-Do not run it against application data before the complete tracking implementation is deployed.
-
-When enabled, startup rejects uninitialized or future-dated eligible activity and rolls back auction creation.
-When disabled, startup retains its existing availability and skips bulk classification.
-Disabling the setting later stops bulk classification; tracking and activity-based reactivation continue.
-Disabling it does not restore previous statuses.
+The existing `npm run bidders:activity -- --branch-id ID` command remains an optional history preview for a full checkout.
+The application does not need this command to work on production.
 
 ## Verification
 
@@ -146,12 +124,11 @@ It runs regression tests and builds the standalone app, then applies migrations 
 The nullable field/index migration is additive; no status changes or historical initialization run during migration or build.
 Keep the new migration with the code: the generated Prisma client expects the new column.
 
-Production migration state, server environment, and EC2 state have not been inspected or changed.
+The simplification does not change the deployment workflow or require manual server uploads/settings.
 The updated workflow replaces runtime files only after migrations succeed.
 A migration failure therefore does not replace the existing runtime files.
 Automatic database rollback and recovery from a later runtime replacement/reload failure are not implemented.
 An index build can contend with writes; production duration remains unmeasured.
 Local tests and build success do not remove those deployment limits.
 
-No commit, push, database migration against application data, production initialization, or server-setting change is performed here.
 Existing unrelated workspace changes must remain outside this feature's commit.

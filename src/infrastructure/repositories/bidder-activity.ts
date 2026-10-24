@@ -7,6 +7,8 @@ import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { getBidderActivityCutoff, getBidderActivityTime } from "src/entities/models/BidderActivity";
 import { InputParseError, NotFoundError } from "src/entities/errors/common";
 import { parseInventoryHistoryRemark } from "src/entities/models/InventoryHistoryRemark";
+import { INITIALIZATION_SELECT, BidderActivityEvidence, buildBidderActivityEvidenceQuery,
+  buildBidderActivityInitializationUpdate, planBidderActivityInitialization } from "./bidder-activity-initialization";
 
 export type BidderActivityTransaction = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
@@ -186,10 +188,6 @@ export async function withBidderActivity<T>(
   }
 }
 
-export function isBidderActivityRecalculationEnabled() {
-  return process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED === "true";
-}
-
 export async function recalculateBidderActivity(tx: BidderActivityTransaction, branchId: string, now = new Date()) {
   if (!branchId?.trim() || branchId === SUPER_ADMIN_BRANCH) throw new InputParseError("Select a valid auction branch.");
   const cutoff = getBidderActivityCutoff(now);
@@ -198,10 +196,29 @@ export async function recalculateBidderActivity(tx: BidderActivityTransaction, b
     bidder_number: { not: ATC_DEFAULT_BIDDER_NUMBER }, status: { in: ["ACTIVE", "INACTIVE"] },
   };
   const unready = await tx.bidders.findFirst({
-    where: { ...where, OR: [{ last_activity_at: null }, { last_activity_at: { gt: now } }] },
+    where: { ...where, last_activity_at: { gt: now } },
     select: { bidder_id: true },
   });
-  if (unready) throw new InputParseError("Bidder activity records need review. Contact an administrator before starting this auction.");
+  if (unready) throw new InputParseError("Future bidder activity records need review. Contact an administrator.");
+  // Existing bidders get their retained history once, in this same transaction.
+  // Later calls use their tracked timestamp and do not rescan their history.
+  let cursor: string | undefined;
+  for (;;) {
+    const missing = await tx.bidders.findMany({
+      where: { ...where, last_activity_at: null, ...(cursor ? { bidder_id: { gt: cursor } } : {}) },
+      select: INITIALIZATION_SELECT,
+      orderBy: { bidder_id: "asc" },
+      take: 200,
+    });
+    if (!missing.length) break;
+    const evidence = await tx.$queryRaw<BidderActivityEvidence[]>(buildBidderActivityEvidenceQuery(missing.map(bidder => bidder.bidder_id)));
+    const candidates = planBidderActivityInitialization(missing, evidence, now);
+    if (candidates.some(candidate => candidate.future_activity)) {
+      throw new InputParseError("Future bidder activity records need review. Contact an administrator.");
+    }
+    await tx.$executeRaw(buildBidderActivityInitializationUpdate(candidates));
+    cursor = missing[missing.length - 1].bidder_id;
+  }
   const updatedAt = getBidderActivityTime(now);
   // MySQL can otherwise choose a full table scan even when the composite index
   // exists. Keep the online classification scan on branch/status/activity keys.

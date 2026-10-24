@@ -38,7 +38,6 @@ async function main() {
   const branchIds = [branchA, branchB];
   const old = new Date("2020-01-01T00:00:00Z");
   const now = getBidderActivityTime();
-  const previousFlag = process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
   const run = <T>(work: () => Promise<T>) => RequestContext.run({ branch_id: branchA, username: "integration", branch_name: "Synthetic A" }, work);
   const row = (id: string) => direct.bidders.findUniqueOrThrow({ where: { bidder_id: id } });
   const reset = (id: string) => direct.bidders.update({ where: { bidder_id: id }, data: { status: "INACTIVE", last_activity_at: old } });
@@ -62,22 +61,19 @@ async function main() {
       ...branchIds.map((branch_id) => ({ bidder_id: `${branch_id}-atc`, branch_id, bidder_number: "5013", status: "ACTIVE" as const, last_activity_at: null })),
     ].map((data) => ({ ...data, first_name: "Synthetic", last_name: "Bidder", created_at: old, updated_at: old })) });
 
-    process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = "false";
-    const initial = await run(() => AuctionRepository.startAuction(old, branchA));
-    assert.equal(initial.bidder_activity, null);
-    process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = "true";
+    await direct.bidders.update({ where: { bidder_id: recentId }, data: { last_activity_at: new Date("2999-01-01T00:00:00Z") } });
     const beforeCount = await direct.auctions.count({ where: { branch_id: branchA } });
     await assert.rejects(run(() => AuctionRepository.startAuction(old, branchA)), /activity records need review/);
     assert.equal(await direct.auctions.count({ where: { branch_id: branchA } }), beforeCount);
-    console.log("PASS: default rollout preserves startup; readiness failure rolls back auction creation");
+    await direct.bidders.update({ where: { bidder_id: recentId }, data: { last_activity_at: now } });
+    console.log("PASS: future activity rolls back auction creation");
 
     const options = { branch_id: branchA, all_branches: false, apply: false, batch_size: 2 };
     const preview = await initializeBidderActivity(direct, options, now);
     assert.equal(preview[0].needs_initialization, 1);
     assert.equal((await row(missingId)).last_activity_at, null);
-    await initializeBidderActivity(direct, { ...options, apply: true }, now);
-    assert.equal((await row(missingId)).last_activity_at?.toISOString(), old.toISOString());
     const manual = await run(() => BidderRepository.recalculateActivity(branchA));
+    assert.equal((await row(missingId)).last_activity_at?.toISOString(), old.toISOString());
     assert.equal(manual.activated, 1);
     assert.equal(manual.deactivated, 2);
     assert.equal((await row(staleId)).last_activity_at?.toISOString(), old.toISOString());
@@ -86,7 +82,8 @@ async function main() {
     const repeated = await run(() => BidderRepository.recalculateActivity(branchA));
     assert.equal(repeated.activated, 0);
     assert.equal(repeated.deactivated, 0);
-    await direct.bidders.updateMany({ where: { bidder_id: { in: [staleId, missingId] } }, data: { status: "ACTIVE" } });
+    await direct.bidders.updateMany({ where: { bidder_id: { in: [staleId, missingId] } }, data: { status: "ACTIVE", updated_at: old } });
+    await direct.bidders.update({ where: { bidder_id: missingId }, data: { last_activity_at: null, updated_at: old } });
     await direct.bidders.update({ where: { bidder_id: recentId }, data: { status: "INACTIVE" } });
     console.log("PASS: manual recalculation uses the startup rule, preserves activity, and is safe to repeat");
     const startedAt = performance.now();
@@ -222,6 +219,17 @@ async function main() {
     await run(() => AuctionRepository.unregisterBidder(registration.auction_bidder_id));
     await assertActive(created.bidder_id);
     assert.equal(await direct.auctions_bidders.count({ where: { auction_bidder_id: registration.auction_bidder_id } }), 0);
+    const legacyIds = Array.from({ length: 205 }, (_, index) => `${prefix}-legacy-${index.toString().padStart(3, "0")}`);
+    await direct.bidders.createMany({ data: legacyIds.map((bidder_id, index) => ({
+      bidder_id, branch_id: branchA, bidder_number: `legacy${index}`, first_name: "Synthetic", last_name: "Legacy",
+      status: "ACTIVE" as const, created_at: old, updated_at: old, last_activity_at: null,
+    })) });
+    await run(() => BidderRepository.recalculateActivity(branchA));
+    assert.equal(await direct.bidders.count({ where: { bidder_id: { in: legacyIds }, status: "INACTIVE", last_activity_at: old } }), 205);
+    const afterLegacy = await run(() => BidderRepository.recalculateActivity(branchA));
+    assert.equal(afterLegacy.activated, 0);
+    assert.equal(afterLegacy.deactivated, 0);
+    console.log("PASS: manual refresh initializes and classifies 205 legacy bidders across two batches without setup");
     const indexes = await direct.$queryRaw<{ Column_name: string }[]>`SHOW INDEX FROM bidders WHERE Key_name = 'bidders_branch_status_activity_idx'`;
     assert.deepEqual(indexes.map((index) => index.Column_name), ["branch_id", "status", "last_activity_at"]);
     await direct.bidders.update({ where: { bidder_id: staleId }, data: { status: "ACTIVE", last_activity_at: old } });
@@ -256,8 +264,6 @@ async function main() {
     await direct.branches.deleteMany({ where: { branch_id: { in: branchIds } } });
     await direct.payment_methods.deleteMany({ where: { payment_method_id: `${prefix}-method` } });
     await direct.suppliers.deleteMany({ where: { supplier_id: `${prefix}-supplier` } });
-    if (previousFlag === undefined) delete process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
-    else process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = previousFlag;
     await Promise.all([direct.$disconnect(), writer.$disconnect(), prisma.$disconnect()]);
   }
 }

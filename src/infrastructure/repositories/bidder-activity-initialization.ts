@@ -2,7 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { ATC_DEFAULT_BIDDER_NUMBER } from "src/entities/models/Bidder";
 import { getBidderActivityCutoff } from "src/entities/models/BidderActivity";
 
-const INITIALIZATION_SELECT = {
+export const INITIALIZATION_SELECT = {
   bidder_id: true,
   bidder_number: true,
   branch_id: true,

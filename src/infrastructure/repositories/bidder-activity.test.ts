@@ -6,7 +6,7 @@ import { RequestContext } from "@/app/lib/prisma/RequestContext";
 import { SUPER_ADMIN_BRANCH } from "@/app/lib/prisma/prisma";
 import {
   BidderActivityTransaction, resolveActivityBidders, touchBidderActivity,
-  withBidderActivity, recalculateBidderActivity, isBidderActivityRecalculationEnabled,
+  withBidderActivity, recalculateBidderActivity,
 } from "./bidder-activity";
 
 const NOW = new Date("2026-10-17T10:12:34.987Z");
@@ -123,6 +123,7 @@ test("recalculation has conditional predicates and explicit branch scope even fo
   const tx = {
     bidders: {
       findFirst: async () => null,
+      findMany: async () => [],
     },
     $executeRaw: async (query: Prisma.Sql) => { writes.push(query); return query.sql.includes("SET status = 'ACTIVE'") ? 2 : 3; },
   } as unknown as BidderActivityTransaction;
@@ -141,7 +142,7 @@ test("recalculation has conditional predicates and explicit branch scope even fo
   assert.match(writes[1].sql, /status = 'INACTIVE' AND last_activity_at > \?/);
 });
 
-test("recalculation refuses missing or future activity before changing statuses", async () => {
+test("recalculation refuses future activity before changing statuses", async () => {
   let writes = 0;
   let query: Prisma.biddersFindFirstArgs | undefined;
   const tx = { bidders: {
@@ -149,7 +150,7 @@ test("recalculation refuses missing or future activity before changing statuses"
     }, $executeRaw: async () => { writes++; return 0; },
   } as unknown as BidderActivityTransaction;
   await assert.rejects(recalculateBidderActivity(tx, "branch-a", NOW), /activity records need review/);
-  assert.deepEqual(query?.where?.OR, [{ last_activity_at: null }, { last_activity_at: { gt: NOW } }]);
+  assert.deepEqual(query?.where?.last_activity_at, { gt: NOW });
   assert.equal(writes, 0);
 });
 
@@ -160,17 +161,29 @@ test("recalculation rejects missing and global branch identifiers before databas
   }
 });
 
-test("recalculation requires an explicit server enable setting", () => {
-  const previous = process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
-  try {
-    delete process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
-    assert.equal(isBidderActivityRecalculationEnabled(), false);
-    process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = "false";
-    assert.equal(isBidderActivityRecalculationEnabled(), false);
-    process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = "true";
-    assert.equal(isBidderActivityRecalculationEnabled(), true);
-  } finally {
-    if (previous === undefined) delete process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
-    else process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = previous;
-  }
+test("recalculation fills missing activity from retained history before updating statuses", async () => {
+  const old = new Date("2020-01-01T00:00:00.000Z");
+  const historical = new Date("2026-09-01T00:00:00.000Z");
+  const writes: Prisma.Sql[] = [];
+  let reads = 0;
+  const tx = {
+    bidders: {
+      findFirst: async () => null,
+      findMany: async (args: Prisma.biddersFindManyArgs) => {
+        assert.equal(args.where?.branch_id, "branch-a");
+        assert.equal(args.where?.last_activity_at, null);
+        return reads++ ? [] : [{ bidder_id: "legacy", bidder_number: "0007", branch_id: "branch-a", status: "ACTIVE",
+          created_at: old, updated_at: old, last_activity_at: null, branch: { name: "Branch A" } }];
+      },
+    },
+    $queryRaw: async () => [{ bidder_id: "legacy", source: "payment", activity_at: historical }],
+    $executeRaw: async (query: Prisma.Sql) => { writes.push(query); return 1; },
+  } as unknown as BidderActivityTransaction;
+  await recalculateBidderActivity(tx, "branch-a", NOW);
+  assert.equal(writes.length, 3);
+  assert.match(writes[0].sql, /SET b.last_activity_at = c.activity_at/);
+  assert.ok(writes[0].values.some(value => value instanceof Date && value.getTime() === historical.getTime()));
+  assert.doesNotMatch(writes[0].sql, /SET[^]*updated_at|SET[^]*status\s*=/);
+  assert.match(writes[1].sql, /SET status = 'INACTIVE'/);
+  assert.match(writes[2].sql, /SET status = 'ACTIVE'/);
 });

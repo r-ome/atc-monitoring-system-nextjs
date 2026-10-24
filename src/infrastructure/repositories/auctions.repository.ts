@@ -1,5 +1,5 @@
 import { withBidderActivity } from "./bidder-activity";
-import { isBidderActivityRecalculationEnabled, recalculateBidderActivity } from "./bidder-activity";
+import { recalculateBidderActivity } from "./bidder-activity";
 import { SUPER_ADMIN_BRANCH } from "@/app/lib/prisma/prisma";
 import { buildTenantWhere } from "@/app/lib/prisma/tenant-where";
 import { Prisma } from "@prisma/client";
@@ -93,9 +93,7 @@ export const AuctionRepository: IAuctionRepository = {
             },
           },
         });
-        const bidder_activity = isBidderActivityRecalculationEnabled()
-          ? await recalculateBidderActivity(tx, auction.branch_id)
-          : null;
+        const bidder_activity = await recalculateBidderActivity(tx, auction.branch_id);
         return { auction, bidder_activity };
       }, { timeout: 30_000 });
     } catch (error) {

@@ -13,14 +13,7 @@ test("auction repository never falls back to a database default branch", async (
   }
 });
 
-for (const enabled of [false, true]) {
-  test(`auction startup creates its own branch and recalculation enabled=${enabled}`, async (context) => {
-    const previous = process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
-    process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = String(enabled);
-    context.after(() => {
-      if (previous === undefined) delete process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
-      else process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = previous;
-    });
+  test("auction startup creates its own branch and always recalculates bidders", async (context) => {
     const { auction } = auctionStartFixture("selected");
     const updates: unknown[] = [];
     let readinessReads = 0;
@@ -28,6 +21,7 @@ for (const enabled of [false, true]) {
     const tx = {
       branches: { findFirst: async () => ({ branch_id: "selected" }) },
       bidders: {
+        findMany: async () => [],
         findFirst: async (args: { where: Record<string, unknown> }) => {
           if (args.where.bidder_number === "5013") {
             assert.equal(args.where.branch_id, "selected"); return { bidder_id: "selected-atc" };
@@ -44,23 +38,14 @@ for (const enabled of [false, true]) {
     const result = await AuctionRepository.startAuction(historic, "selected");
     assert.equal(data?.branch_id, "selected");
     assert.equal(data?.created_at, historic);
-    assert.equal(readinessReads, Number(enabled));
-    assert.equal(updates.length, enabled ? 2 : 0);
+    assert.equal(readinessReads, 1);
+    assert.equal(updates.length, 2);
     assert.equal(result.auction.branch_id, "selected");
-    if (enabled) {
-      assert.ok(result.bidder_activity);
-      assert.ok(new Date(result.bidder_activity.cutoff) > historic);
-    } else assert.equal(result.bidder_activity, null);
+    assert.ok(result.bidder_activity);
+    assert.ok(new Date(result.bidder_activity.cutoff) > historic);
   });
-}
 
-test("uninitialized activity aborts the auction transaction and reaches the caller", async (context) => {
-  const previous = process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
-  process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = "true";
-  context.after(() => {
-    if (previous === undefined) delete process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED;
-    else process.env.BIDDER_ACTIVITY_RECALCULATION_ENABLED = previous;
-  });
+test("future activity aborts the auction transaction and reaches the caller", async (context) => {
   let committed = false;
   let created = false;
   const tx = {
